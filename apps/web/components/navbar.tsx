@@ -136,7 +136,7 @@ export const Navbar = () => {
                 "text-xs text-[#1A1A1A] hover:opacity-70 transition-opacity uppercase tracking-wider",
                 activeCategory === 'women' && "font-medium"
               )}
-              onClick={() => setActiveCategory('women')}
+              onPointerDown={() => setActiveCategory('women')}
             >
               {t('women')}
             </Link>
@@ -146,7 +146,7 @@ export const Navbar = () => {
                 "text-xs text-[#1A1A1A] hover:opacity-70 transition-opacity uppercase tracking-wider",
                 activeCategory === 'men' && "font-medium"
               )}
-              onClick={() => setActiveCategory('men')}
+              onPointerDown={() => setActiveCategory('men')}
             >
               {t('men')}
             </Link>
@@ -164,7 +164,7 @@ export const Navbar = () => {
         <NavbarContent className="sm:hidden">
           <Menu
             className="h-6 w-6 cursor-pointer"
-            onClick={() => setIsMenuOpen(true)}
+            onPointerDown={() => setIsMenuOpen(true)}
           />
         </NavbarContent>
 
@@ -260,7 +260,7 @@ export const Navbar = () => {
                       variant="light"
                       size="sm"
                       aria-label={t('search.close')}
-                      onClick={() => setIsSearchOpen(false)}
+                      onPointerDown={() => setIsSearchOpen(false)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -277,7 +277,7 @@ export const Navbar = () => {
                     isIconOnly
                     variant="light"
                     aria-label={t('search.label')}
-                    onClick={() => setIsSearchOpen(true)}
+                    onPointerDown={() => setIsSearchOpen(true)}
                   >
                     <SearchIcon className="h-5 w-5" />
                   </Button>
@@ -331,7 +331,7 @@ export const Navbar = () => {
                 <Button
                   isIconOnly
                   variant="light"
-                  onClick={() => setIsMenuOpen(false)}
+                  onPointerDown={() => setIsMenuOpen(false)}
                 >
                   <X className="h-6 w-6" />
                 </Button>
@@ -345,7 +345,7 @@ export const Navbar = () => {
                       ? "border-black font-medium"
                       : "hover:bg-[#F5F5F2]"
                   )}
-                  onClick={() => setActiveCategory('women')}
+                  onPointerDown={() => setActiveCategory('women')}
                 >
                   {t('women')}
                 </Link>
@@ -357,7 +357,7 @@ export const Navbar = () => {
                       ? "border-black font-medium"
                       : "hover:bg-[#F5F5F2]"
                   )}
-                  onClick={() => setActiveCategory('men')}
+                  onPointerDown={() => setActiveCategory('men')}
                 >
                   {t('men')}
                 </Link>
@@ -368,7 +368,7 @@ export const Navbar = () => {
                     <Link
                       href={item.href}
                       className="block py-3 px-4 border-b text-sm font-normal hover:bg-[#F5F5F2] transition-colors"
-                      onClick={() => !item.items && setIsMenuOpen(false)}
+                      onPointerDown={() => !item.items && setIsMenuOpen(false)}
                     >
                       <div className="flex items-center justify-between">
                         <span>{item.name}</span>
@@ -382,7 +382,7 @@ export const Navbar = () => {
                             key={subItem.href}
                             href={subItem.href}
                             className="block py-2 px-6 text-sm hover:bg-[#F5F5F2] transition-colors"
-                            onClick={() => setIsMenuOpen(false)}
+                            onPointerDown={() => setIsMenuOpen(false)}
                           >
                             {subItem.name}
                           </Link>

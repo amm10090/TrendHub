@@ -24,6 +24,9 @@ import {
 import { Menu, X } from "lucide-react";
 import { LanguageSwitch } from './language-switch';
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@heroui/skeleton";
+import { useRouter } from 'next/navigation';
+import { Tabs, Tab } from "@heroui/tabs";
 
 interface SubMenuItem {
   name: string;
@@ -39,9 +42,15 @@ interface MenuItem {
 
 export const Navbar = () => {
   const t = useTranslations('nav');
+  const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'women' | 'men'>('women');
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [currentSubmenu, setCurrentSubmenu] = useState<{
+    name: string;
+    items: SubMenuItem[];
+  } | null>(null);
 
   const getSubItems = (category: string): SubMenuItem[] => {
     const items: SubMenuItem[] = [];
@@ -69,17 +78,17 @@ export const Navbar = () => {
   const getBrandItems = () => {
     return {
       popularBrands: [
-        { name: 'Balenciaga', href: `/${activeCategory}/brands/balenciaga` },
-        { name: 'Bottega Veneta', href: `/${activeCategory}/brands/bottega-veneta` },
-        { name: 'Chloé', href: `/${activeCategory}/brands/chloe` },
-        { name: 'Ganni', href: `/${activeCategory}/brands/ganni` },
-        { name: 'Gucci', href: `/${activeCategory}/brands/gucci` },
-        { name: 'H&M', href: `/${activeCategory}/brands/h-and-m` },
-        { name: 'Isabel Marant', href: `/${activeCategory}/brands/isabel-marant` },
-        { name: '& Other Stories', href: `/${activeCategory}/brands/other-stories` },
-        { name: 'Prada', href: `/${activeCategory}/brands/prada` },
-        { name: 'Reformation', href: `/${activeCategory}/brands/reformation` },
-        { name: 'Saint Laurent', href: `/${activeCategory}/brands/saint-laurent` },
+        { name: t('popular_brand_names.balenciaga'), href: `/${activeCategory}/brands/balenciaga` },
+        { name: t('popular_brand_names.bottega_veneta'), href: `/${activeCategory}/brands/bottega-veneta` },
+        { name: t('popular_brand_names.chloe'), href: `/${activeCategory}/brands/chloe` },
+        { name: t('popular_brand_names.ganni'), href: `/${activeCategory}/brands/ganni` },
+        { name: t('popular_brand_names.gucci'), href: `/${activeCategory}/brands/gucci` },
+        { name: t('popular_brand_names.h_and_m'), href: `/${activeCategory}/brands/h-and-m` },
+        { name: t('popular_brand_names.isabel_marant'), href: `/${activeCategory}/brands/isabel-marant` },
+        { name: t('view_all_brands'), href: `/${activeCategory}/brands` },
+        { name: t('popular_brand_names.prada'), href: `/${activeCategory}/brands/prada` },
+        { name: t('popular_brand_names.reformation'), href: `/${activeCategory}/brands/reformation` },
+        { name: t('popular_brand_names.saint_laurent'), href: `/${activeCategory}/brands/saint-laurent` },
       ],
       alphabet: Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map(letter => ({
         letter,
@@ -117,7 +126,7 @@ export const Navbar = () => {
     {
       name: t('brands'),
       href: `/${activeCategory}/brands`,
-      isBrands: true,
+      items: getBrandItems().popularBrands,
     },
     {
       name: t('guides'),
@@ -125,33 +134,45 @@ export const Navbar = () => {
     },
   ];
 
+  const handleMenuItemClick = (item: MenuItem, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (item.items) {
+      setExpandedItem(expandedItem === item.href ? null : item.href);
+    } else {
+      router.push(item.href);
+      setIsMenuOpen(false);
+    }
+  };
+
   return (
     <>
-      <div className="w-full bg-[#FAF9F6] text-[#1A1A1A] border-b border-[#E8E6E3]">
+      <div className="w-full bg-[#FAF9F6] text-[#1A1A1A] border-b border-[#E8E6E3] hidden sm:block">
         <div className="container mx-auto px-4 flex justify-between items-center h-8">
           <div className="flex gap-6">
             <Link
               href="/women"
               className={cn(
-                "text-xs text-[#1A1A1A] hover:opacity-70 transition-opacity uppercase tracking-wider",
-                activeCategory === 'women' && "font-medium"
+                "text-sm font-medium text-[#1A1A1A] hover:opacity-70 transition-all duration-300 uppercase tracking-wider relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-black after:transition-all after:duration-300 hover:after:w-full",
+                activeCategory === 'women' && "after:w-full"
               )}
-              onPointerDown={() => setActiveCategory('women')}
             >
               {t('women')}
             </Link>
             <Link
               href="/men"
               className={cn(
-                "text-xs text-[#1A1A1A] hover:opacity-70 transition-opacity uppercase tracking-wider",
-                activeCategory === 'men' && "font-medium"
+                "text-sm font-medium text-[#1A1A1A] hover:opacity-70 transition-all duration-300 uppercase tracking-wider relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-black after:transition-all after:duration-300 hover:after:w-full",
+                activeCategory === 'men' && "after:w-full"
               )}
-              onPointerDown={() => setActiveCategory('men')}
             >
               {t('men')}
             </Link>
           </div>
-          <LanguageSwitch isSearchOpen={isSearchOpen} />
+          <div className="flex items-center">
+            <LanguageSwitch isSearchOpen={isSearchOpen} />
+          </div>
         </div>
       </div>
       <HeroUINavbar
@@ -188,51 +209,59 @@ export const Navbar = () => {
               >
                 {item.name}
               </Link>
-              {item.items && (
-                <div className="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="bg-[#FAF9F6] shadow-sm border-t border-x border-[#E8E6E3] w-[180px]">
-                    {item.items.map((subItem) => (
-                      <Link
-                        key={subItem.href}
-                        href={subItem.href}
-                        className="block w-full px-4 py-[6px] text-sm hover:bg-[#F5F5F2] transition-colors"
-                      >
-                        {subItem.name}
-                      </Link>
-                    ))}
+              {item.items && !item.isBrands && (
+                <div className="fixed left-0 right-0 top-[96px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="bg-[#FAF9F6] shadow-sm border-t border-[#E8E6E3] w-full">
+                    <div className="container mx-auto px-4 py-8">
+                      <div className="grid grid-cols-4 gap-8">
+                        {item.items.map((subItem) => (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            className="text-sm text-[#1A1A1A] hover:opacity-70 transition-opacity"
+                          >
+                            {subItem.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
               {item.isBrands && (
-                <div className="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="bg-[#FAF9F6] shadow-sm border-t border-x border-[#E8E6E3]">
-                    <div className="w-[400px] p-6">
-                      <div className="mb-8">
-                        <h3 className="text-sm font-medium mb-3">Popular Brands</h3>
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-                          {getBrandItems().popularBrands.map((brand) => (
-                            <Link
-                              key={brand.href}
-                              href={brand.href}
-                              className="text-sm hover:opacity-70 transition-opacity"
-                            >
-                              {brand.name}
-                            </Link>
-                          ))}
+                <div className="fixed left-0 right-0 top-[96px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="bg-[#FAF9F6] shadow-sm border-t border-[#E8E6E3] w-full">
+                    <div className="container mx-auto px-4 py-8">
+                      <div className="flex gap-16">
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-sm font-medium text-[#666666] uppercase tracking-wider">{t('popular_brands')}</h3>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-4">
+                            {getBrandItems().popularBrands.map((brand) => (
+                              <Link
+                                key={brand.href}
+                                href={brand.href}
+                                className="block text-[#1A1A1A] hover:opacity-70 transition-opacity text-sm"
+                              >
+                                {brand.name}
+                              </Link>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium mb-3">Brands A-Z</h3>
-                        <div className="grid grid-cols-6 gap-4">
-                          {getBrandItems().alphabet.map((item) => (
-                            <Link
-                              key={item.letter}
-                              href={item.href}
-                              className="text-sm text-blue-600 hover:opacity-70 transition-opacity"
-                            >
-                              {item.letter}
-                            </Link>
-                          ))}
+                        <div className="w-[280px]">
+                          <h3 className="text-sm font-medium text-[#666666] mb-6 uppercase tracking-wider">{t('brands_a_z')}</h3>
+                          <div className="grid grid-cols-6 gap-3">
+                            {getBrandItems().alphabet.map((item) => (
+                              <Link
+                                key={item.letter}
+                                href={item.href}
+                                className="flex items-center justify-center w-10 h-10 text-[#1A1A1A] hover:bg-[#F5F5F2] transition-colors rounded-md text-sm"
+                              >
+                                {item.letter}
+                              </Link>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -304,7 +333,7 @@ export const Navbar = () => {
                   <Button
                     isIconOnly
                     variant="light"
-                    aria-label={t('wishlist')}
+                    aria-label={t('cart')}
                   >
                     <ShoppingBagIcon className="h-5 w-5" />
                   </Button>
@@ -318,88 +347,102 @@ export const Navbar = () => {
           isOpen={isMenuOpen}
           onOpenChange={setIsMenuOpen}
           placement="left"
-          hideCloseButton={false}
+          hideCloseButton={true}
           classNames={{
-            base: "w-[75vw] max-w-[400px] bg-[#FAF9F6]",
+            base: "w-[85vw] max-w-[400px] bg-[#FAF9F6]",
             wrapper: "bg-black/20",
           }}
         >
           <DrawerContent>
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between p-4 border-b border-[#E8E6E3]">
-                <span className="text-lg font-medium">{t('menu')}</span>
+                <Tabs
+                  selectedKey={activeCategory}
+                  onSelectionChange={(key) => setActiveCategory(key as 'women' | 'men')}
+                  variant="solid"
+                  fullWidth
+                  classNames={{
+                    base: "w-full",
+                    tabList: "gap-0",
+                    tab: "h-11 data-[selected=true]:bg-black data-[selected=true]:text-white data-[selected=false]:bg-[#F5F5F2] data-[selected=false]:text-[#666666]",
+                    tabContent: "text-base font-normal group-data-[selected=true]:text-white group-data-[selected=false]:text-[#666666]",
+                    cursor: "hidden",
+                  }}
+                >
+                  <Tab key="women" title={t('women')} />
+                  <Tab key="men" title={t('men')} />
+                </Tabs>
                 <Button
                   isIconOnly
                   variant="light"
                   onPointerDown={() => setIsMenuOpen(false)}
+                  className="ml-4"
                 >
                   <X className="h-6 w-6" />
                 </Button>
               </div>
-              <div className="flex gap-4 p-4 border-b border-[#E8E6E3]">
-                <Link
-                  href="/women"
-                  className={cn(
-                    "flex-1 text-center py-2 border rounded-md transition-colors",
-                    activeCategory === 'women'
-                      ? "border-black font-medium"
-                      : "hover:bg-[#F5F5F2]"
-                  )}
-                  onPointerDown={() => setActiveCategory('women')}
-                >
-                  {t('women')}
-                </Link>
-                <Link
-                  href="/men"
-                  className={cn(
-                    "flex-1 text-center py-2 border rounded-md transition-colors",
-                    activeCategory === 'men'
-                      ? "border-black font-medium"
-                      : "hover:bg-[#F5F5F2]"
-                  )}
-                  onPointerDown={() => setActiveCategory('men')}
-                >
-                  {t('men')}
-                </Link>
-              </div>
               <div className="flex-1 overflow-auto">
-                {navigationItems.map((item) => (
-                  <div key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="block py-3 px-4 border-b text-sm font-normal hover:bg-[#F5F5F2] transition-colors"
-                      onPointerDown={() => !item.items && setIsMenuOpen(false)}
+                {currentSubmenu ? (
+                  <div>
+                    <div
+                      className="flex items-center gap-2 p-4 border-b border-[#E8E6E3] cursor-pointer text-base"
+                      onClick={() => setCurrentSubmenu(null)}
+                    >
+                      <span className="rotate-180">›</span>
+                      <span>{currentSubmenu.name}</span>
+                    </div>
+                    <div>
+                      {currentSubmenu.items.map((subItem: SubMenuItem) => (
+                        <Link
+                          key={subItem.href}
+                          href={subItem.href}
+                          className="block py-3 px-4 border-b text-[#666666] hover:bg-[#F5F5F2] transition-colors text-base"
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            router.push(subItem.href);
+                          }}
+                        >
+                          {subItem.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  navigationItems.map((item) => (
+                    <div
+                      key={item.href}
+                      className="block py-3 px-4 border-b text-base hover:bg-[#F5F5F2] transition-colors cursor-pointer"
+                      onClick={() => {
+                        if (item.items) {
+                          setCurrentSubmenu({
+                            name: item.name,
+                            items: item.items
+                          });
+                        } else {
+                          router.push(item.href);
+                          setIsMenuOpen(false);
+                        }
+                      }}
                     >
                       <div className="flex items-center justify-between">
                         <span>{item.name}</span>
-                        {item.items && <span className="text-gray-400">›</span>}
+                        {item.items && <span className="text-[#666666]">›</span>}
                       </div>
-                    </Link>
-                    {item.items && (
-                      <div className="bg-[#F5F5F2]">
-                        {item.items.map((subItem) => (
-                          <Link
-                            key={subItem.href}
-                            href={subItem.href}
-                            className="block py-2 px-6 text-sm hover:bg-[#F5F5F2] transition-colors"
-                            onPointerDown={() => setIsMenuOpen(false)}
-                          >
-                            {subItem.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="mt-auto border-t">
+              <div className="mt-auto border-t border-[#E8E6E3]">
                 <div className="p-4">
                   <Button
-                    className="w-full border border-black hover:bg-[#F5F5F2]"
+                    className="w-full border border-black hover:bg-[#F5F5F2] mb-4 text-base"
                     startContent={<HeartIcon className="h-5 w-5" />}
                   >
                     {t('wishlist')}
                   </Button>
+                  <div className="flex justify-center">
+                    <LanguageSwitch isSearchOpen={isSearchOpen} />
+                  </div>
                 </div>
               </div>
             </div>

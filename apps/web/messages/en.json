@@ -9,6 +9,9 @@
         "jewelry": "Jewelry",
         "brands": "Brands",
         "guides": "Guides",
+        "popular_brands": "Popular Brands",
+        "brands_a_z": "Brands A-Z",
+        "view_all_brands": "View All Brands",
         "all": "All",
         "newArrivals": "New Arrivals",
         "onSale": "On Sale",
@@ -80,6 +83,28 @@
             "necklaces": "Necklaces",
             "rings": "Rings"
         },
+        "brands_categories": {
+            "all": "All Brands",
+            "popular": "Popular Brands",
+            "designers": "Designer Brands",
+            "contemporary": "Contemporary",
+            "luxury": "Luxury",
+            "sustainable": "Sustainable",
+            "affordable": "Affordable Luxury"
+        },
+        "popular_brand_names": {
+            "balenciaga": "Balenciaga",
+            "bottega_veneta": "Bottega Veneta",
+            "chloe": "Chloé",
+            "ganni": "GANNI",
+            "gucci": "Gucci",
+            "h_and_m": "H&M",
+            "isabel_marant": "Isabel Marant",
+            "other_stories": "& Other Stories",
+            "prada": "Prada",
+            "reformation": "Reformation",
+            "saint_laurent": "Saint Laurent"
+        },
         "search": {
             "placeholder": "Search e.g. 'Modern chelsea boots'",
             "label": "Search",
@@ -88,6 +113,7 @@
         },
         "account": "Account",
         "wishlist": "Wishlist",
+        "cart": "Shopping Bag",
         "menu": "Menu"
     },
     "banner": {

@@ -40,7 +40,10 @@
             "label": "Search",
             "close": "Close search",
             "clear": "Clear search text"
-        }
+        },
+        "account": "My Account",
+        "wishlist": "Wishlist",
+        "menu": "Menu"
     },
     "banner": {
         "title": "Gucci New Season",

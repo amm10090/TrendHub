@@ -3,12 +3,13 @@
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
-  NavbarMenu,
-  NavbarMenuToggle,
   NavbarBrand,
   NavbarItem,
-  NavbarMenuItem,
 } from "@heroui/navbar";
+import {
+  Drawer,
+  DrawerContent,
+} from "@heroui/drawer";
 import {
   Dropdown,
   DropdownTrigger,
@@ -26,7 +27,7 @@ import {
   HeartIcon,
   ShoppingBagIcon,
 } from "@/components/icons";
-import { Delete, X } from "lucide-react";
+import { Delete, X, Menu } from "lucide-react";
 import { LanguageSwitch } from './language-switch';
 
 interface SubMenuItem {
@@ -43,6 +44,7 @@ interface MenuItem {
 export const Navbar = () => {
   const t = useTranslations('nav');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigationItems: MenuItem[] = [
     {
@@ -136,7 +138,19 @@ export const Navbar = () => {
   ];
 
   return (
-    <HeroUINavbar isBordered>
+    <HeroUINavbar
+      isBordered
+      classNames={{
+        wrapper: "px-4 max-w-full",
+      }}
+    >
+      <NavbarContent className="sm:hidden">
+        <Menu
+          className="h-6 w-6 cursor-pointer"
+          onClick={() => setIsMenuOpen(true)}
+        />
+      </NavbarContent>
+
       <NavbarContent>
         <NavbarBrand>
           <Link href="/" className="font-bold text-inherit">
@@ -146,13 +160,8 @@ export const Navbar = () => {
       </NavbarContent>
 
       <NavbarContent
-        className="hidden sm:flex gap-4 transition-all duration-300 ease-in-out"
+        className="hidden sm:flex gap-4"
         justify="center"
-        style={{
-          opacity: isSearchOpen ? 0 : 1,
-          visibility: isSearchOpen ? 'hidden' : 'visible',
-          transform: isSearchOpen ? 'translateX(-20px)' : 'translateX(0)',
-        }}
       >
         {navigationItems.map((item) => (
           <NavbarItem key={item.href} className="group relative">
@@ -179,38 +188,24 @@ export const Navbar = () => {
         ))}
       </NavbarContent>
 
-      <NavbarContent justify="end" className="relative">
-        <NavbarItem>
-          <LanguageSwitch isSearchOpen={isSearchOpen} />
-        </NavbarItem>
+      <NavbarContent justify="end">
+        <div className="hidden sm:flex">
+          <NavbarItem>
+            <LanguageSwitch isSearchOpen={isSearchOpen} />
+          </NavbarItem>
+        </div>
+
         <div className="flex items-center gap-2">
-          <div
-            className="flex items-center transition-all duration-300 ease-in-out overflow-hidden absolute right-0"
-            style={{
-              width: isSearchOpen ? 'calc(100vw - 32px)' : '0',
-              maxWidth: '600px',
-              opacity: isSearchOpen ? 1 : 0,
-              zIndex: isSearchOpen ? 50 : -1,
-            }}
-          >
-            <Input
-              aria-label={t('search.label')}
-              classNames={{
-                base: "w-full",
-                input: "text-small",
-                inputWrapper: "h-10 bg-default-100",
-              }}
-              endContent={
-                <div className="flex items-center gap-1">
-                  <Button
-                    isIconOnly
-                    variant="light"
-                    size="sm"
-                    aria-label={t('search.clear')}
-                    className="text-default-400 hover:text-default-500"
-                  >
-                    <Delete className="h-4 w-4" />
-                  </Button>
+          {isSearchOpen ? (
+            <div className="absolute inset-0 px-4 flex items-center bg-background/70 backdrop-blur-md">
+              <Input
+                aria-label={t('search.label')}
+                classNames={{
+                  base: "w-full",
+                  input: "text-small",
+                  inputWrapper: "h-10 bg-default-100/50",
+                }}
+                endContent={
                   <Button
                     isIconOnly
                     variant="light"
@@ -221,85 +216,102 @@ export const Navbar = () => {
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                </div>
-              }
-              placeholder={t('search.placeholder')}
-              startContent={<SearchIcon className="h-4 w-4 text-default-400" />}
-              type="search"
-            />
-          </div>
-          <div
-            className="flex items-center gap-2 transition-all duration-300 ease-in-out"
-            style={{
-              opacity: isSearchOpen ? 0 : 1,
-              visibility: isSearchOpen ? 'hidden' : 'visible',
-              transform: isSearchOpen ? 'translateX(20px)' : 'translateX(0)',
-            }}
-          >
-            <NavbarItem>
-              <Button
-                isIconOnly
-                variant="light"
-                aria-label={t('search.label')}
-                onClick={() => setIsSearchOpen(true)}
-              >
-                <SearchIcon className="h-5 w-5" />
-              </Button>
-            </NavbarItem>
-            <NavbarItem>
-              <Button
-                isIconOnly
-                variant="light"
-                aria-label="用户"
-              >
-                <UserIcon className="h-5 w-5" />
-              </Button>
-            </NavbarItem>
-            <NavbarItem>
-              <Button
-                isIconOnly
-                variant="light"
-                aria-label="收藏"
-              >
-                <HeartIcon className="h-5 w-5" />
-              </Button>
-            </NavbarItem>
-            <NavbarItem>
-              <Button
-                isIconOnly
-                variant="light"
-                aria-label="购物车"
-              >
-                <ShoppingBagIcon className="h-5 w-5" />
-              </Button>
-            </NavbarItem>
-          </div>
+                }
+                placeholder={t('search.placeholder')}
+                startContent={<SearchIcon className="h-4 w-4 text-default-400" />}
+                type="search"
+              />
+            </div>
+          ) : (
+            <>
+              <NavbarItem>
+                <Button
+                  isIconOnly
+                  variant="light"
+                  aria-label={t('search.label')}
+                  onClick={() => setIsSearchOpen(true)}
+                >
+                  <SearchIcon className="h-5 w-5" />
+                </Button>
+              </NavbarItem>
+              <NavbarItem className="hidden sm:flex">
+                <Button
+                  isIconOnly
+                  variant="light"
+                  aria-label="用户"
+                >
+                  <UserIcon className="h-5 w-5" />
+                </Button>
+              </NavbarItem>
+              <NavbarItem className="hidden sm:flex">
+                <Button
+                  isIconOnly
+                  variant="light"
+                  aria-label="收藏"
+                >
+                  <HeartIcon className="h-5 w-5" />
+                </Button>
+              </NavbarItem>
+              <NavbarItem>
+                <Button
+                  isIconOnly
+                  variant="light"
+                  aria-label="购物车"
+                >
+                  <ShoppingBagIcon className="h-5 w-5" />
+                </Button>
+              </NavbarItem>
+            </>
+          )}
         </div>
       </NavbarContent>
 
-      <NavbarMenu>
-        {navigationItems.map((item) => (
-          <NavbarMenuItem key={item.href}>
-            <Link
-              href={item.href}
-              className="w-full"
-            >
-              {item.name}
-            </Link>
-            {item.items.map((subItem) => (
-              <Link
-                key={subItem.href}
-                href={subItem.href}
-                className="w-full pl-6 text-sm"
-              >
-                {subItem.name}
-              </Link>
-            ))}
-          </NavbarMenuItem>
-        ))}
-      </NavbarMenu>
-
-      <NavbarMenuToggle className="sm:hidden" />
+      <Drawer
+        isOpen={isMenuOpen}
+        onOpenChange={setIsMenuOpen}
+        placement="left"
+        hideCloseButton={false}
+        classNames={{
+          base: "bg-black w-[75vw] max-w-[400px]",
+          wrapper: "bg-black/20",
+        }}
+      >
+        <DrawerContent>
+          <div className="flex flex-col h-full bg-black text-white">
+            <div className="flex items-center justify-between p-6">
+              <span className="text-xl font-medium">{t('menu')}</span>
+            </div>
+            <div className="flex-1 overflow-auto">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="block py-4 px-6 border-b border-white/10 text-base font-normal text-white hover:text-blue-400 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <div className="flex items-center justify-between">
+                    {item.name}
+                    <span className="text-white/60">›</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-auto">
+              <div className="px-6 py-4">
+                <Button
+                  className="w-full bg-white text-black hover:bg-white/90"
+                  startContent={<HeartIcon className="h-5 w-5" />}
+                >
+                  {t('wishlist')}
+                </Button>
+              </div>
+              <div className="px-6 py-4 border-t border-white/10">
+                <LanguageSwitch />
+              </div>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </HeroUINavbar>
   );
 };

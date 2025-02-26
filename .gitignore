@@ -1,3 +1,38 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# build
+dist
+build
+.next
+out
+
+# env
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# editor
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# system
+.DS_Store
+Thumbs.db
+
 # Logs
 logs
 *.log
@@ -39,7 +74,6 @@ bower_components
 build/Release
 
 # Dependency directories
-node_modules/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
@@ -83,10 +117,6 @@ web_modules/
 .cache
 .parcel-cache
 
-# Next.js build output
-.next
-out
-
 # Nuxt.js build / generate output
 .nuxt
 dist
@@ -128,3 +158,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+.cursor
+.turbo
+.venv

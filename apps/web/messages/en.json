@@ -1,0 +1,28 @@
+{
+    "nav": {
+        "newArrivals": "New Arrivals",
+        "brands": "Brands",
+        "clothing": "Clothing",
+        "shoes": "Shoes",
+        "bags": "Bags",
+        "accessories": "Accessories",
+        "jewelry": "Jewelry",
+        "gifts": "Gifts",
+        "sale": "Sale"
+    },
+    "banner": {
+        "title": "Gucci New Season",
+        "description": "Explore Gucci Spring/Summer 2024 Collection, experience the perfect blend of Italian luxury and modern fashion",
+        "cta": "Explore Now"
+    },
+    "footer": {
+        "customerService": "Customer Service",
+        "aboutUs": "About Us",
+        "followUs": "Follow Us",
+        "contact": "Contact",
+        "giftCards": "Gift Cards",
+        "payment": "Payment Methods",
+        "shipping": "Shipping",
+        "returns": "Returns & Exchanges"
+    }
+}

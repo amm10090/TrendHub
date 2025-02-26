@@ -10,12 +10,6 @@ import {
   Drawer,
   DrawerContent,
 } from "@heroui/drawer";
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from "@heroui/dropdown";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Link } from "@heroui/link";
@@ -27,8 +21,9 @@ import {
   HeartIcon,
   ShoppingBagIcon,
 } from "@/components/icons";
-import { Delete, X, Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { LanguageSwitch } from './language-switch';
+import { cn } from "@/lib/utils";
 
 interface SubMenuItem {
   name: string;
@@ -38,280 +33,379 @@ interface SubMenuItem {
 interface MenuItem {
   name: string;
   href: string;
-  items: SubMenuItem[];
+  items?: SubMenuItem[];
+  isBrands?: boolean;
 }
 
 export const Navbar = () => {
   const t = useTranslations('nav');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<'women' | 'men'>('women');
+
+  const getSubItems = (category: string): SubMenuItem[] => {
+    const items: SubMenuItem[] = [];
+    const categoryKey = `${category}_categories`;
+
+    // Add "All" category first
+    items.push({
+      name: t(`${categoryKey}.all`),
+      href: `/${activeCategory}/${category}`,
+    });
+
+    // Add other subcategories
+    Object.keys(t.raw(categoryKey)).forEach((key) => {
+      if (key !== 'all') {
+        items.push({
+          name: t(`${categoryKey}.${key}`),
+          href: `/${activeCategory}/${category}/${key}`,
+        });
+      }
+    });
+
+    return items;
+  };
+
+  const getBrandItems = () => {
+    return {
+      popularBrands: [
+        { name: 'Balenciaga', href: `/${activeCategory}/brands/balenciaga` },
+        { name: 'Bottega Veneta', href: `/${activeCategory}/brands/bottega-veneta` },
+        { name: 'Chloé', href: `/${activeCategory}/brands/chloe` },
+        { name: 'Ganni', href: `/${activeCategory}/brands/ganni` },
+        { name: 'Gucci', href: `/${activeCategory}/brands/gucci` },
+        { name: 'H&M', href: `/${activeCategory}/brands/h-and-m` },
+        { name: 'Isabel Marant', href: `/${activeCategory}/brands/isabel-marant` },
+        { name: '& Other Stories', href: `/${activeCategory}/brands/other-stories` },
+        { name: 'Prada', href: `/${activeCategory}/brands/prada` },
+        { name: 'Reformation', href: `/${activeCategory}/brands/reformation` },
+        { name: 'Saint Laurent', href: `/${activeCategory}/brands/saint-laurent` },
+      ],
+      alphabet: Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map(letter => ({
+        letter,
+        href: `/${activeCategory}/brands?letter=${letter}`,
+      }))
+    };
+  };
 
   const navigationItems: MenuItem[] = [
     {
-      name: t('newArrivals'),
-      href: '/new-arrivals',
-      items: [
-        { name: t('thisWeek'), href: '/new-arrivals/this-week' },
-        { name: t('recentArrivals'), href: '/new-arrivals/recent' },
-        { name: t('essentials'), href: '/new-arrivals/essentials' },
-        { name: t('dressingSeason'), href: '/new-arrivals/dressing-season' },
-        { name: t('partyEdit'), href: '/new-arrivals/party-edit' },
-        { name: t('trendingNow'), href: '/new-arrivals/trending' },
-      ],
-    },
-    {
-      name: t('brands'),
-      href: '/brands',
-      items: [
-        { name: 'Gucci', href: '/brands/gucci' },
-        { name: 'Prada', href: '/brands/prada' },
-        { name: 'Balenciaga', href: '/brands/balenciaga' },
-        { name: 'Saint Laurent', href: '/brands/saint-laurent' },
-        { name: 'Bottega Veneta', href: '/brands/bottega-veneta' },
-      ],
-    },
-    {
       name: t('clothing'),
-      href: '/clothing',
-      items: [
-        { name: t('dresses'), href: '/clothing/dresses' },
-        { name: t('tops'), href: '/clothing/tops' },
-        { name: t('knitwear'), href: '/clothing/knitwear' },
-        { name: t('jackets'), href: '/clothing/jackets' },
-        { name: t('pants'), href: '/clothing/pants' },
-      ],
+      href: `/${activeCategory}/clothing`,
+      items: getSubItems('clothing'),
     },
     {
       name: t('shoes'),
-      href: '/shoes',
-      items: [
-        { name: t('sneakers'), href: '/shoes/sneakers' },
-        { name: t('boots'), href: '/shoes/boots' },
-        { name: t('sandals'), href: '/shoes/sandals' },
-      ],
-    },
-    {
-      name: t('bags'),
-      href: '/bags',
-      items: [
-        { name: t('totes'), href: '/bags/totes' },
-        { name: t('crossbody'), href: '/bags/crossbody' },
-        { name: t('clutches'), href: '/bags/clutches' },
-      ],
+      href: `/${activeCategory}/shoes`,
+      items: getSubItems('shoes'),
     },
     {
       name: t('accessories'),
-      href: '/accessories',
-      items: [
-        { name: t('belts'), href: '/accessories/belts' },
-        { name: t('scarves'), href: '/accessories/scarves' },
-        { name: t('sunglasses'), href: '/accessories/sunglasses' },
-      ],
+      href: `/${activeCategory}/accessories`,
+      items: getSubItems('accessories'),
+    },
+    {
+      name: t('bags'),
+      href: `/${activeCategory}/bags`,
+      items: getSubItems('bags'),
     },
     {
       name: t('jewelry'),
-      href: '/jewelry',
-      items: [
-        { name: t('necklaces'), href: '/jewelry/necklaces' },
-        { name: t('rings'), href: '/jewelry/rings' },
-        { name: t('earrings'), href: '/jewelry/earrings' },
-      ],
+      href: `/${activeCategory}/jewelry`,
+      items: getSubItems('jewelry'),
     },
     {
-      name: t('gifts'),
-      href: '/gifts',
-      items: [
-        { name: t('forHer'), href: '/gifts/for-her' },
-        { name: t('forHim'), href: '/gifts/for-him' },
-        { name: t('luxury'), href: '/gifts/luxury' },
-      ],
+      name: t('brands'),
+      href: `/${activeCategory}/brands`,
+      isBrands: true,
     },
     {
-      name: t('sale'),
-      href: '/sale',
-      items: [
-        { name: t('clothing'), href: '/sale/clothing' },
-        { name: t('shoes'), href: '/sale/shoes' },
-        { name: t('bags'), href: '/sale/bags' },
-      ],
+      name: t('guides'),
+      href: '/guides',
     },
   ];
 
   return (
-    <HeroUINavbar
-      isBordered
-      classNames={{
-        wrapper: "px-4 max-w-full",
-      }}
-    >
-      <NavbarContent className="sm:hidden">
-        <Menu
-          className="h-6 w-6 cursor-pointer"
-          onClick={() => setIsMenuOpen(true)}
-        />
-      </NavbarContent>
-
-      <NavbarContent>
-        <NavbarBrand>
-          <Link href="/" className="font-bold text-inherit">
-            TrendHub
-          </Link>
-        </NavbarBrand>
-      </NavbarContent>
-
-      <NavbarContent
-        className="hidden sm:flex gap-4"
-        justify="center"
-      >
-        {navigationItems.map((item) => (
-          <NavbarItem key={item.href} className="group relative">
+    <>
+      <div className="w-full bg-[#FAF9F6] text-[#1A1A1A] border-b border-[#E8E6E3]">
+        <div className="container mx-auto px-4 flex justify-between items-center h-8">
+          <div className="flex gap-6">
             <Link
-              href={item.href}
-              className="text-sm py-2 px-3 hover:bg-default-100 rounded-lg transition-colors"
+              href="/women"
+              className={cn(
+                "text-xs text-[#1A1A1A] hover:opacity-70 transition-opacity uppercase tracking-wider",
+                activeCategory === 'women' && "font-medium"
+              )}
+              onClick={() => setActiveCategory('women')}
             >
-              {item.name}
+              {t('women')}
             </Link>
-            <div className="absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-              <div className="bg-background shadow-lg rounded-lg min-w-[200px] py-2">
-                {item.items.map((subItem) => (
-                  <Link
-                    key={subItem.href}
-                    href={subItem.href}
-                    className="block w-full px-4 py-2 text-sm hover:bg-default-100 transition-colors"
-                  >
-                    {subItem.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </NavbarItem>
-        ))}
-      </NavbarContent>
-
-      <NavbarContent justify="end">
-        <div className="hidden sm:flex">
-          <NavbarItem>
-            <LanguageSwitch isSearchOpen={isSearchOpen} />
-          </NavbarItem>
+            <Link
+              href="/men"
+              className={cn(
+                "text-xs text-[#1A1A1A] hover:opacity-70 transition-opacity uppercase tracking-wider",
+                activeCategory === 'men' && "font-medium"
+              )}
+              onClick={() => setActiveCategory('men')}
+            >
+              {t('men')}
+            </Link>
+          </div>
+          <LanguageSwitch isSearchOpen={isSearchOpen} />
         </div>
+      </div>
+      <HeroUINavbar
+        isBordered
+        classNames={{
+          wrapper: "px-4 max-w-full h-16",
+          base: "bg-[#FAF9F6] text-[#1A1A1A] border-[#E8E6E3]"
+        }}
+      >
+        <NavbarContent className="sm:hidden">
+          <Menu
+            className="h-6 w-6 cursor-pointer"
+            onClick={() => setIsMenuOpen(true)}
+          />
+        </NavbarContent>
 
-        <div className="flex items-center gap-2">
-          {isSearchOpen ? (
-            <div className="absolute inset-0 px-4 flex items-center bg-background/70 backdrop-blur-md">
-              <Input
-                aria-label={t('search.label')}
-                classNames={{
-                  base: "w-full",
-                  input: "text-small",
-                  inputWrapper: "h-10 bg-default-100/50",
-                }}
-                endContent={
+        <NavbarContent>
+          <NavbarBrand>
+            <Link href="/" className="font-bold text-inherit">
+              TrendHub
+            </Link>
+          </NavbarBrand>
+        </NavbarContent>
+
+        <NavbarContent
+          className="hidden sm:flex gap-8"
+          justify="center"
+        >
+          {navigationItems.map((item) => (
+            <NavbarItem key={item.href} className="group relative">
+              <Link
+                href={item.href}
+                className="text-sm text-[#1A1A1A] py-2 hover:opacity-70 transition-opacity"
+              >
+                {item.name}
+              </Link>
+              {item.items && (
+                <div className="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="bg-[#FAF9F6] shadow-sm border-t border-x border-[#E8E6E3] w-[180px]">
+                    {item.items.map((subItem) => (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        className="block w-full px-4 py-[6px] text-sm hover:bg-[#F5F5F2] transition-colors"
+                      >
+                        {subItem.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {item.isBrands && (
+                <div className="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="bg-[#FAF9F6] shadow-sm border-t border-x border-[#E8E6E3]">
+                    <div className="w-[400px] p-6">
+                      <div className="mb-8">
+                        <h3 className="text-sm font-medium mb-3">Popular Brands</h3>
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                          {getBrandItems().popularBrands.map((brand) => (
+                            <Link
+                              key={brand.href}
+                              href={brand.href}
+                              className="text-sm hover:opacity-70 transition-opacity"
+                            >
+                              {brand.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium mb-3">Brands A-Z</h3>
+                        <div className="grid grid-cols-6 gap-4">
+                          {getBrandItems().alphabet.map((item) => (
+                            <Link
+                              key={item.letter}
+                              href={item.href}
+                              className="text-sm text-blue-600 hover:opacity-70 transition-opacity"
+                            >
+                              {item.letter}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </NavbarItem>
+          ))}
+        </NavbarContent>
+
+        <NavbarContent justify="end">
+          <div className="flex items-center gap-2">
+            {isSearchOpen ? (
+              <div className="absolute inset-0 px-4 flex items-center bg-[#FAF9F6]">
+                <Input
+                  aria-label={t('search.label')}
+                  classNames={{
+                    base: "w-full",
+                    input: "text-small",
+                    inputWrapper: "h-10 bg-[#F5F5F2] border-[#E8E6E3]",
+                  }}
+                  endContent={
+                    <Button
+                      isIconOnly
+                      variant="light"
+                      size="sm"
+                      aria-label={t('search.close')}
+                      onClick={() => setIsSearchOpen(false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  }
+                  placeholder={t('search.placeholder')}
+                  startContent={<SearchIcon className="h-4 w-4 text-gray-500" />}
+                  type="search"
+                />
+              </div>
+            ) : (
+              <>
+                <NavbarItem>
                   <Button
                     isIconOnly
                     variant="light"
-                    size="sm"
-                    aria-label={t('search.close')}
-                    onClick={() => setIsSearchOpen(false)}
-                    className="text-default-400 hover:text-default-500"
+                    aria-label={t('search.label')}
+                    onClick={() => setIsSearchOpen(true)}
                   >
-                    <X className="h-4 w-4" />
+                    <SearchIcon className="h-5 w-5" />
                   </Button>
-                }
-                placeholder={t('search.placeholder')}
-                startContent={<SearchIcon className="h-4 w-4 text-default-400" />}
-                type="search"
-              />
-            </div>
-          ) : (
-            <>
-              <NavbarItem>
-                <Button
-                  isIconOnly
-                  variant="light"
-                  aria-label={t('search.label')}
-                  onClick={() => setIsSearchOpen(true)}
-                >
-                  <SearchIcon className="h-5 w-5" />
-                </Button>
-              </NavbarItem>
-              <NavbarItem className="hidden sm:flex">
-                <Button
-                  isIconOnly
-                  variant="light"
-                  aria-label="用户"
-                >
-                  <UserIcon className="h-5 w-5" />
-                </Button>
-              </NavbarItem>
-              <NavbarItem className="hidden sm:flex">
-                <Button
-                  isIconOnly
-                  variant="light"
-                  aria-label="收藏"
-                >
-                  <HeartIcon className="h-5 w-5" />
-                </Button>
-              </NavbarItem>
-              <NavbarItem>
-                <Button
-                  isIconOnly
-                  variant="light"
-                  aria-label="购物车"
-                >
-                  <ShoppingBagIcon className="h-5 w-5" />
-                </Button>
-              </NavbarItem>
-            </>
-          )}
-        </div>
-      </NavbarContent>
+                </NavbarItem>
+                <NavbarItem className="hidden sm:flex">
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    aria-label={t('account')}
+                  >
+                    <UserIcon className="h-5 w-5" />
+                  </Button>
+                </NavbarItem>
+                <NavbarItem className="hidden sm:flex">
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    aria-label={t('wishlist')}
+                  >
+                    <HeartIcon className="h-5 w-5" />
+                  </Button>
+                </NavbarItem>
+                <NavbarItem>
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    aria-label={t('wishlist')}
+                  >
+                    <ShoppingBagIcon className="h-5 w-5" />
+                  </Button>
+                </NavbarItem>
+              </>
+            )}
+          </div>
+        </NavbarContent>
 
-      <Drawer
-        isOpen={isMenuOpen}
-        onOpenChange={setIsMenuOpen}
-        placement="left"
-        hideCloseButton={false}
-        classNames={{
-          base: "bg-black w-[75vw] max-w-[400px]",
-          wrapper: "bg-black/20",
-        }}
-      >
-        <DrawerContent>
-          <div className="flex flex-col h-full bg-black text-white">
-            <div className="flex items-center justify-between p-6">
-              <span className="text-xl font-medium">{t('menu')}</span>
-            </div>
-            <div className="flex-1 overflow-auto">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="block py-4 px-6 border-b border-white/10 text-base font-normal text-white hover:text-blue-400 transition-colors"
+        <Drawer
+          isOpen={isMenuOpen}
+          onOpenChange={setIsMenuOpen}
+          placement="left"
+          hideCloseButton={false}
+          classNames={{
+            base: "w-[75vw] max-w-[400px] bg-[#FAF9F6]",
+            wrapper: "bg-black/20",
+          }}
+        >
+          <DrawerContent>
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between p-4 border-b border-[#E8E6E3]">
+                <span className="text-lg font-medium">{t('menu')}</span>
+                <Button
+                  isIconOnly
+                  variant="light"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <div className="flex items-center justify-between">
-                    {item.name}
-                    <span className="text-white/60">›</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <div className="mt-auto">
-              <div className="px-6 py-4">
-                <Button
-                  className="w-full bg-white text-black hover:bg-white/90"
-                  startContent={<HeartIcon className="h-5 w-5" />}
-                >
-                  {t('wishlist')}
+                  <X className="h-6 w-6" />
                 </Button>
               </div>
-              <div className="px-6 py-4 border-t border-white/10">
-                <LanguageSwitch />
+              <div className="flex gap-4 p-4 border-b border-[#E8E6E3]">
+                <Link
+                  href="/women"
+                  className={cn(
+                    "flex-1 text-center py-2 border rounded-md transition-colors",
+                    activeCategory === 'women'
+                      ? "border-black font-medium"
+                      : "hover:bg-[#F5F5F2]"
+                  )}
+                  onClick={() => setActiveCategory('women')}
+                >
+                  {t('women')}
+                </Link>
+                <Link
+                  href="/men"
+                  className={cn(
+                    "flex-1 text-center py-2 border rounded-md transition-colors",
+                    activeCategory === 'men'
+                      ? "border-black font-medium"
+                      : "hover:bg-[#F5F5F2]"
+                  )}
+                  onClick={() => setActiveCategory('men')}
+                >
+                  {t('men')}
+                </Link>
+              </div>
+              <div className="flex-1 overflow-auto">
+                {navigationItems.map((item) => (
+                  <div key={item.href}>
+                    <Link
+                      href={item.href}
+                      className="block py-3 px-4 border-b text-sm font-normal hover:bg-[#F5F5F2] transition-colors"
+                      onClick={() => !item.items && setIsMenuOpen(false)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{item.name}</span>
+                        {item.items && <span className="text-gray-400">›</span>}
+                      </div>
+                    </Link>
+                    {item.items && (
+                      <div className="bg-[#F5F5F2]">
+                        {item.items.map((subItem) => (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            className="block py-2 px-6 text-sm hover:bg-[#F5F5F2] transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            {subItem.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-auto border-t">
+                <div className="p-4">
+                  <Button
+                    className="w-full border border-black hover:bg-[#F5F5F2]"
+                    startContent={<HeartIcon className="h-5 w-5" />}
+                  >
+                    {t('wishlist')}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-    </HeroUINavbar>
+          </DrawerContent>
+        </Drawer>
+      </HeroUINavbar>
+    </>
   );
 };

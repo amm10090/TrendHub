@@ -25,15 +25,15 @@ const footerLinks = {
 
 export const Footer: React.FC = () => {
     return (
-        <footer className="bg-white border-t">
+        <footer className="bg-[#FAF9F6] border-t border-[#E8E6E3]">
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-6">个性化客户服务</h3>
+                        <h3 className="text-sm font-semibold text-[#1A1A1A] mb-6">个性化客户服务</h3>
                         <ul className="space-y-4">
                             {footerLinks.customerService.map((link) => (
                                 <li key={link.name}>
-                                    <Link href={link.href} className="text-sm text-gray-600 hover:text-gray-900">
+                                    <Link href={link.href} className="text-sm text-[#666666] hover:text-[#1A1A1A]">
                                         {link.name}
                                     </Link>
                                 </li>
@@ -42,11 +42,11 @@ export const Footer: React.FC = () => {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-6">关于我们</h3>
+                        <h3 className="text-sm font-semibold text-[#1A1A1A] mb-6">关于我们</h3>
                         <ul className="space-y-4">
                             {footerLinks.aboutUs.map((link) => (
                                 <li key={link.name}>
-                                    <Link href={link.href} className="text-sm text-gray-600 hover:text-gray-900">
+                                    <Link href={link.href} className="text-sm text-[#666666] hover:text-[#1A1A1A]">
                                         {link.name}
                                     </Link>
                                 </li>
@@ -55,31 +55,31 @@ export const Footer: React.FC = () => {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-6">关注我们</h3>
+                        <h3 className="text-sm font-semibold text-[#1A1A1A] mb-6">关注我们</h3>
                         <div className="grid grid-cols-3 gap-4">
                             {footerLinks.social.map((platform) => (
                                 <div key={platform.name} className="text-center">
-                                    <div className="w-24 h-24 mx-auto mb-2 bg-gray-100 rounded-lg">
+                                    <div className="w-24 h-24 mx-auto mb-2 bg-[#F5F5F2] rounded-lg">
                                         <img
                                             src={platform.qrCode}
                                             alt={`${platform.name} QR Code`}
                                             className="w-full h-full object-cover rounded-lg"
                                         />
                                     </div>
-                                    <p className="text-sm text-gray-600">{platform.name}</p>
+                                    <p className="text-sm text-[#666666]">{platform.name}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-12 pt-8 border-t border-gray-100">
-                    <div className="text-center text-sm text-gray-500">
+                <div className="mt-12 pt-8 border-t border-[#E8E6E3]">
+                    <div className="text-center text-sm text-[#666666]">
                         <p>copyright © 2004-2024 mytheresa.com</p>
                         <div className="mt-4 space-x-4">
-                            <Link href="/terms" className="hover:text-gray-900">使用条款</Link>
-                            <Link href="/privacy" className="hover:text-gray-900">隐私政策</Link>
-                            <Link href="/legal" className="hover:text-gray-900">法律声明</Link>
+                            <Link href="/terms" className="hover:text-[#1A1A1A]">使用条款</Link>
+                            <Link href="/privacy" className="hover:text-[#1A1A1A]">隐私政策</Link>
+                            <Link href="/legal" className="hover:text-[#1A1A1A]">法律声明</Link>
                         </div>
                     </div>
                 </div>

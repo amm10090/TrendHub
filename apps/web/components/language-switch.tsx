@@ -60,10 +60,10 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({
                 variant="flat"
                 aria-label={currentOption?.ariaLabel}
                 classNames={{
-                    trigger: "min-h-8 h-8 bg-transparent data-[hover=true]:bg-default-100 rounded-lg px-2 py-0.5",
-                    value: "text-small font-medium",
+                    trigger: "min-h-8 h-8 bg-transparent text-[#1A1A1A] data-[hover=true]:bg-[#F5F5F2] rounded-lg px-2 py-0.5",
+                    value: "text-small text-[#1A1A1A] font-medium",
                     base: "min-w-[140px]",
-                    listbox: "min-w-[140px]",
+                    listbox: "min-w-[140px] bg-[#FAF9F6] text-[#1A1A1A] border border-[#E8E6E3]",
                     listboxWrapper: "rounded-lg",
                     innerWrapper: "gap-1",
                 }}
@@ -81,7 +81,7 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({
                                 }}
                                 title={option?.countryCode}
                             />
-                            <span className="text-small">{option?.label}</span>
+                            <span className="text-small text-[#1A1A1A]">{option?.label}</span>
                         </div>
                     );
                 }}
@@ -90,7 +90,7 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({
                     <SelectItem
                         key={key}
                         textValue={label}
-                        className="text-small"
+                        className="text-small text-[#1A1A1A] data-[hover=true]:bg-[#F5F5F2]"
                     >
                         <div className="flex items-center gap-2">
                             <ReactCountryFlag
@@ -102,7 +102,7 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({
                                 }}
                                 title={countryCode}
                             />
-                            <span>{label}</span>
+                            <span className="text-[#1A1A1A]">{label}</span>
                         </div>
                     </SelectItem>
                 ))}

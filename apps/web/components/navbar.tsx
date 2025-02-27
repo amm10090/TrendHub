@@ -210,8 +210,8 @@ export const Navbar = () => {
                 {item.name}
               </Link>
               {item.items && !item.isBrands && (
-                <div className="fixed left-0 right-0 top-[96px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="bg-[#FAF9F6] shadow-sm border-t border-[#E8E6E3] w-full">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-[#FAF9F6] shadow-sm border-b border-[#E8E6E3]">
+                  <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
                       <div className="grid grid-cols-4 gap-8">
                         {item.items.map((subItem) => (
@@ -229,8 +229,8 @@ export const Navbar = () => {
                 </div>
               )}
               {item.isBrands && (
-                <div className="fixed left-0 right-0 top-[96px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="bg-[#FAF9F6] shadow-sm border-t border-[#E8E6E3] w-full">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-[#FAF9F6] shadow-sm border-b border-[#E8E6E3]">
+                  <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
                       <div className="flex gap-16">
                         <div className="flex-1">

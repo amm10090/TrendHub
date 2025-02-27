@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import { Providers } from '../providers';
 import { locales } from '@/i18n/config';
 import { notFound } from 'next/navigation';
-import { Link } from "@heroui/link";
+import { Link } from "@heroui/react";
 import clsx from "clsx";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";

@@ -24,9 +24,9 @@ import {
 import { Menu, X } from "lucide-react";
 import { LanguageSwitch } from './language-switch';
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@heroui/skeleton";
+import { Skeleton } from "@heroui/react";
 import { useRouter } from 'next/navigation';
-import { Tabs, Tab } from "@heroui/tabs";
+import { Tabs, Tab } from "@heroui/react";
 
 interface SubMenuItem {
   name: string;

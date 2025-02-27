@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { locales } from '@/i18n/config';
-import { Select, SelectItem } from "@heroui/select";
+import { Select, SelectItem } from "@heroui/react";
 import ReactCountryFlag from "react-country-flag";
 
 const languageOptions = {

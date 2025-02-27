@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Link } from '@heroui/link';
-import { Button } from '@heroui/button';
+import { Link } from '@heroui/react';
+import { Button } from '@heroui/react';
 import { HeartIcon } from './icons';
-import { Image } from '@heroui/image';
-import { Chip } from '@heroui/chip';
+import { Image } from '@heroui/react';
+import { Chip } from '@heroui/react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';

@@ -21,19 +21,19 @@ export const Banner: React.FC = () => {
                   alt="Banner background"
                   classNames={{
                     wrapper: 'w-full',
-                    img: 'w-full aspect-[21/9] object-cover',
+                    img: 'w-full aspect-[21/9] object-cover opacity-100 dark:opacity-90',
                   }}
                   loading="eager"
                   src="/images/banner-bg.jpg"
                 />
-                <div className="absolute inset-0 bg-black/10" />
+                <div className="absolute inset-0 bg-black/10 dark:bg-black/30" />
               </div>
               <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                 <div className="text-white text-center">
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-wider mb-4 sm:mb-6">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-wider mb-4 sm:mb-6 drop-shadow-lg">
                     {t('title')}
                   </h1>
-                  <p className="text-base sm:text-lg font-light tracking-wide max-w-2xl mx-auto opacity-90">
+                  <p className="text-base sm:text-lg font-light tracking-wide max-w-2xl mx-auto opacity-90 drop-shadow-md">
                     {t('description')}
                   </p>
                 </div>
@@ -56,16 +56,19 @@ export const Banner: React.FC = () => {
               loading="eager"
               src="/images/banner-bg.jpg"
             />
-            <div className="absolute inset-0 bg-black/10" />
+            <div className="absolute inset-0 bg-black/10 dark:bg-black/30" />
             <div className="absolute inset-0 flex items-center justify-center z-10">
-              <h1 className="text-2xl sm:text-3xl font-medium tracking-wider text-white text-center px-4">
+              <h1 className="text-2xl sm:text-3xl font-medium tracking-wider text-white text-center px-4 drop-shadow-lg">
                 {t('title')}
               </h1>
             </div>
           </div>
           <div className="mt-4">
             <Link className="block" href="/women/brands/gucci">
-              <Button className="w-full bg-black text-white hover:bg-black/90" size="lg">
+              <Button
+                className="w-full bg-black hover:bg-black/90 dark:bg-white dark:hover:bg-white/90 text-white dark:text-black"
+                size="lg"
+              >
                 {t('cta')}
               </Button>
             </Link>

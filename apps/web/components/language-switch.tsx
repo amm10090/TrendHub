@@ -52,10 +52,10 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
         aria-label={currentOption?.ariaLabel}
         classNames={{
           trigger:
-            'min-h-8 h-8 bg-transparent text-[#1A1A1A] data-[hover=true]:bg-[#F5F5F2] rounded-lg px-2 py-0.5',
-          value: 'text-small text-[#1A1A1A] font-medium',
+            'min-h-8 h-8 bg-transparent text-[#1A1A1A] dark:text-white data-[hover=true]:bg-[#F5F5F2] dark:data-[hover=true]:bg-gray-800 rounded-lg px-2 py-0.5',
+          value: 'text-small text-[#1A1A1A] dark:text-white font-medium',
           base: 'min-w-[140px]',
-          listbox: 'min-w-[140px] bg-[#FAF9F6] text-[#1A1A1A] border border-[#E8E6E3]',
+          listbox: 'min-w-[140px] bg-[#FAF9F6] dark:bg-gray-900 text-[#1A1A1A] dark:text-white border border-[#E8E6E3] dark:border-gray-800',
           listboxWrapper: 'rounded-lg',
           innerWrapper: 'gap-1',
         }}
@@ -74,7 +74,7 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
                 }}
                 title={option?.countryCode}
               />
-              <span className="text-small text-[#1A1A1A]">{option?.label}</span>
+              <span className="text-small text-[#1A1A1A] dark:text-white">{option?.label}</span>
             </div>
           );
         }}
@@ -90,7 +90,7 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
         {Object.entries(languageOptions).map(([key, { label, countryCode }]) => (
           <SelectItem
             key={key}
-            className="text-small text-[#1A1A1A] data-[hover=true]:bg-[#F5F5F2]"
+            className="text-small text-[#1A1A1A] dark:text-white data-[hover=true]:bg-[#F5F5F2] dark:data-[hover=true]:bg-gray-800"
             textValue={label}
           >
             <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
                 }}
                 title={countryCode}
               />
-              <span className="text-[#1A1A1A]">{label}</span>
+              <span className="text-[#1A1A1A] dark:text-white">{label}</span>
             </div>
           </SelectItem>
         ))}

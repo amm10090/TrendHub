@@ -44,12 +44,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   return (
     <html suppressHydrationWarning className="h-full" lang={locale}>
       <head />
-      <body className={clsx('h-full bg-[#FAF9F6] font-sans antialiased', fontSans.variable)}>
+      <body className={clsx('h-full bg-[#FAF9F6] dark:bg-gray-900 font-sans antialiased', fontSans.variable)}>
         <Suspense
           fallback={<div className="flex items-center justify-center h-screen">加载中…</div>}
         >
           <NextIntlClientProvider locale={locale} messages={messages}>
-            <Providers themeProps={{ attribute: 'class', defaultTheme: 'light' }}>
+            <Providers>
               <div className="flex flex-col h-full">
                 <Navbar />
                 <main className="flex-1 flex flex-col">{children}</main>

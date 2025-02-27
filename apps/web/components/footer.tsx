@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import { useTranslations } from 'use-intl';
 
 const footerLinks = {
   customerService: [
@@ -27,38 +28,50 @@ const footerLinks = {
 };
 
 export const Footer: React.FC = () => {
+  const t = useTranslations('footer');
+
   return (
-    <footer className="bg-[#FAF9F6] border-t border-[#E8E6E3]">
+    <footer className="bg-[#FAF9F6] dark:bg-gray-900 border-t border-[#E8E6E3] dark:border-gray-800">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-sm font-semibold text-[#1A1A1A] mb-6">个性化客户服务</h3>
-            <ul className="space-y-4">
+            <h3 className="text-sm font-medium text-[#1A1A1A] dark:text-white uppercase tracking-wider mb-4">
+              {t('company.title')}
+            </h3>
+            <ul className="space-y-2">
               {footerLinks.customerService.map((link) => (
                 <li key={link.name}>
-                  <Link className="text-sm text-[#666666] hover:text-[#1A1A1A]" href={link.href}>
+                  <Link
+                    className="text-sm text-[#666666] dark:text-gray-400 hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
+                    href={link.href}
+                  >
                     {link.name}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
-
           <div>
-            <h3 className="text-sm font-semibold text-[#1A1A1A] mb-6">关于我们</h3>
-            <ul className="space-y-4">
+            <h3 className="text-sm font-medium text-[#1A1A1A] dark:text-white uppercase tracking-wider mb-4">
+              {t('help.title')}
+            </h3>
+            <ul className="space-y-2">
               {footerLinks.aboutUs.map((link) => (
                 <li key={link.name}>
-                  <Link className="text-sm text-[#666666] hover:text-[#1A1A1A]" href={link.href}>
+                  <Link
+                    className="text-sm text-[#666666] dark:text-gray-400 hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
+                    href={link.href}
+                  >
                     {link.name}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
-
           <div>
-            <h3 className="text-sm font-semibold text-[#1A1A1A] mb-6">关注我们</h3>
+            <h3 className="text-sm font-medium text-[#1A1A1A] dark:text-white uppercase tracking-wider mb-4">
+              {t('legal.title')}
+            </h3>
             <div className="grid grid-cols-3 gap-4">
               {footerLinks.social.map((platform) => (
                 <div key={platform.name} className="text-center">
@@ -71,28 +84,16 @@ export const Footer: React.FC = () => {
                       src={platform.qrCode}
                     />
                   </div>
-                  <p className="text-sm text-[#666666]">{platform.name}</p>
+                  <p className="text-sm text-[#666666] dark:text-gray-400">{platform.name}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
-
-        <div className="mt-12 pt-8 border-t border-[#E8E6E3]">
-          <div className="text-center text-sm text-[#666666]">
-            <p>copyright © 2004-2024 mytheresa.com</p>
-            <div className="mt-4 space-x-4">
-              <Link className="hover:text-[#1A1A1A]" href="/terms">
-                使用条款
-              </Link>
-              <Link className="hover:text-[#1A1A1A]" href="/privacy">
-                隐私政策
-              </Link>
-              <Link className="hover:text-[#1A1A1A]" href="/legal">
-                法律声明
-              </Link>
-            </div>
-          </div>
+        <div className="mt-12 pt-8 border-t border-[#E8E6E3] dark:border-gray-800">
+          <p className="text-sm text-center text-[#666666] dark:text-gray-400">
+            &copy; {new Date().getFullYear()} TrendHub. {t('copyright')}
+          </p>
         </div>
       </div>
     </footer>

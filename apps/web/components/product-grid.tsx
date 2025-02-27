@@ -6,6 +6,7 @@ import { Image } from '@heroui/react';
 import { Chip } from '@heroui/react';
 import React from 'react';
 import Slider from 'react-slick';
+import { useTranslations } from 'use-intl';
 
 import { HeartIcon } from './icons';
 import 'slick-carousel/slick/slick.css';
@@ -104,6 +105,7 @@ const PrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
 };
 
 export const ProductGrid: React.FC = () => {
+  const t = useTranslations();
   const settings = {
     dots: false,
     infinite: true,
@@ -158,122 +160,138 @@ export const ProductGrid: React.FC = () => {
   };
 
   return (
-    <div className="space-y-12">
-      <div className="relative px-0 sm:px-2 md:px-4">
-        <Slider {...settings} className="product-slider">
-          {products.map((product) => (
-            <div key={product.id} className="px-2 sm:px-3 md:px-4">
-              <div className="group relative">
-                <Chip
-                  classNames={{
-                    base: 'absolute top-2 left-2 z-20 bg-white shadow-sm',
-                    content:
-                      'text-[9px] leading-none sm:text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1',
-                  }}
-                  variant="flat"
-                >
-                  <span className="hidden sm:inline">NEW ARRIVAL</span>
-                  <span className="inline sm:hidden">NEW</span>
-                </Chip>
-                <div className="relative">
-                  <Button
-                    isIconOnly
-                    aria-label="收藏"
-                    className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-white shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
-                    variant="flat"
-                  >
-                    <HeartIcon className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
-                  </Button>
-                  <div className="aspect-square bg-[#F5F5F2] rounded-lg overflow-hidden w-full">
-                    <Image
-                      alt={product.name}
+    <section className="w-full bg-[#FAF9F6] dark:bg-gray-900">
+      <div className="container py-8 sm:py-12">
+        <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-[#1A1A1A] dark:text-white">
+          {t('nav.newArrivals')}
+        </h2>
+        <div className="space-y-12">
+          <div className="relative px-0 sm:px-2 md:px-4">
+            <Slider {...settings} className="product-slider">
+              {products.map((product) => (
+                <div key={product.id} className="px-2 sm:px-3 md:px-4">
+                  <div className="group relative">
+                    <Chip
                       classNames={{
-                        wrapper: 'w-full h-full',
-                        img: 'w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105',
+                        base: 'absolute top-2 left-2 z-20 bg-white dark:bg-gray-900 shadow-sm',
+                        content:
+                          'text-[9px] leading-none sm:text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 text-[#1A1A1A] dark:text-white',
                       }}
-                      src={product.image}
-                    />
+                      variant="flat"
+                    >
+                      <span className="hidden sm:inline">NEW ARRIVAL</span>
+                      <span className="inline sm:hidden">NEW</span>
+                    </Chip>
+                    <div className="relative">
+                      <Button
+                        isIconOnly
+                        aria-label="收藏"
+                        className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-white dark:bg-gray-900 hover:bg-[#F5F5F2] dark:hover:bg-gray-800 shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
+                        variant="flat"
+                      >
+                        <HeartIcon className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-[#1A1A1A] dark:text-white" />
+                      </Button>
+                      <Image
+                        alt={product.name}
+                        classNames={{
+                          wrapper: 'aspect-square rounded-lg overflow-hidden',
+                          img: 'w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105',
+                        }}
+                        src={product.image}
+                      />
+                    </div>
+                    <div className="mt-2 sm:mt-4 px-0.5">
+                      <h3 className="text-[11px] sm:text-sm text-[#666666] dark:text-gray-400">{product.brand}</h3>
+                      <Link className="block" href={`/products/${product.id}`}>
+                        <p className="mt-0.5 sm:mt-2 text-[11px] sm:text-sm font-medium text-[#1A1A1A] dark:text-white">
+                          {product.name}
+                        </p>
+                        <p className="mt-0.5 sm:mt-2 text-[11px] sm:text-sm text-[#1A1A1A] dark:text-white">
+                          ¥{product.price.toLocaleString()}
+                        </p>
+                      </Link>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-2 sm:mt-4 px-0.5">
-                  <h3 className="text-[11px] sm:text-sm text-[#666666]">{product.brand}</h3>
-                  <Link className="block" href={`/products/${product.id}`}>
-                    <p className="mt-0.5 sm:mt-2 text-[11px] sm:text-sm font-medium text-[#1A1A1A]">
-                      {product.name}
-                    </p>
-                    <p className="mt-0.5 sm:mt-2 text-[11px] sm:text-sm text-[#1A1A1A]">
-                      ¥{product.price.toLocaleString()}
-                    </p>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </Slider>
-        <style global jsx>{`
-          .product-slider .slick-track {
-            display: flex !important;
-            margin-left: 0;
-            margin-right: 0;
-          }
-          .product-slider .slick-slide {
-            height: inherit !important;
-          }
-          .product-slider .slick-slide > div {
-            height: 100%;
-          }
-          .product-slider .slick-prev,
-          .product-slider .slick-next {
-            width: 32px;
-            height: 32px;
-            z-index: 20;
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s;
-          }
-          .product-slider .slick-prev:hover,
-          .product-slider .slick-next:hover {
-            background: #f5f5f2;
-          }
-          .product-slider .slick-prev {
-            left: 4px;
-          }
-          .product-slider .slick-next {
-            right: 4px;
-          }
-          @media (min-width: 1024px) {
-            .product-slider .slick-prev {
-              left: -16px;
-            }
-            .product-slider .slick-next {
-              right: -16px;
-            }
-          }
-          @media (max-width: 640px) {
-            .product-slider {
-              margin: 0 -4px;
-            }
-            .product-slider .slick-slide {
-              padding: 0 4px;
-            }
-            .product-slider .slick-prev {
-              left: -8px;
-            }
-            .product-slider .slick-next {
-              right: -8px;
-            }
-          }
-        `}</style>
+              ))}
+            </Slider>
+            <style global jsx>{`
+              .product-slider .slick-track {
+                display: flex !important;
+                margin-left: 0;
+                margin-right: 0;
+              }
+              .product-slider .slick-slide {
+                height: inherit !important;
+              }
+              .product-slider .slick-slide > div {
+                height: 100%;
+              }
+              .product-slider .slick-prev,
+              .product-slider .slick-next {
+                width: 32px;
+                height: 32px;
+                z-index: 20;
+                background: white;
+                border-radius: 50%;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: all 0.2s;
+              }
+              .product-slider .slick-prev:hover,
+              .product-slider .slick-next:hover {
+                background: #f5f5f2;
+              }
+              .product-slider .slick-prev {
+                left: 4px;
+              }
+              .product-slider .slick-next {
+                right: 4px;
+              }
+              @media (min-width: 1024px) {
+                .product-slider .slick-prev {
+                  left: -16px;
+                }
+                .product-slider .slick-next {
+                  right: -16px;
+                }
+              }
+              @media (max-width: 640px) {
+                .product-slider {
+                  margin: 0 -4px;
+                }
+                .product-slider .slick-slide {
+                  padding: 0 4px;
+                }
+                .product-slider .slick-prev {
+                  left: -8px;
+                }
+                .product-slider .slick-next {
+                  right: -8px;
+                }
+              }
+              @media (prefers-color-scheme: dark) {
+                .product-slider .slick-prev,
+                .product-slider .slick-next {
+                  background: #111827;
+                  color: #ffffff;
+                }
+                .product-slider .slick-prev:hover,
+                .product-slider .slick-next:hover {
+                  background: #1f2937;
+                }
+              }
+            `}</style>
+          </div>
+          <div className="flex justify-center">
+            <Button
+              className="bg-black hover:bg-black/90 dark:bg-white dark:hover:bg-white/90 text-white dark:text-black min-w-[120px] text-xs sm:text-sm"
+              variant="flat"
+            >
+              SEE ALL
+            </Button>
+          </div>
+        </div>
       </div>
-      <div className="flex justify-center">
-        <Button
-          className="bg-black text-white hover:bg-black/90 min-w-[120px] text-xs sm:text-sm"
-          variant="flat"
-        >
-          SEE ALL
-        </Button>
-      </div>
-    </div>
+    </section>
   );
 };

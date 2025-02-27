@@ -1,76 +1,27 @@
 'use client';
 
-import { SwitchProps, useSwitch } from '@heroui/react';
-import { useIsSSR } from '@react-aria/ssr';
-import { VisuallyHidden } from '@react-aria/visually-hidden';
-import clsx from 'clsx';
+import { Switch } from '@heroui/react';
 import { useTheme } from 'next-themes';
 import { FC } from 'react';
 
-import { SunFilledIcon, MoonFilledIcon } from '@/components/icons';
+import { SunIcon, MoonIcon } from '@/components/icons';
 
 export interface ThemeSwitchProps {
   className?: string;
-  classNames?: SwitchProps['classNames'];
 }
 
-export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => {
+export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
   const { theme, setTheme } = useTheme();
-  const isSSR = useIsSSR();
-
-  const onChange = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
-
-  const { Component, slots, isSelected, getBaseProps, getInputProps, getWrapperProps } = useSwitch({
-    isSelected: theme === 'light' || isSSR,
-    'aria-label': `Switch to ${theme === 'light' || isSSR ? 'dark' : 'light'} mode`,
-    onChange,
-  });
 
   return (
-    <Component
-      {...getBaseProps({
-        className: clsx(
-          'relative inline-flex items-center justify-center',
-          'w-8 h-8 sm:w-10 sm:h-10',
-          'rounded-lg',
-          'transition-all duration-200',
-          'hover:bg-[#F5F5F2]',
-          'active:scale-95',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1A1A] focus-visible:ring-opacity-50',
-          className,
-          classNames?.base
-        ),
-      })}
-    >
-      <VisuallyHidden>
-        <input {...getInputProps()} />
-      </VisuallyHidden>
-      <div
-        {...getWrapperProps()}
-        className={slots.wrapper({
-          class: clsx(
-            [
-              'flex items-center justify-center',
-              'w-full h-full',
-              'text-[#1A1A1A]',
-              'transition-transform duration-200',
-              'transform',
-              isSelected ? 'rotate-0' : 'rotate-180',
-            ],
-            classNames?.wrapper
-          ),
-        })}
-      >
-        <div className="relative w-5 h-5 sm:w-6 sm:h-6">
-          {!isSelected || isSSR ? (
-            <SunFilledIcon className="absolute inset-0 w-full h-full transition-opacity duration-200" />
-          ) : (
-            <MoonFilledIcon className="absolute inset-0 w-full h-full transition-opacity duration-200" />
-          )}
-        </div>
-      </div>
-    </Component>
+    <Switch
+      defaultSelected={theme === 'dark'}
+      size="sm"
+      color="default"
+      startContent={<SunIcon className="h-4 w-4" />}
+      endContent={<MoonIcon className="h-4 w-4" />}
+      className={className}
+      onValueChange={(isSelected) => setTheme(isSelected ? 'dark' : 'light')}
+    />
   );
 };

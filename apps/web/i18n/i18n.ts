@@ -8,7 +8,7 @@ export default getRequestConfig(async () => {
   const locale = headersList.get('x-next-intl-locale') || defaultLocale;
 
   return {
-    locale, // 添加locale属性
+    locale,
     messages: (await import(`../messages/${locale}.json`)).default,
     timeZone: 'Asia/Shanghai',
   };

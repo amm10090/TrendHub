@@ -12,17 +12,11 @@ export interface ProvidersProps {
   themeProps?: ThemeProviderProps;
 }
 
-declare module '@react-types/shared' {
-  interface RouterConfig {
-    routerOptions: NonNullable<Parameters<ReturnType<typeof useRouter>['push']>[1]>;
-  }
-}
-
 export function Providers({ children, themeProps }: ProvidersProps) {
   const router = useRouter();
 
   return (
-    <HeroUIProvider navigate={router.push}>
+    <HeroUIProvider navigate={router.push as (path: string, options?: object) => void}>
       <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
     </HeroUIProvider>
   );

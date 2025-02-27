@@ -26,19 +26,20 @@ async function fetchMessages(locale: string) {
   return messages;
 }
 
-export default async function LocaleLayout({
-  children,
-  params,
-}: {
+interface LayoutProps {
   children: React.ReactNode;
-  params: { locale: string };
-}) {
-  const { locale } = await params;
-  const messages = await fetchMessages(locale as Locale);
+  params: Promise<{ locale: string }>;
+}
+
+export default async function LocaleLayout({ children, params }: LayoutProps) {
+  const resolvedParams = await params;
+  const { locale } = resolvedParams;
 
   if (!locales.includes(locale as Locale)) {
     notFound();
   }
+
+  const messages = await fetchMessages(locale as Locale);
 
   return (
     <html suppressHydrationWarning className="h-full" lang={locale}>

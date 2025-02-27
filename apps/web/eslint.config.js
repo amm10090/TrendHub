@@ -17,6 +17,7 @@ export default [
       '**/public/**',
       '**/*.config.js',
       '**/*.config.ts',
+      '**/app/[locale]/layout.tsx',
     ],
   },
   {

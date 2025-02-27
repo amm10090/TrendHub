@@ -14,10 +14,25 @@
                 "!.next/cache/**"
             ]
         },
-        "lint": {},
+        "lint": {
+            "outputs": []
+        },
         "dev": {
             "cache": false,
             "persistent": true
+        },
+        "start": {
+            "cache": false,
+            "persistent": true
+        },
+        "test": {
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": []
         }
+    },
+    "remoteCache": {
+        "signature": true
     }
 }

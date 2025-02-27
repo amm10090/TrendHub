@@ -28,11 +28,12 @@ async function fetchMessages(locale: string) {
 
 export default async function LocaleLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode;
   params: { locale: string };
 }) {
+  const { locale } = await params;
   const messages = await fetchMessages(locale as Locale);
 
   if (!locales.includes(locale as Locale)) {

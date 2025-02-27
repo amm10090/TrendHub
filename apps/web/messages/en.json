@@ -103,7 +103,10 @@
             "other_stories": "& Other Stories",
             "prada": "Prada",
             "reformation": "Reformation",
-            "saint_laurent": "Saint Laurent"
+            "saint_laurent": "Saint Laurent",
+            "valentino": "Valentino",
+            "zara": "ZARA",
+            "tory_burch": "Tory Burch"
         },
         "search": {
             "placeholder": "Search e.g. 'Modern chelsea boots'",

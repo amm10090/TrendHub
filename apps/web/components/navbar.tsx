@@ -40,6 +40,21 @@ interface MenuItem {
   isBrands?: boolean;
 }
 
+interface BrandItem {
+  name: string;
+  href: string;
+}
+
+interface BrandItems {
+  firstRowBrands: BrandItem[];
+  secondRowBrands: BrandItem[];
+  viewAll: BrandItem;
+  alphabet: Array<{
+    letter: string;
+    href: string;
+  }>;
+}
+
 export const Navbar = () => {
   const t = useTranslations('nav');
   const router = useRouter();
@@ -75,25 +90,41 @@ export const Navbar = () => {
     return items;
   };
 
-  const getBrandItems = () => {
+  const getBrandItems = (): BrandItems => {
+    const firstRowBrands = [
+      { name: t('popular_brand_names.balenciaga'), href: `/${activeCategory}/brands/balenciaga` },
+      { name: t('popular_brand_names.bottega_veneta'), href: `/${activeCategory}/brands/bottega-veneta` },
+      { name: t('popular_brand_names.chloe'), href: `/${activeCategory}/brands/chloe` },
+      { name: t('popular_brand_names.ganni'), href: `/${activeCategory}/brands/ganni` },
+      { name: t('popular_brand_names.gucci'), href: `/${activeCategory}/brands/gucci` },
+      { name: t('popular_brand_names.h_and_m'), href: `/${activeCategory}/brands/h-and-m` },
+      { name: t('popular_brand_names.isabel_marant'), href: `/${activeCategory}/brands/isabel-marant` },
+      { name: t('popular_brand_names.other_stories'), href: `/${activeCategory}/brands/other-stories` },
+      { name: t('popular_brand_names.prada'), href: `/${activeCategory}/brands/prada` },
+      { name: t('popular_brand_names.saint_laurent'), href: `/${activeCategory}/brands/saint-laurent` }
+    ];
+
+    const secondRowBrands = [
+      { name: t('popular_brand_names.reformation'), href: `/${activeCategory}/brands/reformation` },
+      { name: t('popular_brand_names.valentino'), href: `/${activeCategory}/brands/valentino` },
+      { name: t('popular_brand_names.zara'), href: `/${activeCategory}/brands/zara` },
+      { name: t('popular_brand_names.tory_burch'), href: `/${activeCategory}/brands/tory-burch` }
+    ];
+
     return {
-      popularBrands: [
-        { name: t('popular_brand_names.balenciaga'), href: `/${activeCategory}/brands/balenciaga` },
-        { name: t('popular_brand_names.bottega_veneta'), href: `/${activeCategory}/brands/bottega-veneta` },
-        { name: t('popular_brand_names.chloe'), href: `/${activeCategory}/brands/chloe` },
-        { name: t('popular_brand_names.ganni'), href: `/${activeCategory}/brands/ganni` },
-        { name: t('popular_brand_names.gucci'), href: `/${activeCategory}/brands/gucci` },
-        { name: t('popular_brand_names.h_and_m'), href: `/${activeCategory}/brands/h-and-m` },
-        { name: t('popular_brand_names.isabel_marant'), href: `/${activeCategory}/brands/isabel-marant` },
-        { name: t('view_all_brands'), href: `/${activeCategory}/brands` },
-        { name: t('popular_brand_names.prada'), href: `/${activeCategory}/brands/prada` },
-        { name: t('popular_brand_names.reformation'), href: `/${activeCategory}/brands/reformation` },
-        { name: t('popular_brand_names.saint_laurent'), href: `/${activeCategory}/brands/saint-laurent` },
-      ],
-      alphabet: Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map(letter => ({
-        letter,
-        href: `/${activeCategory}/brands?letter=${letter}`,
-      }))
+      firstRowBrands,
+      secondRowBrands,
+      viewAll: { name: t('view_all_brands'), href: `/${activeCategory}/brands` },
+      alphabet: [
+        ...Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map(letter => ({
+          letter,
+          href: `/${activeCategory}/brands?letter=${letter.toLowerCase()}`,
+        })),
+        {
+          letter: '0-9',
+          href: `/${activeCategory}/brands?letter=0-9`,
+        }
+      ]
     };
   };
 
@@ -126,7 +157,8 @@ export const Navbar = () => {
     {
       name: t('brands'),
       href: `/${activeCategory}/brands`,
-      items: getBrandItems().popularBrands,
+      items: [...getBrandItems().firstRowBrands, ...getBrandItems().secondRowBrands, getBrandItems().viewAll],
+      isBrands: true,
     },
     {
       name: t('guides'),
@@ -209,7 +241,67 @@ export const Navbar = () => {
               >
                 {item.name}
               </Link>
-              {item.items && !item.isBrands && (
+              {item.items && item.isBrands ? (
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-[#FAF9F6] shadow-sm border-b border-[#E8E6E3]">
+                  <div className="w-full">
+                    <div className="container mx-auto px-4 py-8">
+                      <div className="flex gap-16">
+                        <div className="w-3/4 pr-8 border-r border-[#E8E6E3]">
+                          <div className="mb-6">
+                            <h3 className="text-sm font-medium text-[#666666] uppercase tracking-wider">{t('popular_brands')}</h3>
+                          </div>
+                          <div className="grid grid-cols-2 gap-x-16 gap-y-3">
+                            <div className="space-y-3">
+                              {getBrandItems().firstRowBrands.map((brand) => (
+                                <Link
+                                  key={brand.href}
+                                  href={brand.href}
+                                  className="block text-[#1A1A1A] hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
+                                >
+                                  {brand.name}
+                                </Link>
+                              ))}
+                            </div>
+                            <div className="space-y-3">
+                              {getBrandItems().secondRowBrands.map((brand) => (
+                                <Link
+                                  key={brand.href}
+                                  href={brand.href}
+                                  className="block text-[#1A1A1A] hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
+                                >
+                                  {brand.name}
+                                </Link>
+                              ))}
+                              <Link
+                                href={getBrandItems().viewAll.href}
+                                className="block text-[#1A1A1A] hover:opacity-70 transition-all duration-200 text-sm font-medium hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap underline underline-offset-4"
+                              >
+                                {getBrandItems().viewAll.name}
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="w-1/4">
+                          <div className="mb-6">
+                            <h3 className="text-sm font-medium text-[#666666] uppercase tracking-wider">{t('brands_a_z')}</h3>
+                          </div>
+                          <div className="grid grid-cols-4 gap-2">
+                            {getBrandItems().alphabet.map((item) => (
+                              <Link
+                                key={item.letter}
+                                href={item.href}
+                                className="flex items-center justify-center w-8 h-8 text-[#1A1A1A] hover:bg-[#F5F5F2] transition-colors text-sm"
+                              >
+                                {item.letter}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : item.items ? (
                 <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-[#FAF9F6] shadow-sm border-b border-[#E8E6E3]">
                   <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
@@ -227,47 +319,7 @@ export const Navbar = () => {
                     </div>
                   </div>
                 </div>
-              )}
-              {item.isBrands && (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-[#FAF9F6] shadow-sm border-b border-[#E8E6E3]">
-                  <div className="w-full">
-                    <div className="container mx-auto px-4 py-8">
-                      <div className="flex gap-16">
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-sm font-medium text-[#666666] uppercase tracking-wider">{t('popular_brands')}</h3>
-                          </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-4">
-                            {getBrandItems().popularBrands.map((brand) => (
-                              <Link
-                                key={brand.href}
-                                href={brand.href}
-                                className="block text-[#1A1A1A] hover:opacity-70 transition-opacity text-sm"
-                              >
-                                {brand.name}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="w-[280px]">
-                          <h3 className="text-sm font-medium text-[#666666] mb-6 uppercase tracking-wider">{t('brands_a_z')}</h3>
-                          <div className="grid grid-cols-6 gap-3">
-                            {getBrandItems().alphabet.map((item) => (
-                              <Link
-                                key={item.letter}
-                                href={item.href}
-                                className="flex items-center justify-center w-10 h-10 text-[#1A1A1A] hover:bg-[#F5F5F2] transition-colors rounded-md text-sm"
-                              >
-                                {item.letter}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              ) : null}
             </NavbarItem>
           ))}
         </NavbarContent>

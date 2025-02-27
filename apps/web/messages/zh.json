@@ -103,7 +103,10 @@
             "other_stories": "& Other Stories",
             "prada": "普拉达",
             "reformation": "Reformation",
-            "saint_laurent": "圣罗兰"
+            "saint_laurent": "圣罗兰",
+            "valentino": "华伦天奴",
+            "zara": "ZARA",
+            "tory_burch": "托里·伯奇"
         },
         "search": {
             "placeholder": "搜索商品、品牌",

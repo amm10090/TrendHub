@@ -6,7 +6,6 @@ import { SwitchProps, useSwitch } from "@heroui/switch";
 import { useTheme } from "next-themes";
 import { useIsSSR } from "@react-aria/ssr";
 import clsx from "clsx";
-
 import { SunFilledIcon, MoonFilledIcon } from "@/components/icons";
 
 export interface ThemeSwitchProps {
@@ -42,7 +41,13 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
     <Component
       {...getBaseProps({
         className: clsx(
-          "px-px transition-opacity hover:opacity-80 cursor-pointer",
+          "relative inline-flex items-center justify-center",
+          "w-8 h-8 sm:w-10 sm:h-10",
+          "rounded-lg",
+          "transition-all duration-200",
+          "hover:bg-[#F5F5F2]",
+          "active:scale-95",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A1A1A] focus-visible:ring-opacity-50",
           className,
           classNames?.base,
         ),
@@ -56,25 +61,28 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
         className={slots.wrapper({
           class: clsx(
             [
-              "w-auto h-auto",
-              "bg-transparent",
-              "rounded-lg",
               "flex items-center justify-center",
-              "group-data-[selected=true]:bg-transparent",
-              "!text-default-500",
-              "pt-px",
-              "px-0",
-              "mx-0",
+              "w-full h-full",
+              "text-[#1A1A1A]",
+              "transition-transform duration-200",
+              "transform",
+              isSelected ? "rotate-0" : "rotate-180",
             ],
             classNames?.wrapper,
           ),
         })}
       >
-        {!isSelected || isSSR ? (
-          <SunFilledIcon size={22} />
-        ) : (
-          <MoonFilledIcon size={22} />
-        )}
+        <div className="relative w-5 h-5 sm:w-6 sm:h-6">
+          {!isSelected || isSSR ? (
+            <SunFilledIcon
+              className="absolute inset-0 w-full h-full transition-opacity duration-200"
+            />
+          ) : (
+            <MoonFilledIcon
+              className="absolute inset-0 w-full h-full transition-opacity duration-200"
+            />
+          )}
+        </div>
       </div>
     </Component>
   );

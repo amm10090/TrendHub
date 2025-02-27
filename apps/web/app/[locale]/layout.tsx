@@ -8,6 +8,7 @@ import clsx from "clsx";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
 import { NextIntlClientProvider } from 'next-intl';
+import { Footer } from "@/components/footer";
 
 export function generateStaticParams() {
     return locales.map((locale) => ({ locale }));
@@ -20,7 +21,6 @@ async function fetchMessages(locale: string) {
 }
 
 export default async function LocaleLayout({ children, params }: { children: React.ReactNode, params: { locale: string } }) {
-    // 使用await处理params
     const paramsData = await Promise.resolve(params);
     const locale = paramsData.locale;
     const messages = await fetchMessages(locale);
@@ -30,28 +30,21 @@ export default async function LocaleLayout({ children, params }: { children: Rea
     }
 
     return (
-        <html lang={locale} suppressHydrationWarning>
+        <html lang={locale} suppressHydrationWarning className="h-full">
             <head />
-            <body className={clsx("min-h-screen bg-[#FAF9F6] font-sans antialiased", fontSans.variable)}>
-                <Suspense fallback={<div>加载中…</div>}>
+            <body className={clsx(
+                "h-full bg-[#FAF9F6] font-sans antialiased",
+                fontSans.variable
+            )}>
+                <Suspense fallback={<div className="flex items-center justify-center h-screen">加载中…</div>}>
                     <NextIntlClientProvider locale={locale} messages={messages}>
                         <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
-                            <div className="relative flex flex-col h-screen">
+                            <div className="flex flex-col h-full">
                                 <Navbar />
-                                <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
+                                <main className="flex-1 flex flex-col">
                                     {children}
                                 </main>
-                                <footer className="w-full flex items-center justify-center py-3">
-                                    <Link
-                                        isExternal
-                                        className="flex items-center gap-1 text-[#666666]"
-                                        href="https://heroui.com?utm_source=next-app-template"
-                                        title="heroui.com homepage"
-                                    >
-                                        <span className="text-[#666666]">Powered by</span>
-                                        <p className="text-[#1A1A1A]">HeroUI</p>
-                                    </Link>
-                                </footer>
+                                <Footer />
                             </div>
                         </Providers>
                     </NextIntlClientProvider>

@@ -10,7 +10,9 @@
     },
     "dependencies": {
         "@heroui/button": "2.2.13",
+        "@heroui/chip": "^2.2.10",
         "@heroui/code": "2.2.10",
+        "@heroui/image": "^2.2.9",
         "@heroui/input": "2.4.13",
         "@heroui/kbd": "2.2.10",
         "@heroui/link": "2.2.11",
@@ -35,6 +37,8 @@
         "react": "^18.3.1",
         "react-country-flag": "^3.1.0",
         "react-dom": "^18.3.1",
+        "react-slick": "^0.30.3",
+        "slick-carousel": "^1.8.1",
         "tailwind-merge": "^3.0.2"
     },
     "devDependencies": {
@@ -43,6 +47,7 @@
         "@types/node": "20.5.7",
         "@types/react": "18.3.3",
         "@types/react-dom": "18.3.0",
+        "@types/react-slick": "^0.23.13",
         "@typescript-eslint/eslint-plugin": "8.11.0",
         "@typescript-eslint/parser": "8.11.0",
         "autoprefixer": "10.4.19",

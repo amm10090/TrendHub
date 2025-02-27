@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@heroui/button';
+import { Button } from '@heroui/react';
 import { Image } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';

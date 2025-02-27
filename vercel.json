@@ -1,7 +1,7 @@
 {
     "version": 2,
-    "buildCommand": "pnpm install --no-frozen-lockfile && pnpm turbo run build --filter=front-end...",
-    "outputDirectory": "apps/web/.next",
+    "buildCommand": "cd ../.. && pnpm install --no-frozen-lockfile && cd apps/web && pnpm turbo run build",
+    "outputDirectory": ".next",
     "installCommand": "npm i -g pnpm",
     "framework": "nextjs"
 }

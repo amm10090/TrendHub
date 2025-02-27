@@ -28,16 +28,14 @@ async function fetchMessages(locale: string) {
 
 export default async function LocaleLayout({
   children,
-  params,
+  params: { locale },
 }: {
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  const paramsData = await Promise.resolve(params);
-  const locale = paramsData.locale as Locale;
-  const messages = await fetchMessages(locale);
+  const messages = await fetchMessages(locale as Locale);
 
-  if (!locales.includes(locale)) {
+  if (!locales.includes(locale as Locale)) {
     notFound();
   }
 

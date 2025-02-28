@@ -125,6 +125,15 @@
     "cta": "立即探索"
   },
   "footer": {
+    "company": {
+      "title": "公司信息"
+    },
+    "help": {
+      "title": "帮助中心"
+    },
+    "legal": {
+      "title": "关注我们"
+    },
     "customerService": "个性化客户服务",
     "aboutUs": "关于我们",
     "followUs": "关注我们",
@@ -132,6 +141,7 @@
     "giftCards": "礼品卡购物福利",
     "payment": "付款方式",
     "shipping": "配送说明",
-    "returns": "退货与换货"
+    "returns": "退货与换货",
+    "copyright": "保留所有权利"
   }
 }

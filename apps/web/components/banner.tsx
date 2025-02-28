@@ -66,7 +66,7 @@ export const Banner: React.FC = () => {
           <div className="mt-4">
             <Link className="block" href="/women/brands/gucci">
               <Button
-                className="w-full bg-bg-primary-dark hover:bg-hover-bg-dark dark:bg-bg-primary-light dark:hover:bg-hover-bg-light text-text-primary-dark dark:text-text-primary-light"
+                className="w-full bg-bg-primary-light hover:bg-hover-bg-light dark:bg-bg-tertiary-dark dark:hover:bg-hover-bg-dark text-text-primary-light dark:text-text-primary-dark shadow-sm dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all duration-300"
                 size="lg"
               >
                 {t('cta')}

@@ -125,6 +125,15 @@
     "cta": "Explore Now"
   },
   "footer": {
+    "company": {
+      "title": "Company"
+    },
+    "help": {
+      "title": "Help"
+    },
+    "legal": {
+      "title": "Follow Us"
+    },
     "customerService": "Customer Service",
     "aboutUs": "About Us",
     "followUs": "Follow Us",
@@ -132,6 +141,7 @@
     "giftCards": "Gift Cards",
     "payment": "Payment Methods",
     "shipping": "Shipping",
-    "returns": "Returns & Exchanges"
+    "returns": "Returns & Exchanges",
+    "copyright": "All rights reserved"
   }
 }

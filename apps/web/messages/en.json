@@ -189,7 +189,9 @@
     "payment": "Payment Methods",
     "shipping": "Shipping",
     "returns": "Returns & Exchanges",
-    "copyright": "All rights reserved"
+    "copyright": "All rights reserved",
+    "wechat": "WeChat Mini Program",
+    "huawei": "Huawei App"
   },
   "introduction": {
     "title": "A luxury shopping experience",

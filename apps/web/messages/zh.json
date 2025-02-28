@@ -181,15 +181,17 @@
       "error": "订阅失败，请稍后重试",
       "invalid_email": "请输入有效的电子邮箱地址"
     },
-    "customerService": "个性化客户服务",
+    "customerService": "客户服务",
     "aboutUs": "关于我们",
     "followUs": "关注我们",
     "contact": "联系我们",
-    "giftCards": "礼品卡购物福利",
-    "payment": "付款方式",
-    "shipping": "配送说明",
-    "returns": "退货与换货",
-    "copyright": "保留所有权利"
+    "giftCards": "礼品卡",
+    "payment": "支付方式",
+    "shipping": "配送信息",
+    "returns": "退换货政策",
+    "copyright": "保留所有权利",
+    "wechat": "微信小程序",
+    "huawei": "华为应用"
   },
   "introduction": {
     "title": "奢华购物体验",

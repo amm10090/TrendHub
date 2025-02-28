@@ -181,5 +181,28 @@
     "shipping": "Shipping",
     "returns": "Returns & Exchanges",
     "copyright": "All rights reserved"
+  },
+  "introduction": {
+    "title": "A luxury shopping experience",
+    "description": "Mytheresa is the most-trusted source for finding the finest selection of luxurious womenswear. Our expert buying team travels the globe with a simple mission: to bring international fashion's finest directly to your doorstep. With our runway-fresh new arrivals every week, an easy-to-navigate platform and a mobile app to shop on-the-go, we ensure a boutique-like feeling for a unique shopping experience.",
+    "features": {
+      "left": "The finest edit of more than 200 international luxury brands\\n900 new arrivals each week directly from the runway\\nWell-curated selection of items for a boutique-like shopping experience",
+      "right": "Exclusive designer collaborations and capsule collections that you won't find anywhere else\\nExceptional customer service available 24 hours a day, 7 days a week in 13 different languages\\nFast, worldwide shipping to more than 130 countries"
+    },
+    "bottom_text": "Shop with us and discover why Mytheresa is your final destination for online shopping for women.",
+    "guarantees": {
+      "authentic": {
+        "title": "100% Authentic",
+        "description": "Every item is guaranteed authentic, sourced directly from designers and authorized retailers."
+      },
+      "shipping": {
+        "title": "Global Shipping",
+        "description": "Fast and secure worldwide shipping with full tracking and customs clearance service."
+      },
+      "payment": {
+        "title": "Secure Payment",
+        "description": "Multiple secure payment options and buyer protection on all purchases."
+      }
+    }
   }
 }

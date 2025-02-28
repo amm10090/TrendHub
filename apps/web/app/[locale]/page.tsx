@@ -1,6 +1,7 @@
 import type { NextPage } from 'next';
 
 import { Banner } from '@/components/banner';
+import { IntroductionSection } from '@/components/introduction-section';
 import { ProductGrid } from '@/components/product-grid';
 import { TrendingSection } from '@/components/trending-section';
 
@@ -10,6 +11,7 @@ const Home: NextPage = () => {
       <Banner />
       <ProductGrid />
       <TrendingSection />
+      <IntroductionSection />
     </div>
   );
 };

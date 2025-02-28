@@ -19,6 +19,7 @@
         "@react-aria/visually-hidden": "3.8.19",
         "@swc/cli": "^0.6.0",
         "@swc/core": "^1.11.1",
+        "@tabler/icons-react": "3.30.0",
         "clsx": "^2.1.1",
         "framer-motion": "11.13.1",
         "intl-messageformat": "^10.5.0",
@@ -40,7 +41,6 @@
         "@types/react": "18.3.3",
         "@types/react-dom": "18.3.0",
         "@types/react-slick": "^0.23.13",
-        "typescript-eslint": "^8.25.0",
         "@typescript-eslint/eslint-plugin": "^8.25.0",
         "@typescript-eslint/parser": "^8.25.0",
         "autoprefixer": "10.4.19",
@@ -58,6 +58,7 @@
         "prettier": "3.5.2",
         "tailwind-variants": "0.3.1",
         "tailwindcss": "3.4.16",
-        "typescript": "5.7.3"
+        "typescript": "5.7.3",
+        "typescript-eslint": "^8.25.0"
     }
 }

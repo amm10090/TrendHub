@@ -117,12 +117,50 @@
     "account": "账户",
     "wishlist": "收藏夹",
     "cart": "购物袋",
-    "menu": "菜单"
+    "menu": "菜单",
+    "back": "返回"
   },
   "banner": {
     "title": "Gucci新季系列",
     "description": "探索 Gucci 2024 春夏系列，感受意式奢华与现代时尚的完美融合",
     "cta": "立即探索"
+  },
+  "trending": {
+    "title": "流行趋势",
+    "discover_more": "了解更多",
+    "shining_examples": {
+      "title": "耀目精选",
+      "subtitle": "发现迷人魅力",
+      "see_all": "查看全部"
+    },
+    "items": {
+      "valentino": {
+        "title": "华伦天奴",
+        "description": "探索奢华配饰的最新系列"
+      },
+      "summer": {
+        "title": "夏季精选",
+        "description": "精心挑选的季节必备单品"
+      },
+      "shoes": {
+        "title": "新品鞋履",
+        "description": "踏上时尚之旅，探索最新系列"
+      },
+      "bags": {
+        "title": "奢华包袋",
+        "description": "探索设计师包袋系列"
+      },
+      "spring": {
+        "title": "2024春季系列",
+        "description": "探索春季精选系列。清新色彩与轻盈面料，演绎新季时尚。"
+      }
+    },
+    "shining_brands": {
+      "valentino": "华伦天奴",
+      "balmain": "巴尔曼",
+      "alessandra": "亚历山德拉·里奇",
+      "jacquemus": "杰克穆斯"
+    }
   },
   "footer": {
     "company": {

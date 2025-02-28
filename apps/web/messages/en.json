@@ -117,12 +117,50 @@
     "account": "Account",
     "wishlist": "Wishlist",
     "cart": "Shopping Bag",
-    "menu": "Menu"
+    "menu": "Menu",
+    "back": "Back"
   },
   "banner": {
     "title": "Gucci New Season",
     "description": "Explore Gucci Spring/Summer 2024 Collection, experience the perfect blend of Italian luxury and modern fashion",
     "cta": "Explore Now"
+  },
+  "trending": {
+    "title": "Trending",
+    "discover_more": "Discover More",
+    "shining_examples": {
+      "title": "SHINING EXAMPLES",
+      "subtitle": "Strike gold with charming accents",
+      "see_all": "SEE ALL"
+    },
+    "items": {
+      "valentino": {
+        "title": "Valentino Garavani",
+        "description": "Discover the latest collection of luxury accessories"
+      },
+      "summer": {
+        "title": "Summer Essentials",
+        "description": "Get ready for the season with our curated selection"
+      },
+      "shoes": {
+        "title": "New in Shoes",
+        "description": "Step into the season with our latest arrivals"
+      },
+      "bags": {
+        "title": "Luxury Bags",
+        "description": "Explore our collection of designer bags"
+      },
+      "spring": {
+        "title": "Spring Collection 2024",
+        "description": "Explore our curated selection of spring essentials. Fresh colors and lightweight fabrics for the new season."
+      }
+    },
+    "shining_brands": {
+      "valentino": "Valentino Garavani",
+      "balmain": "Balmain",
+      "alessandra": "Alessandra Rich",
+      "jacquemus": "Jacquemus"
+    }
   },
   "footer": {
     "company": {

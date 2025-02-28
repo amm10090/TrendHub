@@ -17,10 +17,15 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
     <Switch
       defaultSelected={theme === 'dark'}
       size="sm"
-      color="default"
+      classNames={{
+        base: className,
+        wrapper: 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark',
+        thumb: 'bg-text-primary-light dark:bg-text-primary-dark',
+        startContent: 'text-text-primary-light dark:text-text-primary-dark',
+        endContent: 'text-text-primary-light dark:text-text-primary-dark',
+      }}
       startContent={<SunIcon className="h-4 w-4" />}
       endContent={<MoonIcon className="h-4 w-4" />}
-      className={className}
       onValueChange={(isSelected) => setTheme(isSelected ? 'dark' : 'light')}
     />
   );

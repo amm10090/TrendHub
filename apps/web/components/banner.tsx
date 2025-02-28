@@ -29,7 +29,7 @@ export const Banner: React.FC = () => {
                 <div className="absolute inset-0 bg-black/10 dark:bg-black/30" />
               </div>
               <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                <div className="text-white text-center">
+                <div className="text-text-primary-dark dark:text-text-primary-dark text-center">
                   <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-wider mb-4 sm:mb-6 drop-shadow-lg">
                     {t('title')}
                   </h1>
@@ -58,7 +58,7 @@ export const Banner: React.FC = () => {
             />
             <div className="absolute inset-0 bg-black/10 dark:bg-black/30" />
             <div className="absolute inset-0 flex items-center justify-center z-10">
-              <h1 className="text-2xl sm:text-3xl font-medium tracking-wider text-white text-center px-4 drop-shadow-lg">
+              <h1 className="text-2xl sm:text-3xl font-medium tracking-wider text-text-primary-dark dark:text-text-primary-dark text-center px-4 drop-shadow-lg">
                 {t('title')}
               </h1>
             </div>
@@ -66,7 +66,7 @@ export const Banner: React.FC = () => {
           <div className="mt-4">
             <Link className="block" href="/women/brands/gucci">
               <Button
-                className="w-full bg-black hover:bg-black/90 dark:bg-white dark:hover:bg-white/90 text-white dark:text-black"
+                className="w-full bg-bg-primary-dark hover:bg-hover-bg-dark dark:bg-bg-primary-light dark:hover:bg-hover-bg-light text-text-primary-dark dark:text-text-primary-light"
                 size="lg"
               >
                 {t('cta')}

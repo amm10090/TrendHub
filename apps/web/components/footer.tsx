@@ -31,18 +31,18 @@ export const Footer: React.FC = () => {
   const t = useTranslations('footer');
 
   return (
-    <footer className="bg-[#FAF9F6] dark:bg-gray-900 border-t border-[#E8E6E3] dark:border-gray-800">
+    <footer className="bg-bg-secondary-light dark:bg-bg-secondary-dark border-t border-border-primary-light dark:border-border-primary-dark">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-sm font-medium text-[#1A1A1A] dark:text-white uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark uppercase tracking-wider mb-4">
               {t('company.title')}
             </h3>
             <ul className="space-y-2">
               {footerLinks.customerService.map((link) => (
                 <li key={link.name}>
                   <Link
-                    className="text-sm text-[#666666] dark:text-gray-400 hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
+                    className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
                     href={link.href}
                   >
                     {link.name}
@@ -52,14 +52,14 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-[#1A1A1A] dark:text-white uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark uppercase tracking-wider mb-4">
               {t('help.title')}
             </h3>
             <ul className="space-y-2">
               {footerLinks.aboutUs.map((link) => (
                 <li key={link.name}>
                   <Link
-                    className="text-sm text-[#666666] dark:text-gray-400 hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
+                    className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
                     href={link.href}
                   >
                     {link.name}
@@ -69,13 +69,13 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-[#1A1A1A] dark:text-white uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark uppercase tracking-wider mb-4">
               {t('legal.title')}
             </h3>
             <div className="grid grid-cols-3 gap-4">
               {footerLinks.social.map((platform) => (
                 <div key={platform.name} className="text-center">
-                  <div className="w-24 h-24 mx-auto mb-2 bg-[#F5F5F2] rounded-lg relative">
+                  <div className="w-24 h-24 mx-auto mb-2 bg-bg-tertiary-light dark:bg-bg-tertiary-dark rounded-lg relative">
                     <Image
                       alt={`${platform.name} QR Code`}
                       className="object-cover rounded-lg"
@@ -84,14 +84,14 @@ export const Footer: React.FC = () => {
                       src={platform.qrCode}
                     />
                   </div>
-                  <p className="text-sm text-[#666666] dark:text-gray-400">{platform.name}</p>
+                  <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">{platform.name}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
-        <div className="mt-12 pt-8 border-t border-[#E8E6E3] dark:border-gray-800">
-          <p className="text-sm text-center text-[#666666] dark:text-gray-400">
+        <div className="mt-12 pt-8 border-t border-border-primary-light dark:border-border-primary-dark">
+          <p className="text-sm text-center text-text-secondary-light dark:text-text-secondary-dark">
             &copy; {new Date().getFullYear()} TrendHub. {t('copyright')}
           </p>
         </div>

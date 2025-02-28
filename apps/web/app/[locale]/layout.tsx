@@ -44,7 +44,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   return (
     <html suppressHydrationWarning className="h-full" lang={locale}>
       <head />
-      <body className={clsx('h-full bg-[#FAF9F6] dark:bg-gray-900 font-sans antialiased', fontSans.variable)}>
+      <body className={clsx('h-full bg-bg-secondary-light dark:bg-bg-secondary-dark font-sans antialiased', fontSans.variable)}>
         <Suspense
           fallback={<div className="flex items-center justify-center h-screen">加载中…</div>}
         >

@@ -293,12 +293,12 @@ export const Navbar = () => {
 
   return (
     <>
-      <div className="w-full bg-[#FAF9F6] dark:bg-gray-900 text-[#1A1A1A] dark:text-white border-b border-[#E8E6E3] dark:border-gray-800 hidden sm:block">
+      <div className="w-full bg-bg-secondary-light dark:bg-bg-secondary-dark text-text-primary-light dark:text-text-primary-dark border-b border-border-primary-light dark:border-border-primary-dark hidden sm:block">
         <div className="container mx-auto px-4 flex justify-between items-center h-8">
           <div className="flex gap-6">
             <Link
               className={cn(
-                "text-sm font-medium text-[#1A1A1A] dark:text-white hover:opacity-70 transition-all duration-300 uppercase tracking-wider relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-black dark:after:bg-white after:transition-all after:duration-300 hover:after:w-full",
+                "text-sm font-medium text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-300 uppercase tracking-wider relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-text-primary-light dark:after:bg-text-primary-dark after:transition-all after:duration-300 hover:after:w-full",
                 pathname?.startsWith('/women') && 'after:w-full'
               )}
               href="/women"
@@ -307,7 +307,7 @@ export const Navbar = () => {
             </Link>
             <Link
               className={cn(
-                "text-sm font-medium text-[#1A1A1A] dark:text-white hover:opacity-70 transition-all duration-300 uppercase tracking-wider relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-black dark:after:bg-white after:transition-all after:duration-300 hover:after:w-full",
+                "text-sm font-medium text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-300 uppercase tracking-wider relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-text-primary-light dark:after:bg-text-primary-dark after:transition-all after:duration-300 hover:after:w-full",
                 pathname?.startsWith('/men') && 'after:w-full'
               )}
               href="/men"
@@ -325,7 +325,7 @@ export const Navbar = () => {
         isBordered
         classNames={{
           wrapper: 'px-4 max-w-full h-16',
-          base: 'bg-[#FAF9F6] dark:bg-gray-900 text-[#1A1A1A] dark:text-white border-[#E8E6E3] dark:border-gray-800',
+          base: 'bg-bg-secondary-light dark:bg-bg-secondary-dark text-text-primary-light dark:text-text-primary-dark border-border-primary-light dark:border-border-primary-dark',
         }}
       >
         <NavbarContent className="sm:hidden">
@@ -344,7 +344,7 @@ export const Navbar = () => {
           {navigationItems.map((item) => (
             <NavbarItem key={item.href} className="group relative">
               <Link
-                className="text-sm text-[#1A1A1A] dark:text-white py-2 hover:opacity-70 transition-opacity"
+                className="text-sm text-text-primary-light dark:text-text-primary-dark py-2 hover:opacity-70 transition-opacity"
                 href={item.href}
                 role="button"
                 tabIndex={0}
@@ -354,13 +354,13 @@ export const Navbar = () => {
                 {item.name}
               </Link>
               {item.items && item.isBrands ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-[#FAF9F6] dark:bg-gray-900 shadow-sm border-b border-[#E8E6E3] dark:border-gray-800">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-sm border-b border-border-primary-light dark:border-border-primary-dark">
                   <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
                       <div className="flex gap-16">
-                        <div className="w-3/4 pr-8 border-r border-[#E8E6E3] dark:border-gray-800">
+                        <div className="w-3/4 pr-8 border-r border-border-primary-light dark:border-border-primary-dark">
                           <div className="mb-6">
-                            <h3 className="text-sm font-medium text-[#666666] dark:text-gray-400 uppercase tracking-wider">
+                            <h3 className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
                               {t('popular_brands')}
                             </h3>
                           </div>
@@ -369,7 +369,7 @@ export const Navbar = () => {
                               {getBrandItems().firstRowBrands.map((brand) => (
                                 <Link
                                   key={brand.href}
-                                  className="block text-[#1A1A1A] dark:text-white hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
+                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
                                   href={brand.href}
                                   role="button"
                                   tabIndex={0}
@@ -384,7 +384,7 @@ export const Navbar = () => {
                               {getBrandItems().secondRowBrands.map((brand) => (
                                 <Link
                                   key={brand.href}
-                                  className="block text-[#1A1A1A] dark:text-white hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
+                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
                                   href={brand.href}
                                   role="button"
                                   tabIndex={0}
@@ -395,7 +395,7 @@ export const Navbar = () => {
                                 </Link>
                               ))}
                               <Link
-                                className="block text-[#1A1A1A] dark:text-white hover:opacity-70 transition-all duration-200 text-sm font-medium hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap underline underline-offset-4"
+                                className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm font-medium hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap underline underline-offset-4"
                                 href={getBrandItems().viewAll.href}
                                 role="button"
                                 tabIndex={0}
@@ -409,7 +409,7 @@ export const Navbar = () => {
                         </div>
                         <div className="w-1/4">
                           <div className="mb-6">
-                            <h3 className="text-sm font-medium text-[#666666] dark:text-gray-400 uppercase tracking-wider">
+                            <h3 className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
                               {t('brands_a_z')}
                             </h3>
                           </div>
@@ -422,14 +422,14 @@ export const Navbar = () => {
                   </div>
                 </div>
               ) : item.items ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-[#FAF9F6] dark:bg-gray-900 shadow-sm border-b border-[#E8E6E3] dark:border-gray-800">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-sm border-b border-border-primary-light dark:border-border-primary-dark">
                   <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
                       <div className="grid grid-cols-4 gap-8">
                         {item.items.map((subItem) => (
                           <Link
                             key={subItem.href}
-                            className="block py-3 px-4 border-b border-[#E8E6E3] dark:border-gray-800 text-[#666666] dark:text-gray-400 hover:bg-[#F5F5F2] dark:hover:bg-gray-800 transition-colors text-base"
+                            className="block py-3 px-4 border-b border-border-primary-light dark:border-border-primary-dark text-text-secondary-light dark:text-text-secondary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors text-base"
                             href={subItem.href}
                             role="button"
                             tabIndex={0}
@@ -451,13 +451,13 @@ export const Navbar = () => {
         <NavbarContent justify="end">
           <div className="flex items-center gap-2">
             {isSearchOpen ? (
-              <div className="absolute inset-0 px-4 flex items-center bg-[#FAF9F6] dark:bg-gray-900">
+              <div className="absolute inset-0 px-4 flex items-center bg-bg-secondary-light dark:bg-bg-secondary-dark">
                 <Input
                   aria-label={t('search.label')}
                   classNames={{
                     base: 'w-full',
-                    input: 'text-small text-[#1A1A1A] dark:text-white',
-                    inputWrapper: 'h-10 bg-[#F5F5F2] dark:bg-gray-800 border-[#E8E6E3] dark:border-gray-700',
+                    input: 'text-small text-text-primary-light dark:text-text-primary-dark',
+                    inputWrapper: 'h-10 bg-bg-tertiary-light dark:bg-bg-tertiary-dark border-border-primary-light dark:border-border-primary-dark',
                   }}
                   endContent={
                     <Button
@@ -465,14 +465,14 @@ export const Navbar = () => {
                       aria-label={t('search.close')}
                       size="sm"
                       variant="light"
-                      className="text-[#1A1A1A] dark:text-white"
+                      className="text-text-primary-light dark:text-text-primary-dark"
                       onPointerDown={() => setIsSearchOpen(false)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   }
                   placeholder={t('search.placeholder')}
-                  startContent={<SearchIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
+                  startContent={<SearchIcon className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />}
                   type="search"
                 />
               </div>
@@ -510,7 +510,7 @@ export const Navbar = () => {
 
         <Drawer
           classNames={{
-            base: 'w-[85vw] max-w-[400px] bg-[#FAF9F6] dark:bg-gray-900',
+            base: 'w-[85vw] max-w-[400px] bg-bg-secondary-light dark:bg-bg-secondary-dark',
             wrapper: 'bg-black/20',
           }}
           hideCloseButton={true}
@@ -520,14 +520,14 @@ export const Navbar = () => {
         >
           <DrawerContent>
             <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between p-4 border-b border-[#E8E6E3]">
+              <div className="flex items-center justify-between p-4 border-b border-border-primary-light dark:border-border-primary-dark">
                 <Tabs
                   fullWidth
                   classNames={{
                     base: 'w-full',
                     tabList: 'gap-0',
-                    tab: 'h-11 data-[selected=true]:bg-black dark:data-[selected=true]:bg-white data-[selected=true]:text-white dark:data-[selected=true]:text-black data-[selected=false]:bg-[#F5F5F2] dark:data-[selected=false]:bg-gray-800 data-[selected=false]:text-[#666666] dark:data-[selected=false]:text-gray-400',
-                    tabContent: 'text-base font-normal group-data-[selected=true]:text-white dark:group-data-[selected=true]:text-black group-data-[selected=false]:text-[#666666] dark:group-data-[selected=false]:text-gray-400',
+                    tab: 'h-11 data-[selected=true]:bg-text-primary-light dark:data-[selected=true]:bg-text-primary-dark data-[selected=true]:text-bg-secondary-light dark:data-[selected=true]:text-bg-secondary-dark data-[selected=false]:bg-bg-tertiary-light dark:data-[selected=false]:bg-bg-tertiary-dark data-[selected=false]:text-text-secondary-light dark:data-[selected=false]:text-text-secondary-dark',
+                    tabContent: 'text-base font-normal group-data-[selected=true]:text-bg-secondary-light dark:group-data-[selected=true]:text-bg-secondary-dark group-data-[selected=false]:text-text-secondary-light dark:group-data-[selected=false]:text-text-secondary-dark',
                     cursor: 'hidden',
                   }}
                   selectedKey={activeCategory}
@@ -550,7 +550,7 @@ export const Navbar = () => {
                 {currentSubmenu ? (
                   <div>
                     <div
-                      className="flex items-center gap-2 p-4 border-b border-[#E8E6E3] dark:border-gray-800 cursor-pointer text-base text-[#1A1A1A] dark:text-white"
+                      className="flex items-center gap-2 p-4 border-b border-border-primary-light dark:border-border-primary-dark cursor-pointer text-base text-text-primary-light dark:text-text-primary-dark"
                       role="button"
                       tabIndex={0}
                       onClick={handleBackClick}
@@ -563,7 +563,7 @@ export const Navbar = () => {
                       {currentSubmenu.items.map((subItem: SubMenuItem) => (
                         <Link
                           key={subItem.href}
-                          className="block py-3 px-4 border-b text-[#666666] dark:text-gray-400 hover:bg-[#F5F5F2] dark:hover:bg-gray-800 transition-colors text-base"
+                          className="block py-3 px-4 border-b text-text-secondary-light dark:text-text-secondary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors text-base"
                           href={subItem.href}
                           role="button"
                           tabIndex={0}
@@ -579,7 +579,7 @@ export const Navbar = () => {
                   navigationItems.map((item) => (
                     <div
                       key={item.href}
-                      className="block py-3 px-4 border-b border-[#E8E6E3] dark:border-gray-800 text-base hover:bg-[#F5F5F2] dark:hover:bg-gray-800 transition-colors cursor-pointer text-[#1A1A1A] dark:text-white"
+                      className="block py-3 px-4 border-b border-border-primary-light dark:border-border-primary-dark text-base hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors cursor-pointer text-text-primary-light dark:text-text-primary-dark"
                       role="button"
                       tabIndex={0}
                       onClick={(e) => handleItemClick(item, e)}
@@ -593,10 +593,10 @@ export const Navbar = () => {
                   ))
                 )}
               </div>
-              <div className="mt-auto border-t border-[#E8E6E3]">
+              <div className="mt-auto border-t border-border-primary-light dark:border-border-primary-dark">
                 <div className="p-4">
                   <Button
-                    className="w-full border border-black dark:border-white hover:bg-[#F5F5F2] dark:hover:bg-gray-800 mb-4 text-base text-[#1A1A1A] dark:text-white"
+                    className="w-full border border-text-primary-light dark:border-text-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark mb-4 text-base text-text-primary-light dark:text-text-primary-dark"
                     startContent={<HeartIcon className="h-5 w-5" />}
                   >
                     {t('wishlist')}

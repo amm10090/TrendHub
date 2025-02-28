@@ -60,7 +60,7 @@ const NextArrow: React.FC<ArrowProps> = ({ onClick }) => {
   return (
     <button
       aria-label="下一个"
-      className="absolute -right-2 top-[calc(50%-2.5rem)] z-20 bg-white hover:bg-[#F5F5F2] rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
+      className="absolute -right-2 top-[calc(50%-2.5rem)] z-20 bg-bg-primary-light dark:bg-bg-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
       onClick={onClick}
     >
       <svg
@@ -72,6 +72,7 @@ const NextArrow: React.FC<ArrowProps> = ({ onClick }) => {
         strokeWidth="2"
         viewBox="0 0 24 24"
         width="20"
+        className="text-text-primary-light dark:text-text-primary-dark"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path d="m9 18 6-6-6-6" />
@@ -84,7 +85,7 @@ const PrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
   return (
     <button
       aria-label="上一个"
-      className="absolute -left-2 top-[calc(50%-2.5rem)] z-20 bg-white hover:bg-[#F5F5F2] rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
+      className="absolute -left-2 top-[calc(50%-2.5rem)] z-20 bg-bg-primary-light dark:bg-bg-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
       onClick={onClick}
     >
       <svg
@@ -96,6 +97,7 @@ const PrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
         strokeWidth="2"
         viewBox="0 0 24 24"
         width="20"
+        className="text-text-primary-light dark:text-text-primary-dark"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path d="m15 18-6-6 6-6" />
@@ -160,9 +162,9 @@ export const ProductGrid: React.FC = () => {
   };
 
   return (
-    <section className="w-full bg-[#FAF9F6] dark:bg-gray-900">
+    <section className="w-full bg-bg-secondary-light dark:bg-bg-primary-dark">
       <div className="container py-8 sm:py-12">
-        <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-[#1A1A1A] dark:text-white">
+        <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-text-primary-light dark:text-text-primary-dark">
           {t('nav.newArrivals')}
         </h2>
         <div className="space-y-12">
@@ -170,43 +172,45 @@ export const ProductGrid: React.FC = () => {
             <Slider {...settings} className="product-slider">
               {products.map((product) => (
                 <div key={product.id} className="px-2 sm:px-3 md:px-4">
-                  <div className="group relative">
+                  <div className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-sm dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
                     <Chip
                       classNames={{
-                        base: 'absolute top-2 left-2 z-20 bg-white dark:bg-gray-900 shadow-sm',
+                        base: 'absolute top-5 left-5 z-20 bg-bg-primary-light dark:bg-bg-tertiary-dark backdrop-blur-sm dark:backdrop-blur-md shadow-sm',
                         content:
-                          'text-[9px] leading-none sm:text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 text-[#1A1A1A] dark:text-white',
+                          'text-[9px] leading-none sm:text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 text-text-primary-light dark:text-text-primary-dark',
                       }}
                       variant="flat"
                     >
                       <span className="hidden sm:inline">NEW ARRIVAL</span>
                       <span className="inline sm:hidden">NEW</span>
                     </Chip>
-                    <div className="relative">
+                    <div className="relative overflow-hidden rounded-lg bg-bg-primary-light dark:bg-bg-secondary-dark shadow-[inset_0_0_8px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.1)]">
                       <Button
                         isIconOnly
                         aria-label="收藏"
-                        className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-white dark:bg-gray-900 hover:bg-[#F5F5F2] dark:hover:bg-gray-800 shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
+                        className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-sm shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
                         variant="flat"
                       >
-                        <HeartIcon className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-[#1A1A1A] dark:text-white" />
+                        <HeartIcon className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-text-primary-light dark:text-text-primary-dark" />
                       </Button>
-                      <Image
-                        alt={product.name}
-                        classNames={{
-                          wrapper: 'aspect-square rounded-lg overflow-hidden',
-                          img: 'w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105',
-                        }}
-                        src={product.image}
-                      />
+                      <div className="relative aspect-square">
+                        <Image
+                          alt={product.name}
+                          classNames={{
+                            wrapper: 'aspect-square overflow-hidden',
+                            img: 'w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105 dark:opacity-90 dark:group-hover:opacity-100',
+                          }}
+                          src={product.image}
+                        />
+                      </div>
                     </div>
-                    <div className="mt-2 sm:mt-4 px-0.5">
-                      <h3 className="text-[11px] sm:text-sm text-[#666666] dark:text-gray-400">{product.brand}</h3>
-                      <Link className="block" href={`/products/${product.id}`}>
-                        <p className="mt-0.5 sm:mt-2 text-[11px] sm:text-sm font-medium text-[#1A1A1A] dark:text-white">
+                    <div className="mt-4 space-y-2">
+                      <h3 className="text-[11px] sm:text-sm font-semibold tracking-wide text-text-secondary-light dark:text-text-secondary-dark">{product.brand}</h3>
+                      <Link className="block space-y-1" href={`/products/${product.id}`}>
+                        <p className="text-[11px] sm:text-sm font-normal text-text-primary-light dark:text-text-primary-dark line-clamp-2 leading-relaxed">
                           {product.name}
                         </p>
-                        <p className="mt-0.5 sm:mt-2 text-[11px] sm:text-sm text-[#1A1A1A] dark:text-white">
+                        <p className="text-[11px] sm:text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
                           ¥{product.price.toLocaleString()}
                         </p>
                       </Link>
@@ -220,6 +224,7 @@ export const ProductGrid: React.FC = () => {
                 display: flex !important;
                 margin-left: 0;
                 margin-right: 0;
+                gap: 16px;
               }
               .product-slider .slick-slide {
                 height: inherit !important;
@@ -232,14 +237,17 @@ export const ProductGrid: React.FC = () => {
                 width: 32px;
                 height: 32px;
                 z-index: 20;
-                background: white;
+                background: var(--bg-primary-light);
+                color: var(--text-primary-light);
                 border-radius: 50%;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                backdrop-filter: blur(8px);
                 transition: all 0.2s;
               }
               .product-slider .slick-prev:hover,
               .product-slider .slick-next:hover {
-                background: #f5f5f2;
+                background: var(--hover-bg-light);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
               }
               .product-slider .slick-prev {
                 left: 4px;
@@ -272,19 +280,21 @@ export const ProductGrid: React.FC = () => {
               @media (prefers-color-scheme: dark) {
                 .product-slider .slick-prev,
                 .product-slider .slick-next {
-                  background: #111827;
-                  color: #ffffff;
+                  background: var(--bg-tertiary-dark);
+                  color: var(--text-primary-dark);
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
                 }
                 .product-slider .slick-prev:hover,
                 .product-slider .slick-next:hover {
-                  background: #1f2937;
+                  background: var(--hover-bg-dark);
+                  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
                 }
               }
             `}</style>
           </div>
           <div className="flex justify-center">
             <Button
-              className="bg-black hover:bg-black/90 dark:bg-white dark:hover:bg-white/90 text-white dark:text-black min-w-[120px] text-xs sm:text-sm"
+              className="bg-bg-tertiary-dark hover:bg-hover-bg-dark text-text-primary-dark min-w-[120px] text-xs sm:text-sm font-medium tracking-wide shadow-sm hover:shadow-md transition-all duration-300"
               variant="flat"
             >
               SEE ALL

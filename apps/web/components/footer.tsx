@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
     customerService: [
       { name: t('customerService'), href: '/contact' },
       { name: t('giftCards'), href: '/gift-cards' },
-      { name: t('payment'), href: '/payment' },
+      { name: t('privacy.title'), href: '/privacy' },
       { name: t('shipping'), href: '/shipping' },
       { name: t('returns'), href: '/returns' },
     ],

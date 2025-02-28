@@ -191,7 +191,10 @@
     "returns": "Returns & Exchanges",
     "copyright": "All rights reserved",
     "wechat": "WeChat Mini Program",
-    "huawei": "Huawei App"
+    "huawei": "Huawei App",
+    "privacy": {
+      "title": "Privacy Policy"
+    }
   },
   "introduction": {
     "title": "A luxury shopping experience",
@@ -229,6 +232,182 @@
       "please_enter_valid_email": {
         "title": "Invalid Email",
         "description": "Please enter a valid email address to subscribe."
+      }
+    }
+  },
+  "about": {
+    "nav": {
+      "about": "About Us",
+      "sustainability": "Sustainability",
+      "affiliate": "Affiliate Program"
+    },
+    "hero": {
+      "title": "About TrendHub",
+      "description": "TrendHub is your most trusted source for discovering exquisite luxury fashion. Our expert buying team travels the globe to curate a selection of over 200 international luxury brands."
+    },
+    "stats": {
+      "brands": "International Luxury Brands",
+      "countries": "Shipping Destinations",
+      "team": "Expert Buyers",
+      "newArrivals": "Weekly New Arrivals"
+    },
+    "sustainability": {
+      "title": "TrendHub Sustainability Commitment",
+      "description": "Our sustainability framework is built on four pillars that shape our approach to environmental, social, and governance (ESG) issues.",
+      "pillars": {
+        "planet": {
+          "title": "Planet",
+          "description": "Committed to improving our global operations' impact on greenhouse gas emissions and waste management, while providing sustainable choices for our customers."
+        },
+        "talent": {
+          "title": "Talent",
+          "description": "Creating a diverse, equitable, inclusive, and positive culture for our employees, partners, customers, and the luxury industry as a whole."
+        },
+        "product": {
+          "title": "Product",
+          "description": "Committed to full transparency in brand and product ESG impact, supporting animal welfare, responsible sourcing, and circular economy."
+        },
+        "policy": {
+          "title": "Policy",
+          "description": "Maintaining the highest standards in corporate culture, governance, and digital operations, including data management and corporate conduct."
+        }
+      },
+      "vision": {
+        "quote": "Sustainability is a journey, not a destination; it's about practice, not just goals. In a world where environmental, social, and governance issues are increasingly urgent, we aim to grow our business in the most sustainable way possible.",
+        "signature": "TrendHub Management Team",
+        "date": "January 2024"
+      },
+      "reports": {
+        "title": "Sustainability Reports",
+        "description": "Learn about our latest progress and future plans in sustainability."
+      }
+    },
+    "services": {
+      "support": {
+        "title": "24/7 Expert Support",
+        "description": "Premium customer service in 13 languages"
+      },
+      "shipping": {
+        "title": "Global Fast Shipping",
+        "description": "Professional logistics to 130+ countries"
+      },
+      "guarantee": {
+        "title": "Authenticity Guaranteed",
+        "description": "All items sourced directly from brands"
+      }
+    },
+    "mission": {
+      "title": "Our Mission",
+      "description": "TrendHub is dedicated to creating a platform that connects global fashion brands with consumers, making quality fashion accessible to everyone.",
+      "values": {
+        "value1": "Provide the best shopping experience for customers",
+        "value2": "Ensure product authenticity and quality",
+        "value3": "Continuous innovation and leading fashion trends"
+      }
+    },
+    "team": {
+      "title": "Our Team",
+      "members": {
+        "member1": {
+          "name": "Ming Zhang",
+          "position": "Founder & CEO",
+          "description": "Over 15 years of experience in e-commerce and fashion industry"
+        },
+        "member2": {
+          "name": "Howard Li",
+          "position": "CTO",
+          "description": "Focused on creating ultimate user experience and technical innovation"
+        },
+        "member3": {
+          "name": "Jane Wang",
+          "position": "Design Director",
+          "description": "Dedicated to creating unique visual experiences and brand identity"
+        }
+      }
+    },
+    "contact": {
+      "title": "Contact Us",
+      "description": "If you have any questions or suggestions, feel free to contact us",
+      "button": "Send Email"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "last_updated": "Last Updated: February 8, 2024",
+    "sections": {
+      "introduction": {
+        "title": "Introduction",
+        "content": "Welcome to TrendHub's Privacy Policy page. We value your privacy and are committed to protecting your personal information.",
+        "items": {
+          "0": "This Privacy Policy explains how we collect, use, and protect your personal information",
+          "1": "By using our services, you agree to the terms of this Privacy Policy",
+          "2": "We regularly update this policy to ensure compliance with the latest privacy protection standards"
+        }
+      },
+      "information_collection": {
+        "title": "Information Collection",
+        "content": "Types of information we collect include:",
+        "items": {
+          "0": "Personal information you actively provide (such as name, email address)",
+          "1": "Browser and device information",
+          "2": "Shopping history and preferences",
+          "3": "Location information"
+        }
+      },
+      "information_use": {
+        "title": "Information Use",
+        "content": "We use the collected information to:",
+        "items": {
+          "0": "Process your orders and provide customer service",
+          "1": "Personalize your shopping experience",
+          "2": "Send marketing communications (with your consent)",
+          "3": "Improve our products and services"
+        }
+      },
+      "information_sharing": {
+        "title": "Information Sharing",
+        "content": "How we share your information:",
+        "items": {
+          "0": "We do not sell your personal information",
+          "1": "Information is only shared with necessary service providers",
+          "2": "Information may be disclosed when required by law",
+          "3": "Third-party sharing only occurs with your explicit consent"
+        }
+      },
+      "cookies": {
+        "title": "Cookie Policy",
+        "content": "We use cookies to enhance your shopping experience:",
+        "items": {
+          "0": "Essential cookies for basic website functionality",
+          "1": "Analytics cookies to help improve our services",
+          "2": "Marketing cookies for personalized advertising",
+          "3": "You can manage cookies in your browser settings at any time"
+        }
+      },
+      "security": {
+        "title": "Security Measures",
+        "content": "We implement multiple measures to protect your information:",
+        "items": {
+          "0": "Data encryption for secure transmission",
+          "1": "Regular security system updates",
+          "2": "Limited employee access to personal information",
+          "3": "Regular security audits"
+        }
+      },
+      "rights": {
+        "title": "Your Rights",
+        "content": "Regarding your personal information, you have the right to:",
+        "items": {
+          "0": "Access your personal information",
+          "1": "Correct inaccurate information",
+          "2": "Request deletion of your information",
+          "3": "Opt-out of marketing communications"
+        }
+      },
+      "contact": {
+        "title": "Contact Us",
+        "content": "If you have any questions about our Privacy Policy, please don't hesitate to contact us:",
+        "email": "privacy@trendhub.com"
       }
     }
   }

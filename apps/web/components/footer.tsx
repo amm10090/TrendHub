@@ -1,9 +1,10 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
+import { Divider, Image, Link as HeroLink } from '@heroui/react';
 import React from 'react';
 import { useTranslations } from 'use-intl';
+
+import { NewsletterSubscribe } from './NewsletterSubscribe';
 
 const footerLinks = {
   customerService: [
@@ -31,9 +32,15 @@ export const Footer: React.FC = () => {
   const t = useTranslations('footer');
 
   return (
-    <footer className="bg-bg-secondary-light dark:bg-bg-secondary-dark border-t border-border-primary-light dark:border-border-primary-dark">
+    <footer className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="max-w-2xl mx-auto text-center mb-12">
+          <NewsletterSubscribe />
+        </div>
+
+        <Divider className="border-border-primary-light dark:border-border-primary-dark my-8" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           <div>
             <h3 className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark uppercase tracking-wider mb-4">
               {t('company.title')}
@@ -41,12 +48,12 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2">
               {footerLinks.customerService.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
+                  <HeroLink
                     href={link.href}
+                    className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark"
                   >
                     {link.name}
-                  </Link>
+                  </HeroLink>
                 </li>
               ))}
             </ul>
@@ -58,12 +65,12 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2">
               {footerLinks.aboutUs.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
+                  <HeroLink
                     href={link.href}
+                    className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark"
                   >
                     {link.name}
-                  </Link>
+                  </HeroLink>
                 </li>
               ))}
             </ul>
@@ -75,12 +82,10 @@ export const Footer: React.FC = () => {
             <div className="grid grid-cols-3 gap-4">
               {footerLinks.social.map((platform) => (
                 <div key={platform.name} className="text-center">
-                  <div className="w-24 h-24 mx-auto mb-2 bg-bg-tertiary-light dark:bg-bg-tertiary-dark rounded-lg relative">
+                  <div className="w-24 h-24 mx-auto mb-2 bg-bg-tertiary-light dark:bg-bg-tertiary-dark rounded-lg relative overflow-hidden">
                     <Image
                       alt={`${platform.name} QR Code`}
-                      className="object-cover rounded-lg"
-                      fill
-                      sizes="96px"
+                      className="object-cover w-full h-full"
                       src={platform.qrCode}
                     />
                   </div>
@@ -90,8 +95,11 @@ export const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="mt-12 pt-8 border-t border-border-primary-light dark:border-border-primary-dark">
-          <p className="text-sm text-center text-text-secondary-light dark:text-text-secondary-dark">
+
+        <Divider className="border-border-primary-light dark:border-border-primary-dark my-8" />
+
+        <div className="text-center">
+          <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
             &copy; {new Date().getFullYear()} TrendHub. {t('copyright')}
           </p>
         </div>

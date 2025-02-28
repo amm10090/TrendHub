@@ -3,8 +3,7 @@ import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import React, { Suspense } from 'react';
 
-import { Providers } from '../providers';
-
+import { Providers } from '@/app/providers';
 import { Footer } from '@/components/footer';
 import { Navbar } from '@/components/navbar';
 import { fontSans } from '@/config/fonts';

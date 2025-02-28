@@ -172,6 +172,15 @@
     "legal": {
       "title": "Follow Us"
     },
+    "newsletter": {
+      "title": "Subscribe to our newsletter",
+      "description": "Subscribe to receive updates, access to exclusive deals, and more.",
+      "placeholder": "Enter your email",
+      "subscribe": "Subscribe",
+      "success": "Thank you for subscribing!",
+      "error": "Failed to subscribe. Please try again later.",
+      "invalid_email": "Please enter a valid email address"
+    },
     "customerService": "Customer Service",
     "aboutUs": "About Us",
     "followUs": "Follow Us",
@@ -202,6 +211,22 @@
       "payment": {
         "title": "Secure Payment",
         "description": "Multiple secure payment options and buyer protection on all purchases."
+      }
+    }
+  },
+  "toast": {
+    "newsletter": {
+      "subscription_success": {
+        "title": "Subscription Successful",
+        "description": "Welcome to TrendHub! You've been added to our newsletter list."
+      },
+      "subscription_error": {
+        "title": "Subscription Failed",
+        "description": "We couldn't process your subscription. Please try again later."
+      },
+      "please_enter_valid_email": {
+        "title": "Invalid Email",
+        "description": "Please enter a valid email address to subscribe."
       }
     }
   }

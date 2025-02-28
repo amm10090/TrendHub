@@ -172,6 +172,15 @@
     "legal": {
       "title": "关注我们"
     },
+    "newsletter": {
+      "title": "订阅我们的新闻资讯",
+      "description": "订阅以获取最新商品信息、独家优惠和时尚灵感",
+      "placeholder": "请输入您的电子邮箱",
+      "subscribe": "订阅",
+      "success": "感谢订阅！",
+      "error": "订阅失败，请稍后重试",
+      "invalid_email": "请输入有效的电子邮箱地址"
+    },
     "customerService": "个性化客户服务",
     "aboutUs": "关于我们",
     "followUs": "关注我们",
@@ -202,6 +211,22 @@
       "payment": {
         "title": "安全支付",
         "description": "多种安全支付选项，所有购买都享有买家保护。"
+      }
+    }
+  },
+  "toast": {
+    "newsletter": {
+      "subscription_success": {
+        "title": "订阅成功",
+        "description": "欢迎加入 TrendHub！您已成功订阅我们的新闻资讯。"
+      },
+      "subscription_error": {
+        "title": "订阅失败",
+        "description": "订阅处理失败，请稍后重试。"
+      },
+      "please_enter_valid_email": {
+        "title": "邮箱无效",
+        "description": "请输入有效的电子邮箱地址以完成订阅。"
       }
     }
   }

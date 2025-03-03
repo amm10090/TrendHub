@@ -6,7 +6,7 @@ import { Input } from '@heroui/input';
 import { Link } from '@heroui/link';
 import { Navbar as HeroUINavbar, NavbarContent, NavbarBrand, NavbarItem } from '@heroui/navbar';
 import { Tabs, Tab } from '@heroui/react';
-import { Menu, X } from 'lucide-react';
+import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -14,7 +14,6 @@ import { useState } from 'react';
 import { LanguageSwitch } from './language-switch';
 import { ThemeSwitch } from './theme-switch';
 
-import { SearchIcon, UserIcon, HeartIcon, ShoppingBagIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 
 interface SubMenuItem {
@@ -472,7 +471,7 @@ export const Navbar = () => {
                     </Button>
                   }
                   placeholder={t('search.placeholder')}
-                  startContent={<SearchIcon className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />}
+                  startContent={<Search className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />}
                   type="search"
                 />
               </div>
@@ -485,22 +484,22 @@ export const Navbar = () => {
                     variant="light"
                     onPointerDown={() => setIsSearchOpen(true)}
                   >
-                    <SearchIcon className="h-5 w-5" />
+                    <Search className="h-5 w-5" />
                   </Button>
                 </NavbarItem>
                 <NavbarItem className="hidden sm:flex">
                   <Button isIconOnly aria-label={t('account')} variant="light">
-                    <UserIcon className="h-5 w-5" />
+                    <User className="h-5 w-5" />
                   </Button>
                 </NavbarItem>
                 <NavbarItem className="hidden sm:flex">
                   <Button isIconOnly aria-label={t('wishlist')} variant="light">
-                    <HeartIcon className="h-5 w-5" />
+                    <Heart className="h-5 w-5" />
                   </Button>
                 </NavbarItem>
                 <NavbarItem>
                   <Button isIconOnly aria-label={t('cart')} variant="light">
-                    <ShoppingBagIcon className="h-5 w-5" />
+                    <ShoppingBag className="h-5 w-5" />
                   </Button>
                 </NavbarItem>
               </>
@@ -597,7 +596,7 @@ export const Navbar = () => {
                 <div className="p-4">
                   <Button
                     className="w-full border border-text-primary-light dark:border-text-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark mb-4 text-base text-text-primary-light dark:text-text-primary-dark"
-                    startContent={<HeartIcon className="h-5 w-5" />}
+                    startContent={<Heart className="h-5 w-5" />}
                   >
                     {t('wishlist')}
                   </Button>

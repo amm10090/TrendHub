@@ -1,7 +1,7 @@
 {
   "nav": {
-    "women": "WOMEN",
-    "men": "MEN",
+    "women": "Women",
+    "men": "Men",
     "clothing": "Clothing",
     "shoes": "Shoes",
     "bags": "Bags",
@@ -9,13 +9,35 @@
     "jewelry": "Jewelry",
     "brands": "Brands",
     "guides": "Guides",
+    "search": {
+      "label": "Search",
+      "placeholder": "Search for items and brands",
+      "close": "Close search"
+    },
+    "account": "Account",
+    "wishlist": "Wishlist",
+    "cart": "Cart",
+    "back": "Back",
+    "newArrivals": "New Arrivals",
     "popular_brands": "Popular Brands",
     "brands_a_z": "Brands A-Z",
     "view_all_brands": "View All Brands",
-    "all": "All",
-    "newArrivals": "New Arrivals",
-    "onSale": "On Sale",
-    "trending": "Trending",
+    "popular_brand_names": {
+      "balenciaga": "Balenciaga",
+      "bottega_veneta": "Bottega Veneta",
+      "chloe": "Chloé",
+      "ganni": "Ganni",
+      "gucci": "Gucci",
+      "h_and_m": "H&M",
+      "isabel_marant": "Isabel Marant",
+      "other_stories": "& Other Stories",
+      "prada": "Prada",
+      "saint_laurent": "Saint Laurent",
+      "reformation": "Reformation",
+      "valentino": "Valentino",
+      "zara": "Zara",
+      "tory_burch": "Tory Burch"
+    },
     "clothing_categories": {
       "all": "All Clothing",
       "beachwear": "Beachwear & Swimwear",
@@ -24,10 +46,10 @@
       "hosiery": "Hosiery",
       "jackets": "Jackets",
       "jeans": "Jeans",
-      "jumpsuits": "Jumpsuits & Rompers",
+      "jumpsuits": "Jumpsuits",
       "knitwear": "Knitwear",
       "lingerie": "Lingerie",
-      "nightwear": "Nightwear & Sleepwear",
+      "nightwear": "Nightwear",
       "pants": "Pants",
       "shorts": "Shorts",
       "skirts": "Skirts",
@@ -92,33 +114,7 @@
       "sustainable": "Sustainable",
       "affordable": "Affordable Luxury"
     },
-    "popular_brand_names": {
-      "balenciaga": "Balenciaga",
-      "bottega_veneta": "Bottega Veneta",
-      "chloe": "Chloé",
-      "ganni": "GANNI",
-      "gucci": "Gucci",
-      "h_and_m": "H&M",
-      "isabel_marant": "Isabel Marant",
-      "other_stories": "& Other Stories",
-      "prada": "Prada",
-      "reformation": "Reformation",
-      "saint_laurent": "Saint Laurent",
-      "valentino": "Valentino",
-      "zara": "ZARA",
-      "tory_burch": "Tory Burch"
-    },
-    "search": {
-      "placeholder": "Search e.g. 'Modern chelsea boots'",
-      "label": "Search",
-      "close": "Close search",
-      "clear": "Clear search text"
-    },
-    "account": "Account",
-    "wishlist": "Wishlist",
-    "cart": "Shopping Bag",
-    "menu": "Menu",
-    "back": "Back"
+    "menu": "Menu"
   },
   "banner": {
     "title": "Gucci New Season",
@@ -482,5 +478,53 @@
         "email": "legal@trendhub.com"
       }
     }
+  },
+  "product": {
+    "breadcrumb": {
+      "home": "Home",
+      "category": "Category",
+      "search": "Search Results"
+    },
+    "options": {
+      "selectSize": "Select Size",
+      "selectColor": "Select Color",
+      "sizeGuide": "Size Guide",
+      "color": "Color",
+      "quantity": "Quantity"
+    },
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "availableItems": "{count} items available",
+    "addToCart": "Add to Cart",
+    "addToWishlist": "Add to Wishlist",
+    "removeFromWishlist": "Remove from Wishlist",
+    "relatedProducts": "You May Also Like",
+    "tags": {
+      "new": "NEW",
+      "sale": "SALE",
+      "freeShipping": "Free Shipping",
+      "freeReturns": "Free Returns"
+    },
+    "accordion": {
+      "description": "Product Details",
+      "material": "Material & Composition",
+      "care": "Care Instructions",
+      "shipping": "Shipping Information",
+      "returns": "Returns & Exchanges",
+      "noCareInstructions": "No care instructions available",
+      "shippingInfo": {
+        "free": "We offer free shipping on all orders.",
+        "delivery": "Estimated delivery within {days} business days after shipping.",
+        "international": "International orders may take longer to arrive."
+      },
+      "returnsInfo": {
+        "free": "Enjoy free returns and exchanges.",
+        "period": "Unworn items can be returned within {days} days of receipt."
+      }
+    }
+  },
+  "track": {
+    "redirecting": "Redirecting you to the store",
+    "please_wait": "Please wait while we redirect you to our partner store..."
   }
 }

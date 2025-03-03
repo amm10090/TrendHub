@@ -482,5 +482,50 @@
         "email": "legal@trendhub.com"
       }
     }
+  },
+  "product": {
+    "breadcrumb": {
+      "home": "首页",
+      "category": "分类",
+      "search": "搜索结果"
+    },
+    "addToCart": "加入购物车",
+    "addToWishlist": "添加到收藏夹",
+    "removeFromWishlist": "从收藏夹中移除",
+    "inStock": "有货",
+    "outOfStock": "缺货",
+    "availableItems": "剩余 {count} 件",
+    "sku": "商品编号",
+    "relatedProducts": "相关推荐",
+    "tags": {
+      "new": "新品",
+      "sale": "特惠",
+      "freeShipping": "免费配送",
+      "freeReturns": "免费退换"
+    },
+    "options": {
+      "selectSize": "选择尺码",
+      "selectColor": "选择颜色",
+      "color": "颜色",
+      "quantity": "数量",
+      "sizeGuide": "尺码指南"
+    },
+    "accordion": {
+      "description": "产品详情",
+      "material": "材质与成分",
+      "care": "保养说明",
+      "shipping": "配送信息",
+      "returns": "退换政策",
+      "noCareInstructions": "暂无保养说明",
+      "shippingInfo": {
+        "free": "我们为所有订单提供免费配送服务。",
+        "delivery": "预计发货后 {days} 个工作日送达。",
+        "international": "国际订单可能需要更长时间。"
+      },
+      "returnsInfo": {
+        "free": "享受免费退换服务。",
+        "period": "自收到商品起 {days} 天内可退换未穿着过的商品。"
+      }
+    }
   }
 }

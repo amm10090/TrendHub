@@ -136,10 +136,10 @@ export const UserIcon: React.FC<IconSvgProps> = ({ className }) => (
   </svg>
 );
 
-export const HeartIcon: React.FC<IconSvgProps> = ({ className }) => (
+export const HeartIcon: React.FC<IconSvgProps & { filled?: boolean }> = ({ className, filled }) => (
   <svg
     className={className}
-    fill="none"
+    fill={filled ? "currentColor" : "none"}
     stroke="currentColor"
     strokeWidth={1.5}
     viewBox="0 0 24 24"

@@ -1,14 +1,15 @@
 'use client';
 
-import { Link } from '@heroui/react';
-import { Button } from '@heroui/react';
-import { Image } from '@heroui/react';
-import { Chip } from '@heroui/react';
-import React from 'react';
+import { Button } from '@heroui/button';
+import { Chip } from '@heroui/chip';
+import { Image } from '@heroui/image';
+import { Heart } from 'lucide-react';
+import React, { useState } from 'react';
 import Slider from 'react-slick';
 import { useTranslations } from 'use-intl';
 
-import { HeartIcon } from './icons';
+import { ProductModal } from './product-detail/product-modal';
+
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
@@ -18,6 +19,20 @@ interface Product {
   brand: string;
   price: number;
   image: string;
+  description: string;
+  availableQuantity: number;
+  isFavorite?: boolean;
+  discount?: number;
+  originalPrice?: number;
+  isNew?: boolean;
+  details: string[];
+  images: string[];
+  sizes: string[];
+  colors: { name: string; value: string; }[];
+  material: string;
+  careInstructions: string[];
+  sku: string;
+  relatedProducts: Product[];
 }
 
 interface ArrowProps {
@@ -32,6 +47,20 @@ const products: Product[] = [
     brand: 'Burberry',
     price: 19800,
     image: '/images/products/coat.jpg',
+    description: '经典格纹风衣，采用优质棉质面料，搭配标志性格纹内衬。',
+    availableQuantity: 5,
+    isNew: true,
+    details: [],
+    images: ['/images/products/coat.jpg'],
+    sizes: ['S', 'M', 'L'],
+    colors: [
+      { name: '驼色', value: '#D2B48C' },
+      { name: '黑色', value: '#000000' },
+    ],
+    material: '100% 棉',
+    careInstructions: ['专业干洗', '不可漂白', '中温熨烫'],
+    sku: 'BUR001',
+    relatedProducts: [],
   },
   {
     id: '2',
@@ -39,6 +68,22 @@ const products: Product[] = [
     brand: 'Gucci',
     price: 21500,
     image: '/images/products/bag.jpg',
+    description: 'GG Marmont系列链条包，采用绗缝皮革制成，配以双G logo。',
+    availableQuantity: 3,
+    discount: 20,
+    originalPrice: 26875,
+    isNew: true,
+    details: [],
+    images: ['/images/products/bag.jpg'],
+    sizes: ['均码'],
+    colors: [
+      { name: '黑色', value: '#000000' },
+      { name: '白色', value: '#FFFFFF' },
+    ],
+    material: '100% 小牛皮',
+    careInstructions: ['避免雨水', '存放时使用防尘袋', '定期护理'],
+    sku: 'GUC001',
+    relatedProducts: [],
   },
   {
     id: '3',
@@ -46,6 +91,20 @@ const products: Product[] = [
     brand: 'Jimmy Choo',
     price: 7980,
     image: '/images/products/shoes.jpg',
+    description: '优雅的高跟凉鞋，采用意大利制造的优质皮革，搭配水晶装饰。',
+    availableQuantity: 8,
+    isNew: true,
+    details: [],
+    images: ['/images/products/shoes.jpg'],
+    sizes: ['35', '36', '37', '38', '39'],
+    colors: [
+      { name: '银色', value: '#C0C0C0' },
+      { name: '金色', value: '#FFD700' },
+    ],
+    material: '100% 小羊皮',
+    careInstructions: ['避免雨水', '使用专业清洁剂', '存放时使用鞋撑'],
+    sku: 'JMC001',
+    relatedProducts: [],
   },
   {
     id: '4',
@@ -53,6 +112,19 @@ const products: Product[] = [
     brand: 'Alessandra Rich',
     price: 2980,
     image: '/images/products/earrings.jpg',
+    description: '金色贝壳造型耳环，采用镀金黄铜制成，搭配人造珍珠装饰。',
+    availableQuantity: 10,
+    isNew: true,
+    details: [],
+    images: ['/images/products/earrings.jpg'],
+    sizes: ['均码'],
+    colors: [
+      { name: '金色', value: '#FFD700' },
+    ],
+    material: '镀金黄铜、人造珍珠',
+    careInstructions: ['避免接触水和化妆品', '存放时使用首饰盒'],
+    sku: 'ALE001',
+    relatedProducts: [],
   },
 ];
 
@@ -108,6 +180,22 @@ const PrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
 
 export const ProductGrid: React.FC = () => {
   const t = useTranslations();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenInNewTab = () => {
+    if (selectedProduct) {
+      // 在新标签页中打开中转页面
+      window.open(`/track/product/${selectedProduct.id}`, '_blank');
+      setIsModalOpen(false);
+    }
+  };
+
   const settings = {
     dots: false,
     infinite: true,
@@ -172,7 +260,10 @@ export const ProductGrid: React.FC = () => {
             <Slider {...settings} className="product-slider">
               {products.map((product) => (
                 <div key={product.id} className="px-2 sm:px-3 md:px-4">
-                  <div className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-sm dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+                  <div
+                    className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-sm dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] cursor-pointer"
+                    onClick={() => handleProductClick(product)}
+                  >
                     <Chip
                       classNames={{
                         base: 'absolute top-5 left-5 z-20 bg-bg-primary-light dark:bg-bg-tertiary-dark backdrop-blur-sm dark:backdrop-blur-md shadow-sm',
@@ -190,8 +281,12 @@ export const ProductGrid: React.FC = () => {
                         aria-label="收藏"
                         className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-sm shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
                         variant="flat"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: 处理收藏功能
+                        }}
                       >
-                        <HeartIcon className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-text-primary-light dark:text-text-primary-dark" />
+                        <Heart className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-text-primary-light dark:text-text-primary-dark" />
                       </Button>
                       <div className="relative aspect-square">
                         <Image
@@ -205,15 +300,24 @@ export const ProductGrid: React.FC = () => {
                       </div>
                     </div>
                     <div className="mt-4 space-y-2">
-                      <h3 className="text-[11px] sm:text-sm font-semibold tracking-wide text-text-secondary-light dark:text-text-secondary-dark">{product.brand}</h3>
-                      <Link className="block space-y-1" href={`/products/${product.id}`}>
+                      <h3 className="text-[11px] sm:text-sm font-semibold tracking-wide text-text-secondary-light dark:text-text-secondary-dark">
+                        {product.brand}
+                      </h3>
+                      <div className="block space-y-1">
                         <p className="text-[11px] sm:text-sm font-normal text-text-primary-light dark:text-text-primary-dark line-clamp-2 leading-relaxed">
                           {product.name}
                         </p>
-                        <p className="text-[11px] sm:text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
-                          ¥{product.price.toLocaleString()}
-                        </p>
-                      </Link>
+                        <div className="flex items-baseline gap-2">
+                          <p className={`text-[11px] sm:text-sm font-medium ${product.discount ? 'text-red-600 dark:text-red-400' : 'text-text-primary-light dark:text-text-primary-dark'}`}>
+                            ¥{product.price.toLocaleString()}
+                          </p>
+                          {product.originalPrice && product.discount && (
+                            <p className="text-[10px] sm:text-xs line-through text-text-tertiary-light dark:text-text-tertiary-dark">
+                              ¥{product.originalPrice.toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -302,6 +406,15 @@ export const ProductGrid: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onOpenInNewTab={handleOpenInNewTab}
+        />
+      )}
     </section>
   );
 };

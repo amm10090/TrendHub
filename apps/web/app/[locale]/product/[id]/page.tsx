@@ -6,23 +6,26 @@ import { ProductDetail } from '@/components/product-detail';
 import { isFeatureEnabled } from '@/lib/dev-config';
 
 interface ProductPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+        locale: string;
+    }>;
 }
 
 /**
  * 商品详情页面
  * 使用服务器组件渲染商品详情
  */
-export default function ProductPage({ params }: ProductPageProps) {
+export default async function ProductPage({ params }: ProductPageProps) {
+    const resolvedParams = await params;
+
     if (!isFeatureEnabled('enableTraditionalProductPage')) {
         notFound();
     }
 
     // TODO: 从 API 获取商品数据
     const product = {
-        id: params.id,
+        id: resolvedParams.id,
         name: '商品名称',
         brand: '品牌名称',
         price: 1000,

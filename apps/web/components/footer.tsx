@@ -13,16 +13,12 @@ export const Footer: React.FC = () => {
 
   const footerLinks = {
     customerService: [
-      { name: t('customerService'), href: '/contact' },
-      { name: t('giftCards'), href: '/gift-cards' },
       { name: t('privacy.title'), href: '/privacy' },
-      { name: t('shipping'), href: '/shipping' },
-      { name: t('returns'), href: '/returns' },
+      { name: t('disclaimer.title'), href: '/disclaimer' },
     ],
     aboutUs: [
       { name: t('aboutUs'), href: '/about' },
       { name: t('contact'), href: '/contact' },
-      { name: t('followUs'), href: '/social' },
     ],
     socialZh: [
       { name: 'iOS App', href: '#', qrCode: '/images/qr-ios.png' },

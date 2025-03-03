@@ -194,6 +194,9 @@
     "huawei": "Huawei App",
     "privacy": {
       "title": "Privacy Policy"
+    },
+    "disclaimer": {
+      "title": "Disclaimer"
     }
   },
   "introduction": {
@@ -408,6 +411,75 @@
         "title": "Contact Us",
         "content": "If you have any questions about our Privacy Policy, please don't hesitate to contact us:",
         "email": "privacy@trendhub.com"
+      }
+    }
+  },
+  "disclaimer": {
+    "title": "Disclaimer",
+    "last_updated": "Last Updated: February 25, 2024",
+    "sections": {
+      "general": {
+        "title": "General Information",
+        "content": "The information provided on TrendHub is for general informational purposes only. All product information is subject to change without notice.",
+        "items": {
+          "0": "Product images may vary from actual items due to photography lighting, display settings, or design updates",
+          "1": "Colors shown may not be exact representations of actual products",
+          "2": "Information from third-party sources is presented as received and we cannot guarantee its accuracy"
+        }
+      },
+      "pricing": {
+        "title": "Pricing and Availability",
+        "content": "While we strive to provide accurate product and pricing information, errors may occur:",
+        "items": {
+          "0": "Prices are subject to change without notice",
+          "1": "Product availability cannot be guaranteed until order confirmation",
+          "2": "We reserve the right to refuse or cancel orders with incorrect pricing information",
+          "3": "Special offers may have time limitations and conditions that apply"
+        }
+      },
+      "thirdparty": {
+        "title": "Third-Party Content",
+        "content": "Our platform features products from various retailers and brands:",
+        "items": {
+          "0": "We are not responsible for the content, policies, or practices of third-party retailers",
+          "1": "Links to external websites are provided for convenience only",
+          "2": "TrendHub does not endorse any specific brand, retailer, or product featured on our platform",
+          "3": "Users should review the terms and policies of third-party retailers before making purchases"
+        }
+      },
+      "liability": {
+        "title": "Limitation of Liability",
+        "content": "TrendHub and its affiliates shall not be liable for:",
+        "items": {
+          "0": "Any direct, indirect, incidental, or consequential damages arising from using our platform",
+          "1": "Issues related to product quality, safety, or performance of items purchased through linked retailers",
+          "2": "Delays or failures in performance resulting from causes beyond our control",
+          "3": "Data loss or service interruptions"
+        }
+      },
+      "intellectual": {
+        "title": "Intellectual Property",
+        "content": "Regarding intellectual property rights:",
+        "items": {
+          "0": "The TrendHub name, logo, and content are protected by copyright and other intellectual property laws",
+          "1": "Users may not reproduce, distribute, or use our content without explicit permission",
+          "2": "Brand names, logos, and product images belong to their respective owners",
+          "3": "We respect intellectual property rights and expect users to do the same"
+        }
+      },
+      "modifications": {
+        "title": "Policy Modifications",
+        "content": "We reserve the right to modify this disclaimer at any time:",
+        "items": {
+          "0": "Changes will be effective immediately upon posting to our website",
+          "1": "Your continued use of TrendHub after modifications constitutes acceptance of the updated disclaimer",
+          "2": "We encourage users to review this disclaimer periodically for changes"
+        }
+      },
+      "contact": {
+        "title": "Contact Information",
+        "content": "If you have any questions about this disclaimer, please contact us at:",
+        "email": "legal@trendhub.com"
       }
     }
   }

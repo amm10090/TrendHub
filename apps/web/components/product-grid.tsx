@@ -4,11 +4,13 @@ import { Button } from '@heroui/button';
 import { Chip } from '@heroui/chip';
 import { Image } from '@heroui/image';
 import { Heart } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Slider from 'react-slick';
 import { useTranslations } from 'use-intl';
 
-import { ProductModal } from './product-detail/product-modal';
+import { useProductModal } from '../contexts/product-modal-context';
+
+import { ProductDetail } from './product-detail/product-modal';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -179,28 +181,17 @@ const PrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
 };
 
 export const ProductGrid: React.FC = () => {
+  const [mounted, setMounted] = useState(false);
   const t = useTranslations();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { openProductModal } = useProductModal();
 
-  // 从URL路径中获取当前语言
-  const currentLocale = typeof window !== 'undefined' ?
-    window.location.pathname.split('/')[1] || 'zh' : 'zh';
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-
-    // 在新标签页中打开中转页面 - 添加特殊路径前缀，确保使用路由组版本
-    window.open(`/${currentLocale}/track-redirect/product/${product.id}`, '_blank');
-  };
-
-  const handleOpenInNewTab = () => {
-    if (selectedProduct) {
-      // 在新标签页中打开中转页面 - 添加特殊路径前缀，确保使用路由组版本
-      window.open(`/${currentLocale}/track-redirect/product/${selectedProduct.id}`, '_blank');
-      setIsModalOpen(false);
-    }
+    if (!mounted) return;
+    openProductModal(product as unknown as ProductDetail);
   };
 
   const settings = {
@@ -255,6 +246,25 @@ export const ProductGrid: React.FC = () => {
       },
     ],
   };
+
+  if (!mounted) {
+    return (
+      <section className="w-full bg-bg-secondary-light dark:bg-bg-primary-dark">
+        <div className="container py-8 sm:py-12">
+          <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-text-primary-light dark:text-text-primary-dark">
+            {t('nav.newArrivals')}
+          </h2>
+          <div className="animate-pulse">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full bg-bg-secondary-light dark:bg-bg-primary-dark">
@@ -413,15 +423,7 @@ export const ProductGrid: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onOpenInNewTab={handleOpenInNewTab}
-        />
-      )}
     </section>
   );
 };
+

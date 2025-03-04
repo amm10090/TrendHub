@@ -5,22 +5,63 @@ import { Heart } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { ProductDetail } from '@/types/product';
+// 产品类型定义
+export interface ProductDetail {
+    id: string;
+    name: string;
+    brand: string;
+    price: number;
+    image: string;
+    description: string;
+    availableQuantity: number;
+    isFavorite?: boolean;
+    discount?: number;
+    originalPrice?: number;
+    isNew?: boolean;
+    details?: string[];
+    images?: string[];
+    sizes?: string[];
+    colors?: { name: string; value: string; }[];
+    material?: string;
+    careInstructions?: string[];
+    sku?: string;
+    relatedProducts?: ProductDetail[];
+}
 
 interface ProductModalProps {
     product: ProductDetail;
     isOpen: boolean;
     onClose: () => void;
-    onOpenInNewTab: () => void;
+    onOpenInNewTab?: () => void; // 设为可选
+    showRedirectButton?: boolean; // 是否显示跳转按钮
 }
 
-export function ProductModal({ product, isOpen, onClose, onOpenInNewTab }: ProductModalProps) {
+export function ProductModal({
+    product,
+    isOpen,
+    onClose,
+    onOpenInNewTab,
+    showRedirectButton = true // 默认显示
+}: ProductModalProps) {
     const t = useTranslations('product');
     const [isFavorite, setIsFavorite] = useState(product.isFavorite || false);
+
+    // 获取当前语言
+    const getCurrentLocale = () => {
+        if (typeof window === 'undefined') return 'zh';
+        return window.location.pathname.split('/')[1] || 'zh';
+    };
 
     const toggleFavorite = () => {
         setIsFavorite(!isFavorite);
     };
+
+    // 如果没有提供onOpenInNewTab，则创建一个默认实现
+    const handleOpenInNewTab = onOpenInNewTab || (() => {
+        const currentLocale = getCurrentLocale();
+        window.open(`/${currentLocale}/track-redirect/product/${product.id}`, '_blank');
+        onClose();
+    });
 
     return (
         <Modal
@@ -96,17 +137,17 @@ export function ProductModal({ product, isOpen, onClose, onOpenInNewTab }: Produ
                 </ModalBody>
                 <ModalFooter>
                     <div className="w-full flex gap-3">
+                        {showRedirectButton ? (
+                            <Button
+                                className="flex-1 py-6 font-medium"
+                                isDisabled={product.availableQuantity === 0}
+                                onClick={handleOpenInNewTab}
+                            >
+                                {t('addToCart')}
+                            </Button>
+                        ) : null}
                         <Button
-                            className="flex-1 py-6 font-medium"
-                            isDisabled={product.availableQuantity === 0}
-                            onClick={onOpenInNewTab}
-                        >
-                            {t('addToCart')}
-                        </Button>
-                        <Button
-                            isIconOnly
-                            aria-label={isFavorite ? t('removeFromWishlist') : t('addToWishlist')}
-                            className={`p-0 min-w-14 w-14 h-14 ${isFavorite
+                            className={`p-0 min-w-14 w-14 h-14 flex items-center justify-center ${isFavorite
                                 ? 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700'
                                 : 'bg-bg-secondary-light dark:bg-bg-tertiary-dark text-text-primary-light dark:text-text-primary-dark'
                                 }`}

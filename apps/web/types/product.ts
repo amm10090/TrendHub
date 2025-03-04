@@ -21,6 +21,7 @@ export interface ProductDetail extends Product {
     sku: string; // 库存单位
     availableQuantity: number; // 可用库存
     relatedProducts: Product[]; // 相关商品
+    adUrl?: string; // 广告联盟链接
 }
 
 export interface ProductColor {

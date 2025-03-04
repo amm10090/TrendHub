@@ -183,15 +183,22 @@ export const ProductGrid: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // 从URL路径中获取当前语言
+  const currentLocale = typeof window !== 'undefined' ?
+    window.location.pathname.split('/')[1] || 'zh' : 'zh';
+
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
+
+    // 在新标签页中打开中转页面 - 添加特殊路径前缀，确保使用路由组版本
+    window.open(`/${currentLocale}/track-redirect/product/${product.id}`, '_blank');
   };
 
   const handleOpenInNewTab = () => {
     if (selectedProduct) {
-      // 在新标签页中打开中转页面
-      window.open(`/track/product/${selectedProduct.id}`, '_blank');
+      // 在新标签页中打开中转页面 - 添加特殊路径前缀，确保使用路由组版本
+      window.open(`/${currentLocale}/track-redirect/product/${selectedProduct.id}`, '_blank');
       setIsModalOpen(false);
     }
   };

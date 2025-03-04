@@ -488,14 +488,14 @@
     "options": {
       "selectSize": "Select Size",
       "selectColor": "Select Color",
+      "quantity": "Quantity",
       "sizeGuide": "Size Guide",
-      "color": "Color",
-      "quantity": "Quantity"
+      "color": "Color"
     },
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
     "availableItems": "{count} items available",
-    "addToCart": "Add to Cart",
+    "addToCart": "Add to Bag",
     "addToWishlist": "Add to Wishlist",
     "removeFromWishlist": "Remove from Wishlist",
     "relatedProducts": "You May Also Like",
@@ -524,7 +524,13 @@
     }
   },
   "track": {
-    "redirecting": "Redirecting you to the store",
-    "please_wait": "Please wait while we redirect you to our partner store..."
+    "redirecting": "Redirecting...",
+    "please_wait": "Please wait while we take you to the retailer's website",
+    "redirecting_in": "Redirecting in {seconds} seconds",
+    "security_notice": "For your account security, please confirm this is the website you want to visit",
+    "redirect_now": "Redirect Now",
+    "now_taking_you_to": "Now taking you to",
+    "taking_too_long": "Taking too long?",
+    "click_here": "Click here"
   }
 }

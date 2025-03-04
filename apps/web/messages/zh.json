@@ -489,12 +489,12 @@
       "category": "分类",
       "search": "搜索结果"
     },
-    "addToCart": "加入购物车",
-    "addToWishlist": "添加到收藏夹",
-    "removeFromWishlist": "从收藏夹中移除",
+    "addToCart": "加入购物袋",
+    "addToWishlist": "加入收藏夹",
+    "removeFromWishlist": "从收藏夹移除",
     "inStock": "有货",
-    "outOfStock": "缺货",
-    "availableItems": "剩余 {count} 件",
+    "outOfStock": "售罄",
+    "availableItems": "{count} 件可用",
     "sku": "商品编号",
     "relatedProducts": "相关推荐",
     "tags": {
@@ -504,11 +504,11 @@
       "freeReturns": "免费退换"
     },
     "options": {
-      "selectSize": "选择尺码",
+      "selectSize": "选择尺寸",
       "selectColor": "选择颜色",
-      "color": "颜色",
       "quantity": "数量",
-      "sizeGuide": "尺码指南"
+      "sizeGuide": "尺码指南",
+      "color": "颜色"
     },
     "accordion": {
       "description": "产品详情",
@@ -527,5 +527,15 @@
         "period": "自收到商品起 {days} 天内可退换未穿着过的商品。"
       }
     }
+  },
+  "track": {
+    "redirecting": "正在为您跳转...",
+    "please_wait": "请稍候，我们正在将您带到零售商网站",
+    "redirecting_in": "{seconds} 秒后自动跳转",
+    "security_notice": "为保障您的账户安全，请确认是您要访问的网站",
+    "redirect_now": "立即跳转",
+    "now_taking_you_to": "正在带您前往",
+    "taking_too_long": "加载时间过长?",
+    "click_here": "点击这里"
   }
 }

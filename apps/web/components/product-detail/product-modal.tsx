@@ -28,7 +28,7 @@ export function ProductModal({ product, isOpen, onClose, onOpenInNewTab }: Produ
             onClose={onClose}
             classNames={{
                 base: 'max-w-4xl',
-                backdrop: 'bg-black/20',
+                backdrop: 'bg-black/20 backdrop-blur-sm',
                 body: 'p-0',
             }}
             scrollBehavior="inside"

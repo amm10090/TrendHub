@@ -512,9 +512,10 @@
     "removeFromWishlist": "Remove from Wishlist",
     "relatedProducts": "You May Also Like",
     "filters": {
-      "title": "Filter",
+      "title": "Filters",
       "clearAll": "Clear All",
-      "sale": "On Sale",
+      "sale": "Sale",
+      "onSaleOnly": "On Sale Only",
       "category": "Category",
       "size": "Size",
       "price": "Price",

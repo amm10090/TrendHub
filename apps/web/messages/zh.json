@@ -511,6 +511,7 @@
       "title": "筛选",
       "clearAll": "清除全部",
       "sale": "特惠",
+      "onSaleOnly": "仅显示特惠商品",
       "category": "类别",
       "size": "尺寸",
       "price": "价格",

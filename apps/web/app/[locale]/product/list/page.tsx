@@ -65,7 +65,7 @@ const ProductListPage: NextPage = () => {
     const t = useTranslations('product');
     const tNav = useTranslations('nav');
     const tBrands = useTranslations('brands');
-    const [showTopButton, setShowTopButton] = useState(false);
+    const [showTopButton, setShowTopButton] = useState<boolean>(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
     const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -75,33 +75,6 @@ const ProductListPage: NextPage = () => {
     const [favorites, setFavorites] = useState<string[]>([]);
     const { openProductModal } = useProductModal();
 
-    // 处理尺码选择
-    const handleSizeChange = (sizeId: string) => {
-        setSelectedSizes(prev =>
-            prev.includes(sizeId)
-                ? prev.filter(id => id !== sizeId)
-                : [...prev, sizeId]
-        );
-    };
-
-    // 处理颜色选择
-    const handleColorChange = (colorId: string) => {
-        setSelectedColors(prev =>
-            prev.includes(colorId)
-                ? prev.filter(id => id !== colorId)
-                : [...prev, colorId]
-        );
-    };
-
-    // 处理价格范围选择
-    const handlePriceRangeChange = (rangeId: string) => {
-        setSelectedPriceRanges(prev =>
-            prev.includes(rangeId)
-                ? prev.filter(id => id !== rangeId)
-                : [...prev, rangeId]
-        );
-    };
-
     // 清除所有筛选
     const clearAllFilters = () => {
         setSelectedCategory('all');
@@ -109,6 +82,7 @@ const ProductListPage: NextPage = () => {
         setSelectedColors([]);
         setSelectedPriceRanges([]);
         setOnSaleOnly(false);
+        setSortOrder('newest');
     };
 
     // 监听滚动事件，控制返回顶部按钮显示
@@ -176,8 +150,19 @@ const ProductListPage: NextPage = () => {
 
     // 筛选产品
     const filteredProducts = mockProducts.filter(product => {
-        // 尺码和颜色筛选暂时跳过，因为Product类型没有这些属性
-        // 实际应用中需要扩展Product类型或使用ProductDetail类型
+        // 尺码筛选
+        if (selectedSizes.length > 0) {
+            // 由于Product类型没有sizes属性，我们这里先简单处理
+            // 实际应用中需要根据产品尺码进行筛选
+            return false;
+        }
+
+        // 颜色筛选
+        if (selectedColors.length > 0) {
+            // 由于Product类型没有colors属性，我们这里先简单处理
+            // 实际应用中需要根据产品颜色进行筛选
+            return false;
+        }
 
         // 价格范围筛选
         if (selectedPriceRanges.length > 0) {
@@ -203,6 +188,21 @@ const ProductListPage: NextPage = () => {
         if (onSaleOnly && !product.discount) return false;
 
         return true;
+    });
+
+    // 对筛选后的产品进行排序
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+        switch (sortOrder) {
+            case 'newest':
+                // 假设id越大表示越新
+                return parseInt(b.id) - parseInt(a.id);
+            case 'price_high_low':
+                return b.price - a.price;
+            case 'price_low_high':
+                return a.price - b.price;
+            default:
+                return 0;
+        }
     });
 
     return (
@@ -239,7 +239,7 @@ const ProductListPage: NextPage = () => {
                         </div>
                         <div className="text-right">
                             <p className="text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
-                                {t('product_count', { count: filteredProducts.length })}
+                                {t('product_count', { count: sortedProducts.length })}
                             </p>
                         </div>
                     </div>
@@ -249,13 +249,12 @@ const ProductListPage: NextPage = () => {
                 <div className="mb-6 bg-white dark:bg-bg-secondary-dark rounded-lg shadow-sm">
                     <div className="p-4 flex flex-wrap items-center gap-2">
                         {/* Sale筛选 */}
-                        <div className="flex items-center mr-4">
+                        <div className="flex items-center gap-2">
                             <Checkbox
-                                checked={onSaleOnly}
-                                onChange={() => setOnSaleOnly(!onSaleOnly)}
-                                className="mr-2"
+                                isSelected={onSaleOnly}
+                                onValueChange={setOnSaleOnly}
                             >
-                                {t('filters.sale')}
+                                {t('filters.onSaleOnly')}
                             </Checkbox>
                         </div>
 
@@ -266,20 +265,18 @@ const ProductListPage: NextPage = () => {
                                     {t('filters.category')} <ChevronDown className="ml-1 h-4 w-4" />
                                 </Button>
                             </DropdownTrigger>
-                            <DropdownMenu aria-label={t('filters.category')}>
+                            <DropdownMenu
+                                aria-label={t('filters.category')}
+                                selectedKeys={[selectedCategory]}
+                                onSelectionChange={(keys) => {
+                                    const selected = Array.from(keys)[0] as string;
+                                    setSelectedCategory(selected || 'all');
+                                }}
+                                selectionMode="single"
+                            >
                                 {categories.map(category => (
-                                    <DropdownItem
-                                        key={category.id}
-                                        textValue={tNav(category.name)}
-                                        onClick={() => setSelectedCategory(category.id)}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <Checkbox
-                                                checked={selectedCategory === category.id}
-                                                className="pointer-events-none"
-                                            />
-                                            {tNav(category.name)}
-                                        </div>
+                                    <DropdownItem key={category.id}>
+                                        {tNav(category.name)}
                                     </DropdownItem>
                                 ))}
                             </DropdownMenu>
@@ -297,11 +294,17 @@ const ProductListPage: NextPage = () => {
                                     <DropdownItem
                                         key={size.id}
                                         textValue={size.name}
-                                        onClick={() => handleSizeChange(size.id)}
+                                        onClick={() => {
+                                            setSelectedSizes(prev =>
+                                                prev.includes(size.id)
+                                                    ? prev.filter(id => id !== size.id)
+                                                    : [...prev, size.id]
+                                            );
+                                        }}
                                     >
                                         <div className="flex items-center gap-2">
                                             <Checkbox
-                                                checked={selectedSizes.includes(size.id)}
+                                                isSelected={selectedSizes.includes(size.id)}
                                                 className="pointer-events-none"
                                             />
                                             {size.name}
@@ -323,11 +326,17 @@ const ProductListPage: NextPage = () => {
                                     <DropdownItem
                                         key={range.id}
                                         textValue={t(`filters.priceRanges.${range.name}`)}
-                                        onClick={() => handlePriceRangeChange(range.id)}
+                                        onClick={() => {
+                                            setSelectedPriceRanges(prev =>
+                                                prev.includes(range.id)
+                                                    ? prev.filter(id => id !== range.id)
+                                                    : [...prev, range.id]
+                                            );
+                                        }}
                                     >
                                         <div className="flex items-center gap-2">
                                             <Checkbox
-                                                checked={selectedPriceRanges.includes(range.id)}
+                                                isSelected={selectedPriceRanges.includes(range.id)}
                                                 className="pointer-events-none"
                                             />
                                             {t(`filters.priceRanges.${range.name}`)}
@@ -349,11 +358,17 @@ const ProductListPage: NextPage = () => {
                                     <DropdownItem
                                         key={color.id}
                                         textValue={color.name}
-                                        onClick={() => handleColorChange(color.id)}
+                                        onClick={() => {
+                                            setSelectedColors(prev =>
+                                                prev.includes(color.id)
+                                                    ? prev.filter(id => id !== color.id)
+                                                    : [...prev, color.id]
+                                            );
+                                        }}
                                     >
                                         <div className="flex items-center gap-2">
                                             <Checkbox
-                                                checked={selectedColors.includes(color.id)}
+                                                isSelected={selectedColors.includes(color.id)}
                                                 className="pointer-events-none"
                                             />
                                             <div
@@ -414,7 +429,7 @@ const ProductListPage: NextPage = () => {
 
                 {/* 产品网格 */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 mb-10">
-                    {filteredProducts.map((product) => (
+                    {sortedProducts.map((product) => (
                         <Card
                             key={product.id}
                             isPressable={false}

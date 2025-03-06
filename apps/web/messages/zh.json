@@ -16,6 +16,15 @@
     "newArrivals": "新品",
     "onSale": "特惠",
     "trending": "流行趋势",
+    "black": "黑色",
+    "white": "白色",
+    "red": "红色",
+    "blue": "蓝色",
+    "green": "绿色",
+    "casual": "休闲",
+    "formal": "正装",
+    "sporty": "运动",
+    "vintage": "复古",
     "clothing_categories": {
       "all": "全部服饰",
       "beachwear": "沙滩装和泳装",
@@ -497,6 +506,32 @@
     "availableItems": "{count} 件可用",
     "sku": "商品编号",
     "relatedProducts": "相关推荐",
+    "product_count": "{count} 件产品",
+    "filters": {
+      "title": "筛选",
+      "clearAll": "清除全部",
+      "sale": "特惠",
+      "category": "类别",
+      "size": "尺寸",
+      "price": "价格",
+      "color": "颜色",
+      "moreFilters": "更多筛选",
+      "style": "样式",
+      "priceRanges": {
+        "under1000": "¥1,000以下",
+        "1000to5000": "¥1,000 - ¥5,000",
+        "5000to10000": "¥5,000 - ¥10,000",
+        "10000to20000": "¥10,000 - ¥20,000",
+        "over20000": "¥20,000以上"
+      },
+      "sort": {
+        "title": "排序方式",
+        "newest": "最近添加",
+        "priceHighToLow": "价格由高到低",
+        "priceLowToHigh": "价格由低到高"
+      },
+      "results": "{count}+ 件产品"
+    },
     "tags": {
       "new": "新品",
       "sale": "特惠",
@@ -534,7 +569,6 @@
     "new": "新品",
     "discount": "折扣",
     "original_price": "原价",
-    "product_count": "{count}",
     "view_details": "查看详情",
     "add_to_favorites": "添加到收藏",
     "remove_from_favorites": "从收藏中移除"
@@ -548,5 +582,13 @@
     "now_taking_you_to": "正在带您前往",
     "taking_too_long": "加载时间过长?",
     "click_here": "点击这里"
+  },
+  "brands": {
+    "descriptions": {
+      "gucci": "古驰（Gucci）是一家意大利奢侈品品牌，成立于1921年，以其高品质的皮革制品和独特的设计风格而闻名于世。",
+      "burberry": "巴宝莉（Burberry）是英国著名奢侈品品牌，以其标志性的格纹和精湛的工艺而闻名，创立于1856年。",
+      "jimmy_choo": "吉米·周（Jimmy Choo）是一家专注于豪华鞋履和配饰的品牌，以其精致的设计和卓越的工艺而著称。",
+      "alessandra_rich": "亚历山德拉·里奇（Alessandra Rich）是一位意大利设计师创立的品牌，以其优雅、女性化的设计风格而闻名。"
+    }
   }
 }

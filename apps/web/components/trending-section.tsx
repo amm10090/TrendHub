@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardBody, CardFooter, Image, Link, Spacer } from '@heroui/react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
@@ -24,6 +25,8 @@ const TrendingCard: React.FC<TrendingCardProps> = ({
     hideDescription = false
 }) => {
     const t = useTranslations('trending');
+    const router = useRouter();
+
     const imageHeights = {
         small: 'h-[240px]',
         normal: 'h-[300px]',
@@ -39,7 +42,7 @@ const TrendingCard: React.FC<TrendingCardProps> = ({
             isPressable
             isHoverable
             className={`w-full bg-bg-secondary-light dark:bg-bg-secondary-dark border-border-primary-light dark:border-border-primary-dark ${className}`}
-            onPress={() => window.location.href = href}
+            onPress={() => router.push(href)}
         >
             <div className={`${isHorizontal ? 'lg:flex' : ''}`}>
                 <CardBody className={`p-0 overflow-hidden ${isHorizontal ? 'lg:w-2/3' : 'w-full'}`}>
@@ -85,7 +88,7 @@ export const TrendingSection: React.FC = () => {
             title: bannerT('title'),
             description: bannerT('description'),
             imageUrl: '/images/trending/gucci-new-season.jpg',
-            href: '/designers/gucci',
+            href: '/product/list?brand=gucci',
             size: 'large' as const,
             className: 'lg:col-span-2 lg:row-span-2'
         },
@@ -93,7 +96,7 @@ export const TrendingSection: React.FC = () => {
             title: t('items.valentino.title'),
             description: t('items.valentino.description'),
             imageUrl: '/images/trending/valentino-accessories.jpg',
-            href: '/designers/valentino',
+            href: '/product/list?brand=valentino&category=accessories',
             size: 'normal' as const,
             className: 'lg:col-span-1'
         },
@@ -101,7 +104,7 @@ export const TrendingSection: React.FC = () => {
             title: t('items.summer.title'),
             description: t('items.summer.description'),
             imageUrl: '/images/trending/summer-essentials.jpg',
-            href: '/trends/summer-essentials',
+            href: '/product/list?tag=summer',
             size: 'vertical' as const,
             className: 'lg:col-span-1 lg:row-span-2'
         },
@@ -109,7 +112,7 @@ export const TrendingSection: React.FC = () => {
             title: t('items.shoes.title'),
             description: t('items.shoes.description'),
             imageUrl: '/images/trending/new-shoes.jpg',
-            href: '/shoes/new-arrivals',
+            href: '/product/list?category=shoes&tag=new',
             size: 'normal' as const,
             className: 'lg:col-span-1'
         },
@@ -117,7 +120,7 @@ export const TrendingSection: React.FC = () => {
             title: t('items.bags.title'),
             description: t('items.bags.description'),
             imageUrl: '/images/trending/luxury-bags.jpg',
-            href: '/bags/luxury',
+            href: '/product/list?category=bags&tag=luxury',
             size: 'normal' as const,
             className: 'lg:col-span-1'
         },
@@ -125,7 +128,7 @@ export const TrendingSection: React.FC = () => {
             title: t('items.spring.title'),
             description: t('items.spring.description'),
             imageUrl: '/images/trending/spring-collection.jpg',
-            href: '/collections/spring-2024',
+            href: '/product/list?collection=spring-2024',
             size: 'horizontal' as const,
             className: 'lg:col-span-3 lg:col-start-2'
         }
@@ -135,25 +138,25 @@ export const TrendingSection: React.FC = () => {
         {
             title: t('shining_brands.valentino'),
             imageUrl: '/images/shining/valentino-bag.jpg',
-            href: '/designers/valentino',
+            href: '/product/list?brand=valentino&category=bags',
             size: 'small' as const,
         },
         {
             title: t('shining_brands.balmain'),
             imageUrl: '/images/shining/balmain-jacket.jpg',
-            href: '/designers/balmain',
+            href: '/product/list?brand=balmain&category=clothing',
             size: 'small' as const,
         },
         {
             title: t('shining_brands.alessandra'),
             imageUrl: '/images/shining/alessandra-earrings.jpg',
-            href: '/designers/alessandra-rich',
+            href: '/product/list?brand=alessandra-rich&category=jewelry',
             size: 'small' as const,
         },
         {
             title: t('shining_brands.jacquemus'),
             imageUrl: '/images/shining/jacquemus-shoes.jpg',
-            href: '/designers/jacquemus',
+            href: '/product/list?brand=jacquemus&category=shoes',
             size: 'small' as const,
         }
     ];
@@ -195,7 +198,7 @@ export const TrendingSection: React.FC = () => {
                         </div>
                         <div className="text-center mt-8">
                             <Link
-                                href="/shining-examples"
+                                href="/product/list?tag=shining"
                                 className="inline-flex items-center justify-center px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 transition-colors"
                             >
                                 {t('shining_examples.see_all')}

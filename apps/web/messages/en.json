@@ -22,6 +22,18 @@
     "popular_brands": "Popular Brands",
     "brands_a_z": "Brands A-Z",
     "view_all_brands": "View All Brands",
+    "all": "All",
+    "onSale": "On Sale",
+    "trending": "Trending",
+    "black": "Black",
+    "white": "White",
+    "red": "Red",
+    "blue": "Blue",
+    "green": "Green",
+    "casual": "Casual",
+    "formal": "Formal",
+    "sporty": "Sporty",
+    "vintage": "Vintage",
     "popular_brand_names": {
       "balenciaga": "Balenciaga",
       "bottega_veneta": "Bottega Veneta",
@@ -494,14 +506,39 @@
     },
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
-    "availableItems": "{count} items available",
-    "addToCart": "Add to Bag",
+    "availableItems": "{count} Available",
+    "addToCart": "Add to Cart",
     "addToWishlist": "Add to Wishlist",
     "removeFromWishlist": "Remove from Wishlist",
     "relatedProducts": "You May Also Like",
+    "filters": {
+      "title": "Filter",
+      "clearAll": "Clear All",
+      "sale": "On Sale",
+      "category": "Category",
+      "size": "Size",
+      "price": "Price",
+      "color": "Color",
+      "moreFilters": "More Filters",
+      "style": "Style",
+      "priceRanges": {
+        "under1000": "Under ¥1,000",
+        "1000to5000": "¥1,000 - ¥5,000",
+        "5000to10000": "¥5,000 - ¥10,000",
+        "10000to20000": "¥10,000 - ¥20,000",
+        "over20000": "Over ¥20,000"
+      },
+      "sort": {
+        "title": "Sort by",
+        "newest": "Recently Added",
+        "priceHighToLow": "Price High to Low",
+        "priceLowToHigh": "Price Low to High"
+      },
+      "results": "{count}+ Products"
+    },
     "tags": {
-      "new": "NEW",
-      "sale": "SALE",
+      "new": "New",
+      "sale": "Sale",
       "freeShipping": "Free Shipping",
       "freeReturns": "Free Returns"
     },
@@ -529,7 +566,7 @@
     "new": "NEW",
     "discount": "Discount",
     "original_price": "Original Price",
-    "product_count": "{count}",
+    "product_count": "{count} Products",
     "view_details": "View Details",
     "add_to_favorites": "Add to Favorites",
     "remove_from_favorites": "Remove from Favorites",
@@ -544,5 +581,13 @@
     "now_taking_you_to": "Now taking you to",
     "taking_too_long": "Taking too long?",
     "click_here": "Click here"
+  },
+  "brands": {
+    "descriptions": {
+      "gucci": "Gucci is an Italian luxury brand founded in 1921, renowned for its high-quality leather goods and distinctive design aesthetic.",
+      "burberry": "Burberry is a British luxury fashion house established in 1856, known for its iconic check pattern and exceptional craftsmanship.",
+      "jimmy_choo": "Jimmy Choo is a luxury footwear and accessories brand celebrated for its sophisticated designs and exquisite craftsmanship.",
+      "alessandra_rich": "Alessandra Rich is a brand founded by the Italian designer of the same name, known for elegant, feminine designs with a vintage-inspired aesthetic."
+    }
   }
 }

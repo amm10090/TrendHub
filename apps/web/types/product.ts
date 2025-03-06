@@ -8,6 +8,7 @@ export interface Product {
     discount?: number; // 折扣百分比
     isNew?: boolean; // 是否为新品
     isFavorite?: boolean; // 是否已收藏
+    currency: string; // 货币符号
 }
 
 export interface ProductDetail extends Product {
@@ -41,6 +42,7 @@ export const mockProducts: Product[] = [
         image: '/images/products/coat.jpg',
         isNew: true,
         discount: 10,
+        currency: '¥',
     },
     {
         id: '2',
@@ -48,6 +50,7 @@ export const mockProducts: Product[] = [
         brand: 'Gucci',
         price: 21500,
         image: '/images/products/bag.jpg',
+        currency: '¥',
     },
     {
         id: '3',
@@ -57,6 +60,7 @@ export const mockProducts: Product[] = [
         originalPrice: 9800,
         image: '/images/products/shoes.jpg',
         discount: 18,
+        currency: '¥',
     },
     {
         id: '4',
@@ -65,6 +69,7 @@ export const mockProducts: Product[] = [
         price: 2980,
         image: '/images/products/earrings.jpg',
         isNew: true,
+        currency: '¥',
     },
 ];
 
@@ -79,6 +84,7 @@ export const mockProductDetails: Record<string, ProductDetail> = {
         image: '/images/products/coat.jpg',
         isNew: true,
         discount: 10,
+        currency: '¥',
         description: 'Burberry经典风衣采用防风防水面料，具有标志性格纹设计，是秋冬季节的理想选择。',
         details: [
             '采用100%纯棉防水面料',
@@ -116,6 +122,7 @@ export const mockProductDetails: Record<string, ProductDetail> = {
         brand: 'Gucci',
         price: 21500,
         image: '/images/products/bag.jpg',
+        currency: '¥',
         description: 'Gucci GG Marmont系列链条包，采用优质绗缝皮革制成，配有标志性双G硬件。',
         details: [
             '优质绗缝皮革',
@@ -154,6 +161,7 @@ export const mockProductDetails: Record<string, ProductDetail> = {
         originalPrice: 9800,
         image: '/images/products/shoes.jpg',
         discount: 18,
+        currency: '¥',
         description: 'Jimmy Choo经典高跟凉鞋，采用意大利优质皮革制作，细节精致，舒适度高。',
         details: [
             '鞋跟高度：10cm',
@@ -191,6 +199,7 @@ export const mockProductDetails: Record<string, ProductDetail> = {
         price: 2980,
         image: '/images/products/earrings.jpg',
         isNew: true,
+        currency: '¥',
         description: 'Alessandra Rich金色贝壳耳环，采用贝壳和水晶元素，展现优雅复古的风格。',
         details: [
             '黄铜镀金材质',

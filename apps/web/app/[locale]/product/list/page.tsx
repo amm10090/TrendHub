@@ -140,7 +140,7 @@ const ProductListPage: NextPage = () => {
     };
 
     // 切换收藏状态
-    const toggleFavorite = (productId: string, event: React.MouseEvent) => {
+    const toggleFavorite = (productId: string) => {
         setFavorites(prev =>
             prev.includes(productId)
                 ? prev.filter(id => id !== productId)
@@ -475,13 +475,13 @@ const ProductListPage: NextPage = () => {
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        toggleFavorite(product.id, e);
+                                        toggleFavorite(product.id);
                                     }}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            toggleFavorite(product.id, e as unknown as React.MouseEvent);
+                                            toggleFavorite(product.id);
                                         }
                                     }}
                                     aria-label={`收藏${product.name}`}

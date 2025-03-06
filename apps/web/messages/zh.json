@@ -525,8 +525,19 @@
       "returnsInfo": {
         "free": "享受免费退换服务。",
         "period": "自收到商品起 {days} 天内可退换未穿着过的商品。"
-      }
-    }
+      },
+      "sizes": "尺码",
+      "colors": "颜色",
+      "details": "详细信息",
+      "careInstructions": "保养指南"
+    },
+    "new": "新品",
+    "discount": "折扣",
+    "original_price": "原价",
+    "product_count": "{count}",
+    "view_details": "查看详情",
+    "add_to_favorites": "添加到收藏",
+    "remove_from_favorites": "从收藏中移除"
   },
   "track": {
     "redirecting": "正在为您跳转...",

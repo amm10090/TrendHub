@@ -2,12 +2,13 @@
  * 产品详情模态框组件
  * 
  * 该组件用于展示产品的详细信息，包括：
- * - 产品图片、名称、品牌
- * - 价格信息（含折扣处理）
+ * - 产品图片轮播展示
+ * - 产品名称、品牌、价格信息
  * - 库存状态
- * - 产品描述
+ * - 产品描述和详细信息
  * - 收藏功能
  * - 跳转到商品详情页功能
+ * - Lyst风格的"Buy Now"按钮
  */
 
 'use client';
@@ -25,11 +26,10 @@ import {
     Modal,
     ModalBody,
     ModalContent,
-    ModalFooter,
     ModalHeader
 } from '@heroui/react';
-import { ChevronDown, ExternalLink, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, ChevronLeft, ChevronRight, ExternalLink, Heart } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
 /**
@@ -102,8 +102,54 @@ export function ProductModal({
     showRedirectButton = true // 默认显示
 }: ProductModalProps) {
     const t = useTranslations('product');
+    const trackT = useTranslations('track');
     const [isFavorite, setIsFavorite] = useState(product.isFavorite || false);
-    const [selectedImage, setSelectedImage] = useState(product.image);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [activeImage, setActiveImage] = useState(product.image);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const allImages = useMemo(() => {
+        return product.images ? [product.image, ...product.images] : [product.image];
+    }, [product.image, product.images]);
+
+    // 修改图片切换函数，添加过渡动画逻辑
+    const nextImage = () => {
+        if (isTransitioning) return;
+        setIsTransitioning(true);
+        const newIndex = (selectedImageIndex + 1) % allImages.length;
+        setTimeout(() => {
+            setSelectedImageIndex(newIndex);
+            setActiveImage(allImages[newIndex]);
+            setTimeout(() => setIsTransitioning(false), 300);
+        }, 50);
+    };
+
+    const prevImage = () => {
+        if (isTransitioning) return;
+        setIsTransitioning(true);
+        const newIndex = selectedImageIndex === 0 ? allImages.length - 1 : selectedImageIndex - 1;
+        setTimeout(() => {
+            setSelectedImageIndex(newIndex);
+            setActiveImage(allImages[newIndex]);
+            setTimeout(() => setIsTransitioning(false), 300);
+        }, 50);
+    };
+
+    const setImageByIndex = (index: number) => {
+        if (isTransitioning || index === selectedImageIndex) return;
+        setIsTransitioning(true);
+        setTimeout(() => {
+            setSelectedImageIndex(index);
+            setActiveImage(allImages[index]);
+            setTimeout(() => setIsTransitioning(false), 300);
+        }, 50);
+    };
+
+    // 当产品变化时重置图片索引
+    useEffect(() => {
+        setSelectedImageIndex(0);
+        setActiveImage(product.image);
+    }, [product]);
 
     /**
      * 获取当前语言设置
@@ -159,19 +205,59 @@ export function ProductModal({
                     <Card className="border-none shadow-none bg-transparent">
                         <CardBody className="p-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* 产品图片轮播区域 - Lyst风格 */}
                                 <div className="space-y-4">
-                                    {/* 主图片展示区域 - 使用HeroUI的Image组件增强效果 */}
-                                    <div className="aspect-[3/4] relative overflow-hidden rounded-lg">
+                                    <div className="aspect-[3/4] relative overflow-hidden rounded-md pl-3">
+                                        {/* 主图片 */}
                                         <Image
                                             alt={product.name}
-                                            src={selectedImage}
+                                            src={activeImage}
                                             isZoomed
                                             classNames={{
-                                                wrapper: 'w-full h-full',
-                                                img: 'w-full h-full object-cover object-center',
+                                                wrapper: 'w-full h-full transition-opacity duration-300',
+                                                img: 'w-full h-full object-cover object-center transition-transform duration-500',
                                                 zoomedWrapper: 'transition-all duration-500'
                                             }}
                                         />
+
+                                        {/* 左右箭头导航 - 圆润设计 */}
+                                        {allImages.length > 1 && (
+                                            <>
+                                                <button
+                                                    onClick={prevImage}
+                                                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-sm hover:bg-white dark:hover:bg-black transition-all"
+                                                    aria-label="Previous image"
+                                                >
+                                                    <ChevronLeft className="h-5 w-5 text-black dark:text-white" />
+                                                </button>
+                                                <button
+                                                    onClick={nextImage}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-sm hover:bg-white dark:hover:bg-black transition-all"
+                                                    aria-label="Next image"
+                                                >
+                                                    <ChevronRight className="h-5 w-5 text-black dark:text-white" />
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {/* 底部指示器 - 长条短条设计（黑白色自适应） */}
+                                        {allImages.length > 1 && (
+                                            <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10">
+                                                {allImages.map((_, index) => (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => setImageByIndex(index)}
+                                                        className={`transition-all duration-300 rounded-full ${selectedImageIndex === index
+                                                            ? 'w-8 h-1.5 bg-black dark:bg-white'
+                                                            : 'w-1.5 h-1.5 bg-black/30 dark:bg-white/50'
+                                                            }`}
+                                                        aria-label={`Go to image ${index + 1}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* NEW标签 */}
                                         {product.isNew && (
                                             <span className="absolute top-2 left-2 px-2 py-1 text-xs font-medium text-white bg-blue-600 dark:bg-blue-700 rounded">
                                                 {t('tags.new')}
@@ -179,33 +265,33 @@ export function ProductModal({
                                         )}
                                     </div>
 
-                                    {/* 缩略图展示区域 - 如果有多张图片 */}
-                                    {product.images && product.images.length > 0 && (
-                                        <div className="flex gap-2 overflow-x-auto pb-2">
-                                            {[product.image, ...product.images].map((img, index) => (
-                                                <button
+                                    {/* 缩略图导航 - Lyst风格 */}
+                                    {allImages.length > 1 && (
+                                        <div className="flex overflow-x-auto space-x-2 pb-1 scrollbar-hide">
+                                            {allImages.map((image, index) => (
+                                                <div
                                                     key={index}
-                                                    onClick={() => setSelectedImage(img)}
-                                                    className={`relative min-w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${selectedImage === img
-                                                        ? 'border-primary-500 dark:border-primary-400'
-                                                        : 'border-transparent'
+                                                    onClick={() => setImageByIndex(index)}
+                                                    className={`relative min-w-16 h-16 rounded-sm overflow-hidden cursor-pointer transition-all ${index === selectedImageIndex
+                                                        ? 'opacity-100 scale-105'
+                                                        : 'opacity-70 hover:opacity-100 hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
                                                         }`}
                                                 >
                                                     <Image
-                                                        alt={`${product.name} - ${index}`}
-                                                        src={img}
+                                                        alt={`Thumbnail ${index + 1}`}
+                                                        src={image}
                                                         classNames={{
                                                             wrapper: 'w-full h-full',
-                                                            img: 'w-full h-full object-cover object-center'
+                                                            img: 'w-full h-full object-cover object-center transition-all duration-300'
                                                         }}
                                                     />
-                                                </button>
+                                                </div>
                                             ))}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* 产品信息卡片 */}
+                                {/* 产品信息卡片 - Lyst风格 */}
                                 <Card className="border-none shadow-sm dark:shadow-md">
                                     <CardHeader className="pb-0 pt-4 px-4 flex flex-col gap-1">
                                         <div className="flex items-baseline justify-between">
@@ -416,46 +502,46 @@ export function ProductModal({
                                         </div>
                                     </CardBody>
 
-                                    {product.sku && (
-                                        <CardFooter className="pt-0 pb-3 px-4">
-                                            <div className="text-xs text-text-tertiary-light dark:text-text-tertiary-dark">
+                                    <CardFooter className="px-4 pt-0 pb-4 flex flex-col gap-3">
+                                        {product.sku && (
+                                            <div className="text-xs text-text-tertiary-light dark:text-text-tertiary-dark w-full">
                                                 {t('sku')}: {product.sku}
                                             </div>
-                                        </CardFooter>
-                                    )}
+                                        )}
+
+                                        {/* 购买和收藏按钮 */}
+                                        <div className="w-full flex gap-3 mt-2">
+                                            {showRedirectButton ? (
+                                                <Link
+                                                    isBlock
+                                                    isExternal
+                                                    showAnchorIcon
+                                                    anchorIcon={<ExternalLink className="ml-1 h-4 w-4" />}
+                                                    className="flex-1 py-3 px-4 font-medium bg-black text-white rounded-md hover:bg-gray-900 dark:bg-black dark:hover:bg-gray-900 text-center"
+                                                    isDisabled={product.availableQuantity === 0}
+                                                    onClick={handleOpenInNewTab}
+                                                >
+                                                    {trackT('redirect_now')}
+                                                </Link>
+                                            ) : null}
+                                            <Button
+                                                className={`p-0 min-w-14 w-14 h-14 flex items-center justify-center rounded-md ${isFavorite
+                                                    ? 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700'
+                                                    : 'bg-bg-secondary-light dark:bg-bg-tertiary-dark text-text-primary-light dark:text-text-primary-dark'
+                                                    }`}
+                                                variant="flat"
+                                                onClick={toggleFavorite}
+                                                aria-label={isFavorite ? t('remove_from_favorites') : t('add_to_favorites')}
+                                            >
+                                                <Heart className="h-6 w-6" fill={isFavorite ? "currentColor" : "none"} />
+                                            </Button>
+                                        </div>
+                                    </CardFooter>
                                 </Card>
                             </div>
                         </CardBody>
                     </Card>
                 </ModalBody>
-                <ModalFooter>
-                    <div className="w-full flex gap-3">
-                        {showRedirectButton ? (
-                            <Link
-                                isBlock
-                                isExternal
-                                showAnchorIcon
-                                anchorIcon={<ExternalLink className="ml-1 h-4 w-4" />}
-                                className="flex-1 py-3 px-4 font-medium bg-primary-500 text-white rounded-lg hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-center"
-                                isDisabled={product.availableQuantity === 0}
-                                onClick={handleOpenInNewTab}
-                            >
-                                {t('addToCart')}
-                            </Link>
-                        ) : null}
-                        <Button
-                            className={`p-0 min-w-14 w-14 h-14 flex items-center justify-center ${isFavorite
-                                ? 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700'
-                                : 'bg-bg-secondary-light dark:bg-bg-tertiary-dark text-text-primary-light dark:text-text-primary-dark'
-                                }`}
-                            variant="flat"
-                            onClick={toggleFavorite}
-                            aria-label={isFavorite ? t('remove_from_favorites') : t('add_to_favorites')}
-                        >
-                            <Heart className="h-6 w-6" fill={isFavorite ? "currentColor" : "none"} />
-                        </Button>
-                    </div>
-                </ModalFooter>
             </ModalContent>
         </Modal>
     );

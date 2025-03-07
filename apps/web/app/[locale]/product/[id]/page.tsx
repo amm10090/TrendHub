@@ -43,6 +43,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         careInstructions: ['干洗', '不可漂白', '中温熨烫'],
         sku: 'SKU123456',
         relatedProducts: [],
+        currency: '$',
     };
 
     return (

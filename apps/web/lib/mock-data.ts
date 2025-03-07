@@ -33,7 +33,8 @@ export const products: ProductDetail[] = [
         sku: 'BUR001',
         relatedProducts: [],
         adUrl: 'https://www.burberry.com/zh-cn/',
-        isFavorite: false
+        isFavorite: false,
+        currency: '$'
     },
     {
         id: '2',
@@ -68,7 +69,8 @@ export const products: ProductDetail[] = [
         sku: 'GUC001',
         relatedProducts: [],
         adUrl: 'https://www.gucci.com/us/en/',
-        isFavorite: false
+        isFavorite: false,
+        currency: '¥'
     },
     {
         id: '3',
@@ -101,7 +103,8 @@ export const products: ProductDetail[] = [
         sku: 'JMC001',
         relatedProducts: [],
         adUrl: 'https://www.jimmychoo.com/',
-        isFavorite: false
+        isFavorite: false,
+        currency: '¥'
     },
     {
         id: '4',
@@ -133,6 +136,7 @@ export const products: ProductDetail[] = [
         sku: 'ALE001',
         relatedProducts: [],
         adUrl: 'https://www.alessandrarich.com/',
-        isFavorite: false
+        isFavorite: false,
+        currency: '¥'
     },
 ]; 

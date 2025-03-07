@@ -39,7 +39,7 @@ export function Providers({ children }: { children: ReactNode }) {
               timeout: 3000,
               variant: "flat",
               radius: "lg",
-              shouldShowTimeoutProgess: true,
+              shouldShowTimeoutProgress: true,
               classNames: {
                 base: "dark:bg-bg-tertiary-dark dark:text-text-primary-dark",
                 title: "dark:text-text-primary-dark font-medium",

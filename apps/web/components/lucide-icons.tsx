@@ -16,13 +16,14 @@ import {
     Minus,
     ChevronsLeft,
     ChevronsRight,
+    LucideProps
 } from 'lucide-react';
 import React from 'react';
 
 import { IconSvgProps } from '@/types';
 
 // 创建一个适配器函数，将 IconSvgProps 转换为 Lucide 图标需要的属性
-function adaptProps(props: IconSvgProps): React.ComponentProps<typeof Heart> {
+function adaptProps(props: IconSvgProps): LucideProps {
     const { size, ...rest } = props;
     return {
         size: size,

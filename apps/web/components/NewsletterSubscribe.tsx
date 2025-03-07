@@ -41,7 +41,7 @@ export const NewsletterSubscribe = () => {
                 color: 'danger',
                 variant: 'flat',
                 radius: 'lg',
-                shouldShowTimeoutProgess: true,
+                shouldShowTimeoutProgress: true,
                 timeout: 3000,
                 classNames: {
                     base: "dark:bg-bg-tertiary-dark dark:text-text-primary-dark",
@@ -79,7 +79,7 @@ export const NewsletterSubscribe = () => {
                 color: 'success',
                 variant: 'flat',
                 radius: 'lg',
-                shouldShowTimeoutProgess: true,
+                shouldShowTimeoutProgress: true,
                 timeout: 2000,
                 classNames: {
                     base: "dark:bg-bg-tertiary-dark dark:text-text-primary-dark",
@@ -98,7 +98,7 @@ export const NewsletterSubscribe = () => {
                 color: 'danger',
                 variant: 'flat',
                 radius: 'lg',
-                shouldShowTimeoutProgess: true,
+                shouldShowTimeoutProgress: true,
                 timeout: 3000,
                 classNames: {
                     base: "dark:bg-bg-tertiary-dark dark:text-text-primary-dark",

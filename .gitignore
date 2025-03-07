@@ -161,3 +161,8 @@ dist
 .cursor
 .turbo
 .venv
+
+# Environment variables
+.env
+.env.*
+!.env.example

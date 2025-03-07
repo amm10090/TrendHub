@@ -16,7 +16,7 @@
         "@heroui/system": "2.4.11",
         "@heroui/theme": "2.4.11",
         "@react-aria/ssr": "3.9.7",
-        "@react-aria/visually-hidden": "3.8.19",
+        "@react-aria/visually-hidden": "3.8.20",
         "@swc/cli": "^0.6.0",
         "@swc/core": "^1.11.7",
         "@tabler/icons-react": "3.31.0",
@@ -38,10 +38,17 @@
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "^15.2.1",
+<<<<<<< HEAD
         "@react-types/shared": "3.27.0",
         "@types/node": "22.13.9",
         "@types/react": "19.0.10",
         "@types/react-dom": "19.0.4",
+=======
+        "@react-types/shared": "3.28.0",
+        "@types/node": "22.13.9",
+        "@types/react": "18.3.18",
+        "@types/react-dom": "18.3.5",
+>>>>>>> fix-build-errors
         "@types/react-slick": "^0.23.13",
         "@typescript-eslint/eslint-plugin": "^8.26.0",
         "@typescript-eslint/parser": "^8.26.0",

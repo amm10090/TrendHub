@@ -139,7 +139,7 @@ export const UserIcon: React.FC<IconSvgProps> = ({ className }) => (
 export const HeartIcon: React.FC<IconSvgProps & { filled?: boolean }> = ({ className, filled }) => (
   <svg
     className={className}
-    fill={filled ? "currentColor" : "none"}
+    fill={filled ? 'currentColor' : 'none'}
     stroke="currentColor"
     strokeWidth={1.5}
     viewBox="0 0 24 24"
@@ -172,15 +172,15 @@ export const ShoppingBagIcon: React.FC<IconSvgProps> = ({ className }) => (
 
 export const SunIcon = (props: IconSvgProps) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
     fill="none"
+    height="24"
     stroke="currentColor"
-    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
     <circle cx="12" cy="12" r="4" />
@@ -197,15 +197,15 @@ export const SunIcon = (props: IconSvgProps) => (
 
 export const MoonIcon = (props: IconSvgProps) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
     fill="none"
+    height="24"
     stroke="currentColor"
-    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />

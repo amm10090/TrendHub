@@ -1,46 +1,43 @@
 {
-    "$schema": "https://turbo.build/schema.json",
-    "globalDependencies": [
-        "**/.env.*local"
-    ],
-    "tasks": {
-        "build": {
-            "dependsOn": [
-                "^build"
-            ],
-            "outputs": [
-                "dist/**",
-                ".next/**",
-                "!.next/cache/**"
-            ],
-            "env": [
-                "SMTP_HOST",
-                "SMTP_PORT",
-                "SMTP_USER",
-                "SMTP_PASS",
-                "SMTP_FROM"
-            ]
-        },
-        "lint": {
-            "outputs": []
-        },
-        "dev": {
-            "cache": false,
-            "persistent": true
-        },
-        "start": {
-            "cache": false,
-            "persistent": true
-        },
-        "test": {
-            "dependsOn": [
-                "^build"
-            ],
-            "outputs": []
-        }
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": [
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "SMTP_PASS",
+        "SMTP_FROM",
+        "NODE_ENV",
+        "NEXT_PUBLIC_*"
+      ]
     },
-    "remoteCache": {
-        "signature": true,
-        "enabled": true
+    "lint": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "start": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "clean": {
+      "cache": false
     }
+  },
+  "remoteCache": {
+    "signature": true,
+    "enabled": true
+  }
 }

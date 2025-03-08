@@ -456,22 +456,25 @@ export const Navbar = () => {
                   classNames={{
                     base: 'w-full',
                     input: 'text-small text-text-primary-light dark:text-text-primary-dark',
-                    inputWrapper: 'h-10 bg-bg-tertiary-light dark:bg-bg-tertiary-dark border-border-primary-light dark:border-border-primary-dark',
+                    inputWrapper:
+                      'h-10 bg-bg-tertiary-light dark:bg-bg-tertiary-dark border-border-primary-light dark:border-border-primary-dark',
                   }}
                   endContent={
                     <Button
                       isIconOnly
                       aria-label={t('search.close')}
+                      className="text-text-primary-light dark:text-text-primary-dark"
                       size="sm"
                       variant="light"
-                      className="text-text-primary-light dark:text-text-primary-dark"
                       onPointerDown={() => setIsSearchOpen(false)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   }
                   placeholder={t('search.placeholder')}
-                  startContent={<Search className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />}
+                  startContent={
+                    <Search className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />
+                  }
                   type="search"
                 />
               </div>
@@ -526,7 +529,8 @@ export const Navbar = () => {
                     base: 'w-full',
                     tabList: 'gap-0',
                     tab: 'h-11 data-[selected=true]:bg-text-primary-light dark:data-[selected=true]:bg-text-primary-dark data-[selected=true]:text-bg-secondary-light dark:data-[selected=true]:text-bg-secondary-dark data-[selected=false]:bg-bg-tertiary-light dark:data-[selected=false]:bg-bg-tertiary-dark data-[selected=false]:text-text-secondary-light dark:data-[selected=false]:text-text-secondary-dark',
-                    tabContent: 'text-base font-normal group-data-[selected=true]:text-bg-secondary-light dark:group-data-[selected=true]:text-bg-secondary-dark group-data-[selected=false]:text-text-secondary-light dark:group-data-[selected=false]:text-text-secondary-dark',
+                    tabContent:
+                      'text-base font-normal group-data-[selected=true]:text-bg-secondary-light dark:group-data-[selected=true]:text-bg-secondary-dark group-data-[selected=false]:text-text-secondary-light dark:group-data-[selected=false]:text-text-secondary-dark',
                     cursor: 'hidden',
                   }}
                   selectedKey={activeCategory}

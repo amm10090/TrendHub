@@ -30,7 +30,7 @@ interface Product {
   details: string[];
   images: string[];
   sizes: string[];
-  colors: { name: string; value: string; }[];
+  colors: { name: string; value: string }[];
   material: string;
   careInstructions: string[];
   sku: string;
@@ -120,9 +120,7 @@ const products: Product[] = [
     details: [],
     images: ['/images/products/earrings.jpg'],
     sizes: ['均码'],
-    colors: [
-      { name: '金色', value: '#FFD700' },
-    ],
+    colors: [{ name: '金色', value: '#FFD700' }],
     material: '镀金黄铜、人造珍珠',
     careInstructions: ['避免接触水和化妆品', '存放时使用首饰盒'],
     sku: 'ALE001',
@@ -138,6 +136,7 @@ const NextArrow: React.FC<ArrowProps> = ({ onClick }) => {
       onClick={onClick}
     >
       <svg
+        className="text-text-primary-light dark:text-text-primary-dark"
         fill="none"
         height="20"
         stroke="currentColor"
@@ -146,7 +145,6 @@ const NextArrow: React.FC<ArrowProps> = ({ onClick }) => {
         strokeWidth="2"
         viewBox="0 0 24 24"
         width="20"
-        className="text-text-primary-light dark:text-text-primary-dark"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path d="m9 18 6-6-6-6" />
@@ -163,6 +161,7 @@ const PrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
       onClick={onClick}
     >
       <svg
+        className="text-text-primary-light dark:text-text-primary-dark"
         fill="none"
         height="20"
         stroke="currentColor"
@@ -171,7 +170,6 @@ const PrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
         strokeWidth="2"
         viewBox="0 0 24 24"
         width="20"
-        className="text-text-primary-light dark:text-text-primary-dark"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path d="m15 18-6-6 6-6" />
@@ -278,8 +276,16 @@ export const ProductGrid: React.FC = () => {
               {products.map((product) => (
                 <div key={product.id} className="px-2 sm:px-3 md:px-4">
                   <div
+                    aria-label={`查看${product.brand} ${product.name}详情`}
                     className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-sm dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] cursor-pointer"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleProductClick(product)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleProductClick(product);
+                      }
+                    }}
                   >
                     <Chip
                       classNames={{
@@ -325,7 +331,9 @@ export const ProductGrid: React.FC = () => {
                           {product.name}
                         </p>
                         <div className="flex items-baseline gap-2">
-                          <p className={`text-[11px] sm:text-sm font-medium ${product.discount ? 'text-red-600 dark:text-red-400' : 'text-text-primary-light dark:text-text-primary-dark'}`}>
+                          <p
+                            className={`text-[11px] sm:text-sm font-medium ${product.discount ? 'text-red-600 dark:text-red-400' : 'text-text-primary-light dark:text-text-primary-dark'}`}
+                          >
                             ¥{product.price.toLocaleString()}
                           </p>
                           {product.originalPrice && product.discount && (
@@ -426,4 +434,3 @@ export const ProductGrid: React.FC = () => {
     </section>
   );
 };
-

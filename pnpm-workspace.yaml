@@ -4,3 +4,7 @@ packages:
 ignoredBuiltDependencies:
   - '@heroui/shared-utils'
   - '@swc/core'
+  - 'framer-motion'
+  - 'next'
+  - 'react'
+  - 'react-dom'

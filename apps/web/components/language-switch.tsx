@@ -55,7 +55,8 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
             'min-h-8 h-8 bg-transparent text-text-primary-light dark:text-text-primary-dark data-[hover=true]:bg-hover-bg-light dark:data-[hover=true]:bg-hover-bg-dark rounded-lg px-2 py-0.5',
           value: 'text-small text-text-primary-light dark:text-text-primary-dark font-medium',
           base: 'min-w-[140px]',
-          listbox: 'min-w-[140px] bg-bg-secondary-light dark:bg-bg-secondary-dark text-text-primary-light dark:text-text-primary-dark border border-border-primary-light dark:border-border-primary-dark',
+          listbox:
+            'min-w-[140px] bg-bg-secondary-light dark:bg-bg-secondary-dark text-text-primary-light dark:text-text-primary-dark border border-border-primary-light dark:border-border-primary-dark',
           listboxWrapper: 'rounded-lg',
           innerWrapper: 'gap-1',
         }}
@@ -74,7 +75,9 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
                 }}
                 title={option?.countryCode}
               />
-              <span className="text-small text-text-primary-light dark:text-text-primary-dark">{option?.label}</span>
+              <span className="text-small text-text-primary-light dark:text-text-primary-dark">
+                {option?.label}
+              </span>
             </div>
           );
         }}
@@ -83,6 +86,7 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
         variant="flat"
         onSelectionChange={(keys) => {
           const value = Array.from(keys)[0] as string;
+
           handleLocaleChange(value);
         }}
       >

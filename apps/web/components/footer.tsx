@@ -52,8 +52,8 @@ export const Footer: React.FC = () => {
               {footerLinks.customerService.map((link) => (
                 <li key={link.name}>
                   <HeroLink
-                    href={link.href}
                     className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark"
+                    href={link.href}
                   >
                     {link.name}
                   </HeroLink>
@@ -69,8 +69,8 @@ export const Footer: React.FC = () => {
               {footerLinks.aboutUs.map((link) => (
                 <li key={link.name}>
                   <HeroLink
-                    href={link.href}
                     className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark"
+                    href={link.href}
                   >
                     {link.name}
                   </HeroLink>
@@ -93,7 +93,9 @@ export const Footer: React.FC = () => {
                         src={platform.qrCode}
                       />
                     </div>
-                    <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">{platform.name}</p>
+                    <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+                      {platform.name}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -103,8 +105,8 @@ export const Footer: React.FC = () => {
                   {footerLinks.socialEn.map((platform) => (
                     <HeroLink
                       key={platform.name}
-                      href={platform.href}
                       className="text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
+                      href={platform.href}
                     >
                       <platform.icon className="w-5 h-5" />
                     </HeroLink>
@@ -126,4 +128,3 @@ export const Footer: React.FC = () => {
     </footer>
   );
 };
-

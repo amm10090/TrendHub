@@ -16,11 +16,9 @@ export function Providers({ children }: { children: ReactNode }) {
   if (!mounted) {
     return (
       <div className="h-full bg-bg-secondary-light dark:bg-bg-secondary-dark">
-        <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+        <NextThemesProvider enableSystem attribute="class" defaultTheme="system">
           <HeroUIProvider>
-            <ProductModalProvider>
-              {children}
-            </ProductModalProvider>
+            <ProductModalProvider>{children}</ProductModalProvider>
           </HeroUIProvider>
         </NextThemesProvider>
       </div>
@@ -28,24 +26,24 @@ export function Providers({ children }: { children: ReactNode }) {
   }
 
   return (
-    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+    <NextThemesProvider enableSystem attribute="class" defaultTheme="system">
       <HeroUIProvider>
         <ProductModalProvider>
           {children}
           <ToastProvider
-            placement="top-right"
             maxVisibleToasts={3}
+            placement="top-right"
             toastProps={{
               timeout: 3000,
-              variant: "flat",
-              radius: "lg",
+              variant: 'flat',
+              radius: 'lg',
               shouldShowTimeoutProgress: true,
               classNames: {
-                base: "dark:bg-bg-tertiary-dark dark:text-text-primary-dark",
-                title: "dark:text-text-primary-dark font-medium",
-                description: "dark:text-text-secondary-dark mt-1",
-                closeButton: "dark:text-text-secondary-dark dark:hover:text-text-primary-dark"
-              }
+                base: 'dark:bg-bg-tertiary-dark dark:text-text-primary-dark',
+                title: 'dark:text-text-primary-dark font-medium',
+                description: 'dark:text-text-secondary-dark mt-1',
+                closeButton: 'dark:text-text-secondary-dark dark:hover:text-text-primary-dark',
+              },
             }}
           />
         </ProductModalProvider>

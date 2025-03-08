@@ -2,33 +2,30 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
-    try {
-        const { email } = await request.json();
+  try {
+    const { email } = await request.json();
 
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return NextResponse.json(
-                { error: 'Invalid email address' },
-                { status: 400 }
-            );
-        }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
+    }
 
-        // 配置邮件传输器
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: Number(process.env.SMTP_PORT),
-            secure: true,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-        });
+    // 配置邮件传输器
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: true,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
 
-        // 发送确认邮件给用户
-        await transporter.sendMail({
-            from: process.env.SMTP_FROM,
-            to: email,
-            subject: 'Welcome to TrendHub Newsletter',
-            html: `
+    // 发送确认邮件给用户
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to: email,
+      subject: 'Welcome to TrendHub Newsletter',
+      html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -90,19 +87,15 @@ export async function POST(request: Request) {
 </body>
 </html>
             `,
-        });
+    });
 
-        // TODO: 将邮箱保存到数据库
+    // TODO: 将邮箱保存到数据库
 
-        return NextResponse.json(
-            { message: 'Subscription successful' },
-            { status: 200 }
-        );
-    } catch (error) {
-        console.error('Newsletter subscription error:', error);
-        return NextResponse.json(
-            { error: 'Failed to subscribe' },
-            { status: 500 }
-        );
-    }
-} 
+    return NextResponse.json({ message: 'Subscription successful' }, { status: 200 });
+  } catch {
+    // TODO: 实现适当的服务器端日志系统
+    // console.error('Newsletter subscription error:', error);
+
+    return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 });
+  }
+}

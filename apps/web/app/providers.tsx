@@ -1,6 +1,8 @@
 'use client';
 
 import { HeroUIProvider, ToastProvider } from '@heroui/react';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { ReactNode, useEffect, useState } from 'react';
 
@@ -46,6 +48,8 @@ export function Providers({ children }: { children: ReactNode }) {
               },
             }}
           />
+          <Analytics />
+          <SpeedInsights />
         </ProductModalProvider>
       </HeroUIProvider>
     </NextThemesProvider>

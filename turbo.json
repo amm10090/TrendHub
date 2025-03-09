@@ -1,6 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local"],
+  "globalEnv": ["TURBO_REMOTE_CACHE_SIGNATURE_KEY"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -12,7 +13,8 @@
         "SMTP_PASS",
         "SMTP_FROM",
         "NODE_ENV",
-        "NEXT_PUBLIC_*"
+        "NEXT_PUBLIC_*",
+        "TURBO_REMOTE_CACHE_SIGNATURE_KEY"
       ]
     },
     "lint": {

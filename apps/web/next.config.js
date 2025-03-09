@@ -6,15 +6,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/i18n.ts');
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@heroui/react', '@heroui/button', '@heroui/link', '@heroui/toast'],
-  // 启用 Vercel Analytics 和 Speed Insights
-  analytics: {
-    vercelAnalytics: {
-      enabled: true,
-    },
-  },
-  speedInsights: {
-    enabled: true,
-  },
+  // Analytics 和 Speed Insights 已通过组件方式集成
 };
 
 export default withNextIntl(nextConfig);

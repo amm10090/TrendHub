@@ -353,8 +353,8 @@ export const Navbar = () => {
                 {item.name}
               </Link>
               {item.items && item.isBrands ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-sm border-b border-border-primary-light dark:border-border-primary-dark">
-                  <div className="w-full">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark border-b border-border-primary-light dark:border-border-primary-dark">
+                  <div className="w-full bg-bg-secondary-light dark:bg-bg-secondary-dark">
                     <div className="container mx-auto px-4 py-8">
                       <div className="flex gap-16">
                         <div className="w-3/4 pr-8 border-r border-border-primary-light dark:border-border-primary-dark">
@@ -421,8 +421,8 @@ export const Navbar = () => {
                   </div>
                 </div>
               ) : item.items ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-sm border-b border-border-primary-light dark:border-border-primary-dark">
-                  <div className="w-full">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark border-b border-border-primary-light dark:border-border-primary-dark">
+                  <div className="w-full bg-bg-secondary-light dark:bg-bg-secondary-dark">
                     <div className="container mx-auto px-4 py-8">
                       <div className="grid grid-cols-4 gap-8">
                         {item.items.map((subItem) => (

@@ -1,13 +1,14 @@
 {
   "name": "front-end",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx || true",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "rm -rf .next node_modules"
@@ -24,6 +25,7 @@
     "@types/nodemailer": "6.4.17",
     "@vercel/analytics": "1.5.0",
     "@vercel/speed-insights": "1.2.0",
+    "class-variance-authority": "0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "12.4.10",
     "intl-messageformat": "^10.7.15",
@@ -37,7 +39,8 @@
     "react-dom": "^19.0.0",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
-    "tailwind-merge": "^3.0.2"
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "1.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.0",

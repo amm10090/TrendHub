@@ -17,7 +17,7 @@ const nextjsConfig = compat.config({
     extends: ['next/core-web-vitals'],
     settings: {
         next: {
-            rootDir: 'apps/web', // 指定Next.js应用的位置
+            rootDir: '.',  // 修改为当前目录，而不是'apps/web'
         },
     },
 });
@@ -113,7 +113,7 @@ const eslintConfig = [
             ],
 
             // Next.js规则
-            '@next/next/no-html-link-for-pages': 'off',
+            '@next/next/no-html-link-for-pages': ['off', ['pages', 'app']], // 显式指定pages和app目录
         },
 
         // 插件配置
@@ -130,6 +130,10 @@ const eslintConfig = [
         settings: {
             react: {
                 version: 'detect',
+            },
+            next: {
+                rootDir: '.',
+                pagesDir: ['./pages', './app'],  // 显式设置pages和app目录
             },
         },
     },

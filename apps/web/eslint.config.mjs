@@ -12,21 +12,22 @@ const compat = new FlatCompat({
     baseDirectory: import.meta.dirname,
 });
 
-// 合并Next.js推荐配置
+// 获取Next.js配置
 const nextjsConfig = compat.config({
     extends: ['next/core-web-vitals'],
     settings: {
         next: {
-            rootDir: '.', // 针对monorepo环境，指定Next.js应用的位置
+            rootDir: 'apps/web', // 指定Next.js应用的位置
         },
     },
 });
 
 // 主ESLint配置
 const eslintConfig = [
-    ...nextjsConfig, // 引入Next.js官方配置
+    // Next.js配置
+    ...nextjsConfig,
 
-    // 全局设置
+    // 基础配置
     {
         files: ['**/*.{js,jsx,ts,tsx}'],
         languageOptions: {
@@ -44,16 +45,10 @@ const eslintConfig = [
         linterOptions: {
             reportUnusedDisableDirectives: true,
         },
-    },
 
-    // JavaScript特定规则
-    {
-        files: ['**/*.js'],
-        languageOptions: {
-            sourceType: 'module',
-        },
+        // 规则配置
         rules: {
-            // JavaScript特定的规则
+            // JavaScript规则
             'no-undef': 'error',
             'no-unused-vars': ['warn', {
                 vars: 'all',
@@ -61,24 +56,8 @@ const eslintConfig = [
                 args: 'after-used',
                 argsIgnorePattern: '^_'
             }],
-        },
-    },
 
-    // TypeScript配置 - 仅应用于TS文件
-    {
-        files: ['**/*.{ts,tsx}'],
-        ...tseslint.configs.recommended,
-    },
-
-    // React 基本规则
-    {
-        files: ['**/*.{jsx,tsx,js}'],  // 添加.js以包含React JS文件
-        plugins: {
-            react: reactPlugin,
-            'react-hooks': reactHooksPlugin,
-            'jsx-a11y': jsxA11yPlugin,
-        },
-        rules: {
+            // React规则
             'react/react-in-jsx-scope': 'off',
             'react/prop-types': 'off',
             'react/display-name': 'off',
@@ -86,33 +65,13 @@ const eslintConfig = [
             'react-hooks/rules-of-hooks': 'error',
             'react-hooks/exhaustive-deps': 'warn',
             'react/self-closing-comp': 'warn',
-            'react/jsx-sort-props': [
-                'warn',
-                {
-                    callbacksLast: true,
-                    shorthandFirst: true,
-                    noSortAlphabetically: false,
-                    reservedFirst: true,
-                },
-            ],
+            'react/jsx-sort-props': 'off', // 关闭props字母排序规则
+
+            // 可访问性规则
             'jsx-a11y/click-events-have-key-events': 'warn',
             'jsx-a11y/interactive-supports-focus': 'warn',
-        },
-        settings: {
-            react: {
-                version: 'detect',
-            },
-        },
-    },
 
-    // 导入规则优化
-    {
-        files: ['**/*.{js,jsx,ts,tsx}'],
-        plugins: {
-            import: importPlugin,
-            'unused-imports': unusedImportsPlugin,
-        },
-        rules: {
+            // 导入规则
             'unused-imports/no-unused-imports': 'warn',
             'import/order': [
                 'warn',
@@ -134,7 +93,6 @@ const eslintConfig = [
                     alphabetize: { order: 'asc', caseInsensitive: true },
                 },
             ],
-            'no-unused-vars': 'off',
             'unused-imports/no-unused-vars': [
                 'warn',
                 {
@@ -144,13 +102,8 @@ const eslintConfig = [
                     argsIgnorePattern: '^_',
                 },
             ],
-        },
-    },
 
-    // 代码格式优化
-    {
-        files: ['**/*.{js,jsx,ts,tsx}'],
-        rules: {
+            // 代码格式规则
             'no-console': 'warn',
             'padding-line-between-statements': [
                 'warn',
@@ -158,24 +111,36 @@ const eslintConfig = [
                 { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
                 { blankLine: 'any', prev: ['const', 'let', 'var'], next: ['const', 'let', 'var'] },
             ],
+
+            // Next.js规则
+            '@next/next/no-html-link-for-pages': 'off',
+        },
+
+        // 插件配置
+        plugins: {
+            react: reactPlugin,
+            'react-hooks': reactHooksPlugin,
+            'jsx-a11y': jsxA11yPlugin,
+            import: importPlugin,
+            'unused-imports': unusedImportsPlugin,
+            ...tseslint.plugins,
+        },
+
+        // React设置
+        settings: {
+            react: {
+                version: 'detect',
+            },
         },
     },
 
-    // Pages目录下的JS文件特殊处理
-    {
-        files: ['**/pages/**/*.js'],
-        rules: {
-            // 对Pages目录下的特殊JS文件的规则调整
-            'no-unused-vars': 'off', // 这些文件可能有特殊的变量使用模式
-            'react/display-name': 'off',
-            'react/prop-types': 'off',
-        },
-    },
-
-    // Prettier 集成
+    // Prettier配置
     eslintConfigPrettier,
 
-    // 排除特定文件和目录
+    // TypeScript配置
+    ...tseslint.configs.recommended,
+
+    // 忽略文件配置
     {
         ignores: [
             '**/node_modules/**',
@@ -184,7 +149,7 @@ const eslintConfig = [
             '**/.next/**',
             '**/coverage/**',
             '**/public/**',
-            '**/*.config.js', // 保留对配置文件的排除
+            '**/*.config.js',
             '**/*.config.ts',
             '**/next-env.d.ts',
             '**/app/[locale]/layout.tsx',

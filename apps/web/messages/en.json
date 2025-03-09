@@ -522,6 +522,8 @@
       "color": "Color",
       "moreFilters": "More Filters",
       "style": "Style",
+      "apply": "Apply Filters",
+      "viewAllCategories": "View All Categories",
       "priceRanges": {
         "under1000": "Under ¥1,000",
         "1000to5000": "¥1,000 - ¥5,000",

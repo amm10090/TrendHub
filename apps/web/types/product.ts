@@ -1,238 +1,241 @@
 export interface Product {
-    id: string;
-    name: string;
-    brand: string;
-    price: number;
-    originalPrice?: number; // 原价（用于显示折扣）
-    image: string;
-    discount?: number; // 折扣百分比
-    isNew?: boolean; // 是否为新品
-    isFavorite?: boolean; // 是否已收藏
-    currency: string; // 货币符号
+  id: string; //商品ID
+  name: string; //商品名称
+  brand: string; //品牌
+  price: number; //价格
+  originalPrice?: number; // 原价（用于显示折扣）
+  image: string; //商品图片
+  discount?: number; // 折扣百分比
+  isNew?: boolean; // 是否为新品
+  isFavorite?: boolean; // 是否已收藏
+  currency: string; // 货币符号
+  gender: 'women' | 'men' | 'unisex'; // 性别类别
+  categories?: string[]; // 商品分类（不包含性别）
 }
 
 export interface ProductDetail extends Product {
-    description: string; // 商品描述
-    details: string[]; // 商品详情列表
-    images: string[]; // 商品图片列表
-    sizes: string[]; // 可选尺寸
-    colors: ProductColor[]; // 可选颜色
-    material: string; // 材质
-    careInstructions: string[]; // 保养说明
-    sku: string; // 库存单位
-    availableQuantity: number; // 可用库存
-    relatedProducts: Product[]; // 相关商品
-    adUrl?: string; // 广告联盟链接
+  images: string[];
+  description: string;
+  specifications: {
+    material: string;
+    color: string;
+    size: string;
+    origin: string;
+  };
+  details: string[]; // 商品详情列表
+  sizes: string[]; // 可选尺寸
+  colors: ProductColor[]; // 可选颜色
+  material: string; // 材质
+  careInstructions: string[]; // 保养说明
+  sku: string; // 库存单位
+  availableQuantity: number; // 可用库存
+  relatedProducts: Product[]; // 相关商品
+  adUrl?: string; // 广告联盟链接
 }
 
 export interface ProductColor {
-    name: string;
-    value: string; // CSS颜色值
-    image?: string; // 颜色对应的商品图片
+  name: string;
+  value: string; // CSS颜色值
+  image?: string; // 颜色对应的商品图片
 }
 
 // 模拟数据 - 用于前端开发
 export const mockProducts: Product[] = [
-    {
-        id: '1',
-        name: '经典风衣',
-        brand: 'Burberry',
-        price: 19800,
-        originalPrice: 22000,
-        image: '/images/products/coat.jpg',
-        isNew: true,
-        discount: 10,
-        currency: '¥',
-    },
-    {
-        id: '2',
-        name: 'GG Marmont 链条包',
-        brand: 'Gucci',
-        price: 21500,
-        image: '/images/products/bag.jpg',
-        currency: '¥',
-    },
-    {
-        id: '3',
-        name: '高跟凉鞋',
-        brand: 'Jimmy Choo',
-        price: 7980,
-        originalPrice: 9800,
-        image: '/images/products/shoes.jpg',
-        discount: 18,
-        currency: '¥',
-    },
-    {
-        id: '4',
-        name: '金色贝壳耳环',
-        brand: 'Alessandra Rich',
-        price: 2980,
-        image: '/images/products/earrings.jpg',
-        isNew: true,
-        currency: '¥',
-    },
+  {
+    id: '1',
+    name: '羊毛混纺大衣',
+    brand: 'GUCCI',
+    price: 25999,
+    originalPrice: 29999,
+    image: '/images/products/coat.jpg',
+    discount: 15,
+    isNew: true,
+    currency: 'CNY',
+    gender: 'women',
+    categories: ['clothing', 'coats'],
+  },
+  {
+    id: '2',
+    name: '链条单肩包',
+    brand: 'PRADA',
+    price: 19999,
+    image: '/images/products/bag.jpg',
+    isNew: true,
+    currency: 'CNY',
+    gender: 'women',
+    categories: ['bags', 'shoulder-bags'],
+  },
+  {
+    id: '3',
+    name: '高跟凉鞋',
+    brand: 'Jimmy Choo',
+    price: 7999,
+    originalPrice: 9999,
+    image: '/images/products/shoes.jpg',
+    discount: 20,
+    currency: 'CNY',
+    gender: 'women',
+    categories: ['shoes', 'heels'],
+  },
+  {
+    id: '4',
+    name: '珍珠耳环',
+    brand: 'Tiffany & Co.',
+    price: 5999,
+    image: '/images/products/earrings.jpg',
+    isNew: true,
+    currency: 'CNY',
+    gender: 'women',
+    categories: ['accessories', 'jewelry', 'earrings'],
+  },
 ];
 
 // 模拟商品详情数据
 export const mockProductDetails: Record<string, ProductDetail> = {
-    '1': {
-        id: '1',
-        name: '经典风衣',
-        brand: 'Burberry',
-        price: 19800,
-        originalPrice: 22000,
-        image: '/images/products/coat.jpg',
-        isNew: true,
-        discount: 10,
-        currency: '¥',
-        description: 'Burberry经典风衣采用防风防水面料，具有标志性格纹设计，是秋冬季节的理想选择。',
-        details: [
-            '采用100%纯棉防水面料',
-            '经典双排扣设计',
-            '可调节袖口',
-            '内部格纹衬里',
-            '带有风帽设计，适合多变天气'
-        ],
-        images: [
-            '/images/products/coat.jpg',
-            '/images/products/coat_2.jpg',
-            '/images/products/coat_3.jpg',
-        ],
-        sizes: ['XS', 'S', 'M', 'L', 'XL'],
-        colors: [
-            { name: '经典驼色', value: '#D2B48C' },
-            { name: '黑色', value: '#000000' },
-            { name: '海军蓝', value: '#000080' }
-        ],
-        material: '面料：100%纯棉；衬里：100%棉；袖里：100%粘胶纤维',
-        careInstructions: [
-            '专业干洗',
-            '不可漂白',
-            '不可熨烫',
-            '不可机洗',
-            '平铺晾干'
-        ],
-        sku: 'BUR-COAT-2023',
-        availableQuantity: 10,
-        relatedProducts: [],
+  '1': {
+    id: '1',
+    name: '羊毛混纺大衣',
+    brand: 'GUCCI',
+    price: 25999,
+    originalPrice: 29999,
+    image: '/images/products/coat.jpg',
+    images: [
+      '/images/products/coat.jpg',
+      '/images/products/coat-2.jpg',
+      '/images/products/coat-3.jpg',
+      '/images/products/coat-4.jpg',
+    ],
+    discount: 15,
+    isNew: true,
+    currency: 'CNY',
+    gender: 'women',
+    categories: ['clothing', 'coats'],
+    description: '这款羊毛混纺大衣采用优质面料，突显优雅气质。',
+    specifications: {
+      material: '80% 羊毛, 20% 聚酯纤维',
+      color: '驼色',
+      size: 'S, M, L',
+      origin: '意大利制造',
     },
-    '2': {
-        id: '2',
-        name: 'GG Marmont 链条包',
-        brand: 'Gucci',
-        price: 21500,
-        image: '/images/products/bag.jpg',
-        currency: '¥',
-        description: 'Gucci GG Marmont系列链条包，采用优质绗缝皮革制成，配有标志性双G硬件。',
-        details: [
-            '优质绗缝皮革',
-            '古铜色金属双G硬件',
-            '链条肩带',
-            '内部拉链口袋',
-            '磁性按扣闭合'
-        ],
-        images: [
-            '/images/products/bag.jpg',
-            '/images/products/bag_2.jpg',
-            '/images/products/bag_3.jpg',
-        ],
-        sizes: ['小号', '中号', '大号'],
-        colors: [
-            { name: '黑色', value: '#000000' },
-            { name: '红色', value: '#FF0000' },
-            { name: '裸粉色', value: '#E6BEAE' }
-        ],
-        material: '100%优质牛皮',
-        careInstructions: [
-            '存放于防尘袋中',
-            '避免接触水或潮湿环境',
-            '避免与尖锐物体接触',
-            '定期使用皮革护理产品'
-        ],
-        sku: 'GUC-BAG-2023',
-        availableQuantity: 5,
-        relatedProducts: [],
+    details: ['双排扣设计', '侧边口袋', '可调节袖口', '内衬设计'],
+    sizes: ['S', 'M', 'L'],
+    colors: [
+      { name: '驼色', value: '#D2B48C' },
+      { name: '黑色', value: '#000000' },
+    ],
+    material: '80% 羊毛, 20% 聚酯纤维',
+    careInstructions: ['干洗', '不可漂白', '低温熨烫', '平铺晾干'],
+    sku: 'GUC-COAT-2023',
+    availableQuantity: 10,
+    relatedProducts: [],
+  },
+  '2': {
+    id: '2',
+    name: '链条单肩包',
+    brand: 'PRADA',
+    price: 19999,
+    image: '/images/products/bag.jpg',
+    images: [
+      '/images/products/bag.jpg',
+      '/images/products/bag-2.jpg',
+      '/images/products/bag-3.jpg',
+      '/images/products/bag-4.jpg',
+    ],
+    isNew: true,
+    currency: 'CNY',
+    gender: 'women',
+    categories: ['bags', 'shoulder-bags'],
+    description: '经典链条单肩包，采用优质小牛皮制作，展现奢华品质。',
+    specifications: {
+      material: '小牛皮',
+      color: '黑色',
+      size: '中号',
+      origin: '意大利制造',
     },
-    '3': {
-        id: '3',
-        name: '高跟凉鞋',
-        brand: 'Jimmy Choo',
-        price: 7980,
-        originalPrice: 9800,
-        image: '/images/products/shoes.jpg',
-        discount: 18,
-        currency: '¥',
-        description: 'Jimmy Choo经典高跟凉鞋，采用意大利优质皮革制作，细节精致，舒适度高。',
-        details: [
-            '鞋跟高度：10cm',
-            '意大利手工制作',
-            '真皮鞋面和内里',
-            '皮革鞋底',
-            '可调节脚踝绑带'
-        ],
-        images: [
-            '/images/products/shoes.jpg',
-            '/images/products/shoes_2.jpg',
-            '/images/products/shoes_3.jpg',
-        ],
-        sizes: ['35', '36', '37', '38', '39', '40'],
-        colors: [
-            { name: '黑色', value: '#000000' },
-            { name: '裸色', value: '#E8CEBF' },
-            { name: '金色', value: '#FFD700' }
-        ],
-        material: '鞋面：小牛皮；内里：羊皮；鞋底：皮革',
-        careInstructions: [
-            '避免在潮湿环境中穿着',
-            '使用专业鞋履清洁产品',
-            '存放时使用鞋撑',
-            '避免长时间暴露在阳光下'
-        ],
-        sku: 'JIM-SHOE-2023',
-        availableQuantity: 8,
-        relatedProducts: [],
+    details: ['可调节链条肩带', '内部拉链隔层', '磁扣开合', '金色五金件'],
+    sizes: ['小号', '中号', '大号'],
+    colors: [
+      { name: '黑色', value: '#000000' },
+      { name: '红色', value: '#FF0000' },
+    ],
+    material: '100%小牛皮',
+    careInstructions: ['避免接触水', '存放时使用防尘袋', '定期护理', '避免阳光直射'],
+    sku: 'PRA-BAG-2023',
+    availableQuantity: 8,
+    relatedProducts: [],
+  },
+  '3': {
+    id: '3',
+    name: '高跟凉鞋',
+    brand: 'Jimmy Choo',
+    price: 7999,
+    originalPrice: 9999,
+    image: '/images/products/shoes.jpg',
+    images: [
+      '/images/products/shoes.jpg',
+      '/images/products/shoes-2.jpg',
+      '/images/products/shoes-3.jpg',
+      '/images/products/shoes-4.jpg',
+    ],
+    discount: 20,
+    currency: 'CNY',
+    gender: 'women',
+    categories: ['shoes', 'heels'],
+    description: '优雅的高跟凉鞋设计，采用精致的材质，突显女性魅力。',
+    specifications: {
+      material: '小羊皮',
+      color: '裸色',
+      size: '35-40',
+      origin: '意大利制造',
     },
-    '4': {
-        id: '4',
-        name: '金色贝壳耳环',
-        brand: 'Alessandra Rich',
-        price: 2980,
-        image: '/images/products/earrings.jpg',
-        isNew: true,
-        currency: '¥',
-        description: 'Alessandra Rich金色贝壳耳环，采用贝壳和水晶元素，展现优雅复古的风格。',
-        details: [
-            '黄铜镀金材质',
-            '镶嵌施华洛世奇水晶',
-            '贝壳形状设计',
-            '适合各种场合',
-            '长度：5cm'
-        ],
-        images: [
-            '/images/products/earrings.jpg',
-            '/images/products/earrings_2.jpg',
-            '/images/products/earrings_3.jpg',
-        ],
-        sizes: ['均码'],
-        colors: [
-            { name: '金色', value: '#FFD700' },
-            { name: '银色', value: '#C0C0C0' }
-        ],
-        material: '黄铜镀金，施华洛世奇水晶，贝壳元素',
-        careInstructions: [
-            '避免接触水和化学物质',
-            '使用柔软干布擦拭',
-            '单独存放于首饰盒',
-            '避免长时间暴露在阳光下'
-        ],
-        sku: 'AR-EAR-2023',
-        availableQuantity: 15,
-        relatedProducts: [],
-    }
+    details: ['10cm细跟', '真皮鞋垫', '防滑鞋底', '脚踝绑带设计'],
+    sizes: ['35', '36', '37', '38', '39', '40'],
+    colors: [
+      { name: '裸色', value: '#E6BEAE' },
+      { name: '黑色', value: '#000000' },
+    ],
+    material: '100%小羊皮',
+    careInstructions: ['避免淋雨', '定期护理', '使用鞋撑存放', '防潮防霉'],
+    sku: 'JC-SHOES-2023',
+    availableQuantity: 12,
+    relatedProducts: [],
+  },
+  '4': {
+    id: '4',
+    name: '珍珠耳环',
+    brand: 'Tiffany & Co.',
+    price: 5999,
+    image: '/images/products/earrings.jpg',
+    images: [
+      '/images/products/earrings.jpg',
+      '/images/products/earrings-2.jpg',
+      '/images/products/earrings-3.jpg',
+      '/images/products/earrings-4.jpg',
+    ],
+    isNew: true,
+    currency: 'CNY',
+    gender: 'women',
+    categories: ['accessories', 'jewelry', 'earrings'],
+    description: '精致的珍珠耳环，采用优质珍珠和925银制作，展现优雅气质。',
+    specifications: {
+      material: '925银、天然珍珠',
+      color: '银色/珍珠白',
+      size: '单一尺码',
+      origin: '美国制造',
+    },
+    details: ['925银材质', '天然珍珠', '蝴蝶扣设计', '优雅简约风格'],
+    sizes: ['均码'],
+    colors: [{ name: '银色', value: '#C0C0C0' }],
+    material: '925银、天然珍珠',
+    careInstructions: ['避免接触化学品', '柔软布料擦拭', '专用首饰盒存放', '定期保养'],
+    sku: 'TIF-EAR-2023',
+    availableQuantity: 15,
+    relatedProducts: [],
+  },
 };
 
 // 设置相关产品
 mockProductDetails['1'].relatedProducts = [mockProducts[1], mockProducts[3]];
 mockProductDetails['2'].relatedProducts = [mockProducts[0], mockProducts[2]];
 mockProductDetails['3'].relatedProducts = [mockProducts[1], mockProducts[3]];
-mockProductDetails['4'].relatedProducts = [mockProducts[0], mockProducts[2]]; 
+mockProductDetails['4'].relatedProducts = [mockProducts[0], mockProducts[2]];

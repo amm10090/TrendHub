@@ -19,14 +19,14 @@ import { ProductDetail as ModalProductDetail } from '@/components/product-detail
 import { useProductModal } from '@/contexts/product-modal-context';
 import { mockProducts, mockProductDetails } from '@/types/product';
 
-import ProductFilters from './components/ProductFilters';
+import { Filters } from './components/Filters';
 
 const ProductListPage: NextPage = () => {
   const t = useTranslations('product');
   const tNav = useTranslations('nav');
   const tBrands = useTranslations('brands');
   const [showTopButton, setShowTopButton] = useState<boolean>(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
@@ -35,9 +35,8 @@ const ProductListPage: NextPage = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const { openProductModal } = useProductModal();
 
-  // 清除所有筛选
   const clearAllFilters = () => {
-    setSelectedCategory('all');
+    setSelectedCategory([]);
     setSelectedSizes([]);
     setSelectedColors([]);
     setSelectedPriceRanges([]);
@@ -112,18 +111,54 @@ const ProductListPage: NextPage = () => {
 
   // 筛选产品
   const filteredProducts = mockProducts.filter((product) => {
+    // 性别筛选
+    if (selectedCategory.length > 0) {
+      const gender = selectedCategory[0]; // 'women' 或 'men'
+
+      if (product.gender !== gender) {
+        return false;
+      }
+
+      // 主分类筛选（如 clothing, shoes, bags 等）
+      if (selectedCategory.length > 1) {
+        const mainCategory = selectedCategory[1].split('-')[1]; // 从 'women-clothing' 提取 'clothing'
+
+        if (!product.categories?.includes(mainCategory)) {
+          return false;
+        }
+
+        // 子分类筛选（如 coats, dresses 等）
+        if (selectedCategory.length > 2) {
+          const subCategory = selectedCategory[2].split('-')[2]; // 从 'women-clothing-coats' 提取 'coats'
+
+          if (!product.categories?.includes(subCategory)) {
+            return false;
+          }
+        }
+      }
+    }
+
     // 尺码筛选
     if (selectedSizes.length > 0) {
-      // 由于Product类型没有sizes属性，我们这里先简单处理
-      // 实际应用中需要根据产品尺码进行筛选
-      return false;
+      const productDetail = mockProductDetails[product.id];
+
+      if (!productDetail || !selectedSizes.some((size) => productDetail.sizes.includes(size))) {
+        return false;
+      }
     }
 
     // 颜色筛选
     if (selectedColors.length > 0) {
-      // 由于Product类型没有colors属性，我们这里先简单处理
-      // 实际应用中需要根据产品颜色进行筛选
-      return false;
+      const productDetail = mockProductDetails[product.id];
+
+      if (
+        !productDetail ||
+        !selectedColors.some((color) =>
+          productDetail.colors.some((c) => c.name.toLowerCase() === color)
+        )
+      ) {
+        return false;
+      }
     }
 
     // 价格范围筛选
@@ -140,13 +175,6 @@ const ProductListPage: NextPage = () => {
       });
 
       if (!matchesPrice) return false;
-    }
-
-    // 类别筛选
-    if (selectedCategory !== 'all') {
-      // 由于Product类型没有categories属性，我们这里先简单处理
-      // 实际应用中可能需要根据产品类别进行筛选
-      return false;
     }
 
     // 折扣筛选
@@ -211,8 +239,9 @@ const ProductListPage: NextPage = () => {
         </div>
 
         {/* 产品筛选组件 */}
-        <ProductFilters
+        <Filters
           clearAllFilters={clearAllFilters}
+          onSaleOnly={onSaleOnly}
           selectedCategory={selectedCategory}
           selectedColors={selectedColors}
           selectedPriceRanges={selectedPriceRanges}
@@ -224,7 +253,7 @@ const ProductListPage: NextPage = () => {
           setSelectedSizes={setSelectedSizes}
           setSortOrder={setSortOrder}
           sortOrder={sortOrder}
-          onSaleOnly={onSaleOnly}
+          totalProducts={sortedProducts.length}
         />
 
         {/* 产品网格 */}

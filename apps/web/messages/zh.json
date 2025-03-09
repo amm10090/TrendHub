@@ -518,6 +518,8 @@
       "color": "颜色",
       "moreFilters": "更多筛选",
       "style": "样式",
+      "apply": "应用筛选",
+      "viewAllCategories": "查看全部类别",
       "priceRanges": {
         "under1000": "¥1,000以下",
         "1000to5000": "¥1,000 - ¥5,000",

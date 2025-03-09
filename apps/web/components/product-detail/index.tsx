@@ -4,13 +4,13 @@ import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { ProductDetail as ProductDetailType } from '@/types/product';
+
 import { ProductAccordion } from './product-accordion';
 import { ProductImages } from './product-images';
 import { ProductInfo } from './product-info';
 import { ProductOptions } from './product-options';
 import { RelatedProducts } from './related-products';
-
-import { ProductDetail as ProductDetailType } from '@/types/product';
 
 export interface ProductDetailProps {
   product: ProductDetailType;

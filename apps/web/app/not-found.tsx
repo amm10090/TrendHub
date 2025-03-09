@@ -1,0 +1,25 @@
+'use client';
+
+import Link from 'next/link';
+
+export default function NotFound() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-bg-secondary-light dark:bg-bg-secondary-dark p-4">
+      <h1 className="text-4xl md:text-6xl font-bold mb-4 text-text-primary-light dark:text-text-primary-dark">
+        404
+      </h1>
+      <h2 className="text-xl md:text-2xl mb-6 text-text-primary-light dark:text-text-primary-dark">
+        页面未找到
+      </h2>
+      <p className="text-center mb-8 text-text-secondary-light dark:text-text-secondary-dark max-w-md">
+        抱歉，您请求的页面不存在或已被移除。
+      </p>
+      <Link
+        className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-md transition-colors"
+        href="/"
+      >
+        返回首页
+      </Link>
+    </div>
+  );
+}

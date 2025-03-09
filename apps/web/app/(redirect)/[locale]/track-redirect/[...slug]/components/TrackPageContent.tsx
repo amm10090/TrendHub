@@ -46,7 +46,7 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
     }
 
     // 处理路由参数
-    if (params.slug && Array.isArray(params.slug) && params.slug.length >= 2) {
+    if (params && params.slug && Array.isArray(params.slug) && params.slug.length >= 2) {
       const [type, id] = params.slug;
 
       if (type === 'product' && id) {

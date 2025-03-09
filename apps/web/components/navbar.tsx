@@ -11,10 +11,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { cn } from '@/lib/utils';
+
 import { LanguageSwitch } from './language-switch';
 import { ThemeSwitch } from './theme-switch';
-
-import { cn } from '@/lib/utils';
 
 interface SubMenuItem {
   name: string;

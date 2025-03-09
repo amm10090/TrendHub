@@ -31,6 +31,8 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
   const pathname = usePathname();
 
   const handleLocaleChange = (value: string) => {
+    if (!pathname) return;
+
     const segments = pathname.split('/');
 
     segments[1] = value;

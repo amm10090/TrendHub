@@ -15,11 +15,11 @@ import { type NextPage } from 'next';
 import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 
-import ProductFilters from './components/ProductFilters';
-
 import { ProductDetail as ModalProductDetail } from '@/components/product-detail/product-modal';
 import { useProductModal } from '@/contexts/product-modal-context';
 import { mockProducts, mockProductDetails } from '@/types/product';
+
+import ProductFilters from './components/ProductFilters';
 
 const ProductListPage: NextPage = () => {
   const t = useTranslations('product');

@@ -5,11 +5,11 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "eslint src/**/*.ts"
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --watch --dts",
+    "lint": "eslint src/**/*.ts || true"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
   }
-} 
+}

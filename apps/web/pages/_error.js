@@ -17,7 +17,6 @@ function Error({ statusCode }) {
       <h1>{statusCode ? `服务器返回了错误 ${statusCode}` : '客户端发生错误'}</h1>
       <p>抱歉，出现了错误。</p>
       <button
-        onClick={goToHome}
         style={{
           marginTop: '20px',
           padding: '10px 20px',
@@ -27,6 +26,7 @@ function Error({ statusCode }) {
           borderRadius: '5px',
           cursor: 'pointer',
         }}
+        onClick={goToHome}
       >
         返回首页
       </button>
@@ -36,6 +36,7 @@ function Error({ statusCode }) {
 
 Error.getInitialProps = ({ res, err }) => {
   const statusCode = res ? res.statusCode : err ? err.statusCode : 404;
+
   return { statusCode };
 };
 

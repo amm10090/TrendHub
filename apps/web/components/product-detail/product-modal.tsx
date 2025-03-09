@@ -28,7 +28,18 @@ import {
   ModalContent,
   ModalHeader,
 } from '@heroui/react';
-import { ChevronDown, ChevronLeft, ChevronRight, ExternalLink, Heart } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Heart,
+  Info,
+  Layers,
+  Palette,
+  Ruler,
+  Shirt,
+} from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
@@ -368,9 +379,7 @@ export function ProductModal({
                             startContent={
                               <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
                                 <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
-                                  <span className="text-xs font-medium">
-                                    {t('product_count', { count: product.sizes.length })}
-                                  </span>
+                                  <Ruler size={16} />
                                 </div>
                               </div>
                             }
@@ -405,9 +414,7 @@ export function ProductModal({
                             startContent={
                               <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
                                 <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
-                                  <span className="text-xs font-medium">
-                                    {t('product_count', { count: product.colors.length })}
-                                  </span>
+                                  <Palette size={16} />
                                 </div>
                               </div>
                             }
@@ -448,9 +455,7 @@ export function ProductModal({
                             startContent={
                               <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
                                 <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
-                                  <span className="text-xs font-medium">
-                                    {t('product_count', { count: product.details.length })}
-                                  </span>
+                                  <Info size={16} />
                                 </div>
                               </div>
                             }
@@ -480,6 +485,13 @@ export function ProductModal({
                                 className={`text-default-400 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
                               />
                             )}
+                            startContent={
+                              <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
+                                <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
+                                  <Layers size={16} />
+                                </div>
+                              </div>
+                            }
                             title={t('accordion.material')}
                           >
                             <p>{product.material}</p>
@@ -505,9 +517,7 @@ export function ProductModal({
                             startContent={
                               <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
                                 <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
-                                  <span className="text-xs font-medium">
-                                    {t('product_count', { count: product.careInstructions.length })}
-                                  </span>
+                                  <Shirt size={16} />
                                 </div>
                               </div>
                             }

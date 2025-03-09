@@ -13,9 +13,9 @@
     "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
-    "@heroui/react": "^2.7.4",
-    "@heroui/system": "2.4.11",
-    "@heroui/theme": "2.4.11",
+    "@heroui/react": "^2.7.5",
+    "@heroui/system": "2.4.12",
+    "@heroui/theme": "2.4.12",
     "@react-aria/ssr": "3.9.7",
     "@react-aria/visually-hidden": "3.8.20",
     "@swc/cli": "^0.6.0",
@@ -61,7 +61,7 @@
     "eslint-plugin-unused-imports": "4.1.4",
     "postcss": "8.5.3",
     "prettier": "3.5.3",
-    "tailwind-variants": "0.3.1",
+    "tailwind-variants": "1.0.0",
     "tailwindcss": "3.4.17",
     "typescript": "5.8.2",
     "typescript-eslint": "^8.26.0"

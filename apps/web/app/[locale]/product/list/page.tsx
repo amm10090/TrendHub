@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Breadcrumbs,
-  BreadcrumbItem,
-  Button,
-  Image,
-  Spacer,
-  Avatar,
-  Card,
-  CardBody,
-} from '@heroui/react';
+import { Breadcrumbs, BreadcrumbItem, Button, Image, Avatar, Card, CardBody } from '@heroui/react';
 import { ChevronUp, Heart } from 'lucide-react';
 import { type NextPage } from 'next';
 import { useTranslations } from 'next-intl';
@@ -41,10 +32,8 @@ const ProductListPage: NextPage = () => {
     setSelectedColors([]);
     setSelectedPriceRanges([]);
     setOnSaleOnly(false);
-    setSortOrder('newest');
   };
 
-  // 监听滚动事件，控制返回顶部按钮显示
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 300) {
@@ -56,10 +45,11 @@ const ProductListPage: NextPage = () => {
 
     window.addEventListener('scroll', handleScroll);
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
-  // 返回顶部函数
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -67,45 +57,67 @@ const ProductListPage: NextPage = () => {
     });
   };
 
-  // 品牌信息
-  const brandInfo = {
-    name: 'GUCCI',
-    logo: '/images/brands/gucci-logo.png', // 确保这个路径是正确的
-  };
-
-  // 切换收藏状态
   const toggleFavorite = (productId: string) => {
     setFavorites((prev) =>
       prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
   };
 
-  // 打开产品详情模态框
   const navigateToProduct = (productId: string) => {
-    const productDetail = mockProductDetails[productId];
+    const product = mockProducts.find((p) => p.id === productId);
+    const detail = mockProductDetails[productId];
 
-    if (productDetail) {
-      // 转换为模态框需要的ProductDetail类型
-      const modalProductDetail: ModalProductDetail = {
-        ...productDetail,
-        // 确保relatedProducts是ModalProductDetail[]类型
-        relatedProducts:
-          productDetail.relatedProducts?.map((p) => ({
-            ...p,
-            description: '', // 添加必需的字段
-            availableQuantity: 0,
-            details: [],
-            images: [p.image],
-            sizes: [],
-            colors: [],
-            material: '',
-            careInstructions: [],
-            sku: '',
-            relatedProducts: [],
-          })) || [],
+    if (product && detail) {
+      // 创建符合ProductDetail接口的对象
+      const productDetail: ModalProductDetail = {
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image: product.image,
+        description: detail.description,
+        availableQuantity: detail.availableQuantity,
+        isNew: product.isNew,
+        isFavorite: favorites.includes(product.id),
+        discount: product.discount,
+        details: detail.details,
+        images: detail.images,
+        sizes: detail.sizes,
+        colors: detail.colors,
+        material: detail.material,
+        careInstructions: detail.careInstructions,
+        sku: detail.sku,
+        // 将Product[]转换为ProductDetail[]
+        relatedProducts: detail.relatedProducts
+          .map((p) => {
+            const relatedDetail = mockProductDetails[p.id];
+
+            if (!relatedDetail) return null;
+
+            return {
+              id: p.id,
+              name: p.name,
+              brand: p.brand,
+              price: p.price,
+              originalPrice: p.originalPrice,
+              image: p.image,
+              description: relatedDetail.description,
+              availableQuantity: relatedDetail.availableQuantity,
+              details: relatedDetail.details,
+              images: relatedDetail.images,
+              sizes: relatedDetail.sizes,
+              colors: relatedDetail.colors,
+              material: relatedDetail.material,
+              careInstructions: relatedDetail.careInstructions,
+              sku: relatedDetail.sku,
+              relatedProducts: [],
+            };
+          })
+          .filter(Boolean) as ModalProductDetail[],
       };
 
-      openProductModal(modalProductDetail);
+      openProductModal(productDetail);
     }
   };
 
@@ -161,213 +173,229 @@ const ProductListPage: NextPage = () => {
       }
     }
 
-    // 价格范围筛选
+    // 价格筛选
     if (selectedPriceRanges.length > 0) {
-      const matchesPrice = selectedPriceRanges.some((range) => {
-        if (range === 'under1000' && product.price < 1000) return true;
-        if (range === '1000to5000' && product.price >= 1000 && product.price <= 5000) return true;
-        if (range === '5000to10000' && product.price >= 5000 && product.price <= 10000) return true;
-        if (range === '10000to20000' && product.price >= 10000 && product.price <= 20000)
-          return true;
-        if (range === 'over20000' && product.price > 20000) return true;
+      let matches = false;
 
-        return false;
-      });
+      for (const range of selectedPriceRanges) {
+        switch (range) {
+          case 'under1000':
+            if (product.price < 1000) matches = true;
+            break;
+          case '1000to5000':
+            if (product.price >= 1000 && product.price <= 5000) matches = true;
+            break;
+          case '5000to10000':
+            if (product.price >= 5000 && product.price <= 10000) matches = true;
+            break;
+          case '10000to20000':
+            if (product.price >= 10000 && product.price <= 20000) matches = true;
+            break;
+          case 'over20000':
+            if (product.price > 20000) matches = true;
+            break;
+        }
+      }
 
-      if (!matchesPrice) return false;
+      if (!matches) return false;
     }
 
-    // 折扣筛选
-    if (onSaleOnly && !product.discount) return false;
+    // 特价筛选
+    if (onSaleOnly && !product.discount) {
+      return false;
+    }
 
     return true;
   });
 
-  // 对筛选后的产品进行排序
+  // 排序产品
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortOrder) {
-      case 'newest':
-        // 假设id越大表示越新
-        return parseInt(b.id) - parseInt(a.id);
-      case 'price_high_low':
-        return b.price - a.price;
-      case 'price_low_high':
-        return a.price - b.price;
-      default:
-        return 0;
+    if (sortOrder === 'newest') {
+      // 使用ID作为排序依据，假设ID越大的越新
+      return parseInt(b.id) - parseInt(a.id);
+    } else if (sortOrder === 'priceHighToLow') {
+      return b.price - a.price;
+    } else if (sortOrder === 'priceLowToHigh') {
+      return a.price - b.price;
     }
+
+    return 0;
   });
 
+  // 如果有品牌名称在URL参数中，则展示品牌信息
+  const brandName = 'gucci'; // 模拟从URL获取品牌参数
+  const activeBrand = brandName && {
+    name: 'GUCCI',
+    logo: '/brands/gucci-logo.svg',
+    description: tBrands(`descriptions.${brandName}`),
+  };
+
   return (
-    <div className="flex flex-col min-h-full bg-bg-primary-light dark:bg-bg-primary-dark">
-      <div className="container mx-auto px-4">
-        {/* 面包屑导航 */}
-        <div className="py-4">
-          <Breadcrumbs>
-            <BreadcrumbItem href="/">{t('breadcrumb.home')}</BreadcrumbItem>
-            <BreadcrumbItem href="/designers">{tNav('brands')}</BreadcrumbItem>
-            <BreadcrumbItem>{brandInfo.name}</BreadcrumbItem>
-          </Breadcrumbs>
-        </div>
+    <div className="container mx-auto px-4 py-8 overflow-x-hidden">
+      {/* 面包屑导航 */}
+      <Breadcrumbs className="mb-4 text-sm">
+        <BreadcrumbItem href="/">{t('breadcrumb.home')}</BreadcrumbItem>
+        {selectedCategory.length > 0 && (
+          <BreadcrumbItem href={`/category/${selectedCategory[0]}`}>
+            {tNav(selectedCategory[0])}
+          </BreadcrumbItem>
+        )}
+        {brandName && (
+          <BreadcrumbItem href={`/brands/${brandName}`}>{brandName.toUpperCase()}</BreadcrumbItem>
+        )}
+      </Breadcrumbs>
 
-        {/* 品牌信息顶部容器 - LYST风格 */}
-        <div className="w-full bg-white dark:bg-bg-secondary-dark rounded-lg shadow-sm mb-6">
-          <div className="p-6 flex items-center">
-            <div className="flex-1 flex items-center gap-6">
-              <Avatar
-                alt={brandInfo.name}
-                className="border border-border-primary-light dark:border-border-primary-dark"
-                size="lg"
-                src={brandInfo.logo}
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-text-primary-light dark:text-text-primary-dark">
-                  {brandInfo.name}
-                </h1>
-                <Spacer y={1} />
-                <p className="text-text-secondary-light dark:text-text-secondary-dark max-w-3xl">
-                  {tBrands(`descriptions.${brandInfo.name.toLowerCase()}`)}
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
-                {t('product_count', { count: sortedProducts.length })}
-              </p>
-            </div>
+      {/* 品牌信息（如果有） */}
+      {activeBrand && (
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-2">
+            <Avatar src={activeBrand.logo} alt={activeBrand.name} className="h-12 w-12" />
+            <h1 className="text-2xl font-semibold">{activeBrand.name}</h1>
           </div>
+          <p className="text-text-secondary-light dark:text-text-secondary-dark">
+            {activeBrand.description}
+          </p>
+          <p className="mt-2 text-text-primary-light dark:text-text-primary-dark">
+            {filteredProducts.length} {t('product_count', { count: filteredProducts.length })}
+          </p>
         </div>
+      )}
 
-        {/* 产品筛选组件 */}
-        <Filters
-          clearAllFilters={clearAllFilters}
-          onSaleOnly={onSaleOnly}
-          selectedCategory={selectedCategory}
-          selectedColors={selectedColors}
-          selectedPriceRanges={selectedPriceRanges}
-          selectedSizes={selectedSizes}
-          setOnSaleOnly={setOnSaleOnly}
-          setSelectedCategory={setSelectedCategory}
-          setSelectedColors={setSelectedColors}
-          setSelectedPriceRanges={setSelectedPriceRanges}
-          setSelectedSizes={setSelectedSizes}
-          setSortOrder={setSortOrder}
-          sortOrder={sortOrder}
-          totalProducts={sortedProducts.length}
-        />
+      {/* 筛选器 */}
+      <Filters
+        clearAllFilters={clearAllFilters}
+        onSaleOnly={onSaleOnly}
+        selectedCategory={selectedCategory}
+        selectedColors={selectedColors}
+        selectedPriceRanges={selectedPriceRanges}
+        selectedSizes={selectedSizes}
+        setOnSaleOnly={setOnSaleOnly}
+        setSelectedCategory={setSelectedCategory}
+        setSelectedColors={setSelectedColors}
+        setSelectedPriceRanges={setSelectedPriceRanges}
+        setSelectedSizes={setSelectedSizes}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        totalProducts={filteredProducts.length}
+      />
 
-        {/* 产品网格 */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 mb-10">
-          {sortedProducts.map((product) => (
-            <Card
-              key={product.id}
-              isHoverable
-              className="overflow-hidden border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md relative"
-              isPressable={false}
-              shadow="sm"
-            >
-              {/* 点击区域 - 覆盖整个卡片但排除收藏按钮 */}
-              <div
-                aria-label={`查看${product.name}详情`}
-                className="absolute inset-0 z-[15] cursor-pointer"
-                role="button"
-                tabIndex={0}
-                onClick={() => navigateToProduct(product.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    navigateToProduct(product.id);
-                  }
-                }}
-              />
-
-              {/* 图片容器 - 设置固定宽高比 */}
-              <div className="relative w-full aspect-square overflow-hidden">
-                {/* 图片包装器 */}
-                <div className="absolute inset-0 z-[5]">
-                  <Image
-                    isZoomed
-                    removeWrapper
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    src={product.image}
-                  />
-                </div>
-
-                {/* 产品标签 - 绝对定位在图片上，提高z-index确保在图片上方 */}
-                <div className="absolute top-0 left-0 right-0 p-1.5 flex justify-between z-[20]">
-                  <div className="flex gap-1">
-                    {product.isNew && (
-                      <div className="bg-black text-white text-xs font-bold px-1.5 py-0.5 rounded-sm">
-                        {t('tags.new')}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    {product.discount && (
-                      <div className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-sm">
-                        -{product.discount}%
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 收藏按钮 - 绝对定位在图片上，z-index高于点击区域 */}
-                <div
-                  aria-label={`收藏${product.name}`}
-                  className="absolute bottom-1.5 right-1.5 bg-white/90 dark:bg-black/70 rounded-full z-[50] shadow-sm transition-transform duration-200 hover:scale-110 flex items-center justify-center w-7 h-7 cursor-pointer"
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleFavorite(product.id);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleFavorite(product.id);
-                    }
-                  }}
-                >
-                  <Heart
-                    className={`h-4 w-4 ${favorites.includes(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-white'}`}
-                  />
-                </div>
-              </div>
-
-              <CardBody className="p-2.5">
-                <h3 className="text-text-primary-light dark:text-text-primary-dark font-semibold text-sm">
-                  {product.brand}
-                </h3>
-                <p className="text-text-secondary-light dark:text-text-secondary-dark text-xs line-clamp-1">
-                  {product.name}
-                </p>
-                <div className="flex justify-between items-center w-full mt-1.5">
-                  <span className="font-bold text-text-primary-light dark:text-text-primary-dark text-sm">
-                    ¥{product.price.toLocaleString()}
-                  </span>
-                  {product.originalPrice && (
-                    <span className="text-text-tertiary-light dark:text-text-tertiary-dark line-through text-xs ml-1.5">
-                      ¥{product.originalPrice.toLocaleString()}
+      {/* 产品网格 */}
+      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-x-hidden">
+        {sortedProducts.map((product) => (
+          <Card
+            key={product.id}
+            className="overflow-hidden hover:shadow-md transition-shadow duration-300"
+          >
+            <CardBody className="p-0">
+              <div className="relative overflow-hidden">
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full aspect-[3/4] object-cover hover:scale-105 transition-transform duration-500"
+                  onClick={() => navigateToProduct(product.id)}
+                />
+                {/* 新品和特价标签 */}
+                <div className="absolute top-2 left-2 flex flex-col gap-1 z-30">
+                  {product.isNew && (
+                    <span className="bg-bg-primary-dark dark:bg-bg-tertiary-dark text-text-primary-dark px-2 py-1 text-xs uppercase">
+                      {t('new')}
+                    </span>
+                  )}
+                  {product.discount && (
+                    <span className="bg-red-500 text-white px-2 py-1 text-xs uppercase z-30">
+                      {t('tags.sale')}
                     </span>
                   )}
                 </div>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
+                {/* 收藏按钮 */}
+                <button
+                  className="absolute top-2 right-2 p-2 rounded-full bg-opacity-50 dark:bg-opacity-50 bg-white dark:bg-black hover:bg-opacity-70 hover:dark:bg-opacity-70 transition-colors z-30"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(product.id);
+                  }}
+                  aria-label={
+                    favorites.includes(product.id)
+                      ? t('remove_from_favorites')
+                      : t('add_to_favorites')
+                  }
+                >
+                  <Heart
+                    className={`h-5 w-5 ${
+                      favorites.includes(product.id)
+                        ? 'fill-red-500 text-red-500'
+                        : 'text-text-primary-light dark:text-text-primary-dark'
+                    }`}
+                  />
+                </button>
+                {/* 查看详情按钮 */}
+                <div className="absolute bottom-0 left-0 right-0 p-2 bg-bg-primary-light dark:bg-bg-primary-dark bg-opacity-70 dark:bg-opacity-70 backdrop-blur-sm transition-opacity duration-300 flex justify-between">
+                  <button
+                    className="text-center text-text-primary-light dark:text-text-primary-dark text-sm hover:underline"
+                    onClick={() => navigateToProduct(product.id)}
+                  >
+                    {t('view_details')}
+                  </button>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1 font-semibold uppercase">
+                  {product.brand}
+                </div>
+                <button
+                  className="text-text-primary-light dark:text-text-primary-dark mb-2 line-clamp-2 h-12 cursor-pointer text-left w-full border-none bg-transparent p-0"
+                  onClick={() => navigateToProduct(product.id)}
+                >
+                  {product.name}
+                </button>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-text-primary-light dark:text-text-primary-dark font-semibold">
+                    ¥{product.price.toLocaleString()}
+                  </span>
+                  {product.originalPrice && product.originalPrice > product.price && (
+                    <>
+                      <span className="ml-2 text-text-tertiary-light dark:text-text-tertiary-dark line-through text-sm">
+                        ¥{product.originalPrice.toLocaleString()}
+                      </span>
+                      <span className="ml-2 text-red-500 text-sm">
+                        -
+                        {Math.round(
+                          ((product.originalPrice - product.price) / product.originalPrice) * 100
+                        )}
+                        %
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        ))}
       </div>
 
-      {/* 返回顶部按钮 */}
+      {filteredProducts.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <h3 className="text-xl font-semibold text-text-primary-light dark:text-text-primary-dark mb-2">
+            {t('no_results')}
+          </h3>
+          <p className="text-text-secondary-light dark:text-text-secondary-dark mb-6">
+            {t('try_other_filters')}
+          </p>
+          <Button color="primary" onClick={clearAllFilters}>
+            {t('filters.clearAll')}
+          </Button>
+        </div>
+      )}
+
+      {/* 回到顶部按钮 */}
       {showTopButton && (
-        <Button
-          aria-label="返回顶部"
-          className="fixed bottom-4 right-4 rounded-full w-10 h-10 bg-bg-tertiary-light dark:bg-bg-tertiary-dark text-text-primary-light dark:text-text-primary-dark shadow-md hover:shadow-lg z-10"
+        <button
+          className="fixed bottom-6 right-6 p-3 rounded-full bg-bg-primary-light dark:bg-bg-primary-dark shadow-md hover:shadow-lg transition-shadow z-50"
           onClick={scrollToTop}
+          aria-label={t('back_to_top')}
         >
-          <ChevronUp className="w-5 h-5" />
-        </Button>
+          <ChevronUp className="h-6 w-6 text-text-primary-light dark:text-text-primary-dark" />
+        </button>
       )}
     </div>
   );

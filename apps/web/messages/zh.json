@@ -11,7 +11,11 @@
     "guides": "购物指南",
     "popular_brands": "热门品牌",
     "brands_a_z": "品牌 A-Z",
+    "viewAllCategories": "查看全部分类",
     "view_all_brands": "查看全部品牌",
+    "category": "分类",
+    "viewAllClothing": "查看全部服饰",
+    "viewAll": "查看全部",
     "all": "全部",
     "newArrivals": "新品",
     "onSale": "特惠",
@@ -25,6 +29,8 @@
     "formal": "正装",
     "sporty": "运动",
     "vintage": "复古",
+    "clear_categories": "清除类别",
+    "apply_filters": "应用筛选",
     "clothing_categories": {
       "all": "全部服饰",
       "beachwear": "沙滩装和泳装",
@@ -127,7 +133,8 @@
     "wishlist": "收藏夹",
     "cart": "购物袋",
     "menu": "菜单",
-    "back": "返回"
+    "back": "返回",
+    "clear": "清除"
   },
   "banner": {
     "title": "Gucci新季系列",
@@ -533,7 +540,34 @@
         "priceHighToLow": "价格由高到低",
         "priceLowToHigh": "价格由低到高"
       },
-      "results": "{count}+ 件产品"
+      "results": "{count}+ 件产品",
+      "sizes": {
+        "XS": "XS",
+        "S": "S",
+        "M": "M",
+        "L": "L",
+        "XL": "XL",
+        "XXL": "XXL",
+        "XXXL": "XXXL",
+        "oneSize": "均码"
+      },
+      "colors": {
+        "black": "黑色",
+        "white": "白色",
+        "red": "红色",
+        "blue": "蓝色",
+        "green": "绿色",
+        "yellow": "黄色",
+        "purple": "紫色",
+        "pink": "粉色",
+        "orange": "橙色",
+        "brown": "棕色",
+        "gray": "灰色",
+        "beige": "米色",
+        "gold": "金色",
+        "silver": "银色",
+        "multicolor": "多色"
+      }
     },
     "tags": {
       "new": "新品",
@@ -574,7 +608,10 @@
     "original_price": "原价",
     "view_details": "查看详情",
     "add_to_favorites": "添加到收藏",
-    "remove_from_favorites": "从收藏中移除"
+    "remove_from_favorites": "从收藏中移除",
+    "no_results": "没有找到匹配的商品",
+    "try_other_filters": "请尝试使用其他筛选条件或清除所有筛选器",
+    "back_to_top": "回到顶部"
   },
   "track": {
     "redirecting": "正在为您跳转...",

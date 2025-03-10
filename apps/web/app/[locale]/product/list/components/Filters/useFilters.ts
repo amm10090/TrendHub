@@ -153,6 +153,7 @@ export const useFilters = ({
   // 获取当前激活的分类路径
   const getActiveCategoryPath = useCallback(() => {
     const path: FilterCategory[] = [];
+
     const findPath = (cats: FilterCategory[], targetId: string): boolean => {
       for (const cat of cats) {
         if (cat.id === targetId) {
@@ -160,18 +161,34 @@ export const useFilters = ({
 
           return true;
         }
-        if (cat.children && findPath(cat.children, targetId)) {
-          path.unshift(cat);
+        if (cat.children) {
+          if (findPath(cat.children, targetId)) {
+            path.unshift(cat);
 
-          return true;
+            return true;
+          }
         }
       }
 
       return false;
     };
 
+    // 从最后一个选中的分类开始查找路径
     if (selectedCategory.length > 0) {
-      findPath(categories, selectedCategory[selectedCategory.length - 1]);
+      const lastSelectedId = selectedCategory[selectedCategory.length - 1];
+
+      findPath(categories, lastSelectedId);
+
+      // 确保所有选中的分类都在路径中
+      selectedCategory.forEach((catId) => {
+        if (!path.some((p) => p.id === catId)) {
+          const category = categories.find((c) => c.id === catId);
+
+          if (category) {
+            path.unshift(category);
+          }
+        }
+      });
     }
 
     return path;

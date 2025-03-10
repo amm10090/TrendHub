@@ -42,6 +42,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
     sku: 'SKU123456',
     relatedProducts: [],
     currency: '$',
+    gender: 'unisex' as const,
+    specifications: {
+      material: '主要材质',
+      color: '多色',
+      size: 'S-L',
+      origin: '中国',
+    },
   };
 
   return (

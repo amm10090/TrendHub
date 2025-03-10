@@ -22,7 +22,10 @@
     "popular_brands": "Popular Brands",
     "brands_a_z": "Brands A-Z",
     "view_all_brands": "View All Brands",
-    "all": "All",
+    "category": "Category",
+    "viewAllCategories": "View All Categories",
+    "viewAllClothing": "View All Clothing",
+    "viewAll": "View All",
     "onSale": "On Sale",
     "trending": "Trending",
     "black": "Black",
@@ -34,6 +37,8 @@
     "formal": "Formal",
     "sporty": "Sporty",
     "vintage": "Vintage",
+    "clear_categories": "Clear Categories",
+    "apply_filters": "Apply Filters",
     "popular_brand_names": {
       "balenciaga": "Balenciaga",
       "bottega_veneta": "Bottega Veneta",
@@ -126,7 +131,8 @@
       "sustainable": "Sustainable",
       "affordable": "Affordable Luxury"
     },
-    "menu": "Menu"
+    "menu": "Menu",
+    "clear": "Clear"
   },
   "banner": {
     "title": "Gucci New Season",
@@ -537,7 +543,34 @@
         "priceHighToLow": "Price High to Low",
         "priceLowToHigh": "Price Low to High"
       },
-      "results": "{count}+ Products"
+      "results": "{count}+ Products",
+      "sizes": {
+        "XS": "XS",
+        "S": "S",
+        "M": "M",
+        "L": "L",
+        "XL": "XL",
+        "XXL": "XXL",
+        "XXXL": "XXXL",
+        "oneSize": "One Size"
+      },
+      "colors": {
+        "black": "Black",
+        "white": "White",
+        "red": "Red",
+        "blue": "Blue",
+        "green": "Green",
+        "yellow": "Yellow",
+        "purple": "Purple",
+        "pink": "Pink",
+        "orange": "Orange",
+        "brown": "Brown",
+        "gray": "Gray",
+        "beige": "Beige",
+        "gold": "Gold",
+        "silver": "Silver",
+        "multicolor": "Multicolor"
+      }
     },
     "tags": {
       "new": "New",
@@ -573,7 +606,10 @@
     "view_details": "View Details",
     "add_to_favorites": "Add to Favorites",
     "remove_from_favorites": "Remove from Favorites",
-    "sku": "SKU"
+    "sku": "SKU",
+    "no_results": "No products found",
+    "try_other_filters": "Try using different filters or clear all filters",
+    "back_to_top": "Back to top"
   },
   "track": {
     "redirecting": "Redirecting...",

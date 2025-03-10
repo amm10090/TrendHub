@@ -3,23 +3,492 @@
 import {
   Button,
   Checkbox,
-  Divider,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  RadioGroup,
-  Radio,
   Tabs,
   Tab,
 } from '@heroui/react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 
 import { FilterTag } from './FilterTag';
 import { MobileFilters } from './MobileFilters';
+import {
+  FilterCategory,
+  FilterColor,
+  FilterPriceRange,
+  FilterSize,
+  sampleCategories,
+} from './types';
 import { useFilters } from './useFilters';
+
+// 创建CategoryNavigation组件，处理分类筛选的弹出式面板和交互
+const CategoryNavigation: React.FC<{
+  categories: FilterCategory[];
+  selectedCategory: string[];
+  setSelectedCategory: (categoryId: string, level: number) => void;
+  isOpen: boolean;
+  categoryButtonRef: React.RefObject<HTMLButtonElement>;
+}> = ({ categories = sampleCategories, selectedCategory, setSelectedCategory, isOpen }) => {
+  const tNav = useTranslations('nav');
+  const [activeGender, setActiveGender] = useState<string>(
+    selectedCategory.includes('men') ? 'men' : 'women'
+  );
+  const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
+
+  // 获取主分类列表
+  const mainCategories = useMemo(() => {
+    const genderCategory = categories.find((c) => c.id === activeGender);
+
+    return genderCategory?.children || [];
+  }, [categories, activeGender]);
+
+  // 判断是否有选中的主分类
+  const hasSelectedMainCategory = useMemo(() => {
+    return mainCategories.some((category) => selectedCategory.includes(category.id));
+  }, [mainCategories, selectedCategory]);
+
+  // 获取子分类列表
+  const subCategories = useMemo(() => {
+    if (!selectedMainCategory) return [];
+    const category = mainCategories.find((c) => c.id === selectedMainCategory);
+
+    return category?.children || [];
+  }, [mainCategories, selectedMainCategory]);
+
+  // 处理性别切换
+  const handleGenderChange = (gender: string) => {
+    setActiveGender(gender);
+    setSelectedMainCategory(null);
+    setSelectedCategory('', 0);
+  };
+
+  // 处理主分类点击
+  const handleMainCategoryClick = (category: FilterCategory) => {
+    if (selectedCategory.includes(category.id) && selectedCategory.length === 1) {
+      // 如果只选中了主分类并点击它，则清除选择
+      setSelectedCategory('', 0);
+      setSelectedMainCategory(null);
+    } else if (selectedCategory.includes(category.id)) {
+      // 如果已经选中了这个分类，保持选中状态
+      setSelectedCategory(category.id, 1);
+    } else {
+      // 选择新的主分类
+      setSelectedMainCategory(category.id);
+      setSelectedCategory(category.id, 1);
+    }
+  };
+
+  // 处理子分类点击
+  const handleSubCategoryClick = (category: FilterCategory) => {
+    if (selectedCategory.includes(category.id)) {
+      // 如果已经选中了这个子分类，返回到主分类选择
+      setSelectedCategory(selectedMainCategory || '', 1);
+    } else {
+      // 选择新的子分类，同时保持主分类的选中状态
+      const parentCategory = mainCategories.find((c) =>
+        c.children?.some((child) => child.id === category.id)
+      );
+
+      if (parentCategory) {
+        setSelectedCategory(category.id, 2);
+        setSelectedMainCategory(parentCategory.id);
+      }
+    }
+  };
+
+  // 处理"查看所有"按钮点击
+  const handleViewAll = (type: string) => {
+    if (type === 'main') {
+      setSelectedCategory('', 0);
+      setSelectedMainCategory(null);
+    } else if (type === 'sub' && selectedMainCategory) {
+      setSelectedCategory(selectedMainCategory, 1);
+    }
+  };
+
+  // 过滤主分类列表
+  const filteredMainCategories = useMemo(() => {
+    if (!hasSelectedMainCategory) {
+      return mainCategories;
+    }
+
+    const selectedMainCategoryIds = selectedCategory
+      .filter((id) => mainCategories.some((c) => c.id === id))
+      .map((id) => id);
+
+    if (selectedMainCategoryIds.length === 0) {
+      return mainCategories;
+    }
+
+    return mainCategories.filter((category) => selectedMainCategoryIds.includes(category.id));
+  }, [mainCategories, selectedCategory, hasSelectedMainCategory]);
+
+  return (
+    <div
+      className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[80vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
+    >
+      <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* 类别标题和清除按钮 */}
+          <div className="flex items-center justify-between py-3 border-b border-border-primary-light dark:border-border-primary-dark">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">
+                {tNav('category')}{' '}
+                {selectedCategory.length > 0 ? `(${selectedCategory.length})` : ''}
+              </span>
+              {selectedCategory.length > 0 && (
+                <>
+                  <div className="h-4 w-px bg-border-primary-light dark:bg-border-primary-dark" />
+                  <button
+                    className="text-xs text-text-tertiary-light dark:text-text-tertiary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
+                    onClick={() => {
+                      setSelectedCategory('', 0);
+                      setSelectedMainCategory(null);
+                    }}
+                  >
+                    {tNav('clear')}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* 性别选择Tabs */}
+          <Tabs
+            selectedKey={activeGender}
+            onSelectionChange={(key) => handleGenderChange(key as string)}
+            variant="underlined"
+            size="sm"
+            className="w-full"
+          >
+            <Tab key="women" title={tNav('women')} />
+            <Tab key="men" title={tNav('men')} />
+          </Tabs>
+
+          {/* 两栏分类导航 */}
+          <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+            {/* 左侧主分类列表 */}
+            <div className="border-r border-border-primary-light dark:border-border-primary-dark pr-4">
+              {hasSelectedMainCategory && (
+                <div className="mb-3">
+                  <button
+                    className="flex items-center text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark"
+                    onClick={() => {
+                      setSelectedCategory('', 0);
+                      setSelectedMainCategory(null);
+                    }}
+                  >
+                    <ChevronRight className="rotate-180 mr-1 h-4 w-4" />
+                    {tNav('back')}
+                  </button>
+                </div>
+              )}
+
+              {/* 主分类列表 */}
+              <div className="space-y-1">
+                <button
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-md transition-colors"
+                  onClick={() => handleViewAll('main')}
+                >
+                  {tNav('viewAllCategories')}
+                </button>
+
+                {filteredMainCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-between group
+                                            ${
+                                              selectedCategory.includes(category.id)
+                                                ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark'
+                                                : 'hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark'
+                                            }`}
+                    onClick={() => handleMainCategoryClick(category)}
+                  >
+                    <span>{tNav(category.name)}</span>
+                    <div className="flex items-center gap-2">
+                      {selectedCategory.includes(category.id) && (
+                        <Check
+                          size={16}
+                          className="text-text-primary-light dark:text-text-primary-dark"
+                        />
+                      )}
+                      {category.children && category.children.length > 0 && (
+                        <ChevronRight
+                          size={16}
+                          className="text-text-tertiary-light dark:text-text-tertiary-dark"
+                        />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 右侧子分类列表 */}
+            <div>
+              {selectedMainCategory && (
+                <div className="space-y-1">
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-md transition-colors"
+                    onClick={() => handleViewAll('sub')}
+                  >
+                    {tNav('viewAll')}{' '}
+                    {tNav(mainCategories.find((c) => c.id === selectedMainCategory)?.name || '')}
+                  </button>
+
+                  {subCategories.map((category) => (
+                    <button
+                      key={category.id}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-between group
+                                                ${
+                                                  selectedCategory.includes(category.id)
+                                                    ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark'
+                                                    : 'hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark'
+                                                }`}
+                      onClick={() => handleSubCategoryClick(category)}
+                    >
+                      <span>{tNav(category.name)}</span>
+                      {selectedCategory.includes(category.id) && (
+                        <Check
+                          size={16}
+                          className="text-text-primary-light dark:text-text-primary-dark"
+                        />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 创建尺寸筛选面板组件
+const SizeNavigation: React.FC<{
+  sizes: FilterSize[];
+  selectedSizes: string[];
+  setSelectedSizes: React.Dispatch<React.SetStateAction<string[]>>;
+  isOpen: boolean;
+}> = ({ sizes, selectedSizes, setSelectedSizes, isOpen }) => {
+  const t = useTranslations('product');
+
+  // 处理尺寸选择
+  const handleSizeClick = (sizeId: string) => {
+    if (selectedSizes.includes(sizeId)) {
+      setSelectedSizes((prev) => prev.filter((id) => id !== sizeId));
+    } else {
+      setSelectedSizes((prev) => [...prev, sizeId]);
+    }
+  };
+
+  // 清除所有选中的尺寸
+  const clearSizes = () => {
+    setSelectedSizes([]);
+  };
+
+  return (
+    <div
+      className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[60vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
+    >
+      <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* 尺寸标题和清除按钮 */}
+          <div className="flex items-center justify-between py-3 border-b border-border-primary-light dark:border-border-primary-dark">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">
+                {t('filters.size')} {selectedSizes.length > 0 ? `(${selectedSizes.length})` : ''}
+              </span>
+              {selectedSizes.length > 0 && (
+                <>
+                  <div className="h-4 w-px bg-border-primary-light dark:bg-border-primary-dark" />
+                  <button
+                    className="text-xs text-text-tertiary-light dark:text-text-tertiary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
+                    onClick={clearSizes}
+                  >
+                    {t('filters.clearAll')}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* 尺寸列表 */}
+          <div className="py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-[40vh] overflow-y-auto">
+            {sizes.map((size) => (
+              <button
+                key={size.id}
+                className={`px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-center
+                                    ${
+                                      selectedSizes.includes(size.id)
+                                        ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark border-border-primary-light dark:border-border-primary-dark'
+                                        : 'border border-border-secondary-light dark:border-border-secondary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark'
+                                    }`}
+                onClick={() => handleSizeClick(size.id)}
+              >
+                {t(`filters.sizes.${size.name}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 创建价格区间筛选面板组件
+const PriceNavigation: React.FC<{
+  priceRanges: FilterPriceRange[];
+  selectedPriceRanges: string[];
+  setSelectedPriceRanges: React.Dispatch<React.SetStateAction<string[]>>;
+  isOpen: boolean;
+}> = ({ priceRanges, selectedPriceRanges, setSelectedPriceRanges, isOpen }) => {
+  const t = useTranslations('product');
+
+  // 清除所有选中的价格区间
+  const clearPrices = () => {
+    setSelectedPriceRanges([]);
+  };
+
+  return (
+    <div
+      className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[60vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
+    >
+      <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* 价格标题和清除按钮 */}
+          <div className="flex items-center justify-between py-3 border-b border-border-primary-light dark:border-border-primary-dark">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">
+                {t('filters.price')}{' '}
+                {selectedPriceRanges.length > 0 ? `(${selectedPriceRanges.length})` : ''}
+              </span>
+              {selectedPriceRanges.length > 0 && (
+                <>
+                  <div className="h-4 w-px bg-border-primary-light dark:bg-border-primary-dark" />
+                  <button
+                    className="text-xs text-text-tertiary-light dark:text-text-tertiary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
+                    onClick={clearPrices}
+                  >
+                    {t('filters.clearAll')}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* 价格区间列表 */}
+          <div className="py-4 space-y-2 max-h-[40vh] overflow-y-auto">
+            {priceRanges.map((range) => (
+              <button
+                key={range.id}
+                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-between
+                                    ${
+                                      selectedPriceRanges.includes(range.id)
+                                        ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark'
+                                        : 'hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark'
+                                    }`}
+                onClick={() => {
+                  setSelectedPriceRanges((prev) => (prev.includes(range.id) ? [] : [range.id]));
+                }}
+              >
+                <span>{t(`filters.priceRanges.${range.name}`)}</span>
+                {selectedPriceRanges.includes(range.id) && (
+                  <Check
+                    size={16}
+                    className="text-text-primary-light dark:text-text-primary-dark"
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 创建颜色筛选面板组件
+const ColorNavigation: React.FC<{
+  colors: FilterColor[];
+  selectedColors: string[];
+  setSelectedColors: React.Dispatch<React.SetStateAction<string[]>>;
+  isOpen: boolean;
+}> = ({ colors, selectedColors, setSelectedColors, isOpen }) => {
+  const t = useTranslations('product');
+
+  // 处理颜色选择
+  const handleColorClick = (colorId: string) => {
+    if (selectedColors.includes(colorId)) {
+      setSelectedColors((prev) => prev.filter((id) => id !== colorId));
+    } else {
+      setSelectedColors((prev) => [...prev, colorId]);
+    }
+  };
+
+  // 清除所有选中的颜色
+  const clearColors = () => {
+    setSelectedColors([]);
+  };
+
+  return (
+    <div
+      className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[60vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
+    >
+      <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* 颜色标题和清除按钮 */}
+          <div className="flex items-center justify-between py-3 border-b border-border-primary-light dark:border-border-primary-dark">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">
+                {t('filters.color')} {selectedColors.length > 0 ? `(${selectedColors.length})` : ''}
+              </span>
+              {selectedColors.length > 0 && (
+                <>
+                  <div className="h-4 w-px bg-border-primary-light dark:bg-border-primary-dark" />
+                  <button
+                    className="text-xs text-text-tertiary-light dark:text-text-tertiary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
+                    onClick={clearColors}
+                  >
+                    {t('filters.clearAll')}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* 颜色列表 */}
+          <div className="py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-[40vh] overflow-y-auto">
+            {colors.map((color) => (
+              <button
+                key={color.id}
+                className={`flex flex-col items-center gap-2 p-3 rounded-md transition-colors
+                                    ${
+                                      selectedColors.includes(color.id)
+                                        ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark'
+                                        : 'hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark'
+                                    }`}
+                onClick={() => handleColorClick(color.id)}
+              >
+                <div
+                  className={`h-6 w-6 rounded-full border ${selectedColors.includes(color.id) ? 'border-text-primary-light dark:border-text-primary-dark ring-2 ring-offset-2 ring-border-primary-light dark:ring-border-primary-dark' : 'border-border-secondary-light dark:border-border-secondary-dark'}`}
+                  style={{ backgroundColor: color.value }}
+                />
+                <span className="text-xs">{t(`filters.colors.${color.name}`)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export interface FiltersProps {
   onSaleOnly: boolean;
@@ -54,352 +523,333 @@ export const Filters: React.FC<FiltersProps> = ({
   clearAllFilters,
   totalProducts,
 }) => {
+  const categoryButtonRef = useRef<HTMLButtonElement>(null);
+  const [activePanel, setActivePanel] = useState<'category' | 'size' | 'price' | 'color' | null>(
+    null
+  );
+  const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const t = useTranslations('product');
-  const tNav = useTranslations('nav');
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [selectedLevel2Category, setSelectedLevel2Category] = useState<string | null>(null);
 
-  const {
-    categories,
-    sizes,
-    colors,
-    priceRanges,
-    hasActiveFilters,
-    activeFilters,
-    removeFilter,
-    getCategoryChildren,
-  } = useFilters({
-    selectedCategory,
-    selectedSizes,
-    selectedColors,
-    selectedPriceRanges,
-    onSaleOnly,
-    setSelectedCategory,
-    setSelectedSizes,
-    setSelectedColors,
-    setSelectedPriceRanges,
-    setOnSaleOnly,
-  });
+  const { categories, sizes, colors, priceRanges, activeFilters, hasActiveFilters, removeFilter } =
+    useFilters({
+      selectedCategory,
+      selectedSizes,
+      selectedColors,
+      selectedPriceRanges,
+      onSaleOnly,
+      setSelectedCategory,
+      setSelectedSizes,
+      setSelectedColors,
+      setSelectedPriceRanges,
+      setOnSaleOnly,
+    });
 
-  // 处理一级分类选择
-  const handleLevel1Select = (categoryId: string) => {
-    setSelectedCategory([categoryId]);
-    setSelectedLevel2Category(null);
+  // 处理面板切换
+  const togglePanel = (panel: 'category' | 'size' | 'price' | 'color') => {
+    setActivePanel(activePanel === panel ? null : panel);
   };
 
-  // 处理二级分类选择
-  const handleLevel2Select = (categoryId: string) => {
-    setSelectedCategory([...selectedCategory.slice(0, 1), categoryId]);
-    setSelectedLevel2Category(categoryId);
-  };
+  // 处理类别选择，适配CategoryNavigation组件
+  const handleCategorySelect = useCallback(
+    (categoryId: string, level: number) => {
+      // 处理清除操作
+      if (level === 0 || categoryId === '') {
+        setSelectedCategory([]);
 
-  // 处理三级分类选择
-  const handleLevel3Select = (categoryId: string) => {
-    setSelectedCategory([...selectedCategory.slice(0, 2), categoryId]);
-  };
+        return;
+      }
+
+      // 处理"查看所有服装"选项
+      if (categoryId === 'women-clothing' || categoryId === 'men-clothing') {
+        const gender = categoryId.split('-')[0];
+
+        setSelectedCategory([gender, categoryId]);
+
+        return;
+      }
+
+      // 根据层级处理类别选择
+      if (level === 1) {
+        // 如果已经选择了该类别，则取消选择
+        if (selectedCategory.includes(categoryId)) {
+          setSelectedCategory([]);
+        } else {
+          // 选择顶级类别
+          setSelectedCategory([categoryId]);
+        }
+      } else if (level === 2) {
+        // 二级类别选择逻辑
+        const parentId = categoryId.split('-')[0]; // 从二级类别ID提取顶级类别ID
+
+        if (selectedCategory.includes(categoryId)) {
+          // 如果已经选择了该类别，则只保留父级类别
+          setSelectedCategory([parentId]);
+        } else {
+          // 选择新的二级类别，同时保持父级类别
+          const newSelectedCategories = [parentId];
+
+          // 如果是同一个父级下的不同二级类别，则替换原有的二级类别
+          if (!selectedCategory.includes(parentId)) {
+            newSelectedCategories.push(categoryId);
+          } else {
+            // 如果父级已经选中，则添加或替换二级类别
+            const existingSubCategory = selectedCategory.find(
+              (id) => id !== parentId && id.startsWith(parentId)
+            );
+
+            if (existingSubCategory !== categoryId) {
+              newSelectedCategories.push(categoryId);
+            }
+          }
+          setSelectedCategory(newSelectedCategories);
+        }
+      } else if (level === 3) {
+        // 三级类别选择逻辑
+        const parts = categoryId.split('-');
+        const topLevelId = parts[0];
+        const midLevelId = `${parts[0]}-${parts[1]}`;
+
+        if (selectedCategory.includes(categoryId)) {
+          // 如果已经选择了该类别，则返回到二级类别
+          setSelectedCategory([topLevelId, midLevelId]);
+        } else {
+          // 选择新的三级类别，同时保持完整的层级路径
+          setSelectedCategory([topLevelId, midLevelId, categoryId]);
+        }
+      }
+    },
+    [selectedCategory, setSelectedCategory]
+  );
 
   return (
-    <div className="mb-6 bg-white dark:bg-bg-secondary-dark rounded-lg shadow-sm">
-      {/* 筛选结果统计 */}
-      <div className="px-4 py-3 border-b border-border-primary-light dark:border-border-primary-dark">
-        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-          {t('filters.results', { count: totalProducts })}
-        </p>
-      </div>
+    <div className="w-full">
+      {/* 顶部筛选按钮栏 */}
+      <div className="w-full overflow-x-auto mb-4 relative">
+        <div className="flex gap-2 min-w-max pb-2">
+          {/* Sale筛选 */}
+          <Button
+            className={`text-sm w-[100px] ${onSaleOnly ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
+            variant="light"
+            onClick={() => setOnSaleOnly(!onSaleOnly)}
+          >
+            {t('filters.sale')}
+          </Button>
 
-      {/* 移动端筛选按钮 */}
-      <div className="lg:hidden p-4">
-        <Button className="w-full" variant="bordered" onPress={() => setIsMobileFiltersOpen(true)}>
-          {t('filters.title')}
-          <ChevronDown className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+          {/* 类别筛选按钮 */}
+          <Button
+            className={`text-sm min-w-[100px] flex items-center justify-between ${activePanel === 'category' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
+            variant="light"
+            onClick={() => togglePanel('category')}
+            ref={categoryButtonRef}
+          >
+            <span className="truncate">{t('filters.category')}</span>
+            <ChevronDown
+              className={`ml-1 h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'category' ? 'rotate-180' : ''}`}
+            />
+          </Button>
 
-      {/* 移动端筛选面板 */}
-      <MobileFilters
-        categories={categories}
-        clearAllFilters={clearAllFilters}
-        colors={colors}
-        isOpen={isMobileFiltersOpen}
-        onSaleOnly={onSaleOnly}
-        priceRanges={priceRanges}
-        selectedCategory={selectedCategory}
-        selectedColors={selectedColors}
-        selectedPriceRanges={selectedPriceRanges}
-        selectedSizes={selectedSizes}
-        setOnSaleOnly={setOnSaleOnly}
-        setSelectedCategory={setSelectedCategory}
-        setSelectedColors={setSelectedColors}
-        setSelectedPriceRanges={setSelectedPriceRanges}
-        setSelectedSizes={setSelectedSizes}
-        sizes={sizes}
-        onClose={() => setIsMobileFiltersOpen(false)}
-      />
+          {/* 尺码筛选按钮 */}
+          <Button
+            className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'size' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
+            variant="light"
+            onClick={() => togglePanel('size')}
+          >
+            <span className="truncate">{t('filters.size')}</span>
+            <ChevronDown
+              className={`ml-1 h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'size' ? 'rotate-180' : ''}`}
+            />
+          </Button>
 
-      {/* 桌面端筛选器 */}
-      <div className="hidden lg:block">
-        <div className="p-4">
-          {/* 一级分类选择 */}
-          <div className="mb-4">
-            <RadioGroup
-              className="flex gap-4"
-              value={selectedCategory[0] || ''}
-              onValueChange={handleLevel1Select}
+          {/* 价格筛选按钮 */}
+          <Button
+            className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'price' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
+            variant="light"
+            onClick={() => togglePanel('price')}
+          >
+            <span className="truncate">{t('filters.price')}</span>
+            <ChevronDown
+              className={`ml-1 h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'price' ? 'rotate-180' : ''}`}
+            />
+          </Button>
+
+          {/* 颜色筛选按钮 */}
+          <Button
+            className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'color' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
+            variant="light"
+            onClick={() => togglePanel('color')}
+          >
+            <span className="truncate">{t('filters.color')}</span>
+            <ChevronDown
+              className={`ml-1 h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'color' ? 'rotate-180' : ''}`}
+            />
+          </Button>
+
+          {/* 清除按钮 */}
+          {hasActiveFilters && (
+            <Button
+              className="text-sm w-[100px]"
+              color="danger"
+              variant="light"
+              onClick={clearAllFilters}
             >
-              {categories.map((category) => (
-                <Radio key={category.id} value={category.id}>
-                  {tNav(category.name)}
-                </Radio>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* 二级和三级分类 */}
-          {selectedCategory[0] && (
-            <div className="mb-4">
-              <Tabs
-                selectedKey={selectedLevel2Category || ''}
-                onSelectionChange={(key) => handleLevel2Select(key as string)}
-              >
-                {getCategoryChildren(selectedCategory[0]).map((category) => (
-                  <Tab key={category.id} title={tNav(category.name)}>
-                    <div className="mt-2 space-y-2">
-                      {category.children?.map((subCategory) => (
-                        <div
-                          key={subCategory.id}
-                          className="flex items-center gap-2 text-sm cursor-pointer hover:bg-bg-tertiary-light dark:hover:bg-bg-tertiary-dark p-2 rounded"
-                          onClick={() => handleLevel3Select(subCategory.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              handleLevel3Select(subCategory.id);
-                            }
-                          }}
-                          role="button"
-                          tabIndex={0}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                          {tNav(subCategory.name)}
-                        </div>
-                      ))}
-                      <div className="mt-4">
-                        <Button
-                          className="text-xs text-text-tertiary-light dark:text-text-tertiary-dark"
-                          variant="light"
-                        >
-                          {t('filters.viewAllCategories')}
-                        </Button>
-                      </div>
-                    </div>
-                  </Tab>
-                ))}
-              </Tabs>
-            </div>
+              {t('filters.clearAll')}
+            </Button>
           )}
 
-          <Divider className="my-4" />
+          {/* 添加弹性空间 */}
+          <div className="flex-grow" />
 
-          {/* 其他筛选器 */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Sale筛选 */}
-            <div className="flex items-center gap-2">
-              <Checkbox
-                classNames={{
-                  wrapper:
-                    'before:border-border-primary-light dark:before:border-border-primary-dark',
-                }}
-                isSelected={onSaleOnly}
-                onValueChange={setOnSaleOnly}
-              >
-                {t('filters.onSaleOnly')}
-              </Checkbox>
-            </div>
-
-            {/* 尺寸筛选 */}
-            <Dropdown>
-              <DropdownTrigger>
-                <Button className="flex items-center" variant="light">
-                  {t('filters.size')} <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label={t('filters.size')}>
-                {sizes.map((size) => (
-                  <DropdownItem
-                    key={size.id}
-                    textValue={size.name}
-                    onClick={() => {
-                      setSelectedSizes((prev) =>
-                        prev.includes(size.id)
-                          ? prev.filter((id) => id !== size.id)
-                          : [...prev, size.id]
-                      );
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        className="pointer-events-none"
-                        classNames={{
-                          wrapper:
-                            'before:border-border-primary-light dark:before:border-border-primary-dark',
-                        }}
-                        isSelected={selectedSizes.includes(size.id)}
-                      />
-                      {size.name}
-                    </div>
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-
-            {/* 价格筛选 */}
-            <Dropdown>
-              <DropdownTrigger>
-                <Button className="flex items-center" variant="light">
-                  {t('filters.price')} <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label={t('filters.price')}>
-                {priceRanges.map((range) => (
-                  <DropdownItem
-                    key={range.id}
-                    textValue={t(`filters.priceRanges.${range.name}`)}
-                    onClick={() => {
-                      setSelectedPriceRanges((prev) =>
-                        prev.includes(range.id)
-                          ? prev.filter((id) => id !== range.id)
-                          : [...prev, range.id]
-                      );
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        className="pointer-events-none"
-                        classNames={{
-                          wrapper:
-                            'before:border-border-primary-light dark:before:border-border-primary-dark',
-                        }}
-                        isSelected={selectedPriceRanges.includes(range.id)}
-                      />
-                      {t(`filters.priceRanges.${range.name}`)}
-                    </div>
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-
-            {/* 颜色筛选 */}
-            <Dropdown>
-              <DropdownTrigger>
-                <Button className="flex items-center" variant="light">
-                  {t('filters.color')} <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label={t('filters.color')}>
-                {colors.map((color) => (
-                  <DropdownItem
-                    key={color.id}
-                    textValue={color.name}
-                    onClick={() => {
-                      setSelectedColors((prev) =>
-                        prev.includes(color.id)
-                          ? prev.filter((id) => id !== color.id)
-                          : [...prev, color.id]
-                      );
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        className="pointer-events-none"
-                        classNames={{
-                          wrapper:
-                            'before:border-border-primary-light dark:before:border-border-primary-dark',
-                        }}
-                        isSelected={selectedColors.includes(color.id)}
-                      />
-                      <div
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: color.value }}
-                      />
-                      {tNav(`${color.name}`)}
-                    </div>
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-
-            <Divider className="h-6 mx-2" orientation="vertical" />
-
-            {/* 清除所有筛选 */}
-            {hasActiveFilters && (
+          {/* 排序按钮移到最右侧 */}
+          <Dropdown>
+            <DropdownTrigger>
               <Button
-                className="bg-bg-tertiary-light dark:bg-bg-tertiary-dark text-text-primary-light dark:text-text-primary-dark"
-                variant="flat"
-                onClick={clearAllFilters}
+                className="text-sm min-w-[100px] px-3 flex items-center justify-between whitespace-nowrap"
+                variant="light"
               >
-                {t('filters.clearAll')}
+                <span>{t('filters.sort.title')}</span>
+                <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
               </Button>
-            )}
+            </DropdownTrigger>
+            <DropdownMenu aria-label={t('filters.sort.title')}>
+              <DropdownItem
+                key="newest"
+                textValue={t('filters.sort.newest')}
+                onClick={() => setSortOrder('newest')}
+              >
+                <div className="flex items-center gap-2">
+                  <Checkbox isSelected={sortOrder === 'newest'} className="pointer-events-none" />
+                  {t('filters.sort.newest')}
+                </div>
+              </DropdownItem>
+              <DropdownItem
+                key="priceHighToLow"
+                textValue={t('filters.sort.priceHighToLow')}
+                onClick={() => setSortOrder('priceHighToLow')}
+              >
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    isSelected={sortOrder === 'priceHighToLow'}
+                    className="pointer-events-none"
+                  />
+                  {t('filters.sort.priceHighToLow')}
+                </div>
+              </DropdownItem>
+              <DropdownItem
+                key="priceLowToHigh"
+                textValue={t('filters.sort.priceLowToHigh')}
+                onClick={() => setSortOrder('priceLowToHigh')}
+              >
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    isSelected={sortOrder === 'priceLowToHigh'}
+                    className="pointer-events-none"
+                  />
+                  {t('filters.sort.priceLowToHigh')}
+                </div>
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
 
-            {/* 排序方式 */}
-            <div className="flex items-center gap-2">
-              <span className="text-text-secondary-light dark:text-text-secondary-dark">
-                {t('filters.sort.title')}:
-              </span>
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button className="flex items-center" variant="light">
-                    {sortOrder === 'newest'
-                      ? t('filters.sort.newest')
-                      : sortOrder === 'price_high_low'
-                        ? t('filters.sort.priceHighToLow')
-                        : t('filters.sort.priceLowToHigh')}
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  aria-label={t('filters.sort.title')}
-                  items={[
-                    { key: 'newest', label: t('filters.sort.newest') },
-                    { key: 'price_high_low', label: t('filters.sort.priceHighToLow') },
-                    { key: 'price_low_high', label: t('filters.sort.priceLowToHigh') },
-                  ]}
-                  selectedKeys={[sortOrder]}
-                  selectionMode="single"
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as string;
-
-                    setSortOrder(selected);
-                  }}
-                >
-                  {(item) => <DropdownItem key={item.key}>{item.label}</DropdownItem>}
-                </DropdownMenu>
-              </Dropdown>
-            </div>
+          {/* 移动端筛选按钮 */}
+          <div className="sm:hidden w-full mt-4">
+            <Button
+              className="w-full"
+              variant="bordered"
+              onClick={() => setMobileFiltersOpen(true)}
+            >
+              {t('filters.moreFilters')}
+            </Button>
           </div>
         </div>
-
-        {/* 已应用的筛选条件 */}
-        {hasActiveFilters && (
-          <div className="px-4 py-2 border-t border-border-primary-light dark:border-border-primary-dark">
-            <div className="flex flex-wrap items-center gap-2">
-              {activeFilters.map((filter) => (
-                <FilterTag
-                  key={filter.id}
-                  label={filter.label}
-                  onRemove={() => removeFilter(filter)}
-                />
-              ))}
-              <Button
-                className="ml-2 text-sm text-text-tertiary-light dark:text-text-tertiary-dark"
-                variant="light"
-                onClick={clearAllFilters}
-              >
-                {t('filters.clearAll')}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* 共享的筛选面板容器 */}
+      <div
+        className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${activePanel ? 'max-h-[80vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
+      >
+        <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
+          {/* 类别导航面板 */}
+          {activePanel === 'category' && (
+            <CategoryNavigation
+              categories={categories}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={handleCategorySelect}
+              isOpen={true}
+              categoryButtonRef={categoryButtonRef}
+            />
+          )}
+
+          {/* 尺寸导航面板 */}
+          {activePanel === 'size' && (
+            <SizeNavigation
+              sizes={sizes}
+              selectedSizes={selectedSizes}
+              setSelectedSizes={setSelectedSizes}
+              isOpen={true}
+            />
+          )}
+
+          {/* 价格导航面板 */}
+          {activePanel === 'price' && (
+            <PriceNavigation
+              priceRanges={priceRanges}
+              selectedPriceRanges={selectedPriceRanges}
+              setSelectedPriceRanges={setSelectedPriceRanges}
+              isOpen={true}
+            />
+          )}
+
+          {/* 颜色导航面板 */}
+          {activePanel === 'color' && (
+            <ColorNavigation
+              colors={colors}
+              selectedColors={selectedColors}
+              setSelectedColors={setSelectedColors}
+              isOpen={true}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* 已应用的筛选标签 */}
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          <div className="text-sm font-medium mr-2 text-text-secondary-light dark:text-text-secondary-dark">
+            已应用筛选:
+          </div>
+          {activeFilters.map((filter) => (
+            <FilterTag key={filter.id} label={filter.label} onRemove={() => removeFilter(filter)} />
+          ))}
+        </div>
+      )}
+
+      {/* 结果数量显示 */}
+      <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-4 text-right">
+        结果: <span className="font-medium">{totalProducts}+ 商品</span>
+      </div>
+
+      {/* 移动端筛选模态框 */}
+      <MobileFilters
+        isOpen={isMobileFiltersOpen}
+        onClose={() => setMobileFiltersOpen(false)}
+        categories={categories}
+        sizes={sizes}
+        colors={colors}
+        priceRanges={priceRanges}
+        selectedCategory={selectedCategory}
+        selectedSizes={selectedSizes}
+        selectedColors={selectedColors}
+        selectedPriceRanges={selectedPriceRanges}
+        onSaleOnly={onSaleOnly}
+        setSelectedCategory={setSelectedCategory}
+        setSelectedSizes={setSelectedSizes}
+        setSelectedColors={setSelectedColors}
+        setSelectedPriceRanges={setSelectedPriceRanges}
+        setOnSaleOnly={setOnSaleOnly}
+        clearAllFilters={clearAllFilters}
+        activeFilters={activeFilters}
+        removeFilter={removeFilter}
+      />
     </div>
   );
 };

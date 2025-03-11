@@ -767,7 +767,7 @@ export const Filters: React.FC<FiltersProps> = ({
 
         {/* 移动端排序和产品数量显示 - 仅在移动端显示 */}
         <div className="flex items-center justify-between mt-4 md:hidden">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 ml-auto">
             {/* 排序下拉菜单 */}
             <Dropdown>
               <DropdownTrigger>

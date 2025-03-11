@@ -255,9 +255,6 @@ const ProductListPage: NextPage = () => {
           <p className="text-text-secondary-light dark:text-text-secondary-dark">
             {activeBrand.description}
           </p>
-          <p className="mt-2 text-text-primary-light dark:text-text-primary-dark">
-            {filteredProducts.length} {t('product_count', { count: filteredProducts.length })}
-          </p>
         </div>
       )}
 

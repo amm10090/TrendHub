@@ -10,7 +10,7 @@ import {
   Tabs,
   Tab,
 } from '@heroui/react';
-import { Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import React, { useState, useCallback, useRef, useMemo } from 'react';
 
@@ -624,141 +624,205 @@ export const Filters: React.FC<FiltersProps> = ({
   return (
     <div className="w-full">
       {/* 顶部筛选按钮栏 */}
-      <div className="w-full overflow-x-auto mb-4 relative">
-        <div className="flex gap-2 min-w-max pb-2">
-          {/* Sale筛选 */}
-          <Button
-            className={`text-sm w-[100px] ${onSaleOnly ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
-            variant="light"
-            onPress={() => setOnSaleOnly(!onSaleOnly)}
-          >
-            {t('filters.sale')}
-          </Button>
-
-          {/* 类别筛选按钮 */}
-          <Button
-            className={`text-sm min-w-[100px] flex items-center justify-between ${activePanel === 'category' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
-            variant="light"
-            onPress={() => togglePanel('category')}
-            ref={categoryButtonRef}
-          >
-            <span className="truncate">{t('filters.category')}</span>
-            <ChevronDown
-              className={`ml-1 h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'category' ? 'rotate-180' : ''}`}
-            />
-          </Button>
-
-          {/* 尺码筛选按钮 */}
-          <Button
-            className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'size' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
-            variant="light"
-            onPress={() => togglePanel('size')}
-          >
-            <span className="truncate">{t('filters.size')}</span>
-            <ChevronDown
-              className={`ml-1 h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'size' ? 'rotate-180' : ''}`}
-            />
-          </Button>
-
-          {/* 价格筛选按钮 */}
-          <Button
-            className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'price' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
-            variant="light"
-            onPress={() => togglePanel('price')}
-          >
-            <span className="truncate">{t('filters.price')}</span>
-            <ChevronDown
-              className={`ml-1 h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'price' ? 'rotate-180' : ''}`}
-            />
-          </Button>
-
-          {/* 颜色筛选按钮 */}
-          <Button
-            className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'color' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
-            variant="light"
-            onPress={() => togglePanel('color')}
-          >
-            <span className="truncate">{t('filters.color')}</span>
-            <ChevronDown
-              className={`ml-1 h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'color' ? 'rotate-180' : ''}`}
-            />
-          </Button>
-
-          {/* 清除按钮 */}
-          {hasActiveFilters && (
+      <div className="w-full mb-4 relative">
+        {/* 筛选按钮组 */}
+        <div className="flex items-center gap-1 w-full md:gap-3 md:flex-wrap md:justify-between">
+          <div className="flex items-center gap-1 flex-1 md:gap-3 md:flex-wrap">
+            {/* Sale筛选 */}
             <Button
-              className="text-sm w-[100px]"
-              color="danger"
+              className={`text-sm px-2 md:px-4 rounded-full border border-border-primary-light dark:border-border-primary-dark flex-1 min-w-0 md:flex-none md:min-w-fit flex items-center justify-center truncate
+              ${onSaleOnly ? 'bg-bg-primary-dark dark:bg-bg-primary-light text-text-primary-dark dark:text-text-primary-light border-none' : ''}`}
               variant="light"
-              onPress={clearAllFilters}
+              onPress={() => setOnSaleOnly(!onSaleOnly)}
             >
-              {t('filters.clearAll')}
+              {t('filters.sale')}
             </Button>
-          )}
 
-          {/* 添加弹性空间 */}
-          <div className="flex-grow" />
-
-          {/* 排序按钮移到最右侧 */}
-          <Dropdown>
-            <DropdownTrigger>
-              <Button
-                className="text-sm min-w-[100px] px-3 flex items-center justify-between whitespace-nowrap"
-                variant="light"
-              >
-                <span>{t('filters.sort.title')}</span>
-                <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu aria-label={t('filters.sort.title')}>
-              <DropdownItem
-                key="newest"
-                textValue={t('filters.sort.newest')}
-                onPress={() => setSortOrder('newest')}
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox isSelected={sortOrder === 'newest'} className="pointer-events-none" />
-                  {t('filters.sort.newest')}
-                </div>
-              </DropdownItem>
-              <DropdownItem
-                key="priceHighToLow"
-                textValue={t('filters.sort.priceHighToLow')}
-                onPress={() => setSortOrder('priceHighToLow')}
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    isSelected={sortOrder === 'priceHighToLow'}
-                    className="pointer-events-none"
-                  />
-                  {t('filters.sort.priceHighToLow')}
-                </div>
-              </DropdownItem>
-              <DropdownItem
-                key="priceLowToHigh"
-                textValue={t('filters.sort.priceLowToHigh')}
-                onPress={() => setSortOrder('priceLowToHigh')}
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    isSelected={sortOrder === 'priceLowToHigh'}
-                    className="pointer-events-none"
-                  />
-                  {t('filters.sort.priceLowToHigh')}
-                </div>
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-
-          {/* 移动端筛选按钮 */}
-          <div className="sm:hidden w-full mt-4">
+            {/* 类别筛选按钮 */}
             <Button
-              className="w-full"
-              variant="bordered"
-              onPress={() => setMobileFiltersOpen(true)}
+              className={`text-sm px-2 md:px-4 rounded-full border border-border-primary-light dark:border-border-primary-dark flex-1 min-w-0 md:flex-none md:min-w-fit flex items-center justify-center gap-1 truncate
+              ${activePanel === 'category' ? 'bg-bg-primary-dark dark:bg-bg-primary-light text-text-primary-dark dark:text-text-primary-light border-none' : ''}`}
+              variant="light"
+              onPress={() => togglePanel('category')}
+              ref={categoryButtonRef}
             >
-              {t('filters.moreFilters')}
+              <span className="truncate">{t('filters.category')}</span>
+              <ChevronDown
+                className={`h-4 w-4 flex-shrink-0 transition-transform ${
+                  activePanel === 'category' ? 'rotate-180' : ''
+                }`}
+              />
             </Button>
+
+            {/* 尺码筛选按钮 */}
+            <Button
+              className={`text-sm px-2 md:px-4 rounded-full border border-border-primary-light dark:border-border-primary-dark flex-1 min-w-0 md:flex-none md:min-w-fit flex items-center justify-center gap-1 truncate
+              ${activePanel === 'size' ? 'bg-bg-primary-dark dark:bg-bg-primary-light text-text-primary-dark dark:text-text-primary-light border-none' : ''}`}
+              variant="light"
+              onPress={() => togglePanel('size')}
+            >
+              <span className="truncate">{t('filters.size')}</span>
+              <ChevronDown
+                className={`h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'size' ? 'rotate-180' : ''}`}
+              />
+            </Button>
+
+            {/* 价格筛选按钮 */}
+            <Button
+              className={`text-sm px-2 md:px-4 rounded-full border border-border-primary-light dark:border-border-primary-dark flex-1 min-w-0 md:flex-none md:min-w-fit flex items-center justify-center gap-1 truncate
+              ${activePanel === 'price' ? 'bg-bg-primary-dark dark:bg-bg-primary-light text-text-primary-dark dark:text-text-primary-light border-none' : ''}`}
+              variant="light"
+              onPress={() => togglePanel('price')}
+            >
+              <span className="truncate">{t('filters.price')}</span>
+              <ChevronDown
+                className={`h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'price' ? 'rotate-180' : ''}`}
+              />
+            </Button>
+
+            {/* 颜色筛选按钮 */}
+            <Button
+              className={`text-sm px-2 md:px-4 rounded-full border border-border-primary-light dark:border-border-primary-dark flex-1 min-w-0 md:flex-none md:min-w-fit flex items-center justify-center gap-1 truncate
+              ${activePanel === 'color' ? 'bg-bg-primary-dark dark:bg-bg-primary-light text-text-primary-dark dark:text-text-primary-light border-none' : ''}`}
+              variant="light"
+              onPress={() => togglePanel('color')}
+            >
+              <span className="truncate">{t('filters.color')}</span>
+              <ChevronDown
+                className={`h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'color' ? 'rotate-180' : ''}`}
+              />
+            </Button>
+
+            {/* 清除所有筛选按钮 */}
+            {hasActiveFilters && (
+              <Button
+                className="text-sm px-2 md:px-4 rounded-full border border-border-primary-light dark:border-border-primary-dark flex-1 min-w-0 md:flex-none md:min-w-fit flex items-center justify-center gap-1 truncate"
+                variant="light"
+                onPress={clearAllFilters}
+              >
+                <span className="truncate">{t('filters.clearAll')}</span>
+                <X className="h-4 w-4 flex-shrink-0" />
+              </Button>
+            )}
+          </div>
+
+          {/* 桌面端排序按钮 - 仅在桌面端显示 */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* 结果统计 */}
+            <div className="text-text-secondary-light dark:text-text-secondary-dark text-sm whitespace-nowrap">
+              {totalProducts} {t('results')}
+            </div>
+
+            <Dropdown>
+              <DropdownTrigger>
+                <Button
+                  className="text-sm px-4 rounded-full border border-border-primary-light dark:border-border-primary-dark flex items-center justify-center gap-1 truncate whitespace-nowrap"
+                  variant="light"
+                >
+                  <span className="truncate">{t('filters.sort.title')}</span>
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label={t('filters.sort.title')} className="min-w-[200px]">
+                <DropdownItem
+                  key="newest"
+                  textValue={t('filters.sort.newest')}
+                  onPress={() => setSortOrder('newest')}
+                >
+                  <div className="flex items-center gap-2">
+                    <Checkbox isSelected={sortOrder === 'newest'} className="pointer-events-none" />
+                    {t('filters.sort.newest')}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  key="priceHighToLow"
+                  textValue={t('filters.sort.priceHighToLow')}
+                  onPress={() => setSortOrder('priceHighToLow')}
+                >
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      isSelected={sortOrder === 'priceHighToLow'}
+                      className="pointer-events-none"
+                    />
+                    {t('filters.sort.priceHighToLow')}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  key="priceLowToHigh"
+                  textValue={t('filters.sort.priceLowToHigh')}
+                  onPress={() => setSortOrder('priceLowToHigh')}
+                >
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      isSelected={sortOrder === 'priceLowToHigh'}
+                      className="pointer-events-none"
+                    />
+                    {t('filters.sort.priceLowToHigh')}
+                  </div>
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          </div>
+        </div>
+
+        {/* 移动端排序和产品数量显示 - 仅在移动端显示 */}
+        <div className="flex items-center justify-between mt-4 md:hidden">
+          <div className="flex items-center gap-4">
+            {/* 排序下拉菜单 */}
+            <Dropdown>
+              <DropdownTrigger>
+                <Button
+                  className="text-sm px-2 rounded-full border border-border-primary-light dark:border-border-primary-dark flex-1 min-w-0 flex items-center justify-center gap-1 truncate"
+                  variant="light"
+                >
+                  <span className="truncate">{t('filters.sort.title')}</span>
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label={t('filters.sort.title')} className="min-w-[200px]">
+                <DropdownItem
+                  key="newest"
+                  textValue={t('filters.sort.newest')}
+                  onPress={() => setSortOrder('newest')}
+                >
+                  <div className="flex items-center gap-2">
+                    <Checkbox isSelected={sortOrder === 'newest'} className="pointer-events-none" />
+                    {t('filters.sort.newest')}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  key="priceHighToLow"
+                  textValue={t('filters.sort.priceHighToLow')}
+                  onPress={() => setSortOrder('priceHighToLow')}
+                >
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      isSelected={sortOrder === 'priceHighToLow'}
+                      className="pointer-events-none"
+                    />
+                    {t('filters.sort.priceHighToLow')}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  key="priceLowToHigh"
+                  textValue={t('filters.sort.priceLowToHigh')}
+                  onPress={() => setSortOrder('priceLowToHigh')}
+                >
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      isSelected={sortOrder === 'priceLowToHigh'}
+                      className="pointer-events-none"
+                    />
+                    {t('filters.sort.priceLowToHigh')}
+                  </div>
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+
+            {/* 结果统计 */}
+            <div className="text-text-secondary-light dark:text-text-secondary-dark text-sm">
+              {totalProducts} {t('results')}
+            </div>
           </div>
         </div>
       </div>
@@ -822,11 +886,6 @@ export const Filters: React.FC<FiltersProps> = ({
           ))}
         </div>
       )}
-
-      {/* 结果数量显示 */}
-      <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-4 text-right">
-        结果: <span className="font-medium">{totalProducts}+ 商品</span>
-      </div>
 
       {/* 移动端筛选模态框 */}
       <MobileFilters

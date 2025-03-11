@@ -609,7 +609,10 @@
     "sku": "SKU",
     "no_results": "No products found",
     "try_other_filters": "Try using different filters or clear all filters",
-    "back_to_top": "Back to top"
+    "back_to_top": "Back to top",
+    "results": "products",
+    "from": "from",
+    "partners": "partners"
   },
   "track": {
     "redirecting": "Redirecting...",

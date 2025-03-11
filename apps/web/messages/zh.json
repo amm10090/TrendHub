@@ -611,7 +611,10 @@
     "remove_from_favorites": "从收藏中移除",
     "no_results": "没有找到匹配的商品",
     "try_other_filters": "请尝试使用其他筛选条件或清除所有筛选器",
-    "back_to_top": "回到顶部"
+    "back_to_top": "回到顶部",
+    "results": "件商品",
+    "from": "来自",
+    "partners": "个合作商家"
   },
   "track": {
     "redirecting": "正在为您跳转...",

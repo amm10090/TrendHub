@@ -1,6 +1,15 @@
 'use client';
 
-import { Breadcrumbs, BreadcrumbItem, Button, Image, Avatar, Card, CardBody } from '@heroui/react';
+import {
+  Breadcrumbs,
+  BreadcrumbItem,
+  Button,
+  Image,
+  Avatar,
+  Card,
+  CardBody,
+  Chip,
+} from '@heroui/react';
 import { ChevronUp, Heart } from 'lucide-react';
 import { type NextPage } from 'next';
 import { useTranslations } from 'next-intl';
@@ -277,31 +286,48 @@ const ProductListPage: NextPage = () => {
       />
 
       {/* 产品网格 */}
-      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-x-hidden">
+      <div className="mt-6 mb-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
         {sortedProducts.map((product) => (
           <Card
             key={product.id}
-            className="overflow-hidden hover:shadow-md transition-shadow duration-300"
+            className="group overflow-hidden hover:shadow-md transition-shadow duration-300"
           >
             <CardBody className="p-0">
               <div className="relative overflow-hidden">
                 <Image
                   src={product.image}
                   alt={product.name}
-                  className="w-full aspect-[3/4] object-cover hover:scale-105 transition-transform duration-500"
+                  className="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-500"
                   onClick={() => navigateToProduct(product.id)}
                 />
                 {/* 新品和特价标签 */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1 z-30">
                   {product.isNew && (
-                    <span className="bg-bg-primary-dark dark:bg-bg-tertiary-dark text-text-primary-dark px-2 py-1 text-xs uppercase">
+                    <Chip
+                      variant="flat"
+                      size="sm"
+                      radius="sm"
+                      classNames={{
+                        base: 'bg-white dark:bg-black border-none backdrop-blur-sm bg-opacity-70 dark:bg-opacity-70',
+                        content:
+                          'text-text-primary-light dark:text-text-primary-dark font-medium tracking-wider uppercase text-xs',
+                      }}
+                    >
                       {t('new')}
-                    </span>
+                    </Chip>
                   )}
                   {product.discount && (
-                    <span className="bg-red-500 text-white px-2 py-1 text-xs uppercase z-30">
+                    <Chip
+                      variant="flat"
+                      size="sm"
+                      radius="sm"
+                      classNames={{
+                        base: 'bg-red-500 border-none backdrop-blur-sm bg-opacity-90',
+                        content: 'text-white font-medium tracking-wider uppercase text-xs',
+                      }}
+                    >
                       {t('tags.sale')}
-                    </span>
+                    </Chip>
                   )}
                 </div>
                 {/* 收藏按钮 */}
@@ -338,11 +364,11 @@ const ProductListPage: NextPage = () => {
                 </div>
               </div>
               <div className="p-4">
-                <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1 font-semibold uppercase">
+                <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1 font-medium uppercase">
                   {product.brand}
                 </div>
                 <Button
-                  className="text-text-primary-light dark:text-text-primary-dark mb-2 line-clamp-2 h-12 cursor-pointer text-left w-full border-none bg-transparent p-0"
+                  className="text-text-primary-light dark:text-text-primary-dark mb-2 line-clamp-2 h-12 cursor-pointer text-left w-full border-none bg-transparent p-0 hover:text-text-secondary-light dark:hover:text-text-secondary-dark transition-colors"
                   onPress={() => navigateToProduct(product.id)}
                   variant="light"
                 >

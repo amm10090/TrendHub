@@ -166,3 +166,5 @@ dist
 .env
 .env.*
 !.env.example
+# 忽略截图目录
+jt

@@ -226,7 +226,7 @@ const ProductListPage: NextPage = () => {
   const brandName = 'gucci'; // 模拟从URL获取品牌参数
   const activeBrand = brandName && {
     name: 'GUCCI',
-    logo: '/brands/gucci-logo.svg',
+    logo: '/images/brands/gucci-logo.png',
     description: tBrands(`descriptions.${brandName}`),
   };
 
@@ -308,10 +308,9 @@ const ProductListPage: NextPage = () => {
                   )}
                 </div>
                 {/* 收藏按钮 */}
-                <button
+                <Button
                   className="absolute top-2 right-2 p-2 rounded-full bg-opacity-50 dark:bg-opacity-50 bg-white dark:bg-black hover:bg-opacity-70 hover:dark:bg-opacity-70 transition-colors z-30"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onPress={() => {
                     toggleFavorite(product.id);
                   }}
                   aria-label={
@@ -319,6 +318,8 @@ const ProductListPage: NextPage = () => {
                       ? t('remove_from_favorites')
                       : t('add_to_favorites')
                   }
+                  variant="flat"
+                  isIconOnly
                 >
                   <Heart
                     className={`h-5 w-5 ${
@@ -327,27 +328,29 @@ const ProductListPage: NextPage = () => {
                         : 'text-text-primary-light dark:text-text-primary-dark'
                     }`}
                   />
-                </button>
+                </Button>
                 {/* 查看详情按钮 */}
                 <div className="absolute bottom-0 left-0 right-0 p-2 bg-bg-primary-light dark:bg-bg-primary-dark bg-opacity-70 dark:bg-opacity-70 backdrop-blur-sm transition-opacity duration-300 flex justify-between">
-                  <button
+                  <Button
                     className="text-center text-text-primary-light dark:text-text-primary-dark text-sm hover:underline"
-                    onClick={() => navigateToProduct(product.id)}
+                    onPress={() => navigateToProduct(product.id)}
+                    variant="light"
                   >
                     {t('view_details')}
-                  </button>
+                  </Button>
                 </div>
               </div>
               <div className="p-4">
                 <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1 font-semibold uppercase">
                   {product.brand}
                 </div>
-                <button
+                <Button
                   className="text-text-primary-light dark:text-text-primary-dark mb-2 line-clamp-2 h-12 cursor-pointer text-left w-full border-none bg-transparent p-0"
-                  onClick={() => navigateToProduct(product.id)}
+                  onPress={() => navigateToProduct(product.id)}
+                  variant="light"
                 >
                   {product.name}
-                </button>
+                </Button>
                 <div className="flex items-baseline mt-2">
                   <span className="text-text-primary-light dark:text-text-primary-dark font-semibold">
                     ¥{product.price.toLocaleString()}
@@ -381,7 +384,7 @@ const ProductListPage: NextPage = () => {
           <p className="text-text-secondary-light dark:text-text-secondary-dark mb-6">
             {t('try_other_filters')}
           </p>
-          <Button color="primary" onClick={clearAllFilters}>
+          <Button color="primary" onPress={clearAllFilters}>
             {t('filters.clearAll')}
           </Button>
         </div>
@@ -389,13 +392,15 @@ const ProductListPage: NextPage = () => {
 
       {/* 回到顶部按钮 */}
       {showTopButton && (
-        <button
+        <Button
           className="fixed bottom-6 right-6 p-3 rounded-full bg-bg-primary-light dark:bg-bg-primary-dark shadow-md hover:shadow-lg transition-shadow z-50"
-          onClick={scrollToTop}
+          onPress={scrollToTop}
           aria-label={t('back_to_top')}
+          isIconOnly
+          variant="flat"
         >
           <ChevronUp className="h-6 w-6 text-text-primary-light dark:text-text-primary-dark" />
-        </button>
+        </Button>
       )}
     </div>
   );

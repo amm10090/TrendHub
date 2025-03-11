@@ -163,7 +163,7 @@ export function ProductOptions({
               : 'bg-bg-secondary-light dark:bg-bg-tertiary-dark text-text-primary-light dark:text-text-primary-dark'
           }`}
           variant="flat"
-          onClick={toggleFavorite}
+          onPress={toggleFavorite}
         >
           <Heart className="h-6 w-6" fill={isFavorite ? 'currentColor' : 'none'} />
         </Button>

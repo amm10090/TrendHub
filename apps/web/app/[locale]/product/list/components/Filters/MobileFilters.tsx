@@ -95,7 +95,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
       <ModalContent>
         <ModalHeader className="flex justify-between items-center">
           <span className="text-lg font-medium">{t('filters.title')}</span>
-          <Button isIconOnly variant="light" onClick={onClose}>
+          <Button isIconOnly variant="light" onPress={onClose}>
             <X size={20} />
           </Button>
         </ModalHeader>
@@ -108,7 +108,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
                 <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
                   已选择的筛选条件
                 </span>
-                <Button size="sm" variant="light" onClick={clearAllFilters}>
+                <Button size="sm" variant="light" onPress={clearAllFilters}>
                   {t('filters.clearAll')}
                 </Button>
               </div>
@@ -130,7 +130,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
             <Button
               variant="bordered"
               className={onSaleOnly ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}
-              onClick={() => setOnSaleOnly(!onSaleOnly)}
+              onPress={() => setOnSaleOnly(!onSaleOnly)}
               size="lg"
             >
               {t('filters.sale')}
@@ -142,7 +142,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
               className={
                 activeSection === 'category' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''
               }
-              onClick={() => setActiveSection(activeSection === 'category' ? null : 'category')}
+              onPress={() => setActiveSection(activeSection === 'category' ? null : 'category')}
               size="lg"
             >
               {t('filters.category')}
@@ -154,7 +154,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
               className={
                 activeSection === 'size' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''
               }
-              onClick={() => setActiveSection(activeSection === 'size' ? null : 'size')}
+              onPress={() => setActiveSection(activeSection === 'size' ? null : 'size')}
               size="lg"
             >
               {t('filters.size')}
@@ -166,7 +166,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
               className={
                 activeSection === 'price' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''
               }
-              onClick={() => setActiveSection(activeSection === 'price' ? null : 'price')}
+              onPress={() => setActiveSection(activeSection === 'price' ? null : 'price')}
               size="lg"
             >
               {t('filters.price')}
@@ -178,7 +178,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
               className={
                 activeSection === 'color' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''
               }
-              onClick={() => setActiveSection(activeSection === 'color' ? null : 'color')}
+              onPress={() => setActiveSection(activeSection === 'color' ? null : 'color')}
               size="lg"
             >
               {t('filters.color')}
@@ -381,10 +381,10 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
         </ModalBody>
 
         <ModalFooter>
-          <Button color="danger" variant="light" onClick={clearAllFilters}>
+          <Button color="danger" variant="light" onPress={clearAllFilters}>
             {t('filters.clearAll')}
           </Button>
-          <Button color="primary" onClick={onClose}>
+          <Button color="primary" onPress={onClose}>
             {t('filters.apply')}
           </Button>
         </ModalFooter>

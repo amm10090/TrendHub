@@ -240,20 +240,24 @@ export function ProductModal({
                     {/* 左右箭头导航 - 圆润设计 */}
                     {allImages.length > 1 && (
                       <>
-                        <button
+                        <Button
+                          isIconOnly
                           aria-label="Previous image"
                           className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-sm hover:bg-white dark:hover:bg-black transition-all"
-                          onClick={prevImage}
+                          onPress={prevImage}
+                          variant="flat"
                         >
                           <ChevronLeft className="h-5 w-5 text-black dark:text-white" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          isIconOnly
                           aria-label="Next image"
                           className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-sm hover:bg-white dark:hover:bg-black transition-all"
-                          onClick={nextImage}
+                          onPress={nextImage}
+                          variant="flat"
                         >
                           <ChevronRight className="h-5 w-5 text-black dark:text-white" />
-                        </button>
+                        </Button>
                       </>
                     )}
 
@@ -261,7 +265,8 @@ export function ProductModal({
                     {allImages.length > 1 && (
                       <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10">
                         {allImages.map((_, index) => (
-                          <button
+                          <Button
+                            isIconOnly
                             key={index}
                             aria-label={`Go to image ${index + 1}`}
                             className={`transition-all duration-300 rounded-full ${
@@ -269,7 +274,8 @@ export function ProductModal({
                                 ? 'w-8 h-1.5 bg-black dark:bg-white'
                                 : 'w-1.5 h-1.5 bg-black/30 dark:bg-white/50'
                             }`}
-                            onClick={() => setImageByIndex(index)}
+                            onPress={() => setImageByIndex(index)}
+                            variant="flat"
                           />
                         ))}
                       </div>
@@ -287,7 +293,7 @@ export function ProductModal({
                   {allImages.length > 1 && (
                     <div className="flex overflow-x-auto space-x-2 pb-1 scrollbar-hide">
                       {allImages.map((image, index) => (
-                        <div
+                        <Button
                           key={index}
                           aria-label={`选择图片 ${index + 1}`}
                           className={`relative min-w-16 h-16 rounded-sm overflow-hidden cursor-pointer transition-all ${
@@ -295,14 +301,8 @@ export function ProductModal({
                               ? 'opacity-100 scale-105'
                               : 'opacity-70 hover:opacity-100 hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
                           }`}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setImageByIndex(index)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              setImageByIndex(index);
-                            }
-                          }}
+                          onPress={() => setImageByIndex(index)}
+                          variant="flat"
                         >
                           <Image
                             alt={`Thumbnail ${index + 1}`}
@@ -312,7 +312,7 @@ export function ProductModal({
                             }}
                             src={image}
                           />
-                        </div>
+                        </Button>
                       ))}
                     </div>
                   )}
@@ -551,7 +551,7 @@ export function ProductModal({
                           anchorIcon={<ExternalLink className="ml-1 h-4 w-4" />}
                           className="flex-1 py-3 px-4 font-medium bg-black text-white rounded-md hover:bg-gray-900 dark:bg-black dark:hover:bg-gray-900 text-center"
                           isDisabled={product.availableQuantity === 0}
-                          onClick={handleOpenInNewTab}
+                          onPress={handleOpenInNewTab}
                         >
                           {trackT('redirect_now')}
                         </Link>
@@ -564,7 +564,7 @@ export function ProductModal({
                             : 'bg-bg-secondary-light dark:bg-bg-tertiary-dark text-text-primary-light dark:text-text-primary-dark'
                         }`}
                         variant="flat"
-                        onClick={toggleFavorite}
+                        onPress={toggleFavorite}
                       >
                         <Heart className="h-6 w-6" fill={isFavorite ? 'currentColor' : 'none'} />
                       </Button>

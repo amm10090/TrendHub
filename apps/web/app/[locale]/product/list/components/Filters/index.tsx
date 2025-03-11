@@ -630,7 +630,7 @@ export const Filters: React.FC<FiltersProps> = ({
           <Button
             className={`text-sm w-[100px] ${onSaleOnly ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
             variant="light"
-            onClick={() => setOnSaleOnly(!onSaleOnly)}
+            onPress={() => setOnSaleOnly(!onSaleOnly)}
           >
             {t('filters.sale')}
           </Button>
@@ -639,7 +639,7 @@ export const Filters: React.FC<FiltersProps> = ({
           <Button
             className={`text-sm min-w-[100px] flex items-center justify-between ${activePanel === 'category' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
             variant="light"
-            onClick={() => togglePanel('category')}
+            onPress={() => togglePanel('category')}
             ref={categoryButtonRef}
           >
             <span className="truncate">{t('filters.category')}</span>
@@ -652,7 +652,7 @@ export const Filters: React.FC<FiltersProps> = ({
           <Button
             className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'size' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
             variant="light"
-            onClick={() => togglePanel('size')}
+            onPress={() => togglePanel('size')}
           >
             <span className="truncate">{t('filters.size')}</span>
             <ChevronDown
@@ -664,7 +664,7 @@ export const Filters: React.FC<FiltersProps> = ({
           <Button
             className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'price' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
             variant="light"
-            onClick={() => togglePanel('price')}
+            onPress={() => togglePanel('price')}
           >
             <span className="truncate">{t('filters.price')}</span>
             <ChevronDown
@@ -676,7 +676,7 @@ export const Filters: React.FC<FiltersProps> = ({
           <Button
             className={`text-sm w-[100px] flex items-center justify-between ${activePanel === 'color' ? 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark' : ''}`}
             variant="light"
-            onClick={() => togglePanel('color')}
+            onPress={() => togglePanel('color')}
           >
             <span className="truncate">{t('filters.color')}</span>
             <ChevronDown
@@ -690,7 +690,7 @@ export const Filters: React.FC<FiltersProps> = ({
               className="text-sm w-[100px]"
               color="danger"
               variant="light"
-              onClick={clearAllFilters}
+              onPress={clearAllFilters}
             >
               {t('filters.clearAll')}
             </Button>
@@ -714,7 +714,7 @@ export const Filters: React.FC<FiltersProps> = ({
               <DropdownItem
                 key="newest"
                 textValue={t('filters.sort.newest')}
-                onClick={() => setSortOrder('newest')}
+                onPress={() => setSortOrder('newest')}
               >
                 <div className="flex items-center gap-2">
                   <Checkbox isSelected={sortOrder === 'newest'} className="pointer-events-none" />
@@ -724,7 +724,7 @@ export const Filters: React.FC<FiltersProps> = ({
               <DropdownItem
                 key="priceHighToLow"
                 textValue={t('filters.sort.priceHighToLow')}
-                onClick={() => setSortOrder('priceHighToLow')}
+                onPress={() => setSortOrder('priceHighToLow')}
               >
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -737,7 +737,7 @@ export const Filters: React.FC<FiltersProps> = ({
               <DropdownItem
                 key="priceLowToHigh"
                 textValue={t('filters.sort.priceLowToHigh')}
-                onClick={() => setSortOrder('priceLowToHigh')}
+                onPress={() => setSortOrder('priceLowToHigh')}
               >
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -755,7 +755,7 @@ export const Filters: React.FC<FiltersProps> = ({
             <Button
               className="w-full"
               variant="bordered"
-              onClick={() => setMobileFiltersOpen(true)}
+              onPress={() => setMobileFiltersOpen(true)}
             >
               {t('filters.moreFilters')}
             </Button>

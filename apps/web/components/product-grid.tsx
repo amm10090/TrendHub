@@ -37,10 +37,60 @@ interface Product {
   relatedProducts: Product[];
 }
 
-interface ArrowProps {
+interface SlickArrowProps {
   onClick?: () => void;
   className?: string;
 }
+
+const SlickNextArrow: React.FC<SlickArrowProps> = (props) => {
+  return (
+    <button
+      aria-label="下一个"
+      className="absolute -right-2 top-[calc(50%-2.5rem)] z-20 bg-bg-primary-light dark:bg-bg-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
+      onClick={props.onClick}
+    >
+      <svg
+        className="text-text-primary-light dark:text-text-primary-dark"
+        fill="none"
+        height="20"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        width="20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="m9 18 6-6-6-6" />
+      </svg>
+    </button>
+  );
+};
+
+const SlickPrevArrow: React.FC<SlickArrowProps> = (props) => {
+  return (
+    <button
+      aria-label="上一个"
+      className="absolute -left-2 top-[calc(50%-2.5rem)] z-20 bg-bg-primary-light dark:bg-bg-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
+      onClick={props.onClick}
+    >
+      <svg
+        className="text-text-primary-light dark:text-text-primary-dark"
+        fill="none"
+        height="20"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        width="20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+    </button>
+  );
+};
 
 const products: Product[] = [
   {
@@ -128,56 +178,6 @@ const products: Product[] = [
   },
 ];
 
-const NextArrow: React.FC<ArrowProps> = ({ onClick }) => {
-  return (
-    <button
-      aria-label="下一个"
-      className="absolute -right-2 top-[calc(50%-2.5rem)] z-20 bg-bg-primary-light dark:bg-bg-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
-      onClick={onClick}
-    >
-      <svg
-        className="text-text-primary-light dark:text-text-primary-dark"
-        fill="none"
-        height="20"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
-        width="20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="m9 18 6-6-6-6" />
-      </svg>
-    </button>
-  );
-};
-
-const PrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
-  return (
-    <button
-      aria-label="上一个"
-      className="absolute -left-2 top-[calc(50%-2.5rem)] z-20 bg-bg-primary-light dark:bg-bg-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
-      onClick={onClick}
-    >
-      <svg
-        className="text-text-primary-light dark:text-text-primary-dark"
-        fill="none"
-        height="20"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
-        width="20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="m15 18-6-6 6-6" />
-      </svg>
-    </button>
-  );
-};
-
 export const ProductGrid: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const t = useTranslations();
@@ -198,8 +198,8 @@ export const ProductGrid: React.FC = () => {
     speed: 500,
     slidesToShow: 4,
     slidesToScroll: 1,
-    nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
+    nextArrow: <SlickNextArrow />,
+    prevArrow: <SlickPrevArrow />,
     responsive: [
       {
         breakpoint: 1536,
@@ -304,9 +304,10 @@ export const ProductGrid: React.FC = () => {
                         aria-label="收藏"
                         className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-sm shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
                         variant="flat"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onPress={() => {
+                          // 不再需要调用 stopPropagation
                           // TODO: 处理收藏功能
+                          return false; // 防止事件冒泡
                         }}
                       >
                         <Heart className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-text-primary-light dark:text-text-primary-dark" />
@@ -425,6 +426,7 @@ export const ProductGrid: React.FC = () => {
             <Button
               className="bg-bg-tertiary-dark hover:bg-hover-bg-dark text-text-primary-dark min-w-[120px] text-xs sm:text-sm font-medium tracking-wide shadow-sm hover:shadow-md transition-all duration-300"
               variant="flat"
+              onPress={() => {}}
             >
               SEE ALL
             </Button>

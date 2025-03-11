@@ -18,22 +18,8 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return (
-      <Switch
-        classNames={{
-          base: className,
-          wrapper: 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark',
-          thumb: 'bg-text-primary-light dark:bg-text-primary-dark',
-          startContent: 'text-text-primary-light dark:text-text-primary-dark',
-          endContent: 'text-text-primary-light dark:text-text-primary-dark',
-        }}
-        endContent={<MoonIcon className="h-4 w-4" />}
-        size="sm"
-        startContent={<SunIcon className="h-4 w-4" />}
-      />
-    );
-  }
+  // 使用默认值表示加载状态，避免从非受控到受控的警告
+  const isDarkMode = mounted ? theme === 'dark' : false;
 
   return (
     <Switch
@@ -45,10 +31,14 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
         endContent: 'text-text-primary-light dark:text-text-primary-dark',
       }}
       endContent={<MoonIcon className="h-4 w-4" />}
-      isSelected={theme === 'dark'}
+      isSelected={isDarkMode}
       size="sm"
       startContent={<SunIcon className="h-4 w-4" />}
-      onValueChange={(isSelected) => setTheme(isSelected ? 'dark' : 'light')}
+      onValueChange={(isSelected) => {
+        if (mounted) {
+          setTheme(isSelected ? 'dark' : 'light');
+        }
+      }}
     />
   );
 };

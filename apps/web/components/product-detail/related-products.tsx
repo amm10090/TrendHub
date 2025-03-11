@@ -110,7 +110,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                     }
                     className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-sm shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
                     variant="flat"
-                    onClick={() => toggleFavorite(product.id)}
+                    onPress={() => toggleFavorite(product.id)}
                   >
                     <Heart
                       className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-text-primary-light dark:text-text-primary-dark"

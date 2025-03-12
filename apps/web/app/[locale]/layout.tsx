@@ -7,7 +7,7 @@ import { Providers } from '@/app/providers';
 import { Footer } from '@/components/footer';
 import { Navbar } from '@/components/navbar';
 import { fontSans } from '@/config/fonts';
-import { locales, Locale } from '@/i18n/config';
+import { locales, Locale, defaultLocale } from '@/i18n/config';
 
 import '@/styles/globals.css';
 
@@ -16,13 +16,18 @@ export function generateStaticParams() {
 }
 
 async function fetchMessages(locale: string) {
-  const messages = await import(`../../messages/${locale}.json`)
-    .then((module) => module.default)
-    .catch(() => null);
+  try {
+    const messages = await import(`../../messages/${locale}.json`)
+      .then((module) => module.default)
+      .catch(() => null);
 
-  if (!messages) notFound();
+    if (!messages) notFound();
 
-  return messages;
+    return messages;
+  } catch {
+    // 如果无法加载指定语言的消息，回退到默认语言
+    return import(`../../messages/${defaultLocale}.json`).then((module) => module.default);
+  }
 }
 
 interface LayoutProps {
@@ -52,7 +57,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
         <Suspense
           fallback={<div className="flex items-center justify-center h-screen">加载中…</div>}
         >
-          <NextIntlClientProvider locale={locale} messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={messages} timeZone="Asia/Shanghai">
             <Providers>
               <div className="flex flex-col min-h-full h-full w-full">
                 <Navbar />
@@ -62,6 +67,17 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
             </Providers>
           </NextIntlClientProvider>
         </Suspense>
+
+        {/* 添加调试信息，帮助排查问题 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              console.log('[Debug] Current locale:', '${locale}');
+              console.log('[Debug] Current pathname:', window.location.pathname);
+              window.__NEXT_LOCALE__ = '${locale}';
+            `,
+          }}
+        />
       </body>
     </html>
   );

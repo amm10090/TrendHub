@@ -1,11 +1,18 @@
 import { headers } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
 
-import { defaultLocale } from './config';
+import { locales, defaultLocale } from './config';
 
 export default getRequestConfig(async () => {
   const headersList = await headers();
-  const locale = headersList.get('x-next-intl-locale') || defaultLocale;
+  const headerLocale = headersList.get('x-next-intl-locale');
+
+  // 确保使用有效的语言
+  let locale = headerLocale || defaultLocale;
+
+  if (!locales.includes(locale as (typeof locales)[number])) {
+    locale = defaultLocale;
+  }
 
   return {
     locale,

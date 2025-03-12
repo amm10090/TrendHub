@@ -6,6 +6,7 @@ import { Input } from '@heroui/input';
 import { Link } from '@heroui/link';
 import { Navbar as HeroUINavbar, NavbarContent, NavbarBrand, NavbarItem } from '@heroui/navbar';
 import { Tabs, Tab } from '@heroui/react';
+import { PressEvent } from '@react-types/shared';
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -208,24 +209,37 @@ export const Navbar = () => {
     },
   ];
 
-  const handleItemPress = (item: MenuItem) => {
+  const handleItemPress = (item: MenuItem, e?: React.MouseEvent | PressEvent) => {
+    if (e && 'preventDefault' in e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (item.items) {
       setCurrentSubmenu({
         name: item.name,
         items: item.items,
       });
     } else {
-      router.push(item.href);
+      window.location.href = item.href;
       setIsMenuOpen(false);
     }
   };
 
-  const handleBackPress = () => {
+  const handleBackPress = (e?: React.MouseEvent | PressEvent) => {
+    if (e && 'preventDefault' in e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setCurrentSubmenu(null);
   };
 
-  const handleSubItemPress = (subItem: SubMenuItem) => {
-    router.push(subItem.href);
+  const handleSubItemPress = (subItem: SubMenuItem, e?: React.MouseEvent | PressEvent) => {
+    if (e && 'preventDefault' in e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    window.location.href = subItem.href;
     setIsMenuOpen(false);
   };
 
@@ -237,7 +251,7 @@ export const Navbar = () => {
       role="button"
       tabIndex={0}
       onPress={() => {
-        router.push(item.href);
+        router.replace(item.href);
         setIsMenuOpen(false);
       }}
     >
@@ -283,7 +297,12 @@ export const Navbar = () => {
         }}
       >
         <NavbarContent className="sm:hidden">
-          <Menu className="h-6 w-6 cursor-pointer" onPointerDown={() => setIsMenuOpen(true)} />
+          <Menu
+            className="h-6 w-6 cursor-pointer"
+            onClick={() => {
+              setIsMenuOpen(true);
+            }}
+          />
         </NavbarContent>
 
         <NavbarContent>
@@ -302,7 +321,7 @@ export const Navbar = () => {
                 href={item.href}
                 role="button"
                 tabIndex={0}
-                onPress={() => handleItemPress(item)}
+                onPress={(e) => handleItemPress(item, e)}
                 variant="light"
               >
                 {item.name}
@@ -327,7 +346,7 @@ export const Navbar = () => {
                                   href={brand.href}
                                   role="button"
                                   tabIndex={0}
-                                  onPress={() => handleItemPress(item)}
+                                  onPress={(e) => handleItemPress(item, e)}
                                 >
                                   {brand.name}
                                 </Link>
@@ -341,7 +360,7 @@ export const Navbar = () => {
                                   href={brand.href}
                                   role="button"
                                   tabIndex={0}
-                                  onPress={() => handleItemPress(item)}
+                                  onPress={(e) => handleItemPress(item, e)}
                                 >
                                   {brand.name}
                                 </Link>
@@ -351,7 +370,7 @@ export const Navbar = () => {
                                 href={getBrandItems().viewAll.href}
                                 role="button"
                                 tabIndex={0}
-                                onPress={() => handleItemPress(item)}
+                                onPress={(e) => handleItemPress(item, e)}
                               >
                                 {getBrandItems().viewAll.name}
                               </Link>
@@ -384,7 +403,7 @@ export const Navbar = () => {
                             href={subItem.href}
                             role="button"
                             tabIndex={0}
-                            onPress={() => handleSubItemPress(subItem)}
+                            onPress={(e) => handleSubItemPress(subItem, e)}
                           >
                             {subItem.name}
                           </Link>
@@ -417,7 +436,9 @@ export const Navbar = () => {
                       className="text-gray-800 dark:text-gray-200"
                       size="sm"
                       variant="light"
-                      onPointerDown={() => setIsSearchOpen(false)}
+                      onPress={() => {
+                        setIsSearchOpen(false);
+                      }}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -434,7 +455,9 @@ export const Navbar = () => {
                     isIconOnly
                     aria-label={t('search.label')}
                     variant="light"
-                    onPointerDown={() => setIsSearchOpen(true)}
+                    onPress={() => {
+                      setIsSearchOpen(true);
+                    }}
                   >
                     <Search className="h-5 w-5" />
                   </Button>
@@ -493,7 +516,9 @@ export const Navbar = () => {
                   isIconOnly
                   className="ml-4"
                   variant="light"
-                  onPointerDown={() => setIsMenuOpen(false)}
+                  onPress={() => {
+                    setIsMenuOpen(false);
+                  }}
                 >
                   <X className="h-6 w-6" />
                 </Button>
@@ -503,7 +528,7 @@ export const Navbar = () => {
                   <div>
                     <Button
                       className="flex items-center gap-2 p-4 border-b border-gray-200 dark:border-gray-800 cursor-pointer text-base text-gray-800 dark:text-gray-200 w-full justify-start"
-                      onPress={handleBackPress}
+                      onPress={(e) => handleBackPress(e)}
                       variant="light"
                     >
                       <span className="rotate-180">›</span>
@@ -517,7 +542,7 @@ export const Navbar = () => {
                           href={subItem.href}
                           role="button"
                           tabIndex={0}
-                          onPress={() => handleSubItemPress(subItem)}
+                          onPress={(e) => handleSubItemPress(subItem, e)}
                         >
                           {subItem.name}
                         </Link>
@@ -529,7 +554,7 @@ export const Navbar = () => {
                     <Button
                       key={item.href}
                       className="block py-3 px-4 border-b border-gray-200 dark:border-gray-800 text-base hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer text-gray-800 dark:text-gray-200 w-full justify-start"
-                      onPress={() => handleItemPress(item)}
+                      onPress={(e) => handleItemPress(item, e)}
                       variant="light"
                     >
                       <div className="flex items-center justify-between">
@@ -558,6 +583,28 @@ export const Navbar = () => {
           </DrawerContent>
         </Drawer>
       </HeroUINavbar>
+
+      {/* 添加备用导航链接，确保在客户端导航失效时仍能正常工作 */}
+      <div className="hidden">
+        {navigationItems.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className="hidden"
+            data-testid={`fallback-nav-${item.name}`}
+          >
+            {item.name}
+          </a>
+        ))}
+
+        {/* 备用语言切换链接 */}
+        <a href="/zh" className="hidden" data-testid="fallback-lang-zh">
+          中文
+        </a>
+        <a href="/en" className="hidden" data-testid="fallback-lang-en">
+          English
+        </a>
+      </div>
     </>
   );
 };

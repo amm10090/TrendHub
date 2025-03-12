@@ -643,5 +643,8 @@
       "jimmy_choo": "Jimmy Choo is a luxury footwear and accessories brand celebrated for its sophisticated designs and exquisite craftsmanship.",
       "alessandra_rich": "Alessandra Rich is a brand founded by the Italian designer of the same name, known for elegant, feminine designs with a vintage-inspired aesthetic."
     }
+  },
+  "common": {
+    "hello": "English translation test"
   }
 }

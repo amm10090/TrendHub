@@ -7,10 +7,10 @@ import { Link } from '@heroui/link';
 import { Navbar as HeroUINavbar, NavbarContent, NavbarBrand, NavbarItem } from '@heroui/navbar';
 import { Tabs, Tab } from '@heroui/react';
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { useRouter, usePathname } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 import { LanguageSwitch } from './language-switch';

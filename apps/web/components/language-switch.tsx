@@ -1,10 +1,11 @@
 'use client';
 
 import { Select, SelectItem } from '@heroui/react';
-import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import React from 'react';
 import ReactCountryFlag from 'react-country-flag';
+
+import { useRouter, usePathname } from '@/i18n';
 
 const languageOptions = {
   zh: {

@@ -169,6 +169,18 @@
       "spring": {
         "title": "2024春季系列",
         "description": "探索春季精选系列。清新色彩与轻盈面料，演绎新季时尚。"
+      },
+      "prada": {
+        "title": "普拉达新款包袋",
+        "description": "探索Prada标志性的Re-Edition系列，重新演绎经典设计"
+      },
+      "gucci": {
+        "title": "古驰男士系列",
+        "description": "探索Gucci最新男士时装系列，融合传统工艺与现代设计"
+      },
+      "new": {
+        "title": "全新上架",
+        "description": "浏览最新入驻品牌与单品，走在时尚前沿"
       }
     },
     "shining_brands": {

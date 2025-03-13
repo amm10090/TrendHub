@@ -90,7 +90,7 @@ export function ProductImages({ images, productName }: ProductImagesProps) {
         <Image
           alt={productName}
           classNames={{
-            wrapper: 'w-full aspect-[3/4]',
+            wrapper: 'w-full aspect-3/4',
             img: 'w-full h-full object-cover object-center rounded-lg',
           }}
           src={images[0]}
@@ -126,7 +126,7 @@ export function ProductImages({ images, productName }: ProductImagesProps) {
                 alt={`${productName} - 缩略图 ${index + 1}`}
                 classNames={{
                   wrapper: 'w-full h-full',
-                  img: 'w-full h-full object-cover object-center rounded-sm',
+                  img: 'w-full h-full object-cover object-center rounded-xs',
                 }}
                 src={image}
               />
@@ -140,9 +140,9 @@ export function ProductImages({ images, productName }: ProductImagesProps) {
         <div className="relative">
           <Slider {...mainSettings} className="product-main-slider">
             {images.map((image, index) => (
-              <div key={index} className="outline-none">
+              <div key={index} className="outline-hidden">
                 <div className="relative overflow-hidden rounded-lg bg-bg-primary-light dark:bg-bg-secondary-dark shadow-[inset_0_0_8px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.1)]">
-                  <div className="relative aspect-[3/4]">
+                  <div className="relative aspect-3/4">
                     <Image
                       alt={`${productName} - 图片 ${index + 1}`}
                       classNames={{
@@ -208,7 +208,7 @@ function NextArrow(props: ArrowProps) {
   return (
     <button
       aria-label="下一张"
-      className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8 md:w-10 md:h-10 transition-all duration-300 backdrop-blur-sm"
+      className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8 md:w-10 md:h-10 transition-all duration-300 backdrop-blur-xs"
       onClick={onClick}
     >
       <svg
@@ -235,7 +235,7 @@ function PrevArrow(props: ArrowProps) {
   return (
     <button
       aria-label="上一张"
-      className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8 md:w-10 md:h-10 transition-all duration-300 backdrop-blur-sm"
+      className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8 md:w-10 md:h-10 transition-all duration-300 backdrop-blur-xs"
       onClick={onClick}
     >
       <svg

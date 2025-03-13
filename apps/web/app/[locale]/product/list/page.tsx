@@ -273,7 +273,7 @@ const ProductListPage: NextPage = () => {
 
   return (
     <div className="grow bg-bg-secondary-light dark:bg-bg-secondary-dark">
-      <div className="container mx-auto px-4 py-8 overflow-x-hidden max-w-full sm:max-w-none md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl 2xl:max-w-screen-2xl">
+      <div className="container mx-auto px-4 py-8 overflow-x-hidden max-w-full sm:max-w-none md:max-w-(--breakpoint-md) lg:max-w-(--breakpoint-lg) xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl)">
         {/* 面包屑导航 */}
         <Breadcrumbs className="mb-4 text-sm">
           <BreadcrumbItem href="/">{t('breadcrumb.home')}</BreadcrumbItem>
@@ -336,8 +336,8 @@ const ProductListPage: NextPage = () => {
                       width={500}
                       height={500}
                       classNames={{
-                        wrapper: '!w-full !h-full',
-                        img: '!w-full !h-full object-cover group-hover:scale-105 transition-transform duration-500',
+                        wrapper: 'w-full! h-full!',
+                        img: 'w-full! h-full! object-cover group-hover:scale-105 transition-transform duration-500',
                       }}
                       removeWrapper={false}
                       disableSkeleton={false}
@@ -353,7 +353,7 @@ const ProductListPage: NextPage = () => {
                         size="sm"
                         radius="sm"
                         classNames={{
-                          base: 'bg-white dark:bg-black border-none backdrop-blur-sm bg-opacity-70 dark:bg-opacity-70',
+                          base: 'bg-white/100 dark:bg-black border-none backdrop-blur-xs  dark:bg-opacity-70',
                           content:
                             'text-text-primary-light dark:text-text-primary-dark font-medium tracking-wider uppercase text-xs',
                         }}
@@ -367,7 +367,7 @@ const ProductListPage: NextPage = () => {
                         size="sm"
                         radius="sm"
                         classNames={{
-                          base: 'bg-red-500 border-none backdrop-blur-sm bg-opacity-90',
+                          base: 'bg-red-500 border-none backdrop-blur-xs bg-opacity-90',
                           content: 'text-white font-medium tracking-wider uppercase text-xs',
                         }}
                       >
@@ -377,7 +377,7 @@ const ProductListPage: NextPage = () => {
                   </div>
                   {/* 收藏按钮 */}
                   <Button
-                    className="absolute top-2 right-2 p-2 rounded-full bg-opacity-50 dark:bg-opacity-50 bg-white dark:bg-black hover:bg-opacity-70 hover:dark:bg-opacity-70 transition-colors z-30"
+                    className="absolute top-2 right-2 p-2 rounded-full bg-opacity-50 dark:bg-opacity-50 bg-white dark:bg-black hover:bg-opacity-70 dark:hover:bg-opacity-70 transition-colors z-30"
                     onPress={() => {
                       toggleFavorite(product.id);
                     }}

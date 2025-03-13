@@ -202,7 +202,7 @@ export function ProductModal({
     <Modal
       classNames={{
         base: 'max-w-5xl',
-        backdrop: 'bg-black/30 backdrop-blur-sm',
+        backdrop: 'bg-black/30 backdrop-blur-xs',
         body: 'p-0',
       }}
       isOpen={isOpen}
@@ -224,7 +224,7 @@ export function ProductModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* 产品图片轮播区域 - Lyst风格 */}
                 <div className="flex flex-col gap-y-4">
-                  <div className="aspect-[3/4] relative overflow-hidden rounded-md pl-3">
+                  <div className="aspect-3/4 relative overflow-hidden rounded-md pl-3">
                     {/* 主图片 */}
                     <Image
                       isZoomed
@@ -243,7 +243,7 @@ export function ProductModal({
                         <Button
                           isIconOnly
                           aria-label="Previous image"
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-sm hover:bg-white dark:hover:bg-black transition-all"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-xs hover:bg-white dark:hover:bg-black transition-all"
                           onPress={prevImage}
                           variant="flat"
                         >
@@ -252,7 +252,7 @@ export function ProductModal({
                         <Button
                           isIconOnly
                           aria-label="Next image"
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-sm hover:bg-white dark:hover:bg-black transition-all"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-xs hover:bg-white dark:hover:bg-black transition-all"
                           onPress={nextImage}
                           variant="flat"
                         >
@@ -283,7 +283,7 @@ export function ProductModal({
 
                     {/* NEW标签 */}
                     {product.isNew && (
-                      <span className="absolute top-2 left-2 px-2 py-1 text-xs font-medium text-white bg-blue-600 dark:bg-blue-700 rounded">
+                      <span className="absolute top-2 left-2 px-2 py-1 text-xs font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-sm">
                         {t('tags.new')}
                       </span>
                     )}
@@ -319,7 +319,7 @@ export function ProductModal({
                 </div>
 
                 {/* 产品信息卡片 - Lyst风格 */}
-                <Card className="border-none shadow-sm dark:shadow-md">
+                <Card className="border-none shadow-xs dark:shadow-md">
                   <CardHeader className="pb-0 pt-4 px-4 flex flex-col gap-1">
                     <div className="flex items-baseline justify-between">
                       <div className="flex flex-col gap-y-1">
@@ -335,7 +335,7 @@ export function ProductModal({
                         )}
                       </div>
                       {product.discount && (
-                        <span className="px-2 py-1 text-xs font-medium text-white bg-red-600 dark:bg-red-700 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-white bg-red-600 dark:bg-red-700 rounded-sm">
                           -{product.discount}% {t('discount')}
                         </span>
                       )}

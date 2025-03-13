@@ -154,7 +154,7 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
             classNames={{
               base: 'max-w-md mx-auto',
               track: 'drop-shadow-md border border-default',
-              indicator: 'bg-gradient-to-r from-primary to-primary-400',
+              indicator: 'bg-linear-to-r from-primary to-primary-400',
             }}
             color="primary"
             isStriped={true}
@@ -184,7 +184,7 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
         {/* 商品信息 - 小号悬浮于底部 */}
         {product && (
           <div className="fixed bottom-6 right-6 flex items-center gap-3 bg-white dark:bg-gray-900 shadow-lg rounded-lg p-3 max-w-xs border border-gray-100 dark:border-gray-800">
-            <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+            <div className="w-12 h-12 rounded-sm overflow-hidden shrink-0">
               <Image
                 alt={product.name}
                 className="w-full h-full object-cover"

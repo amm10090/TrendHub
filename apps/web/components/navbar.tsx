@@ -353,7 +353,7 @@ export const Navbar = () => {
                 {item.name}
               </Link>
               {item.items && item.isBrands ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-sm border-b border-border-primary-light dark:border-border-primary-dark">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">
                   <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
                       <div className="flex gap-16">
@@ -368,7 +368,7 @@ export const Navbar = () => {
                               {getBrandItems().firstRowBrands.map((brand) => (
                                 <Link
                                   key={brand.href}
-                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
+                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded-sm whitespace-nowrap"
                                   href={brand.href}
                                   role="button"
                                   tabIndex={0}
@@ -383,7 +383,7 @@ export const Navbar = () => {
                               {getBrandItems().secondRowBrands.map((brand) => (
                                 <Link
                                   key={brand.href}
-                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
+                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded-sm whitespace-nowrap"
                                   href={brand.href}
                                   role="button"
                                   tabIndex={0}
@@ -394,7 +394,7 @@ export const Navbar = () => {
                                 </Link>
                               ))}
                               <Link
-                                className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm font-medium hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap underline underline-offset-4"
+                                className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm font-medium hover:shadow-md hover:translate-y-[-2px] p-2 rounded-sm whitespace-nowrap underline underline-offset-4"
                                 href={getBrandItems().viewAll.href}
                                 role="button"
                                 tabIndex={0}
@@ -421,7 +421,7 @@ export const Navbar = () => {
                   </div>
                 </div>
               ) : item.items ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-sm border-b border-border-primary-light dark:border-border-primary-dark">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">
                   <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
                       <div className="grid grid-cols-4 gap-8">

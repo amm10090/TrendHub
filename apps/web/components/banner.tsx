@@ -19,7 +19,7 @@ export function Banner() {
                   alt="Banner background"
                   classNames={{
                     wrapper: 'w-full',
-                    img: 'w-full aspect-[21/9] object-cover opacity-100 dark:opacity-90',
+                    img: 'w-full aspect-21/9 object-cover opacity-100 dark:opacity-90',
                   }}
                   loading="eager"
                   src="/images/banner-bg.jpg"
@@ -49,7 +49,7 @@ export function Banner() {
               alt="Banner background"
               classNames={{
                 wrapper: 'w-full',
-                img: 'w-full aspect-[4/3] object-cover',
+                img: 'w-full aspect-4/3 object-cover',
               }}
               loading="eager"
               src="/images/banner-bg.jpg"
@@ -64,7 +64,7 @@ export function Banner() {
           <div className="mt-4">
             <Link className="block" href="/women/brands/gucci">
               <Button
-                className="w-full bg-bg-primary-light hover:bg-hover-bg-light dark:bg-bg-tertiary-dark dark:hover:bg-hover-bg-dark text-text-primary-light dark:text-text-primary-dark shadow-sm dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all duration-300"
+                className="w-full bg-bg-primary-light hover:bg-hover-bg-light dark:bg-bg-tertiary-dark dark:hover:bg-hover-bg-dark text-text-primary-light dark:text-text-primary-dark shadow-xs dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all duration-300"
                 size="lg"
               >
                 {t('cta')}

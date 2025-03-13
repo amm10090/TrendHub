@@ -90,7 +90,7 @@ export const IntroductionSection: React.FC = () => {
               {/* Gradient Overlay - Refined version */}
               {!isExpanded && (
                 <>
-                  <div className="absolute bottom-0 left-0 right-0 h-[120px] pointer-events-none bg-gradient-to-b from-transparent via-white to-white dark:via-transparent dark:to-black" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[120px] pointer-events-none bg-linear-to-b from-transparent via-white to-white dark:via-transparent dark:to-black" />
                   <div className="absolute -bottom-16 left-0 right-0 h-16 bg-white dark:bg-black" />
                 </>
               )}

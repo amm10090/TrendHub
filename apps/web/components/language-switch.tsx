@@ -1,11 +1,11 @@
 'use client';
 
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from '@heroui/react';
+import { ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import * as React from 'react';
 import ReactCountryFlag from 'react-country-flag';
-import { ChevronDown } from 'lucide-react';
 
 const languageOptions = {
   zh: {

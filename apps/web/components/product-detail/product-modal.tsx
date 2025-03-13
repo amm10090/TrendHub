@@ -201,41 +201,48 @@ export function ProductModal({
   return (
     <Modal
       classNames={{
-        base: 'max-w-5xl',
-        backdrop: 'bg-black/30 backdrop-blur-xs',
+        base: 'max-w-6xl',
+        backdrop: 'bg-black/40 backdrop-blur-sm',
         body: 'p-0',
+        closeButton:
+          'top-3 right-3 text-text-tertiary-light dark:text-text-tertiary-dark hover:bg-bg-tertiary-light dark:hover:bg-bg-tertiary-dark transition-all duration-200',
       }}
       isOpen={isOpen}
       scrollBehavior="inside"
       onClose={onClose}
     >
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
-          <h2 className="text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
+      <ModalContent className="shadow-xl dark:shadow-2xl transition-all duration-300 scrollbar-hide">
+        <ModalHeader className="flex flex-col gap-1 bg-[#EDF5FF] dark:bg-bg-primary-dark rounded-t-xl px-6 py-4">
+          <h2 className="text-xl font-medium text-[#001833] dark:text-text-primary-dark">
             {product.name}
           </h2>
-          <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-            {product.brand}
-          </p>
+          <p className="text-sm text-[#004A94] dark:text-text-secondary-dark">{product.brand}</p>
         </ModalHeader>
         <ModalBody>
-          <Card className="border-none shadow-none bg-transparent">
-            <CardBody className="p-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="border-none shadow-none bg-[#ffffff] dark:bg-bg-primary-dark rounded-b-xl scrollbar-hide">
+            <CardBody className="p-0 scrollbar-hide">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
                 {/* 产品图片轮播区域 - Lyst风格 */}
-                <div className="flex flex-col gap-y-4">
-                  <div className="aspect-3/4 relative overflow-hidden rounded-md pl-3">
+                <div className="flex flex-col gap-y-3">
+                  <div className="aspect-[4/5] relative overflow-hidden rounded-xl shadow-sm">
                     {/* 主图片 */}
                     <Image
-                      isZoomed
+                      isZoomed={false}
                       alt={product.name}
                       classNames={{
                         wrapper: 'w-full h-full transition-opacity duration-300',
-                        img: 'w-full h-full object-cover object-center transition-transform duration-500',
+                        img: 'w-full h-full object-cover object-center transition-transform duration-500 rounded-xl',
                         zoomedWrapper: 'transition-all duration-500',
                       }}
                       src={activeImage}
                     />
+
+                    {/* NEW标签 - 提高z-index确保显示在图片上方 */}
+                    {product.isNew && (
+                      <span className="absolute top-2 left-2 px-2 py-0.5 text-xs font-medium text-[#ffffff] bg-[#0080FF] dark:bg-blue-700 rounded-md shadow-sm z-20">
+                        {t('tags.new')}
+                      </span>
+                    )}
 
                     {/* 左右箭头导航 - 圆润设计 */}
                     {allImages.length > 1 && (
@@ -243,27 +250,27 @@ export function ProductModal({
                         <Button
                           isIconOnly
                           aria-label="Previous image"
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-xs hover:bg-white dark:hover:bg-black transition-all"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-[#ffffff]/90 dark:bg-bg-tertiary-dark/90 rounded-full w-9 h-9 flex items-center justify-center z-10 shadow-md hover:bg-[#F3F4F6] hover:scale-105 dark:hover:bg-bg-tertiary-dark transition-all duration-200"
                           onPress={prevImage}
                           variant="flat"
                         >
-                          <ChevronLeft className="h-5 w-5 text-black dark:text-white" />
+                          <ChevronLeft className="h-5 w-5 text-[#1a1a1a] dark:text-text-primary-dark" />
                         </Button>
                         <Button
                           isIconOnly
                           aria-label="Next image"
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center z-10 shadow-xs hover:bg-white dark:hover:bg-black transition-all"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-[#ffffff]/90 dark:bg-bg-tertiary-dark/90 rounded-full w-9 h-9 flex items-center justify-center z-10 shadow-md hover:bg-[#F3F4F6] hover:scale-105 dark:hover:bg-bg-tertiary-dark transition-all duration-200"
                           onPress={nextImage}
                           variant="flat"
                         >
-                          <ChevronRight className="h-5 w-5 text-black dark:text-white" />
+                          <ChevronRight className="h-5 w-5 text-[#1a1a1a] dark:text-text-primary-dark" />
                         </Button>
                       </>
                     )}
 
                     {/* 底部指示器 - 长条短条设计（黑白色自适应） */}
                     {allImages.length > 1 && (
-                      <div className="absolute bottom-4 left-0 right-0 flex justify-center flex flex-row gap-x-2 z-10">
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-x-2 z-10">
                         {allImages.map((_, index) => (
                           <Button
                             isIconOnly
@@ -271,8 +278,8 @@ export function ProductModal({
                             aria-label={`Go to image ${index + 1}`}
                             className={`transition-all duration-300 rounded-full ${
                               selectedImageIndex === index
-                                ? 'w-8 h-1.5 bg-black dark:bg-white'
-                                : 'w-1.5 h-1.5 bg-black/30 dark:bg-white/50'
+                                ? 'w-8 h-1.5 bg-[#1a1a1a] dark:bg-text-primary-dark'
+                                : 'w-1.5 h-1.5 bg-[#999999]/30 dark:bg-text-tertiary-dark/50 hover:bg-[#666666]/60 dark:hover:bg-text-tertiary-dark/70'
                             }`}
                             onPress={() => setImageByIndex(index)}
                             variant="flat"
@@ -280,26 +287,19 @@ export function ProductModal({
                         ))}
                       </div>
                     )}
-
-                    {/* NEW标签 */}
-                    {product.isNew && (
-                      <span className="absolute top-2 left-2 px-2 py-1 text-xs font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-sm">
-                        {t('tags.new')}
-                      </span>
-                    )}
                   </div>
 
                   {/* 缩略图导航 - Lyst风格 */}
                   {allImages.length > 1 && (
-                    <div className="flex overflow-x-auto flex flex-row gap-x-2 pb-1 scrollbar-hide">
+                    <div className="overflow-x-auto flex gap-x-2 pb-1 scrollbar-hide px-1">
                       {allImages.map((image, index) => (
                         <Button
                           key={index}
                           aria-label={`选择图片 ${index + 1}`}
-                          className={`relative min-w-16 h-16 rounded-sm overflow-hidden cursor-pointer transition-all ${
+                          className={`relative min-w-14 h-14 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${
                             index === selectedImageIndex
-                              ? 'opacity-100 scale-105'
-                              : 'opacity-70 hover:opacity-100 hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
+                              ? 'opacity-100 scale-105 shadow-md ring-2 ring-[#D0E4FF] dark:ring-border-primary-dark'
+                              : 'opacity-70 hover:opacity-100 hover:scale-102 hover:shadow-sm hover:ring-1 hover:ring-[#D0E4FF] dark:hover:ring-border-primary-dark'
                           }`}
                           onPress={() => setImageByIndex(index)}
                           variant="flat"
@@ -319,75 +319,90 @@ export function ProductModal({
                 </div>
 
                 {/* 产品信息卡片 - Lyst风格 */}
-                <Card className="border-none shadow-xs dark:shadow-md">
-                  <CardHeader className="pb-0 pt-4 px-4 flex flex-col gap-1">
-                    <div className="flex items-baseline justify-between">
+                <Card className="border-none shadow-sm dark:shadow-md bg-[#faf9f6] dark:bg-bg-secondary-dark rounded-xl">
+                  <CardHeader className="pb-0 pt-4 px-5 flex flex-col gap-1">
+                    <div className="flex items-start justify-between">
                       <div className="flex flex-col gap-y-1">
-                        <p
-                          className={`text-xl font-medium ${product.discount ? 'text-red-600 dark:text-red-400' : 'text-text-primary-light dark:text-text-primary-dark'}`}
-                        >
-                          ¥{product.price.toLocaleString()}
-                        </p>
+                        <div className="flex items-center gap-x-3">
+                          <p
+                            className={`text-2xl font-medium ${product.discount ? 'text-[#EF4444] dark:text-red-400' : 'text-[#1a1a1a] dark:text-text-primary-dark'}`}
+                          >
+                            ¥{product.price.toLocaleString()}
+                          </p>
+                          {product.discount && (
+                            <span className="px-2 py-0.5 text-xs font-medium text-[#ffffff] bg-[#EF4444] dark:bg-red-700 rounded-md shadow-sm">
+                              -{product.discount}% {t('discount')}
+                            </span>
+                          )}
+                        </div>
                         {product.originalPrice && product.discount && (
-                          <p className="text-sm line-through text-text-tertiary-light dark:text-text-tertiary-dark">
+                          <p className="text-sm line-through text-[#999999] dark:text-text-tertiary-dark">
                             ¥{product.originalPrice.toLocaleString()}
                           </p>
                         )}
                       </div>
-                      {product.discount && (
-                        <span className="px-2 py-1 text-xs font-medium text-white bg-red-600 dark:bg-red-700 rounded-sm">
-                          -{product.discount}% {t('discount')}
-                        </span>
-                      )}
                     </div>
 
-                    <div className="text-sm text-text-tertiary-light dark:text-text-tertiary-dark mt-2">
+                    <div className="text-sm text-[#999999] dark:text-text-tertiary-dark mt-2">
                       {product.availableQuantity > 0 ? (
                         <>
-                          <span className="text-green-600 dark:text-green-400">{t('inStock')}</span>
+                          <span className="text-[#22C55E] dark:text-green-400 font-medium">
+                            {t('inStock')}
+                          </span>
                           {' - '}
                           {t('availableItems', { count: product.availableQuantity })}
                         </>
                       ) : (
-                        <span className="text-red-600 dark:text-red-400">{t('outOfStock')}</span>
+                        <span className="text-[#EF4444] dark:text-red-400 font-medium">
+                          {t('outOfStock')}
+                        </span>
                       )}
                     </div>
                   </CardHeader>
 
-                  <CardBody className="py-3 px-4">
-                    <div className="prose prose-sm dark:prose-invert">
+                  <CardBody className="py-3 px-5">
+                    <div className="prose prose-sm dark:prose-invert text-[#1a1a1a] dark:text-text-primary-dark">
                       <p>{product.description}</p>
                     </div>
 
                     {/* 使用Accordion组件展示产品详情 */}
                     <div className="mt-4">
                       {product.sizes && product.sizes.length > 0 && (
-                        <Accordion className="mb-2" defaultExpandedKeys={['1']} variant="bordered">
+                        <Accordion className="mb-2" variant="bordered">
                           <AccordionItem
                             key="1"
                             aria-label={t('accordion.sizes')}
                             classNames={{
-                              title: 'font-medium text-base',
-                              trigger: 'py-3',
-                              content: 'pb-3',
+                              title:
+                                'font-medium text-base text-[#1a1a1a] dark:text-text-primary-dark',
+                              trigger:
+                                'py-2.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded-lg',
+                              content: 'pb-2.5',
+                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded-lg',
                             }}
                             indicator={({ isOpen }) => (
                               <ChevronDown
-                                className={`text-default-400 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
                               />
                             )}
                             startContent={
-                              <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
-                                <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
+                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1.5 rounded-md">
+                                <div className="w-5 h-5 text-[#1a1a1a] dark:text-text-primary-dark flex items-center justify-center">
                                   <Ruler size={16} />
                                 </div>
                               </div>
                             }
                             title={t('accordion.sizes')}
                           >
-                            <div className="flex flex-wrap gap-2 py-2">
+                            <div className="flex flex-wrap gap-2 py-2 px-1">
                               {product.sizes.map((size, index) => (
-                                <Button key={index} className="min-w-12" size="sm" variant="flat">
+                                <Button
+                                  key={index}
+                                  className="min-w-12 bg-[#f5f5f2] dark:bg-bg-tertiary-dark text-[#1a1a1a] dark:text-text-primary-dark hover:bg-[#f5f5f2] dark:hover:bg-hover-background hover:scale-105 transition-all duration-200"
+                                  size="sm"
+                                  variant="flat"
+                                  radius="sm"
+                                >
                                   {size}
                                 </Button>
                               ))}
@@ -397,71 +412,88 @@ export function ProductModal({
                       )}
 
                       {product.colors && product.colors.length > 0 && (
-                        <Accordion className="mb-2" defaultExpandedKeys={['1']} variant="bordered">
+                        <Accordion className="mb-2" variant="bordered">
                           <AccordionItem
                             key="1"
                             aria-label={t('accordion.colors')}
                             classNames={{
-                              title: 'font-medium text-base',
-                              trigger: 'py-3',
-                              content: 'pb-3',
+                              title:
+                                'font-medium text-base text-[#1a1a1a] dark:text-text-primary-dark',
+                              trigger:
+                                'py-2.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded-lg',
+                              content: 'pb-2.5',
+                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded-lg',
                             }}
                             indicator={({ isOpen }) => (
                               <ChevronDown
-                                className={`text-default-400 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
                               />
                             )}
                             startContent={
-                              <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
-                                <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
+                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1.5 rounded-md">
+                                <div className="w-5 h-5 text-[#1a1a1a] dark:text-text-primary-dark flex items-center justify-center">
                                   <Palette size={16} />
                                 </div>
                               </div>
                             }
                             title={t('accordion.colors')}
                           >
-                            <div className="flex flex-wrap gap-3 py-2">
-                              {product.colors.map((color, index) => (
-                                <Button
-                                  key={index}
-                                  className="min-w-12"
-                                  size="sm"
-                                  style={{ backgroundColor: color.value }}
-                                  variant="flat"
-                                >
-                                  {color.name}
-                                </Button>
-                              ))}
+                            <div className="flex flex-wrap gap-3 py-2 px-1">
+                              {product.colors.map((color, index) => {
+                                // 判断颜色是否为黑色或深色
+                                const isBlackOrDark =
+                                  color.value.toLowerCase() === '#000000' ||
+                                  color.value.toLowerCase() === '#000' ||
+                                  color.value.toLowerCase() === 'black' ||
+                                  color.value.toLowerCase().includes('rgb(0, 0, 0)') ||
+                                  color.value.toLowerCase().includes('rgba(0, 0, 0');
+
+                                return (
+                                  <Button
+                                    key={index}
+                                    className={`min-w-12 ${isBlackOrDark ? 'text-[#ffffff]' : 'text-[#1a1a1a]'} dark:text-text-primary-dark hover:scale-105 transition-all duration-200 shadow-sm`}
+                                    size="sm"
+                                    style={{ backgroundColor: color.value }}
+                                    variant="flat"
+                                    radius="sm"
+                                  >
+                                    {color.name}
+                                  </Button>
+                                );
+                              })}
                             </div>
                           </AccordionItem>
                         </Accordion>
                       )}
 
                       {product.details && product.details.length > 0 && (
-                        <Accordion className="mb-2" defaultExpandedKeys={['1']} variant="bordered">
+                        <Accordion className="mb-2" variant="bordered">
                           <AccordionItem
                             key="1"
                             aria-label={t('accordion.details')}
                             classNames={{
-                              title: 'font-medium text-base',
-                              trigger: 'py-3',
-                              content: 'pb-3',
+                              title:
+                                'font-medium text-base text-[#1a1a1a] dark:text-text-primary-dark',
+                              trigger:
+                                'py-2.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded-lg',
+                              content: 'pb-2.5',
+                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded-lg',
                             }}
                             indicator={({ isOpen }) => (
                               <ChevronDown
-                                className={`text-default-400 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
                               />
                             )}
                             startContent={
-                              <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
-                                <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
+                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1.5 rounded-md">
+                                <div className="w-5 h-5 text-[#1a1a1a] dark:text-text-primary-dark flex items-center justify-center">
                                   <Info size={16} />
                                 </div>
                               </div>
                             }
                             title={t('accordion.details')}
                           >
-                            <ul className="list-disc pl-5 flex flex-col gap-y-1">
+                            <ul className="list-disc pl-5 flex flex-col gap-y-2 text-[#1a1a1a] dark:text-text-primary-dark px-1">
                               {product.details.map((detail, index) => (
                                 <li key={index}>{detail}</li>
                               ))}
@@ -471,59 +503,67 @@ export function ProductModal({
                       )}
 
                       {product.material && (
-                        <Accordion className="mb-2" defaultExpandedKeys={['1']} variant="bordered">
+                        <Accordion className="mb-2" variant="bordered">
                           <AccordionItem
                             key="1"
                             aria-label={t('accordion.material')}
                             classNames={{
-                              title: 'font-medium text-base',
-                              trigger: 'py-3',
-                              content: 'pb-3',
+                              title:
+                                'font-medium text-base text-[#1a1a1a] dark:text-text-primary-dark',
+                              trigger:
+                                'py-2.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded-lg',
+                              content: 'pb-2.5',
+                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded-lg',
                             }}
                             indicator={({ isOpen }) => (
                               <ChevronDown
-                                className={`text-default-400 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
                               />
                             )}
                             startContent={
-                              <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
-                                <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
+                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1.5 rounded-md">
+                                <div className="w-5 h-5 text-[#1a1a1a] dark:text-text-primary-dark flex items-center justify-center">
                                   <Layers size={16} />
                                 </div>
                               </div>
                             }
                             title={t('accordion.material')}
                           >
-                            <p>{product.material}</p>
+                            <p className="text-[#1a1a1a] dark:text-text-primary-dark px-1 py-1">
+                              {product.material}
+                            </p>
                           </AccordionItem>
                         </Accordion>
                       )}
 
                       {product.careInstructions && product.careInstructions.length > 0 && (
-                        <Accordion className="mb-2" defaultExpandedKeys={['1']} variant="bordered">
+                        <Accordion className="mb-2" variant="bordered">
                           <AccordionItem
                             key="1"
                             aria-label={t('accordion.careInstructions')}
                             classNames={{
-                              title: 'font-medium text-base',
-                              trigger: 'py-3',
-                              content: 'pb-3',
+                              title:
+                                'font-medium text-base text-[#1a1a1a] dark:text-text-primary-dark',
+                              trigger:
+                                'py-2.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded-lg',
+                              content: 'pb-2.5',
+                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded-lg',
                             }}
                             indicator={({ isOpen }) => (
                               <ChevronDown
-                                className={`text-default-400 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
                               />
                             )}
                             startContent={
-                              <div className="bg-primary-50 dark:bg-primary-900/20 p-1.5 rounded-md">
-                                <div className="w-5 h-5 text-primary-500 dark:text-primary-400 flex items-center justify-center">
+                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1.5 rounded-md">
+                                <div className="w-5 h-5 text-[#1a1a1a] dark:text-text-primary-dark flex items-center justify-center">
                                   <Shirt size={16} />
                                 </div>
                               </div>
                             }
                             title={t('accordion.careInstructions')}
                           >
-                            <ul className="list-disc pl-5 flex flex-col gap-y-1">
+                            <ul className="list-disc pl-5 flex flex-col gap-y-2 text-[#1a1a1a] dark:text-text-primary-dark px-1">
                               {product.careInstructions.map((instruction, index) => (
                                 <li key={index}>{instruction}</li>
                               ))}
@@ -534,9 +574,9 @@ export function ProductModal({
                     </div>
                   </CardBody>
 
-                  <CardFooter className="px-4 pt-0 pb-4 flex flex-col gap-3">
+                  <CardFooter className="px-5 pt-0 pb-5 flex flex-col gap-3">
                     {product.sku && (
-                      <div className="text-xs text-text-tertiary-light dark:text-text-tertiary-dark w-full">
+                      <div className="text-xs text-[#999999] dark:text-text-tertiary-dark w-full">
                         {t('sku')}: {product.sku}
                       </div>
                     )}
@@ -549,7 +589,7 @@ export function ProductModal({
                           isExternal
                           showAnchorIcon
                           anchorIcon={<ExternalLink className="ml-1 h-4 w-4" />}
-                          className="flex-1 py-3 px-4 font-medium bg-black text-white rounded-md hover:bg-gray-900 dark:bg-black dark:hover:bg-gray-900 text-center"
+                          className="flex-1 py-3 px-5 font-medium bg-[#0080FF] text-[#ffffff] dark:bg-text-primary-dark dark:text-bg-primary-dark rounded-lg hover:bg-[#0062C3] dark:hover:bg-hover-text hover:scale-102 shadow-sm transition-all duration-200 text-center"
                           isDisabled={product.availableQuantity === 0}
                           onPress={handleOpenInNewTab}
                         >
@@ -558,15 +598,15 @@ export function ProductModal({
                       ) : null}
                       <Button
                         aria-label={isFavorite ? t('remove_from_favorites') : t('add_to_favorites')}
-                        className={`p-0 min-w-14 w-14 h-14 flex items-center justify-center rounded-md ${
+                        className={`p-0 min-w-12 w-12 h-12 flex items-center justify-center rounded-lg shadow-sm hover:scale-105 transition-all duration-200 ${
                           isFavorite
-                            ? 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700'
-                            : 'bg-bg-secondary-light dark:bg-bg-tertiary-dark text-text-primary-light dark:text-text-primary-dark'
+                            ? 'bg-[#EF4444] text-[#ffffff] hover:bg-[#DC2626] dark:bg-red-600 dark:hover:bg-red-700'
+                            : 'bg-[#faf9f6] dark:bg-bg-tertiary-dark text-[#1a1a1a] dark:text-text-primary-dark hover:bg-[#f5f5f2] dark:hover:bg-bg-secondary-dark'
                         }`}
                         variant="flat"
                         onPress={toggleFavorite}
                       >
-                        <Heart className="h-6 w-6" fill={isFavorite ? 'currentColor' : 'none'} />
+                        <Heart className="h-5 w-5" fill={isFavorite ? 'currentColor' : 'none'} />
                       </Button>
                     </div>
                   </CardFooter>

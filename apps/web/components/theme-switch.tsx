@@ -11,25 +11,27 @@ export interface ThemeSwitchProps {
 }
 
 export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
-  const { theme, setTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 使用默认值表示加载状态，避免从非受控到受控的警告
-  const isDarkMode = mounted ? theme === 'dark' : false;
+  // 使用 resolvedTheme 来确保获取正确的主题状态（包括系统主题）
+  const isDarkMode = mounted ? resolvedTheme === 'dark' : false;
 
   return (
     <Switch
+      aria-label="切换暗色/亮色模式"
       classNames={{
         base: className,
-        wrapper: 'bg-bg-tertiary-light dark:bg-bg-tertiary-dark',
-        thumb: 'bg-text-primary-light dark:bg-text-primary-dark',
-        startContent: 'text-text-primary-light dark:text-text-primary-dark',
-        endContent: 'text-text-primary-light dark:text-text-primary-dark',
+        wrapper: 'bg-default-200 group-data-[selected=true]:!bg-primary-500',
+        thumb: 'bg-white',
+        startContent: 'text-default-500 dark:text-default-300',
+        endContent: 'text-default-500 dark:text-default-300',
       }}
+      color="primary"
       endContent={<MoonIcon className="h-4 w-4" />}
       isSelected={isDarkMode}
       size="sm"

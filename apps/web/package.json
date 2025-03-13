@@ -14,7 +14,9 @@
     "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
-    "@heroui/react": "^2.7.5",
+    "@heroui/react": "2.7.6-beta.2",
+    "@heroui/select": "2.4.16",
+    "@heroui/skeleton": "2.2.10",
     "@heroui/system": "2.4.12",
     "@heroui/theme": "2.4.12",
     "@react-aria/ssr": "3.9.7",
@@ -22,6 +24,7 @@
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.11.9",
     "@tabler/icons-react": "3.31.0",
+    "@tailwindcss/postcss": "4.0.13",
     "@types/nodemailer": "6.4.17",
     "@vercel/analytics": "1.5.0",
     "@vercel/speed-insights": "1.2.0",
@@ -66,7 +69,7 @@
     "postcss": "8.5.3",
     "prettier": "3.5.3",
     "tailwind-variants": "1.0.0",
-    "tailwindcss": "3.4.17",
+    "tailwindcss": "4.0.13",
     "typescript": "5.8.2",
     "typescript-eslint": "^8.26.1"
   }

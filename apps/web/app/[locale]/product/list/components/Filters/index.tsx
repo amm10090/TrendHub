@@ -189,7 +189,7 @@ const CategoryNavigation: React.FC<{
               )}
 
               {/* 主分类列表 */}
-              <div className="space-y-1">
+              <div className="flex flex-col gap-y-1">
                 <button
                   className="w-full text-left px-3 py-2 text-sm hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-md transition-colors"
                   onClick={() => handleViewAll('main')}
@@ -231,7 +231,7 @@ const CategoryNavigation: React.FC<{
             {/* 右侧子分类列表 */}
             <div>
               {selectedMainCategory && (
-                <div className="space-y-1">
+                <div className="flex flex-col gap-y-1">
                   <button
                     className="w-full text-left px-3 py-2 text-sm hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-md transition-colors"
                     onClick={() => handleViewAll('sub')}
@@ -384,7 +384,7 @@ const PriceNavigation: React.FC<{
           </div>
 
           {/* 价格区间列表 */}
-          <div className="py-4 space-y-2 max-h-[40vh] overflow-y-auto">
+          <div className="py-4 flex flex-col gap-y-2 max-h-[40vh] overflow-y-auto">
             {priceRanges.map((range) => (
               <button
                 key={range.id}

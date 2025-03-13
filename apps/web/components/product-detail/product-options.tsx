@@ -53,7 +53,7 @@ export function ProductOptions({
   };
 
   return (
-    <div className="flex flex-col space-y-6">
+    <div className="flex flex-col flex flex-col gap-y-6">
       {/* 尺寸选择 */}
       {product.sizes && product.sizes.length > 0 && (
         <div>

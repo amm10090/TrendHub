@@ -1,6 +1,6 @@
 'use client';
 
-import { Select, SelectItem } from '@heroui/react';
+import { Select, SelectItem } from '@heroui/select';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import * as React from 'react';

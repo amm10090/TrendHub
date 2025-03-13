@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Skeleton } from '@heroui/react';
+import { Button } from '@heroui/react';
+import { Skeleton } from '@heroui/skeleton';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 

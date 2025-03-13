@@ -192,7 +192,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
               <Tabs>
                 <Tab key="women" title={tNav('women')}>
                   <div className="mt-4">
-                    <div className="space-y-2">
+                    <div className="flex flex-col gap-y-2">
                       {categories.map((category) => (
                         <div key={category.id} className="flex items-center gap-2">
                           <Checkbox
@@ -224,7 +224,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
                                   </div>
                                 }
                               >
-                                <div className="ml-6 space-y-2">
+                                <div className="ml-6 flex flex-col gap-y-2">
                                   {subCategory.children?.map((childCategory) => (
                                     <div
                                       key={childCategory.id}
@@ -248,7 +248,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
                 <Tab key="men" title={tNav('men')}>
                   <div className="mt-4">
                     {/* 男装类别逻辑与女装类似 */}
-                    <div className="space-y-2">
+                    <div className="flex flex-col gap-y-2">
                       {categories.map((category) => (
                         <div key={category.id} className="flex items-center gap-2">
                           <Checkbox
@@ -280,7 +280,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
                                   </div>
                                 }
                               >
-                                <div className="ml-6 space-y-2">
+                                <div className="ml-6 flex flex-col gap-y-2">
                                   {subCategory.children?.map((childCategory) => (
                                     <div
                                       key={childCategory.id}
@@ -331,7 +331,7 @@ export const MobileFilters: React.FC<MobileFiltersProps> = ({
           {/* 价格筛选部分 */}
           {activeSection === 'price' && (
             <div className="p-4 border-b border-border-primary-light dark:border-border-primary-dark">
-              <div className="space-y-2">
+              <div className="flex flex-col gap-y-2">
                 {priceRanges.map((range) => (
                   <div key={range.id} className="flex items-center gap-2 p-2">
                     <Checkbox

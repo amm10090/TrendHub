@@ -11,7 +11,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "dependencies": {
-    "@heroui/react": "^2.7.2",
+    "@heroui/react": "^2.7.5",
     "@trend-hub/types": "workspace:*",
     "@trend-hub/ui": "workspace:*",
     "@trend-hub/utils": "workspace:*",

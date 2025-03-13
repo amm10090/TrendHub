@@ -25,7 +25,7 @@ export function ProductAccordion({ product }: ProductAccordionProps) {
         <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
           <p className="mb-4">{product.description}</p>
           {product.details && product.details.length > 0 && (
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc pl-5 flex flex-col gap-y-1">
               {product.details.map((detail, index) => (
                 <li key={index}>{detail}</li>
               ))}
@@ -49,7 +49,7 @@ export function ProductAccordion({ product }: ProductAccordionProps) {
       content: (
         <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
           {product.careInstructions && product.careInstructions.length > 0 ? (
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc pl-5 flex flex-col gap-y-1">
               {product.careInstructions.map((instruction, index) => (
                 <li key={index}>{instruction}</li>
               ))}

@@ -364,7 +364,7 @@ export const Navbar = () => {
                             </h3>
                           </div>
                           <div className="grid grid-cols-2 gap-x-16 gap-y-3">
-                            <div className="space-y-3">
+                            <div className="flex flex-col gap-y-3">
                               {getBrandItems().firstRowBrands.map((brand) => (
                                 <Link
                                   key={brand.href}
@@ -379,7 +379,7 @@ export const Navbar = () => {
                                 </Link>
                               ))}
                             </div>
-                            <div className="space-y-3">
+                            <div className="flex flex-col gap-y-3">
                               {getBrandItems().secondRowBrands.map((brand) => (
                                 <Link
                                   key={brand.href}

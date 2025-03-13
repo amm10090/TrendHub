@@ -45,19 +45,19 @@ export default function DisclaimerPage() {
   };
 
   const renderContent = (section: Section) => (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-y-4">
       <p className="text-text-primary-light dark:text-text-primary-dark">
         {t(`sections.${section}.content`)}
       </p>
       {section !== 'contact' && getItems(section).length > 0 && (
-        <ul className="list-disc pl-6 space-y-2 text-text-primary-light dark:text-text-primary-dark">
+        <ul className="list-disc pl-6 flex flex-col gap-y-2 text-text-primary-light dark:text-text-primary-dark">
           {getItems(section).map((item, index) => (
             <li key={index}>{item}</li>
           ))}
         </ul>
       )}
       {section === 'contact' && (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center flex flex-row gap-x-2">
           <Mail className="w-4 h-4 text-text-primary-light dark:text-text-primary-dark" />
           <Link
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
@@ -71,12 +71,12 @@ export default function DisclaimerPage() {
   );
 
   const renderSkeleton = () => (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-y-6">
       <Skeleton className="h-8 w-3/4 rounded-lg" />
       <Skeleton className="h-4 w-full rounded-lg" />
       <Skeleton className="h-4 w-full rounded-lg" />
       <Skeleton className="h-4 w-5/6 rounded-lg" />
-      <div className="space-y-2">
+      <div className="flex flex-col gap-y-2">
         <Skeleton className="h-3 w-full rounded-lg" />
         <Skeleton className="h-3 w-full rounded-lg" />
         <Skeleton className="h-3 w-4/5 rounded-lg" />
@@ -94,7 +94,7 @@ export default function DisclaimerPage() {
           {t('last_updated')}
         </p>
 
-        <div className="space-y-6">
+        <div className="flex flex-col gap-y-6">
           {sections.map((section) => (
             <Card
               key={section}

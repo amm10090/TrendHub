@@ -48,7 +48,7 @@ export const Footer: React.FC = () => {
             <h3 className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark uppercase tracking-wider mb-4">
               {t('company.title')}
             </h3>
-            <ul className="space-y-2">
+            <ul className="flex flex-col gap-y-2">
               {footerLinks.customerService.map((link) => (
                 <li key={link.name}>
                   <HeroLink
@@ -65,7 +65,7 @@ export const Footer: React.FC = () => {
             <h3 className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark uppercase tracking-wider mb-4">
               {t('help.title')}
             </h3>
-            <ul className="space-y-2">
+            <ul className="flex flex-col gap-y-2">
               {footerLinks.aboutUs.map((link) => (
                 <li key={link.name}>
                   <HeroLink
@@ -100,7 +100,7 @@ export const Footer: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="flex flex-col gap-y-6">
                 <div className="flex flex-wrap gap-4">
                   {footerLinks.socialEn.map((platform) => (
                     <HeroLink

@@ -223,7 +223,7 @@ export function ProductModal({
             <CardBody className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* 产品图片轮播区域 - Lyst风格 */}
-                <div className="space-y-4">
+                <div className="flex flex-col gap-y-4">
                   <div className="aspect-[3/4] relative overflow-hidden rounded-md pl-3">
                     {/* 主图片 */}
                     <Image
@@ -263,7 +263,7 @@ export function ProductModal({
 
                     {/* 底部指示器 - 长条短条设计（黑白色自适应） */}
                     {allImages.length > 1 && (
-                      <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10">
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center flex flex-row gap-x-2 z-10">
                         {allImages.map((_, index) => (
                           <Button
                             isIconOnly
@@ -291,7 +291,7 @@ export function ProductModal({
 
                   {/* 缩略图导航 - Lyst风格 */}
                   {allImages.length > 1 && (
-                    <div className="flex overflow-x-auto space-x-2 pb-1 scrollbar-hide">
+                    <div className="flex overflow-x-auto flex flex-row gap-x-2 pb-1 scrollbar-hide">
                       {allImages.map((image, index) => (
                         <Button
                           key={index}
@@ -322,7 +322,7 @@ export function ProductModal({
                 <Card className="border-none shadow-sm dark:shadow-md">
                   <CardHeader className="pb-0 pt-4 px-4 flex flex-col gap-1">
                     <div className="flex items-baseline justify-between">
-                      <div className="space-y-1">
+                      <div className="flex flex-col gap-y-1">
                         <p
                           className={`text-xl font-medium ${product.discount ? 'text-red-600 dark:text-red-400' : 'text-text-primary-light dark:text-text-primary-dark'}`}
                         >
@@ -461,7 +461,7 @@ export function ProductModal({
                             }
                             title={t('accordion.details')}
                           >
-                            <ul className="list-disc pl-5 space-y-1">
+                            <ul className="list-disc pl-5 flex flex-col gap-y-1">
                               {product.details.map((detail, index) => (
                                 <li key={index}>{detail}</li>
                               ))}
@@ -523,7 +523,7 @@ export function ProductModal({
                             }
                             title={t('accordion.careInstructions')}
                           >
-                            <ul className="list-disc pl-5 space-y-1">
+                            <ul className="list-disc pl-5 flex flex-col gap-y-1">
                               {product.careInstructions.map((instruction, index) => (
                                 <li key={index}>{instruction}</li>
                               ))}

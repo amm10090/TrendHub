@@ -270,7 +270,7 @@ export function ProductGrid() {
         <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-text-primary-light dark:text-text-primary-dark">
           {t('nav.newArrivals')}
         </h2>
-        <div className="space-y-12">
+        <div className="flex flex-col gap-y-12">
           <div className="relative px-0 sm:px-2 md:px-4">
             <Slider {...settings} className="product-slider">
               {products.map((product) => (
@@ -323,11 +323,11 @@ export function ProductGrid() {
                         />
                       </div>
                     </div>
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-4 flex flex-col gap-y-2">
                       <h3 className="text-[11px] sm:text-sm font-semibold tracking-wide text-text-secondary-light dark:text-text-secondary-dark">
                         {product.brand}
                       </h3>
-                      <div className="block space-y-1">
+                      <div className="block flex flex-col gap-y-1">
                         <p className="text-[11px] sm:text-sm font-normal text-text-primary-light dark:text-text-primary-dark line-clamp-2 leading-relaxed">
                           {product.name}
                         </p>

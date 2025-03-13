@@ -54,7 +54,7 @@ export const IntroductionSection: React.FC = () => {
 
                   {/* Features List */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-left mb-12">
-                    <div className="space-y-3">
+                    <div className="flex flex-col gap-y-3">
                       {t('features.left')
                         .split('\\n')
                         .map((item, index) => (
@@ -66,7 +66,7 @@ export const IntroductionSection: React.FC = () => {
                           </p>
                         ))}
                     </div>
-                    <div className="space-y-3">
+                    <div className="flex flex-col gap-y-3">
                       {t('features.right')
                         .split('\\n')
                         .map((item, index) => (

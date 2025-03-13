@@ -179,6 +179,11 @@
       "new": {
         "title": "New Arrivals",
         "description": "Browse the latest brands and items to stay ahead of fashion trends"
+      },
+      "belts": {
+        "title": "Accentuate your looks with logo belts",
+        "subtitle": "Discover our selection of designer belts",
+        "label": "COME FULL CIRCLE"
       }
     },
     "shining_brands": {

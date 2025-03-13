@@ -181,6 +181,11 @@
       "new": {
         "title": "全新上架",
         "description": "浏览最新入驻品牌与单品，走在时尚前沿"
+      },
+      "belts": {
+        "title": "点亮造型，尽显腰带魅力",
+        "subtitle": "探索精选设计师腰带系列",
+        "label": "完美圆环"
       }
     },
     "shining_brands": {

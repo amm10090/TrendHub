@@ -49,11 +49,7 @@ export default function DebugPage() {
 
   // 测试语言切换功能
   const handleLanguageChange = (newLocale: string) => {
-    try {
-      window.location.href = `/${newLocale}/debug`;
-    } catch (error) {
-      console.error('Error changing locale:', error);
-    }
+    window.location.href = `/${newLocale}/debug`;
   };
 
   return (

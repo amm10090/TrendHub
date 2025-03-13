@@ -31,7 +31,7 @@ const CategoryNavigation: React.FC<{
   selectedCategory: string[];
   setSelectedCategory: (categoryId: string, level: number) => void;
   isOpen: boolean;
-  categoryButtonRef: React.RefObject<HTMLButtonElement>;
+  categoryButtonRef: React.RefObject<HTMLButtonElement | null>;
 }> = ({ categories = sampleCategories, selectedCategory, setSelectedCategory, isOpen }) => {
   const tNav = useTranslations('nav');
   const [activeGender, setActiveGender] = useState<string>(

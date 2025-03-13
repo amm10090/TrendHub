@@ -178,7 +178,7 @@ const products: Product[] = [
   },
 ];
 
-export const ProductGrid: React.FC = () => {
+export function ProductGrid() {
   const [mounted, setMounted] = useState(false);
   const t = useTranslations();
   const { openProductModal } = useProductModal();
@@ -435,4 +435,4 @@ export const ProductGrid: React.FC = () => {
       </div>
     </section>
   );
-};
+}

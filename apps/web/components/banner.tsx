@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-export const Banner: React.FC = () => {
+export function Banner() {
   const t = useTranslations('banner');
 
   return (
@@ -77,4 +77,4 @@ export const Banner: React.FC = () => {
       </div>
     </div>
   );
-};
+}

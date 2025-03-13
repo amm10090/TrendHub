@@ -1,11 +1,10 @@
 'use client';
 
 import { Select, SelectItem } from '@heroui/react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import React, { useCallback } from 'react';
+import React from 'react';
 import ReactCountryFlag from 'react-country-flag';
-
-import { usePathname } from '@/i18n';
 
 const languageOptions = {
   zh: {
@@ -28,38 +27,18 @@ interface LanguageSwitchProps {
 
 export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = false }) => {
   const locale = useLocale();
+  const router = useRouter();
   const pathname = usePathname();
 
-  // 使用简单的a标签进行语言切换，避免客户端导航问题
-  const getLanguageUrl = useCallback(
-    (newLocale: string) => {
-      if (!pathname) return '#';
+  const handleLocaleChange = (value: string) => {
+    if (!pathname) {
+      return;
+    }
+    const segments = pathname.split('/');
 
-      // 从当前路径中提取非语言部分
-      const pathSegments = pathname.split('/');
-
-      pathSegments.shift(); // 移除第一个空字符串
-
-      if (pathSegments.length > 0) {
-        pathSegments[0] = newLocale; // 替换语言代码
-      } else {
-        pathSegments.push(newLocale); // 添加语言代码
-      }
-
-      return `/${pathSegments.join('/')}`;
-    },
-    [pathname]
-  );
-
-  const handleLocaleChange = useCallback(
-    (newLocale: string) => {
-      if (newLocale === locale) return;
-
-      // 使用硬导航方式切换语言，避免客户端导航问题
-      window.location.href = getLanguageUrl(newLocale);
-    },
-    [locale, getLanguageUrl]
-  );
+    segments[1] = value;
+    router.push(segments.join('/'));
+  };
 
   const currentOption = languageOptions[locale as keyof typeof languageOptions];
 
@@ -113,16 +92,12 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
 
           handleLocaleChange(value);
         }}
-        disallowEmptySelection
       >
         {Object.entries(languageOptions).map(([key, { label, countryCode }]) => (
           <SelectItem
             key={key}
             className="text-small text-text-primary-light dark:text-text-primary-dark data-[hover=true]:bg-hover-bg-light dark:data-[hover=true]:bg-hover-bg-dark"
             textValue={label}
-            onPress={() => {
-              handleLocaleChange(key);
-            }}
           >
             <div className="flex items-center gap-2">
               <ReactCountryFlag
@@ -139,20 +114,6 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
           </SelectItem>
         ))}
       </Select>
-
-      {/* 添加备用链接，确保在组件失效时仍能切换语言 */}
-      <div className="hidden">
-        {Object.keys(languageOptions).map((lang) => (
-          <a
-            key={lang}
-            href={getLanguageUrl(lang)}
-            className="hidden"
-            data-testid={`fallback-lang-${lang}`}
-          >
-            {lang}
-          </a>
-        ))}
-      </div>
     </div>
   );
 };

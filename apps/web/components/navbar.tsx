@@ -6,12 +6,11 @@ import { Input } from '@heroui/input';
 import { Link } from '@heroui/link';
 import { Navbar as HeroUINavbar, NavbarContent, NavbarBrand, NavbarItem } from '@heroui/navbar';
 import { Tabs, Tab } from '@heroui/react';
-import { PressEvent } from '@react-types/shared';
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { useRouter, usePathname } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 import { LanguageSwitch } from './language-switch';
@@ -209,51 +208,83 @@ export const Navbar = () => {
     },
   ];
 
-  const handleItemPress = (item: MenuItem, e?: React.MouseEvent | PressEvent) => {
-    if (e && 'preventDefault' in e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
+  const handleItemClick = (item: MenuItem, e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
     if (item.items) {
       setCurrentSubmenu({
         name: item.name,
         items: item.items,
       });
     } else {
-      window.location.href = item.href;
+      router.push(item.href);
       setIsMenuOpen(false);
     }
   };
 
-  const handleBackPress = (e?: React.MouseEvent | PressEvent) => {
-    if (e && 'preventDefault' in e) {
+  const handleItemKeyDown = (item: MenuItem, e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Enter' || e.key === 'Space') {
       e.preventDefault();
-      e.stopPropagation();
+      if (item.items) {
+        setCurrentSubmenu({
+          name: item.name,
+          items: item.items,
+        });
+      } else {
+        router.push(item.href);
+        setIsMenuOpen(false);
+      }
     }
+  };
+
+  const handleBackClick = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
     setCurrentSubmenu(null);
   };
 
-  const handleSubItemPress = (subItem: SubMenuItem, e?: React.MouseEvent | PressEvent) => {
-    if (e && 'preventDefault' in e) {
+  const handleBackKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Enter' || e.key === 'Space') {
       e.preventDefault();
-      e.stopPropagation();
+      setCurrentSubmenu(null);
     }
-    window.location.href = subItem.href;
+  };
+
+  const handleSubItemClick = (subItem: SubMenuItem, e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    router.push(subItem.href);
     setIsMenuOpen(false);
+  };
+
+  const handleSubItemKeyDown = (subItem: SubMenuItem, e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Enter' || e.key === 'Space') {
+      e.preventDefault();
+      router.push(subItem.href);
+      setIsMenuOpen(false);
+    }
+  };
+
+  const handleAlphabetClick = (item: AlphabetItem, e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    router.push(item.href);
+    setIsMenuOpen(false);
+  };
+
+  const handleAlphabetKeyDown = (item: AlphabetItem, e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Enter' || e.key === 'Space') {
+      e.preventDefault();
+      router.push(item.href);
+      setIsMenuOpen(false);
+    }
   };
 
   const renderAlphabetItem = (item: AlphabetItem) => (
     <Link
       key={item.href}
-      className="flex items-center justify-center w-8 h-8 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm rounded-md"
+      className="flex items-center justify-center w-8 h-8 text-[#1A1A1A] dark:text-white hover:bg-[#F5F5F2] dark:hover:bg-gray-800 transition-colors text-sm"
       href={item.href}
       role="button"
       tabIndex={0}
-      onPress={() => {
-        router.replace(item.href);
-        setIsMenuOpen(false);
-      }}
+      onClick={(e) => handleAlphabetClick(item, e)}
+      onKeyDown={(e) => handleAlphabetKeyDown(item, e)}
     >
       {item.letter}
     </Link>
@@ -293,47 +324,42 @@ export const Navbar = () => {
         isBordered
         classNames={{
           wrapper: 'px-4 max-w-full h-16',
-          base: 'bg-white dark:bg-gray-900 text-black dark:text-white border-gray-200 dark:border-gray-800',
+          base: 'bg-bg-secondary-light dark:bg-bg-secondary-dark text-text-primary-light dark:text-text-primary-dark border-border-primary-light dark:border-border-primary-dark',
         }}
       >
         <NavbarContent className="sm:hidden">
-          <Menu
-            className="h-6 w-6 cursor-pointer"
-            onClick={() => {
-              setIsMenuOpen(true);
-            }}
-          />
+          <Menu className="h-6 w-6 cursor-pointer" onPointerDown={() => setIsMenuOpen(true)} />
         </NavbarContent>
 
         <NavbarContent>
           <NavbarBrand>
-            <Link className="font-bold text-black dark:text-white text-xl" href="/">
+            <Link className="font-bold text-inherit" href="/">
               TrendHub
             </Link>
           </NavbarBrand>
         </NavbarContent>
 
-        <NavbarContent className="hidden sm:flex gap-2" justify="center">
+        <NavbarContent className="hidden sm:flex gap-8" justify="center">
           {navigationItems.map((item) => (
             <NavbarItem key={item.href} className="group relative">
-              <Button
-                className="text-sm text-gray-800 dark:text-gray-200 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors font-medium"
+              <Link
+                className="text-sm text-text-primary-light dark:text-text-primary-dark py-2 hover:opacity-70 transition-opacity"
                 href={item.href}
                 role="button"
                 tabIndex={0}
-                onPress={(e) => handleItemPress(item, e)}
-                variant="light"
+                onClick={(e) => handleItemClick(item, e)}
+                onKeyDown={(e) => handleItemKeyDown(item, e)}
               >
                 {item.name}
-              </Button>
+              </Link>
               {item.items && item.isBrands ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-white dark:bg-gray-900 shadow-lg border-t border-gray-200 dark:border-gray-800">
-                  <div className="w-full bg-white dark:bg-gray-900">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-sm border-b border-border-primary-light dark:border-border-primary-dark">
+                  <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
                       <div className="flex gap-16">
-                        <div className="w-3/4 pr-8 border-r border-gray-200 dark:border-gray-800">
+                        <div className="w-3/4 pr-8 border-r border-border-primary-light dark:border-border-primary-dark">
                           <div className="mb-6">
-                            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                            <h3 className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
                               {t('popular_brands')}
                             </h3>
                           </div>
@@ -342,11 +368,12 @@ export const Navbar = () => {
                               {getBrandItems().firstRowBrands.map((brand) => (
                                 <Link
                                   key={brand.href}
-                                  className="block text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white transition-all duration-200 text-sm hover:translate-x-1 p-2 rounded whitespace-nowrap"
+                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
                                   href={brand.href}
                                   role="button"
                                   tabIndex={0}
-                                  onPress={(e) => handleItemPress(item, e)}
+                                  onClick={(e) => handleItemClick(item, e)}
+                                  onKeyDown={(e) => handleItemKeyDown(item, e)}
                                 >
                                   {brand.name}
                                 </Link>
@@ -356,21 +383,23 @@ export const Navbar = () => {
                               {getBrandItems().secondRowBrands.map((brand) => (
                                 <Link
                                   key={brand.href}
-                                  className="block text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white transition-all duration-200 text-sm hover:translate-x-1 p-2 rounded whitespace-nowrap"
+                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap"
                                   href={brand.href}
                                   role="button"
                                   tabIndex={0}
-                                  onPress={(e) => handleItemPress(item, e)}
+                                  onClick={(e) => handleItemClick(item, e)}
+                                  onKeyDown={(e) => handleItemKeyDown(item, e)}
                                 >
                                   {brand.name}
                                 </Link>
                               ))}
                               <Link
-                                className="block text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white transition-all duration-200 text-sm font-medium p-2 rounded whitespace-nowrap underline underline-offset-4"
+                                className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm font-medium hover:shadow-md hover:translate-y-[-2px] p-2 rounded whitespace-nowrap underline underline-offset-4"
                                 href={getBrandItems().viewAll.href}
                                 role="button"
                                 tabIndex={0}
-                                onPress={(e) => handleItemPress(item, e)}
+                                onClick={(e) => handleItemClick(item, e)}
+                                onKeyDown={(e) => handleItemKeyDown(item, e)}
                               >
                                 {getBrandItems().viewAll.name}
                               </Link>
@@ -379,7 +408,7 @@ export const Navbar = () => {
                         </div>
                         <div className="w-1/4">
                           <div className="mb-6">
-                            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                            <h3 className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
                               {t('brands_a_z')}
                             </h3>
                           </div>
@@ -392,18 +421,19 @@ export const Navbar = () => {
                   </div>
                 </div>
               ) : item.items ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-white dark:bg-gray-900 shadow-lg border-t border-gray-200 dark:border-gray-800">
-                  <div className="w-full bg-white dark:bg-gray-900">
+                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-sm border-b border-border-primary-light dark:border-border-primary-dark">
+                  <div className="w-full">
                     <div className="container mx-auto px-4 py-8">
                       <div className="grid grid-cols-4 gap-8">
                         {item.items.map((subItem) => (
                           <Link
                             key={subItem.href}
-                            className="block py-3 px-4 border-b border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-base"
+                            className="block py-3 px-4 border-b border-border-primary-light dark:border-border-primary-dark text-text-secondary-light dark:text-text-secondary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors text-base"
                             href={subItem.href}
                             role="button"
                             tabIndex={0}
-                            onPress={(e) => handleSubItemPress(subItem, e)}
+                            onClick={(e) => handleSubItemClick(subItem, e)}
+                            onKeyDown={(e) => handleSubItemKeyDown(subItem, e)}
                           >
                             {subItem.name}
                           </Link>
@@ -420,31 +450,31 @@ export const Navbar = () => {
         <NavbarContent justify="end">
           <div className="flex items-center gap-2">
             {isSearchOpen ? (
-              <div className="absolute inset-0 px-4 flex items-center bg-white dark:bg-gray-900">
+              <div className="absolute inset-0 px-4 flex items-center bg-bg-secondary-light dark:bg-bg-secondary-dark">
                 <Input
                   aria-label={t('search.label')}
                   classNames={{
                     base: 'w-full',
-                    input: 'text-small text-gray-800 dark:text-gray-200',
+                    input: 'text-small text-text-primary-light dark:text-text-primary-dark',
                     inputWrapper:
-                      'h-10 bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+                      'h-10 bg-bg-tertiary-light dark:bg-bg-tertiary-dark border-border-primary-light dark:border-border-primary-dark',
                   }}
                   endContent={
                     <Button
                       isIconOnly
                       aria-label={t('search.close')}
-                      className="text-gray-800 dark:text-gray-200"
+                      className="text-text-primary-light dark:text-text-primary-dark"
                       size="sm"
                       variant="light"
-                      onPress={() => {
-                        setIsSearchOpen(false);
-                      }}
+                      onPointerDown={() => setIsSearchOpen(false)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   }
                   placeholder={t('search.placeholder')}
-                  startContent={<Search className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
+                  startContent={
+                    <Search className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />
+                  }
                   type="search"
                 />
               </div>
@@ -455,9 +485,7 @@ export const Navbar = () => {
                     isIconOnly
                     aria-label={t('search.label')}
                     variant="light"
-                    onPress={() => {
-                      setIsSearchOpen(true);
-                    }}
+                    onPointerDown={() => setIsSearchOpen(true)}
                   >
                     <Search className="h-5 w-5" />
                   </Button>
@@ -484,7 +512,7 @@ export const Navbar = () => {
 
         <Drawer
           classNames={{
-            base: 'w-[85vw] max-w-[400px] bg-white dark:bg-gray-900',
+            base: 'w-[85vw] max-w-[400px] bg-bg-secondary-light dark:bg-bg-secondary-dark',
             wrapper: 'bg-black/20',
           }}
           hideCloseButton={true}
@@ -494,15 +522,15 @@ export const Navbar = () => {
         >
           <DrawerContent>
             <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+              <div className="flex items-center justify-between p-4 border-b border-border-primary-light dark:border-border-primary-dark">
                 <Tabs
                   fullWidth
                   classNames={{
                     base: 'w-full',
                     tabList: 'gap-0',
-                    tab: 'h-11 data-[selected=true]:bg-black dark:data-[selected=true]:bg-white data-[selected=true]:text-white dark:data-[selected=true]:text-black data-[selected=false]:bg-gray-100 dark:data-[selected=false]:bg-gray-800 data-[selected=false]:text-gray-600 dark:data-[selected=false]:text-gray-400',
+                    tab: 'h-11 data-[selected=true]:bg-text-primary-light dark:data-[selected=true]:bg-text-primary-dark data-[selected=true]:text-bg-secondary-light dark:data-[selected=true]:text-bg-secondary-dark data-[selected=false]:bg-bg-tertiary-light dark:data-[selected=false]:bg-bg-tertiary-dark data-[selected=false]:text-text-secondary-light dark:data-[selected=false]:text-text-secondary-dark',
                     tabContent:
-                      'text-base font-normal group-data-[selected=true]:text-white dark:group-data-[selected=true]:text-black group-data-[selected=false]:text-gray-600 dark:group-data-[selected=false]:text-gray-400',
+                      'text-base font-normal group-data-[selected=true]:text-bg-secondary-light dark:group-data-[selected=true]:text-bg-secondary-dark group-data-[selected=false]:text-text-secondary-light dark:group-data-[selected=false]:text-text-secondary-dark',
                     cursor: 'hidden',
                   }}
                   selectedKey={activeCategory}
@@ -516,9 +544,7 @@ export const Navbar = () => {
                   isIconOnly
                   className="ml-4"
                   variant="light"
-                  onPress={() => {
-                    setIsMenuOpen(false);
-                  }}
+                  onPointerDown={() => setIsMenuOpen(false)}
                 >
                   <X className="h-6 w-6" />
                 </Button>
@@ -526,23 +552,26 @@ export const Navbar = () => {
               <div className="flex-1 overflow-auto">
                 {currentSubmenu ? (
                   <div>
-                    <Button
-                      className="flex items-center gap-2 p-4 border-b border-gray-200 dark:border-gray-800 cursor-pointer text-base text-gray-800 dark:text-gray-200 w-full justify-start"
-                      onPress={(e) => handleBackPress(e)}
-                      variant="light"
+                    <div
+                      className="flex items-center gap-2 p-4 border-b border-border-primary-light dark:border-border-primary-dark cursor-pointer text-base text-text-primary-light dark:text-text-primary-dark"
+                      role="button"
+                      tabIndex={0}
+                      onClick={handleBackClick}
+                      onKeyDown={handleBackKeyDown}
                     >
                       <span className="rotate-180">›</span>
                       {t('back')}
-                    </Button>
+                    </div>
                     <div>
                       {currentSubmenu.items.map((subItem: SubMenuItem) => (
                         <Link
                           key={subItem.href}
-                          className="block py-3 px-4 border-b border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-base"
+                          className="block py-3 px-4 border-b text-text-secondary-light dark:text-text-secondary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors text-base"
                           href={subItem.href}
                           role="button"
                           tabIndex={0}
-                          onPress={(e) => handleSubItemPress(subItem, e)}
+                          onClick={(e) => handleSubItemClick(subItem, e)}
+                          onKeyDown={(e) => handleSubItemKeyDown(subItem, e)}
                         >
                           {subItem.name}
                         </Link>
@@ -551,24 +580,26 @@ export const Navbar = () => {
                   </div>
                 ) : (
                   navigationItems.map((item) => (
-                    <Button
+                    <div
                       key={item.href}
-                      className="block py-3 px-4 border-b border-gray-200 dark:border-gray-800 text-base hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer text-gray-800 dark:text-gray-200 w-full justify-start"
-                      onPress={(e) => handleItemPress(item, e)}
-                      variant="light"
+                      className="block py-3 px-4 border-b border-border-primary-light dark:border-border-primary-dark text-base hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors cursor-pointer text-text-primary-light dark:text-text-primary-dark"
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => handleItemClick(item, e)}
+                      onKeyDown={(e) => handleItemKeyDown(item, e)}
                     >
                       <div className="flex items-center justify-between">
                         <span>{item.name}</span>
                         {item.items && <span>›</span>}
                       </div>
-                    </Button>
+                    </div>
                   ))
                 )}
               </div>
-              <div className="mt-auto border-t border-gray-200 dark:border-gray-800">
+              <div className="mt-auto border-t border-border-primary-light dark:border-border-primary-dark">
                 <div className="p-4">
                   <Button
-                    className="w-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 mb-4 text-base text-gray-800 dark:text-gray-200"
+                    className="w-full border border-text-primary-light dark:border-text-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark mb-4 text-base text-text-primary-light dark:text-text-primary-dark"
                     startContent={<Heart className="h-5 w-5" />}
                   >
                     {t('wishlist')}
@@ -583,28 +614,6 @@ export const Navbar = () => {
           </DrawerContent>
         </Drawer>
       </HeroUINavbar>
-
-      {/* 添加备用导航链接，确保在客户端导航失效时仍能正常工作 */}
-      <div className="hidden">
-        {navigationItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className="hidden"
-            data-testid={`fallback-nav-${item.name}`}
-          >
-            {item.name}
-          </a>
-        ))}
-
-        {/* 备用语言切换链接 */}
-        <a href="/zh" className="hidden" data-testid="fallback-lang-zh">
-          中文
-        </a>
-        <a href="/en" className="hidden" data-testid="fallback-lang-en">
-          English
-        </a>
-      </div>
     </>
   );
 };

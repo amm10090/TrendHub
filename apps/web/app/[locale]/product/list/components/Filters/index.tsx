@@ -1,5 +1,4 @@
 'use client';
-
 import {
   Button,
   Checkbox,
@@ -12,7 +11,8 @@ import {
 } from '@heroui/react';
 import { Check, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
+import * as React from 'react';
 
 import { FilterTag } from './FilterTag';
 import { MobileFilters } from './MobileFilters';

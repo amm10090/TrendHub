@@ -1,10 +1,10 @@
 'use client';
-
 import { Button } from '@heroui/button';
 import { Chip } from '@heroui/chip';
 import { Image } from '@heroui/image';
 import { Heart } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import * as React from 'react';
 import Slider from 'react-slick';
 import { useTranslations } from 'use-intl';
 

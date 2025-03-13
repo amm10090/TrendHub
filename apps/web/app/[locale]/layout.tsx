@@ -1,7 +1,8 @@
 import clsx from 'clsx';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
+import * as React from 'react';
 
 import { Providers } from '@/app/providers';
 import { Footer } from '@/components/footer';

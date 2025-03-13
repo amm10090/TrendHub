@@ -18,7 +18,7 @@ import {
   ChevronsRight,
   LucideProps,
 } from 'lucide-react';
-import React from 'react';
+import * as React from 'react';
 
 import { IconSvgProps } from '@/types';
 

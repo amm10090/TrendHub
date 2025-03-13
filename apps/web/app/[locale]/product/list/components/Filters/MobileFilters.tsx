@@ -13,7 +13,8 @@ import {
 } from '@heroui/react';
 import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import React, { useState } from 'react';
+import { useState } from 'react';
+import * as React from 'react';
 
 import { FilterTag } from './FilterTag';
 import { FilterCategory, FilterColor, FilterPriceRange, FilterSize, ActiveFilter } from './types';

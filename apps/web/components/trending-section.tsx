@@ -3,7 +3,7 @@
 import { Card, CardBody, CardFooter, Image, Link, Spacer } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import React from 'react';
+import * as React from 'react';
 
 interface TrendingCardProps {
   title: string;

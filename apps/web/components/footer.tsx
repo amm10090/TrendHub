@@ -2,7 +2,7 @@
 
 import { Divider, Image, Link as HeroLink } from '@heroui/react';
 import { Facebook, Instagram, Linkedin, Twitter, Youtube } from 'lucide-react';
-import React from 'react';
+import * as React from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { NewsletterSubscribe } from './NewsletterSubscribe';

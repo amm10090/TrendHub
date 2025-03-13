@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@heroui/react';
 import { Image } from '@heroui/react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import React from 'react';
 
 export function Banner() {
   const t = useTranslations('banner');

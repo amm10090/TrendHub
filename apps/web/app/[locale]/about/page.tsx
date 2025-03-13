@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Skeleton } from '@heroui/react';
+import { Button } from '@heroui/react';
+import { Skeleton } from '@heroui/skeleton';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -83,10 +84,10 @@ export default function AboutUs() {
               <div className="container mx-auto px-4">
                 <div className="max-w-5xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="relative aspect-[4/5] max-h-[480px]">
+                    <div className="relative aspect-4/5 max-h-[480px]">
                       <Skeleton className="w-full h-full rounded-lg" />
                     </div>
-                    <div className="relative aspect-[4/5] max-h-[480px]">
+                    <div className="relative aspect-4/5 max-h-[480px]">
                       <Skeleton className="w-full h-full rounded-lg" />
                     </div>
                   </div>
@@ -218,7 +219,7 @@ export default function AboutUs() {
             <section className="py-8">
               <div className="container mx-auto px-4">
                 <div className="max-w-6xl mx-auto">
-                  <div className="relative aspect-[21/9] max-h-[540px]">
+                  <div className="relative aspect-21/9 max-h-[540px]">
                     <Skeleton className="w-full h-full rounded-lg" />
                   </div>
                 </div>
@@ -401,10 +402,10 @@ export default function AboutUs() {
                     {t('sustainability.reports.title')}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="relative aspect-[3/4]">
+                    <div className="relative aspect-3/4">
                       <Skeleton className="w-full h-full rounded-lg" />
                     </div>
-                    <div className="relative aspect-[3/4]">
+                    <div className="relative aspect-3/4">
                       <Skeleton className="w-full h-full rounded-lg" />
                     </div>
                   </div>

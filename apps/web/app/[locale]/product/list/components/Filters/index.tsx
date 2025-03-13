@@ -1,5 +1,4 @@
 'use client';
-
 import {
   Button,
   Checkbox,
@@ -12,7 +11,8 @@ import {
 } from '@heroui/react';
 import { Check, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
+import * as React from 'react';
 
 import { FilterTag } from './FilterTag';
 import { MobileFilters } from './MobileFilters';
@@ -31,7 +31,7 @@ const CategoryNavigation: React.FC<{
   selectedCategory: string[];
   setSelectedCategory: (categoryId: string, level: number) => void;
   isOpen: boolean;
-  categoryButtonRef: React.RefObject<HTMLButtonElement>;
+  categoryButtonRef: React.RefObject<HTMLButtonElement | null>;
 }> = ({ categories = sampleCategories, selectedCategory, setSelectedCategory, isOpen }) => {
   const tNav = useTranslations('nav');
   const [activeGender, setActiveGender] = useState<string>(
@@ -132,7 +132,7 @@ const CategoryNavigation: React.FC<{
       className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[80vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
     >
       <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-(--breakpoint-xl) mx-auto px-4 sm:px-6 lg:px-8">
           {/* 类别标题和清除按钮 */}
           <div className="flex items-center justify-between py-3 border-b border-border-primary-light dark:border-border-primary-dark">
             <div className="flex items-center gap-3">
@@ -189,7 +189,7 @@ const CategoryNavigation: React.FC<{
               )}
 
               {/* 主分类列表 */}
-              <div className="space-y-1">
+              <div className="flex flex-col gap-y-1">
                 <button
                   className="w-full text-left px-3 py-2 text-sm hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-md transition-colors"
                   onClick={() => handleViewAll('main')}
@@ -231,7 +231,7 @@ const CategoryNavigation: React.FC<{
             {/* 右侧子分类列表 */}
             <div>
               {selectedMainCategory && (
-                <div className="space-y-1">
+                <div className="flex flex-col gap-y-1">
                   <button
                     className="w-full text-left px-3 py-2 text-sm hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-md transition-colors"
                     onClick={() => handleViewAll('sub')}
@@ -298,7 +298,7 @@ const SizeNavigation: React.FC<{
       className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[60vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
     >
       <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-(--breakpoint-xl) mx-auto px-4 sm:px-6 lg:px-8">
           {/* 尺寸标题和清除按钮 */}
           <div className="flex items-center justify-between py-3 border-b border-border-primary-light dark:border-border-primary-dark">
             <div className="flex items-center gap-3">
@@ -361,7 +361,7 @@ const PriceNavigation: React.FC<{
       className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[60vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
     >
       <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-(--breakpoint-xl) mx-auto px-4 sm:px-6 lg:px-8">
           {/* 价格标题和清除按钮 */}
           <div className="flex items-center justify-between py-3 border-b border-border-primary-light dark:border-border-primary-dark">
             <div className="flex items-center gap-3">
@@ -384,7 +384,7 @@ const PriceNavigation: React.FC<{
           </div>
 
           {/* 价格区间列表 */}
-          <div className="py-4 space-y-2 max-h-[40vh] overflow-y-auto">
+          <div className="py-4 flex flex-col gap-y-2 max-h-[40vh] overflow-y-auto">
             {priceRanges.map((range) => (
               <button
                 key={range.id}
@@ -442,7 +442,7 @@ const ColorNavigation: React.FC<{
       className={`w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[60vh] border-b border-border-primary-light dark:border-border-primary-dark' : 'max-h-0'}`}
     >
       <div className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-(--breakpoint-xl) mx-auto px-4 sm:px-6 lg:px-8">
           {/* 颜色标题和清除按钮 */}
           <div className="flex items-center justify-between py-3 border-b border-border-primary-light dark:border-border-primary-dark">
             <div className="flex items-center gap-3">
@@ -648,7 +648,7 @@ export const Filters: React.FC<FiltersProps> = ({
             >
               <span className="truncate">{t('filters.category')}</span>
               <ChevronDown
-                className={`h-4 w-4 flex-shrink-0 transition-transform ${
+                className={`h-4 w-4 shrink-0 transition-transform ${
                   activePanel === 'category' ? 'rotate-180' : ''
                 }`}
               />
@@ -663,7 +663,7 @@ export const Filters: React.FC<FiltersProps> = ({
             >
               <span className="truncate">{t('filters.size')}</span>
               <ChevronDown
-                className={`h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'size' ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 shrink-0 transition-transform ${activePanel === 'size' ? 'rotate-180' : ''}`}
               />
             </Button>
 
@@ -676,7 +676,7 @@ export const Filters: React.FC<FiltersProps> = ({
             >
               <span className="truncate">{t('filters.price')}</span>
               <ChevronDown
-                className={`h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'price' ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 shrink-0 transition-transform ${activePanel === 'price' ? 'rotate-180' : ''}`}
               />
             </Button>
 
@@ -689,7 +689,7 @@ export const Filters: React.FC<FiltersProps> = ({
             >
               <span className="truncate">{t('filters.color')}</span>
               <ChevronDown
-                className={`h-4 w-4 flex-shrink-0 transition-transform ${activePanel === 'color' ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 shrink-0 transition-transform ${activePanel === 'color' ? 'rotate-180' : ''}`}
               />
             </Button>
 
@@ -701,7 +701,7 @@ export const Filters: React.FC<FiltersProps> = ({
                 onPress={clearAllFilters}
               >
                 <span className="truncate">{t('filters.clearAll')}</span>
-                <X className="h-4 w-4 flex-shrink-0" />
+                <X className="h-4 w-4 shrink-0" />
               </Button>
             )}
           </div>
@@ -720,7 +720,7 @@ export const Filters: React.FC<FiltersProps> = ({
                   variant="light"
                 >
                   <span className="truncate">{t('filters.sort.title')}</span>
-                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                  <ChevronDown className="h-4 w-4 shrink-0" />
                 </Button>
               </DropdownTrigger>
               <DropdownMenu aria-label={t('filters.sort.title')} className="min-w-[200px]">
@@ -776,7 +776,7 @@ export const Filters: React.FC<FiltersProps> = ({
                   variant="light"
                 >
                   <span className="truncate">{t('filters.sort.title')}</span>
-                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                  <ChevronDown className="h-4 w-4 shrink-0" />
                 </Button>
               </DropdownTrigger>
               <DropdownMenu aria-label={t('filters.sort.title')} className="min-w-[200px]">

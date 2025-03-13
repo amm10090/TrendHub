@@ -49,11 +49,7 @@ export default function DebugPage() {
 
   // 测试语言切换功能
   const handleLanguageChange = (newLocale: string) => {
-    try {
-      window.location.href = `/${newLocale}/debug`;
-    } catch (error) {
-      console.error('Error changing locale:', error);
-    }
+    window.location.href = `/${newLocale}/debug`;
   };
 
   return (
@@ -77,13 +73,13 @@ export default function DebugPage() {
         <div className="flex gap-4">
           <button
             onClick={() => handleLanguageChange('zh')}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-4 py-2 bg-blue-500 text-white rounded-sm hover:bg-blue-600"
           >
             切换到中文
           </button>
           <button
             onClick={() => handleLanguageChange('en')}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-4 py-2 bg-blue-500 text-white rounded-sm hover:bg-blue-600"
           >
             Switch to English
           </button>
@@ -95,19 +91,19 @@ export default function DebugPage() {
         <div className="flex flex-wrap gap-4">
           <a
             href="/"
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-600"
           >
             首页 (客户端导航)
           </a>
           <a
             href="/women"
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-600"
           >
             女装 (客户端导航)
           </a>
           <a
             href="/men"
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-600"
           >
             男装 (客户端导航)
           </a>
@@ -115,7 +111,7 @@ export default function DebugPage() {
             onClick={() => {
               window.location.href = '/';
             }}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            className="px-4 py-2 bg-green-500 text-white rounded-sm hover:bg-green-600"
           >
             首页 (硬导航)
           </button>
@@ -123,7 +119,7 @@ export default function DebugPage() {
             onClick={() => {
               window.location.href = '/women';
             }}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            className="px-4 py-2 bg-green-500 text-white rounded-sm hover:bg-green-600"
           >
             女装 (硬导航)
           </button>
@@ -131,7 +127,7 @@ export default function DebugPage() {
             onClick={() => {
               window.location.href = '/men';
             }}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            className="px-4 py-2 bg-green-500 text-white rounded-sm hover:bg-green-600"
           >
             男装 (硬导航)
           </button>

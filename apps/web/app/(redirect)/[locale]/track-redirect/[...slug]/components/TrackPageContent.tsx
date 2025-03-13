@@ -1,7 +1,6 @@
 'use client';
 
-import { Image } from '@heroui/react';
-import dynamic from 'next/dynamic';
+import { Image, Spinner, Progress, Button } from '@heroui/react';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'use-intl';
@@ -9,11 +8,6 @@ import { useTranslations } from 'use-intl';
 import { isFeatureEnabled } from '@/lib/dev-config';
 import { products } from '@/lib/mock-data';
 import { ProductDetail } from '@/types/product';
-
-// 动态导入组件以避免SSR问题
-const Spinner = dynamic(() => import('@heroui/react').then((mod) => mod.Spinner), { ssr: false });
-const Progress = dynamic(() => import('@heroui/react').then((mod) => mod.Progress), { ssr: false });
-const Button = dynamic(() => import('@heroui/react').then((mod) => mod.Button), { ssr: false });
 
 // 定义组件属性类型
 interface TrackPageContentProps {
@@ -121,7 +115,7 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black">
-        <Spinner color="primary" size="lg" />
+        <Spinner variant="spinner" size="lg" color="primary" />
       </div>
     );
   }
@@ -160,7 +154,7 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
             classNames={{
               base: 'max-w-md mx-auto',
               track: 'drop-shadow-md border border-default',
-              indicator: 'bg-gradient-to-r from-primary to-primary-400',
+              indicator: 'bg-linear-to-r from-primary to-primary-400',
             }}
             color="primary"
             isStriped={true}
@@ -190,7 +184,7 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
         {/* 商品信息 - 小号悬浮于底部 */}
         {product && (
           <div className="fixed bottom-6 right-6 flex items-center gap-3 bg-white dark:bg-gray-900 shadow-lg rounded-lg p-3 max-w-xs border border-gray-100 dark:border-gray-800">
-            <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+            <div className="w-12 h-12 rounded-sm overflow-hidden shrink-0">
               <Image
                 alt={product.name}
                 className="w-full h-full object-cover"

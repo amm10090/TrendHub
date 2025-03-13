@@ -87,16 +87,16 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         <Slider {...settings} className="product-slider">
           {products.map((product) => (
             <div key={product.id} className="px-2 sm:px-3 md:px-4">
-              <div className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-sm dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+              <div className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-xs dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
                 {product.isNew && (
-                  <div className="absolute top-5 left-5 z-20 bg-bg-primary-light dark:bg-bg-tertiary-dark backdrop-blur-sm dark:backdrop-blur-md shadow-sm px-2 py-1 rounded-md">
+                  <div className="absolute top-5 left-5 z-20 bg-bg-primary-light dark:bg-bg-tertiary-dark backdrop-blur-xs dark:backdrop-blur-md shadow-xs px-2 py-1 rounded-md">
                     <span className="text-[10px] leading-none sm:text-xs font-medium text-text-primary-light dark:text-text-primary-dark">
                       {t('tags.new')}
                     </span>
                   </div>
                 )}
                 {product.discount && product.discount > 0 && (
-                  <div className="absolute top-5 left-5 z-20 bg-red-600 dark:bg-red-700 backdrop-blur-sm dark:backdrop-blur-md shadow-sm px-2 py-1 rounded-md">
+                  <div className="absolute top-5 left-5 z-20 bg-red-600 dark:bg-red-700 backdrop-blur-xs dark:backdrop-blur-md shadow-xs px-2 py-1 rounded-md">
                     <span className="text-[10px] leading-none sm:text-xs font-medium text-white dark:text-white">
                       -{product.discount}%
                     </span>
@@ -108,7 +108,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                     aria-label={
                       favorites[product.id] ? t('removeFromWishlist') : t('addToWishlist')
                     }
-                    className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-sm shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
+                    className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-xs shadow-xs p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
                     variant="flat"
                     onPress={() => toggleFavorite(product.id)}
                   >
@@ -130,11 +130,11 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                     </div>
                   </Link>
                 </div>
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 flex flex-col gap-y-2">
                   <h3 className="text-[11px] sm:text-sm font-semibold tracking-wide text-text-secondary-light dark:text-text-secondary-dark">
                     {product.brand}
                   </h3>
-                  <Link className="block space-y-1" href={`/product/${product.id}`}>
+                  <Link className="block flex flex-col gap-y-1" href={`/product/${product.id}`}>
                     <p className="text-[11px] sm:text-sm font-normal text-text-primary-light dark:text-text-primary-dark line-clamp-2 leading-relaxed">
                       {product.name}
                     </p>

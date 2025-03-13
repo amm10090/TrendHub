@@ -1,11 +1,11 @@
 'use client';
 
-import { Select, SelectItem } from '@heroui/react';
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from '@heroui/react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import React, { useCallback } from 'react';
+import * as React from 'react';
 import ReactCountryFlag from 'react-country-flag';
-
-import { usePathname } from '@/i18n';
+import { ChevronDown } from 'lucide-react';
 
 const languageOptions = {
   zh: {
@@ -28,40 +28,24 @@ interface LanguageSwitchProps {
 
 export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = false }) => {
   const locale = useLocale();
+  const router = useRouter();
   const pathname = usePathname();
 
-  // 使用简单的a标签进行语言切换，避免客户端导航问题
-  const getLanguageUrl = useCallback(
-    (newLocale: string) => {
-      if (!pathname) return '#';
+  const handleLocaleChange = (value: string) => {
+    if (!pathname) {
+      return;
+    }
+    const segments = pathname.split('/');
 
-      // 从当前路径中提取非语言部分
-      const pathSegments = pathname.split('/');
-
-      pathSegments.shift(); // 移除第一个空字符串
-
-      if (pathSegments.length > 0) {
-        pathSegments[0] = newLocale; // 替换语言代码
-      } else {
-        pathSegments.push(newLocale); // 添加语言代码
-      }
-
-      return `/${pathSegments.join('/')}`;
-    },
-    [pathname]
-  );
-
-  const handleLocaleChange = useCallback(
-    (newLocale: string) => {
-      if (newLocale === locale) return;
-
-      // 使用硬导航方式切换语言，避免客户端导航问题
-      window.location.href = getLanguageUrl(newLocale);
-    },
-    [locale, getLanguageUrl]
-  );
+    segments[1] = value;
+    router.push(segments.join('/'));
+  };
 
   const currentOption = languageOptions[locale as keyof typeof languageOptions];
+
+  if (!currentOption) {
+    return null;
+  }
 
   return (
     <div
@@ -72,87 +56,70 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ isSearchOpen = f
         transform: isSearchOpen ? 'translateX(-20px)' : 'translateX(0)',
       }}
     >
-      <Select
-        aria-label={currentOption?.ariaLabel}
-        classNames={{
-          trigger:
-            'min-h-8 h-8 bg-transparent text-text-primary-light dark:text-text-primary-dark data-[hover=true]:bg-hover-bg-light dark:data-[hover=true]:bg-hover-bg-dark rounded-lg px-2 py-0.5',
-          value: 'text-small text-text-primary-light dark:text-text-primary-dark font-medium',
-          base: 'min-w-[140px]',
-          listbox:
-            'min-w-[140px] bg-bg-secondary-light dark:bg-bg-secondary-dark text-text-primary-light dark:text-text-primary-dark border border-border-primary-light dark:border-border-primary-dark',
-          listboxWrapper: 'rounded-lg',
-          innerWrapper: 'gap-1',
-        }}
-        renderValue={(items) => {
-          const item = items[0];
-          const option = languageOptions[item?.key as keyof typeof languageOptions];
-
-          return (
+      <Dropdown>
+        <DropdownTrigger>
+          <Button
+            aria-label={currentOption.ariaLabel}
+            className="min-h-8 h-8 bg-transparent text-text-primary-light dark:text-text-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark rounded-lg px-3 py-0.5 min-w-[140px] transition-all duration-200 border border-transparent hover:border-border-primary-light dark:hover:border-border-primary-dark"
+            endContent={
+              <ChevronDown className="h-3.5 w-3.5 text-text-secondary-light dark:text-text-secondary-dark transition-transform duration-200 group-data-[open=true]:rotate-180" />
+            }
+            size="sm"
+            variant="flat"
+          >
             <div className="flex items-center gap-2">
               <ReactCountryFlag
                 svg
-                countryCode={option?.countryCode || ''}
+                countryCode={currentOption.countryCode}
                 style={{
                   width: '1.2em',
                   height: '1.2em',
+                  borderRadius: '2px',
+                  boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
                 }}
-                title={option?.countryCode}
+                title={currentOption.countryCode}
               />
-              <span className="text-small text-text-primary-light dark:text-text-primary-dark">
-                {option?.label}
+              <span className="text-small font-medium text-text-primary-light dark:text-text-primary-dark">
+                {currentOption.label}
               </span>
             </div>
-          );
-        }}
-        selectedKeys={[locale]}
-        size="sm"
-        variant="flat"
-        onSelectionChange={(keys) => {
-          const value = Array.from(keys)[0] as string;
-
-          handleLocaleChange(value);
-        }}
-        disallowEmptySelection
-      >
-        {Object.entries(languageOptions).map(([key, { label, countryCode }]) => (
-          <SelectItem
-            key={key}
-            className="text-small text-text-primary-light dark:text-text-primary-dark data-[hover=true]:bg-hover-bg-light dark:data-[hover=true]:bg-hover-bg-dark"
-            textValue={label}
-            onPress={() => {
-              handleLocaleChange(key);
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <ReactCountryFlag
-                svg
-                countryCode={countryCode}
-                style={{
-                  width: '1.2em',
-                  height: '1.2em',
-                }}
-                title={countryCode}
-              />
-              <span className="text-text-primary-light dark:text-text-primary-dark">{label}</span>
-            </div>
-          </SelectItem>
-        ))}
-      </Select>
-
-      {/* 添加备用链接，确保在组件失效时仍能切换语言 */}
-      <div className="hidden">
-        {Object.keys(languageOptions).map((lang) => (
-          <a
-            key={lang}
-            href={getLanguageUrl(lang)}
-            className="hidden"
-            data-testid={`fallback-lang-${lang}`}
-          >
-            {lang}
-          </a>
-        ))}
-      </div>
+          </Button>
+        </DropdownTrigger>
+        <DropdownMenu
+          aria-label="选择语言"
+          className="min-w-[140px] bg-bg-secondary-light dark:bg-bg-secondary-dark text-text-primary-light dark:text-text-primary-dark border border-border-primary-light dark:border-border-primary-dark rounded-lg shadow-lg"
+          onAction={(key) => handleLocaleChange(key as string)}
+          classNames={{
+            base: 'p-1',
+          }}
+        >
+          {Object.entries(languageOptions).map(([key, { label, countryCode }]) => (
+            <DropdownItem
+              key={key}
+              className={`text-small font-medium py-2 px-3 rounded-md transition-colors duration-150 ${
+                locale === key
+                  ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
+                  : 'text-text-primary-light dark:text-text-primary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark'
+              }`}
+              startContent={
+                <ReactCountryFlag
+                  svg
+                  countryCode={countryCode}
+                  style={{
+                    width: '1.2em',
+                    height: '1.2em',
+                    borderRadius: '2px',
+                    boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
+                  }}
+                  title={countryCode}
+                />
+              }
+            >
+              {label}
+            </DropdownItem>
+          ))}
+        </DropdownMenu>
+      </Dropdown>
     </div>
   );
 };

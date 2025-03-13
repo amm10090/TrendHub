@@ -1,10 +1,10 @@
 'use client';
-
 import { Button } from '@heroui/button';
 import { Chip } from '@heroui/chip';
 import { Image } from '@heroui/image';
 import { Heart } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import * as React from 'react';
 import Slider from 'react-slick';
 import { useTranslations } from 'use-intl';
 
@@ -178,7 +178,7 @@ const products: Product[] = [
   },
 ];
 
-export const ProductGrid: React.FC = () => {
+export function ProductGrid() {
   const [mounted, setMounted] = useState(false);
   const t = useTranslations();
   const { openProductModal } = useProductModal();
@@ -270,14 +270,14 @@ export const ProductGrid: React.FC = () => {
         <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-text-primary-light dark:text-text-primary-dark">
           {t('nav.newArrivals')}
         </h2>
-        <div className="space-y-12">
+        <div className="flex flex-col gap-y-12">
           <div className="relative px-0 sm:px-2 md:px-4">
             <Slider {...settings} className="product-slider">
               {products.map((product) => (
                 <div key={product.id} className="px-2 sm:px-3 md:px-4">
                   <div
                     aria-label={`查看${product.brand} ${product.name}详情`}
-                    className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-sm dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] cursor-pointer"
+                    className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-xs dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] cursor-pointer"
                     role="button"
                     tabIndex={0}
                     onClick={() => handleProductClick(product)}
@@ -289,7 +289,7 @@ export const ProductGrid: React.FC = () => {
                   >
                     <Chip
                       classNames={{
-                        base: 'absolute top-5 left-5 z-20 bg-bg-primary-light dark:bg-bg-tertiary-dark backdrop-blur-sm dark:backdrop-blur-md shadow-sm',
+                        base: 'absolute top-5 left-5 z-20 bg-bg-primary-light dark:bg-bg-tertiary-dark backdrop-blur-xs dark:backdrop-blur-md shadow-xs',
                         content:
                           'text-[9px] leading-none sm:text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 text-text-primary-light dark:text-text-primary-dark',
                       }}
@@ -302,7 +302,7 @@ export const ProductGrid: React.FC = () => {
                       <Button
                         isIconOnly
                         aria-label="收藏"
-                        className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-sm shadow-sm p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
+                        className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-xs shadow-xs p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
                         variant="flat"
                         onPress={() => {
                           // 不再需要调用 stopPropagation
@@ -323,11 +323,11 @@ export const ProductGrid: React.FC = () => {
                         />
                       </div>
                     </div>
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-4 flex flex-col gap-y-2">
                       <h3 className="text-[11px] sm:text-sm font-semibold tracking-wide text-text-secondary-light dark:text-text-secondary-dark">
                         {product.brand}
                       </h3>
-                      <div className="block space-y-1">
+                      <div className="block flex flex-col gap-y-1">
                         <p className="text-[11px] sm:text-sm font-normal text-text-primary-light dark:text-text-primary-dark line-clamp-2 leading-relaxed">
                           {product.name}
                         </p>
@@ -424,7 +424,7 @@ export const ProductGrid: React.FC = () => {
           </div>
           <div className="flex justify-center">
             <Button
-              className="bg-bg-tertiary-dark hover:bg-hover-bg-dark text-text-primary-dark min-w-[120px] text-xs sm:text-sm font-medium tracking-wide shadow-sm hover:shadow-md transition-all duration-300"
+              className="bg-bg-tertiary-dark hover:bg-hover-bg-dark text-text-primary-dark min-w-[120px] text-xs sm:text-sm font-medium tracking-wide shadow-xs hover:shadow-md transition-all duration-300"
               variant="flat"
               onPress={() => {}}
             >
@@ -435,4 +435,4 @@ export const ProductGrid: React.FC = () => {
       </div>
     </section>
   );
-};
+}

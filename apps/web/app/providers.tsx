@@ -18,7 +18,12 @@ export function Providers({ children }: { children: ReactNode }) {
   if (!mounted) {
     return (
       <div className="h-full bg-bg-secondary-light dark:bg-bg-secondary-dark">
-        <NextThemesProvider enableSystem attribute="class" defaultTheme="system">
+        <NextThemesProvider
+          enableSystem
+          attribute="class"
+          defaultTheme="system"
+          themes={['light', 'dark']}
+        >
           <HeroUIProvider>
             <ProductModalProvider>{children}</ProductModalProvider>
           </HeroUIProvider>
@@ -28,7 +33,12 @@ export function Providers({ children }: { children: ReactNode }) {
   }
 
   return (
-    <NextThemesProvider enableSystem attribute="class" defaultTheme="system">
+    <NextThemesProvider
+      enableSystem
+      attribute="class"
+      defaultTheme="system"
+      themes={['light', 'dark']}
+    >
       <HeroUIProvider>
         <ProductModalProvider>
           {children}

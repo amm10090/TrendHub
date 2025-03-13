@@ -46,7 +46,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
           </div>
 
           {/* 商品信息和购买选项 */}
-          <div className="flex flex-col space-y-8">
+          <div className="flex flex-col flex flex-col gap-y-8">
             {/* 商品信息 */}
             <ProductInfo product={product} />
 

@@ -653,5 +653,82 @@
   },
   "common": {
     "hello": "中文翻译测试"
+  },
+  "dashboard": {
+    "recentActivities": "最近活动",
+    "stats": {
+      "totalRevenue": "总收入",
+      "totalOrders": "总订单",
+      "users": "用户数",
+      "visits": "访问量"
+    },
+    "recentActivitiesDescription": "系统最近的操作和活动记录",
+    "salesStats": "销售统计",
+    "salesStatsDescription": "过去30天的销售趋势和数据分析",
+    "title": "仪表盘",
+    "topProducts": "热销产品",
+    "topProductsDescription": "查看销量最高的产品和销售情况",
+    "viewAll": "查看全部",
+    "welcome": "欢迎回来，查看最新的网站统计和数据"
+  },
+  "layout": {
+    "admin": "管理员",
+    "brand": "品牌信息",
+    "closeMenu": "关闭菜单",
+    "dashboard": "仪表盘",
+    "logout": "退出登录",
+    "logs": "日志管理",
+    "openMenu": "打开菜单",
+    "pages": "单页管理",
+    "products": "产品管理",
+    "servers": "服务器管理",
+    "settings": "设置"
+  },
+  "products": {
+    "addProduct": "添加产品",
+    "columns": {
+      "actions": "操作",
+      "category": "分类",
+      "name": "产品名称",
+      "price": "价格",
+      "status": "状态",
+      "stock": "库存"
+    },
+    "description": "管理和编辑产品信息，控制产品展示和销售",
+    "details": "详情",
+    "filter": "筛选",
+    "pagination": {
+      "items": "条",
+      "next": "下一页",
+      "of": "条，共",
+      "prev": "上一页",
+      "showing": "显示"
+    },
+    "productList": "产品列表",
+    "productListDescription": "管理所有产品信息和状态",
+    "search": "搜索产品...",
+    "status": {
+      "inStock": "在售",
+      "lowStock": "库存低",
+      "outOfStock": "缺货"
+    },
+    "title": "产品管理"
+  },
+  "settings": {
+    "account": "账户管理",
+    "accountDescription": "管理用户账户和权限设置",
+    "database": "数据库管理",
+    "databaseDescription": "管理数据库连接和备份",
+    "description": "管理系统配置和功能设置",
+    "general": "通用设置",
+    "generalDescription": "管理系统通用设置和偏好",
+    "manage": "管理",
+    "notifications": "通知设置",
+    "notificationsDescription": "配置系统通知和提醒",
+    "security": "安全设置",
+    "securityDescription": "配置系统安全和访问控制",
+    "title": "系统设置",
+    "website": "网站设置",
+    "websiteDescription": "配置网站基本信息和SEO设置"
   }
 }

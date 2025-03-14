@@ -1,0 +1,402 @@
+@import 'tailwindcss';
+/*
+  ---break---
+*/
+@plugin 'tailwindcss-animate';
+
+@source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --color-bg-primary-light: #ffffff;
+  --color-bg-primary-dark: #0a0a0a;
+
+  --color-bg-secondary-light: #faf9f6;
+  --color-bg-secondary-dark: #121212;
+
+  --color-bg-tertiary-light: #f5f5f2;
+  --color-bg-tertiary-dark: #1a1a1a;
+
+  --color-text-primary-light: #1a1a1a;
+  --color-text-primary-dark: #ffffff;
+
+  --color-text-secondary-light: #666666;
+  --color-text-secondary-dark: #b3b3b3;
+
+  --color-text-tertiary-light: #999999;
+  --color-text-tertiary-dark: #808080;
+
+  --color-border-primary-light: #e8e6e3;
+  --color-border-primary-dark: #1a1a1a;
+
+  --color-border-secondary-light: #f0f0f0;
+  --color-border-secondary-dark: #262626;
+
+  --color-hover-bg-light: #f5f5f2;
+  --color-hover-bg-dark: #262626;
+
+  --color-hover-text-light: #1a1a1a;
+  --color-hover-text-dark: #ffffff;
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  /* HeroUI 主题变量 - 亮色模式 */
+  :root {
+    /* 主要颜色 */
+    --primary-50: #EDF5FF;
+    --primary-100: #D0E4FF;
+    --primary-200: #B3D4FF;
+    --primary-300: #66AFFF;
+    --primary-400: #3D9AFF;
+    --primary-500: #0080FF;
+    --primary-600: #0062C3;
+    --primary-700: #004A94;
+    --primary-800: #003166;
+    --primary-900: #001833;
+    --primary-foreground: #FFFFFF;
+
+    /* 次要颜色 */
+    --secondary-50: #F4F0FF;
+    --secondary-100: #EBE3FF;
+    --secondary-200: #D9CCFF;
+    --secondary-300: #BEA6FF;
+    --secondary-400: #A683FF;
+    --secondary-500: #8B5CF6;
+    --secondary-600: #7C3AED;
+    --secondary-700: #6D28D9;
+    --secondary-800: #5B21B6;
+    --secondary-900: #4C1D95;
+    --secondary-foreground: #FFFFFF;
+
+    /* 成功颜色 */
+    --success-50: #F0FDF4;
+    --success-100: #DCFCE7;
+    --success-200: #BBF7D0;
+    --success-300: #86EFAC;
+    --success-400: #4ADE80;
+    --success-500: #22C55E;
+    --success-600: #16A34A;
+    --success-700: #15803D;
+    --success-800: #166534;
+    --success-900: #14532D;
+    --success-foreground: #FFFFFF;
+
+    /* 警告颜色 */
+    --warning-50: #FFFBEB;
+    --warning-100: #FEF3C7;
+    --warning-200: #FDE68A;
+    --warning-300: #FCD34D;
+    --warning-400: #FBBF24;
+    --warning-500: #F59E0B;
+    --warning-600: #D97706;
+    --warning-700: #B45309;
+    --warning-800: #92400E;
+    --warning-900: #78350F;
+    --warning-foreground: #FFFFFF;
+
+    /* 危险颜色 */
+    --danger-50: #FEF2F2;
+    --danger-100: #FEE2E2;
+    --danger-200: #FECACA;
+    --danger-300: #FCA5A5;
+    --danger-400: #F87171;
+    --danger-500: #EF4444;
+    --danger-600: #DC2626;
+    --danger-700: #B91C1C;
+    --danger-800: #991B1B;
+    --danger-900: #7F1D1D;
+    --danger-foreground: #FFFFFF;
+
+    /* 默认颜色 */
+    --default-50: #F9FAFB;
+    --default-100: #F3F4F6;
+    --default-200: #E5E7EB;
+    --default-300: #D1D5DB;
+    --default-400: #9CA3AF;
+    --default-500: #6B7280;
+    --default-600: #4B5563;
+    --default-700: #374151;
+    --default-800: #1F2937;
+    --default-900: #111827;
+    --default-foreground: #FFFFFF;
+  }
+
+  /* HeroUI 主题变量 - 暗色模式 */
+  .dark {
+    /* 主要颜色 */
+    --primary-50: #001833;
+    --primary-100: #003166;
+    --primary-200: #004A94;
+    --primary-300: #0062C3;
+    --primary-400: #0080FF;
+    --primary-500: #3D9AFF;
+    --primary-600: #66AFFF;
+    --primary-700: #B3D4FF;
+    --primary-800: #D0E4FF;
+    --primary-900: #EDF5FF;
+    --primary-foreground: #000000;
+
+    /* 次要颜色 */
+    --secondary-50: #4C1D95;
+    --secondary-100: #5B21B6;
+    --secondary-200: #6D28D9;
+    --secondary-300: #7C3AED;
+    --secondary-400: #8B5CF6;
+    --secondary-500: #A683FF;
+    --secondary-600: #BEA6FF;
+    --secondary-700: #D9CCFF;
+    --secondary-800: #EBE3FF;
+    --secondary-900: #F4F0FF;
+    --secondary-foreground: #000000;
+
+    /* 成功颜色 */
+    --success-50: #14532D;
+    --success-100: #166534;
+    --success-200: #15803D;
+    --success-300: #16A34A;
+    --success-400: #22C55E;
+    --success-500: #4ADE80;
+    --success-600: #86EFAC;
+    --success-700: #BBF7D0;
+    --success-800: #DCFCE7;
+    --success-900: #F0FDF4;
+    --success-foreground: #000000;
+
+    /* 警告颜色 */
+    --warning-50: #78350F;
+    --warning-100: #92400E;
+    --warning-200: #B45309;
+    --warning-300: #D97706;
+    --warning-400: #F59E0B;
+    --warning-500: #FBBF24;
+    --warning-600: #FCD34D;
+    --warning-700: #FDE68A;
+    --warning-800: #FEF3C7;
+    --warning-900: #FFFBEB;
+    --warning-foreground: #000000;
+
+    /* 危险颜色 */
+    --danger-50: #7F1D1D;
+    --danger-100: #991B1B;
+    --danger-200: #B91C1C;
+    --danger-300: #DC2626;
+    --danger-400: #EF4444;
+    --danger-500: #F87171;
+    --danger-600: #FCA5A5;
+    --danger-700: #FECACA;
+    --danger-800: #FEE2E2;
+    --danger-900: #FEF2F2;
+    --danger-foreground: #000000;
+
+    /* 默认颜色 */
+    --default-50: #111827;
+    --default-100: #1F2937;
+    --default-200: #374151;
+    --default-300: #4B5563;
+    --default-400: #6B7280;
+    --default-500: #9CA3AF;
+    --default-600: #D1D5DB;
+    --default-700: #E5E7EB;
+    --default-800: #F3F4F6;
+    --default-900: #F9FAFB;
+    --default-foreground: #000000;
+  }
+}
+
+@utility container {
+  @apply w-full mx-auto px-4;
+  max-width: 100%;
+
+  @media (width >= theme(--breakpoint-sm)) {
+    max-width: 640px;
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    max-width: 768px;
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    max-width: 1024px;
+  }
+
+  @media (width >= theme(--breakpoint-xl)) {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  @media (width >= theme(--breakpoint-2xl)) {
+    max-width: 1536px;
+    margin: 0 auto;
+  }
+}
+
+@layer base {
+  * {
+    @apply box-border p-0 m-0;
+  }
+
+  html, body {
+    @apply h-full;
+  }
+}
+
+/* 隐藏滚动条但保留滚动功能 */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari and Opera */
+  }
+}
+/*
+  ---break---
+*/
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+/*
+  ---break---
+*/
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+/*
+  ---break---
+*/
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+/*
+  ---break---
+*/
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

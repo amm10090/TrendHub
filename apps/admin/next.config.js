@@ -1,7 +1,11 @@
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
-    transpilePackages: ["@trend-hub/ui", "@trend-hub/utils", "@trend-hub/types"]
+  reactStrictMode: true,
+  transpilePackages: ["@heroui/react"],
 };
 
-module.exports = nextConfig; 
+export default withNextIntl(nextConfig);

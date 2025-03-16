@@ -169,3 +169,7 @@ dist
 # 忽略截图目录
 jt
 .vercel
+# 忽略目录"1"
+demo
+TrendHub.jsonl
+TrendHub.jsonl

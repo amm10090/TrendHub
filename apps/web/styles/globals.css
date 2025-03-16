@@ -1,13 +1,19 @@
+/* 导入Tailwind CSS核心样式 */
 @import 'tailwindcss';
 
+/* 从HeroUI主题包中导入组件样式 */
 @source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 
+/* 定义暗色模式变体选择器 - 用于暗色模式样式应用 */
 @custom-variant dark (&:is(.dark *));
 
+/* 定义全局主题变量 - 包含亮色和暗色模式的基础颜色 */
 @theme {
+  /* 字体变量 */
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 
+  /* 背景颜色变量 - 亮色/暗色模式 */
   --color-bg-primary-light: #ffffff;
   --color-bg-primary-dark: #0a0a0a;
 
@@ -17,6 +23,7 @@
   --color-bg-tertiary-light: #f5f5f2;
   --color-bg-tertiary-dark: #1a1a1a;
 
+  /* 文本颜色变量 - 亮色/暗色模式 */
   --color-text-primary-light: #1a1a1a;
   --color-text-primary-dark: #ffffff;
 
@@ -26,12 +33,14 @@
   --color-text-tertiary-light: #999999;
   --color-text-tertiary-dark: #808080;
 
+  /* 边框颜色变量 - 亮色/暗色模式 */
   --color-border-primary-light: #e8e6e3;
   --color-border-primary-dark: #1a1a1a;
 
   --color-border-secondary-light: #f0f0f0;
   --color-border-secondary-dark: #262626;
 
+  /* 悬停状态颜色变量 - 亮色/暗色模式 */
   --color-hover-bg-light: #f5f5f2;
   --color-hover-bg-dark: #262626;
 
@@ -39,6 +48,7 @@
   --color-hover-text-dark: #ffffff;
 }
 
+/* 定义容器工具类 - 基础样式 */
 @utility container {
   margin-inline: auto;
   padding-inline: 1rem;
@@ -53,6 +63,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+  /* 设置所有元素的默认边框颜色，确保与Tailwind CSS v3兼容 */
   *,
   ::after,
   ::before,
@@ -63,78 +74,78 @@
   
   /* HeroUI 主题变量 - 亮色模式 */
   :root {
-    /* 主要颜色 */
+    /* 主要颜色 - 蓝色系列，用于主要按钮、链接和强调元素 */
     --primary-50: #EDF5FF;
     --primary-100: #D0E4FF;
     --primary-200: #B3D4FF;
     --primary-300: #66AFFF;
     --primary-400: #3D9AFF;
-    --primary-500: #0080FF;
+    --primary-500: #0080FF; /* 主色调 */
     --primary-600: #0062C3;
     --primary-700: #004A94;
     --primary-800: #003166;
     --primary-900: #001833;
     --primary-foreground: #FFFFFF;
     
-    /* 次要颜色 */
+    /* 次要颜色 - 紫色系列，用于次要按钮和辅助元素 */
     --secondary-50: #F4F0FF;
     --secondary-100: #EBE3FF;
     --secondary-200: #D9CCFF;
     --secondary-300: #BEA6FF;
     --secondary-400: #A683FF;
-    --secondary-500: #8B5CF6;
+    --secondary-500: #8B5CF6; /* 次色调 */
     --secondary-600: #7C3AED;
     --secondary-700: #6D28D9;
     --secondary-800: #5B21B6;
     --secondary-900: #4C1D95;
     --secondary-foreground: #FFFFFF;
     
-    /* 成功颜色 */
+    /* 成功颜色 - 绿色系列，用于成功状态和确认操作 */
     --success-50: #F0FDF4;
     --success-100: #DCFCE7;
     --success-200: #BBF7D0;
     --success-300: #86EFAC;
     --success-400: #4ADE80;
-    --success-500: #22C55E;
+    --success-500: #22C55E; /* 主成功色 */
     --success-600: #16A34A;
     --success-700: #15803D;
     --success-800: #166534;
     --success-900: #14532D;
     --success-foreground: #FFFFFF;
     
-    /* 警告颜色 */
+    /* 警告颜色 - 黄色系列，用于警告状态和需要注意的操作 */
     --warning-50: #FFFBEB;
     --warning-100: #FEF3C7;
     --warning-200: #FDE68A;
     --warning-300: #FCD34D;
     --warning-400: #FBBF24;
-    --warning-500: #F59E0B;
+    --warning-500: #F59E0B; /* 主警告色 */
     --warning-600: #D97706;
     --warning-700: #B45309;
     --warning-800: #92400E;
     --warning-900: #78350F;
     --warning-foreground: #FFFFFF;
     
-    /* 危险颜色 */
+    /* 危险颜色 - 红色系列，用于错误状态和危险操作 */
     --danger-50: #FEF2F2;
     --danger-100: #FEE2E2;
     --danger-200: #FECACA;
     --danger-300: #FCA5A5;
     --danger-400: #F87171;
-    --danger-500: #EF4444;
+    --danger-500: #EF4444; /* 主危险色 */
     --danger-600: #DC2626;
     --danger-700: #B91C1C;
     --danger-800: #991B1B;
     --danger-900: #7F1D1D;
     --danger-foreground: #FFFFFF;
     
-    /* 默认颜色 */
+    /* 默认颜色 - 灰色系列，用于文本、边框和中性元素 */
     --default-50: #F9FAFB;
     --default-100: #F3F4F6;
     --default-200: #E5E7EB;
     --default-300: #D1D5DB;
     --default-400: #9CA3AF;
-    --default-500: #6B7280;
+    --default-500: #6B7280; /* 主默认色 */
     --default-600: #4B5563;
     --default-700: #374151;
     --default-800: #1F2937;
@@ -144,78 +155,78 @@
   
   /* HeroUI 主题变量 - 暗色模式 */
   .dark {
-    /* 主要颜色 */
+    /* 主要颜色 - 暗色模式下颜色顺序反转，深色变浅色，浅色变深色 */
     --primary-50: #001833;
     --primary-100: #003166;
     --primary-200: #004A94;
     --primary-300: #0062C3;
     --primary-400: #0080FF;
-    --primary-500: #3D9AFF;
+    --primary-500: #3D9AFF; /* 暗色模式主色调 */
     --primary-600: #66AFFF;
     --primary-700: #B3D4FF;
     --primary-800: #D0E4FF;
     --primary-900: #EDF5FF;
     --primary-foreground: #000000;
     
-    /* 次要颜色 */
+    /* 次要颜色 - 暗色模式下的紫色系列 */
     --secondary-50: #4C1D95;
     --secondary-100: #5B21B6;
     --secondary-200: #6D28D9;
     --secondary-300: #7C3AED;
     --secondary-400: #8B5CF6;
-    --secondary-500: #A683FF;
+    --secondary-500: #A683FF; /* 暗色模式次色调 */
     --secondary-600: #BEA6FF;
     --secondary-700: #D9CCFF;
     --secondary-800: #EBE3FF;
     --secondary-900: #F4F0FF;
     --secondary-foreground: #000000;
     
-    /* 成功颜色 */
+    /* 成功颜色 - 暗色模式下的绿色系列 */
     --success-50: #14532D;
     --success-100: #166534;
     --success-200: #15803D;
     --success-300: #16A34A;
     --success-400: #22C55E;
-    --success-500: #4ADE80;
+    --success-500: #4ADE80; /* 暗色模式主成功色 */
     --success-600: #86EFAC;
     --success-700: #BBF7D0;
     --success-800: #DCFCE7;
     --success-900: #F0FDF4;
     --success-foreground: #000000;
     
-    /* 警告颜色 */
+    /* 警告颜色 - 暗色模式下的黄色系列 */
     --warning-50: #78350F;
     --warning-100: #92400E;
     --warning-200: #B45309;
     --warning-300: #D97706;
     --warning-400: #F59E0B;
-    --warning-500: #FBBF24;
+    --warning-500: #FBBF24; /* 暗色模式主警告色 */
     --warning-600: #FCD34D;
     --warning-700: #FDE68A;
     --warning-800: #FEF3C7;
     --warning-900: #FFFBEB;
     --warning-foreground: #000000;
     
-    /* 危险颜色 */
+    /* 危险颜色 - 暗色模式下的红色系列 */
     --danger-50: #7F1D1D;
     --danger-100: #991B1B;
     --danger-200: #B91C1C;
     --danger-300: #DC2626;
     --danger-400: #EF4444;
-    --danger-500: #F87171;
+    --danger-500: #F87171; /* 暗色模式主危险色 */
     --danger-600: #FCA5A5;
     --danger-700: #FECACA;
     --danger-800: #FEE2E2;
     --danger-900: #FEF2F2;
     --danger-foreground: #000000;
     
-    /* 默认颜色 */
+    /* 默认颜色 - 暗色模式下的灰色系列 */
     --default-50: #111827;
     --default-100: #1F2937;
     --default-200: #374151;
     --default-300: #4B5563;
     --default-400: #6B7280;
-    --default-500: #9CA3AF;
+    --default-500: #9CA3AF; /* 暗色模式主默认色 */
     --default-600: #D1D5DB;
     --default-700: #E5E7EB;
     --default-800: #F3F4F6;
@@ -224,51 +235,58 @@
   }
 }
 
+/* 定义响应式容器工具类 - 包含断点适配 */
 @utility container {
-  @apply w-full mx-auto px-4;
+  @apply w-full mx-auto px-4; /* 应用基础样式 */
   max-width: 100%;
 
+  /* 小屏幕断点 (640px) */
   @media (width >= theme(--breakpoint-sm)) {
     max-width: 640px;
   }
 
+  /* 中等屏幕断点 (768px) */
   @media (width >= theme(--breakpoint-md)) {
     max-width: 768px;
   }
 
+  /* 大屏幕断点 (1024px) */
   @media (width >= theme(--breakpoint-lg)) {
     max-width: 1024px;
   }
 
+  /* 超大屏幕断点 (1280px) */
   @media (width >= theme(--breakpoint-xl)) {
     max-width: 1280px;
     margin: 0 auto;
   }
 
+  /* 2倍超大屏幕断点 (1536px) */
   @media (width >= theme(--breakpoint-2xl)) {
     max-width: 1536px;
     margin: 0 auto;
   }
 }
 
+/* 基础盒模型设置 */
 @layer base {
   * {
-    @apply box-border p-0 m-0;
+    @apply box-border p-0 m-0; /* 应用盒模型、内边距和外边距重置 */
   }
 
   html, body {
-    @apply h-full;
+    @apply h-full; /* 设置HTML和body元素高度为100% */
   }
 }
 
 /* 隐藏滚动条但保留滚动功能 */
 @layer utilities {
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;     /* Firefox */
+    -ms-overflow-style: none;  /* IE和Edge浏览器 */
+    scrollbar-width: none;     /* Firefox浏览器 */
   }
   
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;             /* Chrome, Safari and Opera */
+    display: none;             /* Chrome、Safari和Opera浏览器 */
   }
 }

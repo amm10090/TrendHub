@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>网站设置 - TrendHub 管理系统</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="styles.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
+</head>
+<body>
+  <header class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900">网站设置</h1>
+    <p class="mt-1 text-sm text-gray-600">管理网站基本信息和全局配置</p>
+  </header>
+
+  <!-- 设置tabs -->
+  <div x-data="{ activeTab: 'basic' }">
+    <!-- 标签导航 -->
+    <div class="border-b border-gray-200">
+      <nav class="flex -mb-px space-x-8">
+        <button 
+          @click="activeTab = 'basic'" 
+          :class="{ 'border-indigo-500 text-indigo-600': activeTab === 'basic', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'basic' }"
+          class="py-4 text-sm font-medium border-b-2 whitespace-nowrap">
+          基本信息
+        </button>
+        <button 
+          @click="activeTab = 'seo'" 
+          :class="{ 'border-indigo-500 text-indigo-600': activeTab === 'seo', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'seo' }"
+          class="py-4 text-sm font-medium border-b-2 whitespace-nowrap">
+          SEO设置
+        </button>
+        <button 
+          @click="activeTab = 'api'" 
+          :class="{ 'border-indigo-500 text-indigo-600': activeTab === 'api', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'api' }"
+          class="py-4 text-sm font-medium border-b-2 whitespace-nowrap">
+          API设置
+        </button>
+        <button 
+          @click="activeTab = 'mail'" 
+          :class="{ 'border-indigo-500 text-indigo-600': activeTab === 'mail', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'mail' }"
+          class="py-4 text-sm font-medium border-b-2 whitespace-nowrap">
+          邮件配置
+        </button>
+      </nav>
+    </div>
+
+    <!-- 基本信息 -->
+    <div x-show="activeTab === 'basic'" class="mt-6">
+      <div class="px-4 py-5 bg-white rounded-lg shadow sm:p-6">
+        <div class="md:grid md:grid-cols-3 md:gap-6">
+          <div class="md:col-span-1">
+            <h3 class="text-lg font-medium text-gray-900">网站基本信息</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              这些信息将显示在网站的各个位置，请确保准确无误。
+            </p>
+          </div>
+          <div class="mt-5 md:mt-0 md:col-span-2">
+            <form action="#" method="POST">
+              <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6 sm:col-span-4">
+                  <label for="site-name" class="block text-sm font-medium text-gray-700">网站名称</label>
+                  <input type="text" name="site-name" id="site-name" value="TrendHub - 时尚聚合平台" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-4">
+                  <label for="site-url" class="block text-sm font-medium text-gray-700">网站URL</label>
+                  <input type="text" name="site-url" id="site-url" value="https://trendhub.com" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="admin-email" class="block text-sm font-medium text-gray-700">管理员邮箱</label>
+                  <input type="email" name="admin-email" id="admin-email" value="admin@trendhub.com" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="contact-phone" class="block text-sm font-medium text-gray-700">联系电话</label>
+                  <input type="text" name="contact-phone" id="contact-phone" value="+86 10 1234 5678" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6">
+                  <label for="site-description" class="block text-sm font-medium text-gray-700">网站描述</label>
+                  <textarea id="site-description" name="site-description" rows="3" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">TrendHub是一站式时尚电商聚合平台，整合全球顶级品牌，为用户提供便捷的购物体验。</textarea>
+                </div>
+
+                <div class="col-span-6">
+                  <label class="block text-sm font-medium text-gray-700">网站LOGO</label>
+                  <div class="flex items-center mt-2">
+                    <span class="inline-block w-12 h-12 overflow-hidden bg-gray-100 rounded-md">
+                      <img src="https://via.placeholder.com/100x100.png?text=LOGO" alt="Current logo" class="object-cover w-full h-full">
+                    </span>
+                    <button type="button" class="px-3 py-2 ml-5 text-sm font-medium leading-4 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      更换
+                    </button>
+                  </div>
+                </div>
+
+                <div class="col-span-6">
+                  <label class="block text-sm font-medium text-gray-700">网站favicon</label>
+                  <div class="flex items-center mt-2">
+                    <span class="inline-block w-8 h-8 overflow-hidden bg-gray-100 rounded-md">
+                      <img src="https://via.placeholder.com/32x32.png?text=F" alt="Current favicon" class="object-cover w-full h-full">
+                    </span>
+                    <button type="button" class="px-3 py-2 ml-5 text-sm font-medium leading-4 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      更换
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-4 py-5 mt-6 bg-white rounded-lg shadow sm:p-6">
+        <div class="md:grid md:grid-cols-3 md:gap-6">
+          <div class="md:col-span-1">
+            <h3 class="text-lg font-medium text-gray-900">社交媒体链接</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              添加您的社交媒体账号链接，以便用户关注和分享。
+            </p>
+          </div>
+          <div class="mt-5 md:mt-0 md:col-span-2">
+            <form action="#" method="POST">
+              <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="facebook" class="block text-sm font-medium text-gray-700">Facebook</label>
+                  <div class="flex mt-1 rounded-md shadow-sm">
+                    <span class="inline-flex items-center px-3 text-sm text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50">facebook.com/</span>
+                    <input type="text" name="facebook" id="facebook" value="trendhub" class="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  </div>
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="twitter" class="block text-sm font-medium text-gray-700">Twitter</label>
+                  <div class="flex mt-1 rounded-md shadow-sm">
+                    <span class="inline-flex items-center px-3 text-sm text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50">twitter.com/</span>
+                    <input type="text" name="twitter" id="twitter" value="trendhub" class="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  </div>
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="instagram" class="block text-sm font-medium text-gray-700">Instagram</label>
+                  <div class="flex mt-1 rounded-md shadow-sm">
+                    <span class="inline-flex items-center px-3 text-sm text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50">instagram.com/</span>
+                    <input type="text" name="instagram" id="instagram" value="trendhub_official" class="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  </div>
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="pinterest" class="block text-sm font-medium text-gray-700">Pinterest</label>
+                  <div class="flex mt-1 rounded-md shadow-sm">
+                    <span class="inline-flex items-center px-3 text-sm text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50">pinterest.com/</span>
+                    <input type="text" name="pinterest" id="pinterest" value="trendhub" class="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          取消
+        </button>
+        <button type="submit" class="inline-flex justify-center px-4 py-2 ml-3 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          保存更改
+        </button>
+      </div>
+    </div>
+
+    <!-- SEO设置 -->
+    <div x-show="activeTab === 'seo'" class="mt-6">
+      <div class="px-4 py-5 bg-white rounded-lg shadow sm:p-6">
+        <div class="md:grid md:grid-cols-3 md:gap-6">
+          <div class="md:col-span-1">
+            <h3 class="text-lg font-medium text-gray-900">SEO设置</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              优化网站搜索引擎表现，提高网站在搜索结果中的排名。
+            </p>
+          </div>
+          <div class="mt-5 md:mt-0 md:col-span-2">
+            <form action="#" method="POST">
+              <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6">
+                  <label for="meta-title" class="block text-sm font-medium text-gray-700">Meta 标题</label>
+                  <input type="text" name="meta-title" id="meta-title" value="TrendHub - 全球时尚购物聚合平台 | 轻松对比价格和款式" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  <p class="mt-1 text-xs text-gray-500">建议长度：50-60个字符</p>
+                </div>
+
+                <div class="col-span-6">
+                  <label for="meta-description" class="block text-sm font-medium text-gray-700">Meta 描述</label>
+                  <textarea id="meta-description" name="meta-description" rows="3" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">TrendHub汇聚全球数千个时尚品牌，让您轻松比较价格、查看评价并找到最适合的款式。一站式购物体验，随时随地探索最新时尚潮流。</textarea>
+                  <p class="mt-1 text-xs text-gray-500">建议长度：150-160个字符</p>
+                </div>
+
+                <div class="col-span-6">
+                  <label for="meta-keywords" class="block text-sm font-medium text-gray-700">Meta 关键词</label>
+                  <input type="text" name="meta-keywords" id="meta-keywords" value="时尚,购物,品牌,服装,奢侈品,聚合,比价,潮流,电商" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  <p class="mt-1 text-xs text-gray-500">使用逗号分隔关键词</p>
+                </div>
+
+                <div class="col-span-6">
+                  <label for="canonical-url" class="block text-sm font-medium text-gray-700">规范URL</label>
+                  <input type="text" name="canonical-url" id="canonical-url" value="https://trendhub.com" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6">
+                  <label for="robots-txt" class="block text-sm font-medium text-gray-700">robots.txt 内容</label>
+                  <textarea id="robots-txt" name="robots-txt" rows="5" class="block w-full mt-1 font-mono border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+Sitemap: https://trendhub.com/sitemap.xml</textarea>
+                </div>
+
+                <div class="col-span-6">
+                  <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                      <input id="generate-sitemap" name="generate-sitemap" type="checkbox" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    </div>
+                    <div class="ml-3 text-sm">
+                      <label for="generate-sitemap" class="font-medium text-gray-700">自动生成网站地图</label>
+                      <p class="text-gray-500">每天自动更新sitemap.xml文件</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          取消
+        </button>
+        <button type="submit" class="inline-flex justify-center px-4 py-2 ml-3 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          保存更改
+        </button>
+      </div>
+    </div>
+
+    <!-- API设置 -->
+    <div x-show="activeTab === 'api'" class="mt-6">
+      <div class="px-4 py-5 bg-white rounded-lg shadow sm:p-6">
+        <div class="md:grid md:grid-cols-3 md:gap-6">
+          <div class="md:col-span-1">
+            <h3 class="text-lg font-medium text-gray-900">API集成</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              配置与第三方服务和品牌的API集成。
+            </p>
+          </div>
+          <div class="mt-5 md:mt-0 md:col-span-2">
+            <form action="#" method="POST">
+              <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6">
+                  <h4 class="text-sm font-medium text-gray-900">支付网关</h4>
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="stripe-key" class="block text-sm font-medium text-gray-700">Stripe API密钥</label>
+                  <input type="password" name="stripe-key" id="stripe-key" value="sk_test_51H..." class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="stripe-secret" class="block text-sm font-medium text-gray-700">Stripe Secret密钥</label>
+                  <input type="password" name="stripe-secret" id="stripe-secret" value="sk_live_51H..." class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="paypal-client-id" class="block text-sm font-medium text-gray-700">PayPal Client ID</label>
+                  <input type="text" name="paypal-client-id" id="paypal-client-id" value="AcW5L..." class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="paypal-secret" class="block text-sm font-medium text-gray-700">PayPal Secret</label>
+                  <input type="password" name="paypal-secret" id="paypal-secret" value="EGNh2e..." class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 pt-5 border-t border-gray-200">
+                  <h4 class="text-sm font-medium text-gray-900">品牌API集成</h4>
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="nike-api-key" class="block text-sm font-medium text-gray-700">Nike API密钥</label>
+                  <input type="password" name="nike-api-key" id="nike-api-key" value="nik_api_23..." class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="adidas-api-key" class="block text-sm font-medium text-gray-700">Adidas API密钥</label>
+                  <input type="password" name="adidas-api-key" id="adidas-api-key" value="adi_key_10..." class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 pt-5 border-t border-gray-200">
+                  <h4 class="text-sm font-medium text-gray-900">分析工具</h4>
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="google-analytics" class="block text-sm font-medium text-gray-700">Google Analytics ID</label>
+                  <input type="text" name="google-analytics" id="google-analytics" value="UA-12345678-1" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="facebook-pixel" class="block text-sm font-medium text-gray-700">Facebook Pixel ID</label>
+                  <input type="text" name="facebook-pixel" id="facebook-pixel" value="987654321" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          取消
+        </button>
+        <button type="submit" class="inline-flex justify-center px-4 py-2 ml-3 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          保存更改
+        </button>
+      </div>
+    </div>
+
+    <!-- 邮件配置 -->
+    <div x-show="activeTab === 'mail'" class="mt-6">
+      <div class="px-4 py-5 bg-white rounded-lg shadow sm:p-6">
+        <div class="md:grid md:grid-cols-3 md:gap-6">
+          <div class="md:col-span-1">
+            <h3 class="text-lg font-medium text-gray-900">邮件服务配置</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              设置系统邮件服务，用于发送通知、密码重置等邮件。
+            </p>
+          </div>
+          <div class="mt-5 md:mt-0 md:col-span-2">
+            <form action="#" method="POST">
+              <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="mail-driver" class="block text-sm font-medium text-gray-700">邮件驱动</label>
+                  <select id="mail-driver" name="mail-driver" class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option selected>SMTP</option>
+                    <option>SendGrid</option>
+                    <option>Mailgun</option>
+                    <option>Amazon SES</option>
+                  </select>
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="mail-host" class="block text-sm font-medium text-gray-700">SMTP主机</label>
+                  <input type="text" name="mail-host" id="mail-host" value="smtp.gmail.com" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="mail-port" class="block text-sm font-medium text-gray-700">SMTP端口</label>
+                  <input type="text" name="mail-port" id="mail-port" value="587" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="mail-encryption" class="block text-sm font-medium text-gray-700">加密方式</label>
+                  <select id="mail-encryption" name="mail-encryption" class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option>无</option>
+                    <option selected>TLS</option>
+                    <option>SSL</option>
+                  </select>
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="mail-username" class="block text-sm font-medium text-gray-700">SMTP用户名</label>
+                  <input type="text" name="mail-username" id="mail-username" value="notification@trendhub.com" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                  <label for="mail-password" class="block text-sm font-medium text-gray-700">SMTP密码</label>
+                  <input type="password" name="mail-password" id="mail-password" value="password123" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-4">
+                  <label for="mail-from-address" class="block text-sm font-medium text-gray-700">发件人地址</label>
+                  <input type="email" name="mail-from-address" id="mail-from-address" value="notification@trendhub.com" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6 sm:col-span-4">
+                  <label for="mail-from-name" class="block text-sm font-medium text-gray-700">发件人名称</label>
+                  <input type="text" name="mail-from-name" id="mail-from-name" value="TrendHub通知" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="col-span-6">
+                  <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                      <input id="test-mail" name="test-mail" type="checkbox" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    </div>
+                    <div class="ml-3 text-sm">
+                      <label for="test-mail" class="font-medium text-gray-700">保存后发送测试邮件</label>
+                      <p class="text-gray-500">将发送测试邮件到管理员邮箱以验证配置是否正确</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-5 mt-6 border-t border-gray-200">
+                <div class="flex items-center">
+                  <h4 class="text-sm font-medium text-gray-900">邮件模板</h4>
+                  <button type="button" class="px-3 py-1 ml-4 text-xs font-medium text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200">
+                    管理模板
+                  </button>
+                </div>
+                <div class="mt-4 space-y-4">
+                  <div class="flex items-center">
+                    <input id="welcome-email" name="welcome-email" type="checkbox" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <label for="welcome-email" class="block ml-3 text-sm font-medium text-gray-700">欢迎邮件</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="password-reset" name="password-reset" type="checkbox" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <label for="password-reset" class="block ml-3 text-sm font-medium text-gray-700">密码重置邮件</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="order-confirmation" name="order-confirmation" type="checkbox" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <label for="order-confirmation" class="block ml-3 text-sm font-medium text-gray-700">订单确认邮件</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="newsletter" name="newsletter" type="checkbox" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <label for="newsletter" class="block ml-3 text-sm font-medium text-gray-700">定期新闻邮件</label>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          取消
+        </button>
+        <button type="submit" class="inline-flex justify-center px-4 py-2 ml-3 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          保存更改
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html> 

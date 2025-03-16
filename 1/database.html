@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据库信息 - TrendHub 管理系统</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="styles.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
+</head>
+<body>
+  <header class="mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900">数据库信息</h1>
+        <p class="mt-1 text-sm text-gray-600">监控系统数据库状态和同步进度</p>
+      </div>
+      <div>
+        <button type="button" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <svg class="-ml-1 mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          触发同步
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 系统状态概览 -->
+  <div class="grid grid-cols-1 gap-5 mb-6 sm:grid-cols-2 lg:grid-cols-4">
+    <!-- 数据库状态 -->
+    <div class="relative p-5 bg-white rounded-lg shadow card-stats">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 truncate">数据库状态</p>
+          <p class="mt-1 text-3xl font-semibold text-gray-900">正常</p>
+        </div>
+        <div class="p-3 bg-green-500 rounded-md">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="mt-4 text-sm text-gray-500">
+        所有服务运行正常，无异常
+      </div>
+    </div>
+
+    <!-- 产品数据 -->
+    <div class="relative p-5 bg-white rounded-lg shadow card-stats">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 truncate">产品记录</p>
+          <p class="mt-1 text-3xl font-semibold text-gray-900">12,328</p>
+        </div>
+        <div class="p-3 bg-indigo-500 rounded-md">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="flex items-center mt-4">
+        <span class="flex items-center text-sm font-medium text-green-500">
+          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+          </svg>
+          +156
+        </span>
+        <span class="ml-2 text-sm text-gray-500">今日新增</span>
+      </div>
+    </div>
+
+    <!-- 品牌数据 -->
+    <div class="relative p-5 bg-white rounded-lg shadow card-stats">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 truncate">品牌记录</p>
+          <p class="mt-1 text-3xl font-semibold text-gray-900">468</p>
+        </div>
+        <div class="p-3 bg-purple-500 rounded-md">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="flex items-center mt-4">
+        <span class="flex items-center text-sm font-medium text-green-500">
+          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+          </svg>
+          +3
+        </span>
+        <span class="ml-2 text-sm text-gray-500">本周新增</span>
+      </div>
+    </div>
+
+    <!-- 数据库大小 -->
+    <div class="relative p-5 bg-white rounded-lg shadow card-stats">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 truncate">数据库大小</p>
+          <p class="mt-1 text-3xl font-semibold text-gray-900">4.7 GB</p>
+        </div>
+        <div class="p-3 bg-blue-500 rounded-md">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="flex items-center mt-4">
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div class="bg-blue-600 h-2.5 rounded-full" style="width: 47%"></div>
+        </div>
+        <span class="ml-2 text-sm text-gray-500">47% 已用</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 详细信息和图表 -->
+  <div class="grid grid-cols-1 gap-5 mb-6 lg:grid-cols-2">
+    <!-- 数据同步状态 -->
+    <div class="p-5 bg-white rounded-lg shadow">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium text-gray-900">数据同步状态</h2>
+        <div class="text-sm text-gray-500">上次同步: 今天 08:45</div>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm font-medium text-gray-700">Nike API</div>
+            <div class="text-sm text-gray-500">2,156 件产品</div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-green-600 h-2.5 rounded-full" style="width: 100%"></div>
+          </div>
+          <div class="flex justify-end mt-1">
+            <span class="text-xs text-green-600">同步完成</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm font-medium text-gray-700">Adidas API</div>
+            <div class="text-sm text-gray-500">1,842 件产品</div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-green-600 h-2.5 rounded-full" style="width: 100%"></div>
+          </div>
+          <div class="flex justify-end mt-1">
+            <span class="text-xs text-green-600">同步完成</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm font-medium text-gray-700">Apple API</div>
+            <div class="text-sm text-gray-500">412 件产品</div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-green-600 h-2.5 rounded-full" style="width: 100%"></div>
+          </div>
+          <div class="flex justify-end mt-1">
+            <span class="text-xs text-green-600">同步完成</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm font-medium text-gray-700">Gucci API</div>
+            <div class="text-sm text-gray-500">755 件产品</div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-yellow-600 h-2.5 rounded-full" style="width: 78%"></div>
+          </div>
+          <div class="flex justify-end mt-1">
+            <span class="text-xs text-yellow-600">正在同步 (78%)</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm font-medium text-gray-700">Puma API</div>
+            <div class="text-sm text-gray-500">982 件产品</div>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-red-600 h-2.5 rounded-full" style="width: 45%"></div>
+          </div>
+          <div class="flex justify-end mt-1">
+            <span class="text-xs text-red-600">同步失败</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200">
+          查看所有同步状态
+          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 数据增长趋势 -->
+    <div class="p-5 bg-white rounded-lg shadow">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium text-gray-900">数据增长趋势</h2>
+        <div class="flex">
+          <button class="px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200">月</button>
+          <button class="px-3 py-1 ml-2 text-xs font-medium text-gray-500 bg-white border rounded-md hover:bg-gray-100">季</button>
+          <button class="px-3 py-1 ml-2 text-xs font-medium text-gray-500 bg-white border rounded-md hover:bg-gray-100">年</button>
+        </div>
+      </div>
+      <div>
+        <canvas id="growthChart" height="250"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统信息和数据库表 -->
+  <div class="grid grid-cols-1 gap-5 mb-6 lg:grid-cols-3">
+    <!-- 系统信息 -->
+    <div class="p-5 bg-white rounded-lg shadow">
+      <h2 class="mb-4 text-lg font-medium text-gray-900">系统信息</h2>
+      <div class="space-y-3">
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">服务器</span>
+          <span class="text-sm font-medium text-gray-900">AWS RDS (db.m5.large)</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">数据库版本</span>
+          <span class="text-sm font-medium text-gray-900">PostgreSQL 13.4</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">连接数</span>
+          <span class="text-sm font-medium text-gray-900">42 / 100</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">平均查询时间</span>
+          <span class="text-sm font-medium text-gray-900">24 ms</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">缓存命中率</span>
+          <span class="text-sm font-medium text-gray-900">87%</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">备份状态</span>
+          <span class="text-sm font-medium text-green-600">最近备份: 今天 03:00</span>
+        </div>
+      </div>
+      <div class="h-px my-4 bg-gray-200"></div>
+      <div class="space-y-3">
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">CPU 使用率</span>
+          <span class="text-sm font-medium text-gray-900">32%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-1.5">
+          <div class="bg-green-600 h-1.5 rounded-full" style="width: 32%"></div>
+        </div>
+      </div>
+      <div class="space-y-3 mt-3">
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">内存使用率</span>
+          <span class="text-sm font-medium text-gray-900">68%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-1.5">
+          <div class="bg-yellow-500 h-1.5 rounded-full" style="width: 68%"></div>
+        </div>
+      </div>
+      <div class="space-y-3 mt-3">
+        <div class="flex justify-between">
+          <span class="text-sm text-gray-500">磁盘 I/O</span>
+          <span class="text-sm font-medium text-gray-900">45%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-1.5">
+          <div class="bg-green-600 h-1.5 rounded-full" style="width: 45%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据库表 -->
+    <div class="col-span-2 p-5 bg-white rounded-lg shadow">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium text-gray-900">数据库表</h2>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input type="text" class="block w-full py-2 pl-10 pr-3 leading-5 text-gray-900 placeholder-gray-500 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="搜索表...">
+        </div>
+      </div>
+      <div class="overflow-hidden overflow-x-auto border-b border-gray-200 rounded-md">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">表名</th>
+              <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">记录数</th>
+              <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">大小</th>
+              <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">索引大小</th>
+              <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">最后更新</th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">操作</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">products</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">12,328</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">1.2 GB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">256 MB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">10分钟前</div>
+              </td>
+              <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+                <a href="#" class="text-indigo-600 hover:text-indigo-900">查看</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">brands</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">468</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">74 MB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">18 MB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">2小时前</div>
+              </td>
+              <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+                <a href="#" class="text-indigo-600 hover:text-indigo-900">查看</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">users</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">25,642</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">420 MB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">85 MB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">15分钟前</div>
+              </td>
+              <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+                <a href="#" class="text-indigo-600 hover:text-indigo-900">查看</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">orders</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">102,456</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">1.8 GB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">320 MB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">5分钟前</div>
+              </td>
+              <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+                <a href="#" class="text-indigo-600 hover:text-indigo-900">查看</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">categories</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">156</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">25 MB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">5 MB</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">1天前</div>
+              </td>
+              <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+                <a href="#" class="text-indigo-600 hover:text-indigo-900">查看</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-between mt-4">
+        <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200">
+          优化数据库
+        </button>
+        <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+          查看所有表
+          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图表初始化脚本 -->
+  <script>
+    // 数据增长趋势图
+    const growthCtx = document.getElementById('growthChart').getContext('2d');
+    const growthChart = new Chart(growthCtx, {
+      type: 'line',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [{
+          label: '产品数据',
+          data: [8562, 9120, 9845, 10542, 11385, 12328],
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          borderColor: 'rgba(99, 102, 241, 1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true
+        }, {
+          label: '用户数据',
+          data: [18450, 19820, 21250, 22680, 24350, 25642],
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          borderColor: 'rgba(16, 185, 129, 1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              drawBorder: false
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html> 

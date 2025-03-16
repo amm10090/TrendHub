@@ -12,4 +12,6 @@ export const { Link, redirect, useRouter, usePathname } =
 // 类型定义
 export type Locale = (typeof locales)[number];
 
+// 调试信息
+
 export default routing;

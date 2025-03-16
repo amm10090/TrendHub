@@ -1,0 +1,39 @@
+{"type":"entity","name":"TrendHub Admin项目","entityType":"项目","observations":["TrendHub是一个电商聚合平台","Admin项目是后台管理系统","使用Next.js + TypeScript + Tailwind CSS开发","使用Monorepo架构"],"createdAt":"2025-03-16T07:57:22.161Z","version":1}
+{"type":"entity","name":"国际化实现","entityType":"功能","observations":["使用next-intl库实现国际化","支持英文(en)和中文(cn)两种语言","使用[locale]动态路由参数实现语言切换","通过middleware中间件自动检测用户语言","修复了根路径重定向问题，现在访问根路径会由中间件根据用户语言偏好决定重定向","将middleware.ts文件移动到正确的位置(src目录下)","从i18n/index.ts导入locales和defaultLocale，保持配置一致性","根页面不再硬编码重定向，而是完全交给中间件处理"],"createdAt":"2025-03-16T08:41:39.714Z","version":2}
+{"type":"entity","name":"语言检测逻辑","entityType":"代码逻辑","observations":["在middleware.ts中实现","首先检查URL参数中是否有locale参数","然后检查Accept-Language请求头","使用正则表达式匹配中文语言代码","不使用cookie存储语言偏好","中间件现在位于正确的位置(src/middleware.ts)","使用统一的配置源(i18n/index.ts)获取locales和defaultLocale","当访问根路径时自动检测用户语言偏好并重定向","当访问特定语言路径时检查是否与用户偏好一致，不一致则重定向"],"createdAt":"2025-03-16T08:41:56.195Z","version":2}
+{"type":"entity","name":"LanguageSwitcher组件","entityType":"组件","observations":["位于/components/language-switcher.tsx","使用Dropdown组件实现语言切换UI","通过router.replace方法切换语言","显示国旗图标表示当前语言","支持英文和中文切换"],"createdAt":"2025-03-16T07:57:22.163Z","version":1}
+{"type":"entity","name":"布局结构","entityType":"代码结构","observations":["根布局文件(/app/layout.tsx)负责全局HTML结构和样式","国际化布局文件(/app/[locale]/layout.tsx)负责提供翻译功能","避免两个布局文件同时设置相同HTML元素属性","使用NextIntlClientProvider提供翻译上下文"],"createdAt":"2025-03-16T07:57:22.163Z","version":1}
+{"type":"entity","name":"水合错误问题","entityType":"问题","observations":["曾出现React水合错误(hydration mismatch)","原因是两个布局文件同时设置body标签属性","通过修改[locale]/layout.tsx，使用div替代html和body标签解决","确保根布局和国际化布局职责分离"],"createdAt":"2025-03-16T07:57:22.163Z","version":1}
+{"type":"entity","name":"国际化最佳实践","entityType":"指南","observations":["使用next-intl库实现国际化","将middleware.ts文件放在src目录下，符合Next.js的约定","使用统一的配置源，避免重复定义","根页面不进行硬编码重定向，而是交给中间件处理","使用正则表达式准确匹配中文语言代码","在中间件中同时处理根路径重定向和语言切换逻辑","使用[locale]动态路由参数实现语言切换","使用next-intl的createMiddleware创建基础中间件","将自定义语言检测逻辑与next-intl中间件结合"],"createdAt":"2025-03-16T08:42:09.945Z","version":1}
+{"type":"entity","name":"页面组件替换","entityType":"任务","observations":["将页面中的MainNav和UserNav组件替换为CustomNavbar组件","更新了组件库从自定义UI组件到@heroui/react组件","已完成产品页面的导航栏组件替换","已修复了产品页面中的下拉菜单组件"],"createdAt":"2025-03-16T08:47:48.150Z","version":1}
+{"type":"entity","name":"CustomNavbar","entityType":"组件","observations":["使用@heroui/react组件库","包含语言切换器功能","支持响应式设计"],"createdAt":"2025-03-16T08:47:48.150Z","version":1}
+{"type":"entity","name":"LanguageSwitcher","entityType":"组件","observations":["支持中英文切换","使用国旗图标表示语言"],"createdAt":"2025-03-16T08:47:48.150Z","version":1}
+{"type":"entity","name":"i18n任务","entityType":"Task","observations":["完成了settings页面的国际化翻译工作","更新了en.json文件，使其结构与cn.json一致","补充了settings部分的所有翻译键","将页面中硬编码的中文文本替换为英文文本","确保了在英文界面下不会显示中文内容"],"createdAt":"2025-03-16T09:39:19.879Z","version":1}
+{"type":"entity","name":"TrendHub项目","entityType":"项目","observations":["TrendHub是一个基于Next.js的Monorepo电子商务平台","包含admin（管理后台）和web（前端网站）两个主要应用","使用Turbo进行Monorepo管理","使用Tailwind CSS和HeroUI进行样式设计"],"createdAt":"2025-03-16T11:20:24.163Z","version":1}
+{"type":"entity","name":"后台管理系统","entityType":"应用","observations":["路径为/root/TrendHub/apps/admin","基于Next.js构建","包含设置页面等管理功能","需要实现与前端网站的数据通信"],"createdAt":"2025-03-16T11:20:24.164Z","version":1}
+{"type":"entity","name":"前端网站","entityType":"应用","observations":["路径为/root/TrendHub/apps/web","基于Next.js构建","需要从后台管理系统获取网站配置信息"],"createdAt":"2025-03-16T11:20:24.164Z","version":1}
+{"type":"entity","name":"PostgreSQL数据库","entityType":"技术","observations":["选择作为TrendHub项目的主要数据库","支持复杂查询、事务和JSON数据类型","可以通过Docker或本地安装方式运行"],"createdAt":"2025-03-16T11:20:24.164Z","version":1}
+{"type":"entity","name":"网站设置功能","entityType":"功能","observations":["通过admin设置页面控制前端网站的基本信息","包括网站名称、描述、社交媒体链接等","设计采用灵活的键值对存储方式","按类别（general、seo、database等）组织设置项"],"createdAt":"2025-03-16T11:20:24.164Z","version":1}
+{"type":"entity","name":"开发进度","entityType":"状态","observations":["已设计数据库模型SiteSetting","Prisma初始化遇到数据库连接问题","计划使用本地PostgreSQL或Docker部署数据库","后续需要实现API端点和前端获取设置的机制","已完成Prisma初始化配置","创建了PostgreSQL数据库trendhub_production和用户trendhub_admin","遇到了PostgreSQL权限问题：permission denied for schema public","尝试了多种授权方案解决权限问题","目前正在解决数据库权限问题以完成模型推送"],"createdAt":"2025-03-16T11:20:24.164Z","version":1}
+{"type":"entity","name":"PostgreSQL权限问题","entityType":"问题","observations":["在执行 prisma db push 时出现权限拒绝错误","错误信息: ERROR: permission denied for schema public","已尝试多种授权命令但问题未解决","考虑使用超级用户或更改schema所有权等方案"],"createdAt":"2025-03-16T11:57:23.502Z","version":1}
+{"type":"relation","from":"TrendHub Admin项目","to":"国际化实现","relationType":"包含","createdAt":"2025-03-16T07:57:55.132Z","version":1}
+{"type":"relation","from":"国际化实现","to":"语言检测逻辑","relationType":"使用","createdAt":"2025-03-16T07:57:55.132Z","version":1}
+{"type":"relation","from":"国际化实现","to":"LanguageSwitcher组件","relationType":"使用","createdAt":"2025-03-16T07:57:55.132Z","version":1}
+{"type":"relation","from":"国际化实现","to":"布局结构","relationType":"依赖","createdAt":"2025-03-16T07:57:55.132Z","version":1}
+{"type":"relation","from":"布局结构","to":"水合错误问题","relationType":"引发","createdAt":"2025-03-16T07:57:55.132Z","version":1}
+{"type":"relation","from":"LanguageSwitcher组件","to":"语言检测逻辑","relationType":"配合","createdAt":"2025-03-16T07:57:55.132Z","version":1}
+{"type":"relation","from":"国际化实现","to":"国际化最佳实践","relationType":"遵循","createdAt":"2025-03-16T08:42:15.051Z","version":1}
+{"type":"relation","from":"语言检测逻辑","to":"国际化最佳实践","relationType":"实现","createdAt":"2025-03-16T08:42:15.051Z","version":1}
+{"type":"relation","from":"CustomNavbar","to":"LanguageSwitcher","relationType":"包含","createdAt":"2025-03-16T08:47:52.042Z","version":1}
+{"type":"relation","from":"页面组件替换","to":"CustomNavbar","relationType":"使用","createdAt":"2025-03-16T08:47:52.042Z","version":1}
+{"type":"relation","from":"页面组件替换","to":"LanguageSwitcher","relationType":"间接使用","createdAt":"2025-03-16T08:47:52.042Z","version":1}
+{"type":"relation","from":"i18n任务","to":"TrendHub项目","relationType":"完善了","createdAt":"2025-03-16T09:39:23.670Z","version":1}
+{"type":"relation","from":"TrendHub项目","to":"后台管理系统","relationType":"包含","createdAt":"2025-03-16T11:20:32.283Z","version":1}
+{"type":"relation","from":"TrendHub项目","to":"前端网站","relationType":"包含","createdAt":"2025-03-16T11:20:32.283Z","version":1}
+{"type":"relation","from":"TrendHub项目","to":"PostgreSQL数据库","relationType":"使用","createdAt":"2025-03-16T11:20:32.283Z","version":1}
+{"type":"relation","from":"后台管理系统","to":"网站设置功能","relationType":"提供","createdAt":"2025-03-16T11:20:32.283Z","version":1}
+{"type":"relation","from":"前端网站","to":"网站设置功能","relationType":"使用","createdAt":"2025-03-16T11:20:32.283Z","version":1}
+{"type":"relation","from":"网站设置功能","to":"PostgreSQL数据库","relationType":"存储于","createdAt":"2025-03-16T11:20:32.283Z","version":1}
+{"type":"relation","from":"开发进度","to":"TrendHub项目","relationType":"记录","createdAt":"2025-03-16T11:20:32.283Z","version":1}
+{"type":"relation","from":"PostgreSQL权限问题","to":"PostgreSQL数据库","relationType":"关联于","createdAt":"2025-03-16T11:57:27.006Z","version":1}
+{"type":"relation","from":"开发进度","to":"PostgreSQL权限问题","relationType":"包含","createdAt":"2025-03-16T11:57:27.006Z","version":1}

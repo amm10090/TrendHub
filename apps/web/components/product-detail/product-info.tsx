@@ -21,7 +21,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
   const discountLabel = hasDiscount ? `-${product.discount}%` : '';
 
   return (
-    <div className="flex flex-col flex flex-col gap-y-4">
+    <div className="flex flex-col gap-y-4">
       {/* 品牌名 */}
       <h1 className="text-lg md:text-xl font-bold uppercase tracking-wider text-text-primary-light dark:text-text-primary-dark">
         {product.brand}

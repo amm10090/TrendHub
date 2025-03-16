@@ -14,7 +14,28 @@
     "recentActivitiesDescription": "Recent operations and activity records in the system",
     "topProducts": "Top Products",
     "topProductsDescription": "View the best-selling products and sales information",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "dashboard": {
+      "title": "Dashboard"
+    },
+    "revenue": "Revenue",
+    "totalOrders": "Total Orders",
+    "totalProducts": "Total Products",
+    "totalUsers": "Total Users",
+    "addProduct": "Add Product",
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "reports": "Reports",
+    "totalRevenue": "Total Revenue",
+    "revenueIncrease": "+20.1% from last month",
+    "subscriptions": "Subscriptions",
+    "subscriptionIncrease": "+180.1% from last month",
+    "sales": "Sales",
+    "salesIncrease": "+19% from last month",
+    "activeNow": "Active Now",
+    "activeIncrease": "+201 since last hour",
+    "recentSales": "Recent Sales",
+    "recentSalesDescription": "You made 265 sales this month."
   },
   "products": {
     "title": "Product Management",
@@ -44,24 +65,107 @@
       "prev": "Previous",
       "next": "Next"
     },
-    "details": "Details"
+    "details": "Details",
+    "id": "ID",
+    "name": "Product Name",
+    "price": "Price",
+    "stock": "Stock",
+    "category": "Category",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "settings": {
     "title": "System Settings",
-    "description": "Manage system configuration and feature settings",
-    "manage": "Manage",
+    "description": "Manage system settings and configuration",
+    "tabs": {
+      "general": "General",
+      "seo": "SEO",
+      "appearance": "Appearance",
+      "database": "Database",
+      "api": "API"
+    },
+    "websiteInfo": {
+      "title": "Website Information",
+      "description": "Set basic website information",
+      "siteName": "Site Name",
+      "siteNamePlaceholder": "Enter website name",
+      "siteDescription": "Site Description",
+      "siteDescriptionPlaceholder": "Enter website description",
+      "defaultDescription": "A premium fashion e-commerce aggregation platform featuring the latest brands and products.",
+      "contactEmail": "Contact Email",
+      "contactPhone": "Contact Phone",
+      "businessAddress": "Business Address",
+      "addressPlaceholder": "Enter your business address"
+    },
+    "socialMedia": {
+      "title": "Social Media",
+      "description": "Connect your social media accounts",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "twitter": "Twitter",
+      "pinterest": "Pinterest"
+    },
+    "database": {
+      "title": "Database Configuration",
+      "description": "Manage database connection settings",
+      "host": "Database Host",
+      "name": "Database Name",
+      "port": "Database Port",
+      "user": "Database User",
+      "password": "Database Password",
+      "useSSL": "Use SSL Connection",
+      "testConnection": "Test Connection"
+    },
+    "seo": {
+      "title": "SEO Settings",
+      "description": "Optimize website for search engines",
+      "metaTitle": "Meta Title",
+      "metaTitlePlaceholder": "Enter website meta title",
+      "metaDescription": "Meta Description",
+      "metaDescriptionPlaceholder": "Enter website meta description",
+      "defaultMetaDescription": "TrendHub is a professional fashion e-commerce aggregation platform, featuring global brands and trendy products.",
+      "keywords": "Keywords",
+      "keywordsPlaceholder": "Enter keywords, separated by commas"
+    },
+    "appearance": {
+      "title": "Appearance Settings",
+      "description": "Customize website theme and layout",
+      "theme": "Theme",
+      "layout": "Layout",
+      "colors": "Colors",
+      "fonts": "Fonts",
+      "logo": "Logo",
+      "favicon": "Favicon"
+    },
+    "api": {
+      "title": "API Settings",
+      "description": "Manage API access and integrations",
+      "keys": "API Keys",
+      "endpoints": "Endpoints",
+      "documentation": "Documentation",
+      "limits": "Usage Limits"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes",
+      "reset": "Reset",
+      "apply": "Apply",
+      "delete": "Delete",
+      "create": "Create"
+    },
+    "manage": "Manage Settings",
     "general": "General Settings",
-    "generalDescription": "Manage system general settings and preferences",
+    "generalDescription": "Configure basic system parameters",
     "website": "Website Settings",
-    "websiteDescription": "Configure website basic information and SEO settings",
-    "database": "Database Management",
-    "databaseDescription": "Manage database connections and backups",
+    "websiteDescription": "Configure website appearance and functionality",
+    "databaseDescription": "Configure database connection and backup options",
     "notifications": "Notification Settings",
     "notificationsDescription": "Configure system notifications and alerts",
     "security": "Security Settings",
-    "securityDescription": "Configure system security and access control",
-    "account": "Account Management",
-    "accountDescription": "Manage user accounts and permission settings"
+    "securityDescription": "Manage system security and access control",
+    "account": "Account Settings",
+    "accountDescription": "Manage your account information and preferences"
   },
   "layout": {
     "dashboard": "Dashboard",
@@ -74,6 +178,20 @@
     "admin": "Admin",
     "logout": "Logout",
     "openMenu": "Open Menu",
-    "closeMenu": "Close Menu"
+    "closeMenu": "Close Menu",
+    "navigation": "Navigation",
+    "language": "Language",
+    "notifications": "Notifications",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "profile": "Profile",
+    "userMenu": "User Menu",
+    "search": "Search...",
+    "email": "Email",
+    "adminEmail": "admin@example.com",
+    "appName": "TrendHub",
+    "shortcutProfile": "⇧⌘P",
+    "shortcutSettings": "⌘S",
+    "shortcutLogout": "⇧⌘Q"
   }
 }

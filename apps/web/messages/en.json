@@ -12,7 +12,8 @@
     "search": {
       "label": "Search",
       "placeholder": "Search for items and brands",
-      "close": "Close search"
+      "close": "Close search",
+      "clear": "nav.search.clear"
     },
     "account": "Account",
     "wishlist": "Wishlist",
@@ -132,7 +133,11 @@
       "affordable": "Affordable Luxury"
     },
     "menu": "Menu",
-    "clear": "Clear"
+    "clear": "Clear",
+    "filters": {
+      "title": "nav.filters.title"
+    },
+    "all": "nav.all"
   },
   "banner": {
     "title": "Gucci New Season",

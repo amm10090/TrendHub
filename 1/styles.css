@@ -1,0 +1,75 @@
+/* 自定义样式补充Tailwind CSS */
+.sidebar {
+  height: calc(100vh - 1rem);
+  overflow-y: auto;
+}
+
+.main-content {
+  height: calc(100vh - 1rem);
+  overflow-y: auto;
+}
+
+.card-stats {
+  transition: all 0.3s;
+}
+
+.card-stats:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* 移动端状态栏 */
+.ios-status-bar {
+  height: 44px;
+  background-color: #000;
+  color: white;
+  font-size: 12px;
+}
+
+.ios-tab-bar {
+  height: 83px; /* 包含底部安全区域 */
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #e2e8f0;
+}
+
+/* 模拟设备 */
+.device-container {
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 10px solid #000;
+  position: relative;
+}
+
+.device-screen {
+  overflow: hidden;
+  position: relative;
+}
+
+.iframe-container {
+  margin: 1rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+} 

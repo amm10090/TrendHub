@@ -139,13 +139,16 @@ export function CustomNavbar() {
           <LanguageSwitcher />
 
           {/* 主题切换 */}
-          <button
+          <Button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-md bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 backdrop-blur-sm"
+            variant="light"
+            size="sm"
+            isIconOnly
+            className="rounded-full bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 backdrop-blur-sm"
             aria-label={theme === "dark" ? t("lightMode") : t("darkMode")}
           >
             {theme === "dark" ? "🌞" : "🌙"}
-          </button>
+          </Button>
 
           {/* 用户导航 */}
           <Dropdown>
@@ -264,13 +267,16 @@ export function CustomNavbar() {
               </span>
               <div className="flex items-center gap-2">
                 <LanguageSwitcher />
-                <button
+                <Button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="p-2 rounded-md bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300"
+                  variant="light"
+                  size="sm"
+                  isIconOnly
+                  className="rounded-full bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 backdrop-blur-sm"
                   aria-label={theme === "dark" ? t("lightMode") : t("darkMode")}
                 >
                   {theme === "dark" ? "🌞" : "🌙"}
-                </button>
+                </Button>
               </div>
             </div>
           </DrawerHeader>

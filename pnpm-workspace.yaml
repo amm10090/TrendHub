@@ -1,13 +1,8 @@
 packages:
   - packages/*
   - apps/*
-ignoredBuiltDependencies:
-  - '@heroui/shared-utils'
-  - '@swc/core'
-  - '@vercel/speed-insights'
-  - esbuild
-  - framer-motion
-  - next
-  - react
-  - react-dom
-  - sharp
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - core-js-pure
+  - prisma

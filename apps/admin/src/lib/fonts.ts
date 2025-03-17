@@ -1,4 +1,4 @@
-import { Inter, Roboto_Mono, Poppins, Open_Sans } from "next/font/google";
+import { Inter, Roboto_Mono, Open_Sans } from "next/font/google";
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -16,9 +16,19 @@ export const roboto = Roboto_Mono({
   adjustFontFallback: true,
 });
 
-export const poppins = Poppins({
+// 暂时移除Poppins字体，解决加载错误
+// export const poppins = Poppins({
+//   subsets: ["latin"],
+//   weight: ["400", "500", "600", "700"],
+//   display: "swap",
+//   variable: "--font-poppins",
+//   preload: true,
+//   adjustFontFallback: true,
+// });
+
+// 使用Inter作为Poppins的替代
+export const poppins = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-poppins",
   preload: true,

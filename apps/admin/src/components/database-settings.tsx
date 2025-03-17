@@ -138,7 +138,7 @@ export function DatabaseSettings({
   };
 
   return (
-    <Card className="shadow-xl shadow-primary/5 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 rounded-2xl border border-default-200/50 dark:border-default-800/50 backdrop-blur-sm">
+    <Card className="shadow-lg shadow-default-500/5 hover:shadow-xl hover:shadow-default-500/10 transition-all duration-300 rounded-2xl border border-default-200/50 dark:border-default-800/50 backdrop-blur-sm">
       <CardHeader className="border-b border-default-200/50 dark:border-default-800/50 pb-4">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
@@ -164,7 +164,7 @@ export function DatabaseSettings({
             variant="bordered"
             radius="md"
             ref={hostInputRef}
-            className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
+            className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
@@ -179,7 +179,7 @@ export function DatabaseSettings({
               variant="bordered"
               radius="md"
               ref={nameInputRef}
-              className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
+              className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
             />
           </div>
           <div>
@@ -193,7 +193,7 @@ export function DatabaseSettings({
               variant="bordered"
               radius="md"
               ref={portInputRef}
-              className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
+              className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
             />
           </div>
         </div>
@@ -209,7 +209,7 @@ export function DatabaseSettings({
               variant="bordered"
               radius="md"
               ref={userInputRef}
-              className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
+              className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
             />
           </div>
           <div>
@@ -224,7 +224,7 @@ export function DatabaseSettings({
               variant="bordered"
               radius="md"
               ref={passwordInputRef}
-              className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
+              className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
             />
           </div>
         </div>
@@ -237,6 +237,7 @@ export function DatabaseSettings({
             id="db-ssl"
             ref={sslSwitchRef}
             color="primary"
+            className="data-[selected=true]:bg-primary-600"
           />
           <label
             htmlFor="db-ssl"
@@ -249,18 +250,24 @@ export function DatabaseSettings({
           <Tooltip content="测试数据库连接状态" placement="top" showArrow>
             <Button
               color="primary"
-              className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300"
-              radius="md"
+              variant="solid"
+              size="lg"
+              className="w-full md:w-auto px-8 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 
+                            shadow-lg shadow-primary-600/30 dark:shadow-primary-500/30
+                            hover:shadow-xl hover:shadow-primary-600/40 dark:hover:shadow-primary-500/40 
+                            active:shadow-primary-600/50 dark:active:shadow-primary-500/50
+                            border-0 transition-all duration-300 ease-in-out"
+              radius="full"
               isLoading={isTestingConnection}
               onPress={testConnection}
               startContent={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
+                  className="h-5 w-5 mr-2"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
@@ -269,9 +276,11 @@ export function DatabaseSettings({
                 </svg>
               }
             >
-              {isTestingConnection
-                ? t("database.testingConnection")
-                : t("database.testConnection")}
+              <span className="font-medium">
+                {isTestingConnection
+                  ? t("database.testingConnection")
+                  : t("database.testConnection")}
+              </span>
             </Button>
           </Tooltip>
         </div>

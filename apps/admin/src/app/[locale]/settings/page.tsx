@@ -193,12 +193,12 @@ export default function SettingsPage() {
   // 如果正在加载，显示加载中
   if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col bg-bg-primary-light dark:bg-bg-primary-dark">
+      <div className="flex min-h-screen flex-col bg-white dark:bg-[#0A0A0A]">
         <CustomNavbar />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Spinner size="lg" color="primary" />
-            <p className="mt-4 text-default-600 dark:text-default-400">
+            <p className="mt-4 text-[#4B5563] dark:text-[#9CA3AF]">
               加载设置中...
             </p>
           </div>
@@ -208,7 +208,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg-primary-light dark:bg-bg-primary-dark">
+    <div className="flex min-h-screen flex-col bg-white dark:bg-[#0A0A0A]">
       <CustomNavbar />
       <main className="flex-1 mx-auto w-full max-w-screen-2xl p-4 md:p-8 transition-all">
         <div className="flex items-center justify-between mb-8">
@@ -227,11 +227,12 @@ export default function SettingsPage() {
           className="mb-8"
           classNames={{
             tabList:
-              "gap-2 p-1 bg-default-100/50 dark:bg-default-100/10 rounded-xl",
-            tab: "rounded-lg data-[selected=true]:bg-white dark:data-[selected=true]:bg-primary-500 data-[selected=true]:shadow-md py-2.5 px-4 font-medium transition-all duration-200 hover:bg-default-200/50 dark:hover:bg-default-600/30",
+              "gap-2 p-1 bg-[#F3F4F6]/50 dark:bg-[#1F2937]/10 rounded-xl",
+            tab: "rounded-lg data-[selected=true]:bg-white dark:data-[selected=true]:bg-[#0080FF] data-[selected=true]:shadow-md py-2.5 px-4 font-medium transition-all duration-300 hover:bg-[#E5E7EB]/50 dark:hover:bg-[#374151]/30",
             tabContent:
-              "flex items-center gap-2 group-data-[selected=true]:text-primary-600 dark:group-data-[selected=true]:text-default-900",
-            cursor: "bg-white dark:bg-primary-500 shadow-md rounded-lg",
+              "flex items-center gap-2 group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white",
+            cursor:
+              "bg-white dark:bg-[#0080FF] shadow-md shadow-[#0080FF]/10 dark:shadow-[#0080FF]/20 rounded-lg",
           }}
         >
           <Tab
@@ -240,7 +241,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <Settings
                   size={18}
-                  className="group-data-[selected=true]:text-primary"
+                  className="group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white"
                 />
                 <span>{t("tabs.general")}</span>
               </div>
@@ -252,7 +253,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <Search
                   size={18}
-                  className="group-data-[selected=true]:text-primary"
+                  className="group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white"
                 />
                 <span>{t("tabs.seo")}</span>
               </div>
@@ -264,7 +265,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <Palette
                   size={18}
-                  className="group-data-[selected=true]:text-primary"
+                  className="group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white"
                 />
                 <span>{t("tabs.appearance")}</span>
               </div>
@@ -276,7 +277,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <Database
                   size={18}
-                  className="group-data-[selected=true]:text-primary"
+                  className="group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white"
                 />
                 <span>{t("tabs.database")}</span>
               </div>
@@ -288,7 +289,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <Code
                   size={18}
-                  className="group-data-[selected=true]:text-primary"
+                  className="group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white"
                 />
                 <span>{t("tabs.api")}</span>
               </div>
@@ -301,20 +302,20 @@ export default function SettingsPage() {
           {/* 网站信息卡片 - 仅在General标签页显示 */}
           {activeTab === "general" && (
             <>
-              <Card className="shadow-lg hover:shadow-xl transition-all rounded-xl border border-default-200 dark:border-default-800">
-                <CardHeader className="border-b border-default-200 dark:border-default-800 pb-4">
+              <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl border border-[#E5E7EB] dark:border-[#374151] bg-white dark:bg-[#1A1A1A] shadow-[#0080FF]/5 dark:shadow-[#3D9AFF]/10">
+                <CardHeader className="border-b border-[#E5E7EB] dark:border-[#374151] pb-4">
                   <div className="space-y-1.5">
-                    <h2 className="text-xl font-semibold text-default-900 dark:text-default-50">
+                    <h2 className="text-xl font-semibold text-[#111827] dark:text-[#F9FAFB]">
                       {t("websiteInfo.title")}
                     </h2>
-                    <p className="text-sm text-default-600 dark:text-default-400">
+                    <p className="text-sm text-[#4B5563] dark:text-[#9CA3AF]">
                       {t("websiteInfo.description")}
                     </p>
                   </div>
                 </CardHeader>
                 <CardBody className="space-y-8 p-6">
                   <div>
-                    <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                    <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                       {t("websiteInfo.siteName")}
                     </label>
                     <Input
@@ -330,7 +331,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                    <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                       {t("websiteInfo.siteDescription")}
                     </label>
                     <Textarea
@@ -351,7 +352,7 @@ export default function SettingsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                      <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                         {t("websiteInfo.contactEmail")}
                       </label>
                       <Input
@@ -370,7 +371,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                      <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                         {t("websiteInfo.contactPhone")}
                       </label>
                       <Input
@@ -390,7 +391,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                    <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                       {t("websiteInfo.businessAddress")}
                     </label>
                     <Textarea
@@ -411,13 +412,13 @@ export default function SettingsPage() {
                 </CardBody>
               </Card>
 
-              <Card className="shadow-lg hover:shadow-xl transition-all rounded-xl border border-default-200 dark:border-default-800">
-                <CardHeader className="border-b border-default-200 dark:border-default-800 pb-4">
+              <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl border border-[#E5E7EB] dark:border-[#374151] bg-white dark:bg-[#1A1A1A] shadow-[#0080FF]/5 dark:shadow-[#3D9AFF]/10">
+                <CardHeader className="border-b border-[#E5E7EB] dark:border-[#374151] pb-4">
                   <div className="space-y-1.5">
-                    <h2 className="text-xl font-semibold text-default-900 dark:text-default-50">
+                    <h2 className="text-xl font-semibold text-[#111827] dark:text-[#F9FAFB]">
                       {t("socialMedia.title")}
                     </h2>
-                    <p className="text-sm text-default-600 dark:text-default-400">
+                    <p className="text-sm text-[#4B5563] dark:text-[#9CA3AF]">
                       {t("socialMedia.description")}
                     </p>
                   </div>
@@ -425,7 +426,7 @@ export default function SettingsPage() {
                 <CardBody className="space-y-8 p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                      <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                         {t("socialMedia.facebook")}
                       </label>
                       <Input
@@ -443,7 +444,7 @@ export default function SettingsPage() {
                         startContent={
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-default-500"
+                            className="h-5 w-5 text-[#1877F2] dark:text-[#4267B2]"
                             viewBox="0 0 24 24"
                             fill="currentColor"
                           >
@@ -453,7 +454,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                      <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                         {t("socialMedia.instagram")}
                       </label>
                       <Input
@@ -471,7 +472,7 @@ export default function SettingsPage() {
                         startContent={
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-default-500"
+                            className="h-5 w-5 text-[#E4405F] dark:text-[#E4405F]"
                             viewBox="0 0 24 24"
                             fill="currentColor"
                           >
@@ -483,7 +484,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                      <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                         {t("socialMedia.twitter")}
                       </label>
                       <Input
@@ -501,7 +502,7 @@ export default function SettingsPage() {
                         startContent={
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-default-500"
+                            className="h-5 w-5 text-[#1DA1F2] dark:text-[#1DA1F2]"
                             viewBox="0 0 24 24"
                             fill="currentColor"
                           >
@@ -511,7 +512,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                      <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                         {t("socialMedia.pinterest")}
                       </label>
                       <Input
@@ -529,7 +530,7 @@ export default function SettingsPage() {
                         startContent={
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-default-500"
+                            className="h-5 w-5 text-[#E60023] dark:text-[#E60023]"
                             viewBox="0 0 24 24"
                             fill="currentColor"
                           >
@@ -550,20 +551,20 @@ export default function SettingsPage() {
 
           {/* SEO 设置 - 仅在SEO标签页显示 */}
           {activeTab === "seo" && (
-            <Card className="shadow-lg hover:shadow-xl transition-all rounded-xl border border-default-200 dark:border-default-800">
-              <CardHeader className="border-b border-default-200 dark:border-default-800 pb-4">
+            <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl border border-[#E5E7EB] dark:border-[#374151] bg-white dark:bg-[#1A1A1A] shadow-[#0080FF]/5 dark:shadow-[#3D9AFF]/10">
+              <CardHeader className="border-b border-[#E5E7EB] dark:border-[#374151] pb-4">
                 <div className="space-y-1.5">
-                  <h2 className="text-xl font-semibold text-default-900 dark:text-default-50">
+                  <h2 className="text-xl font-semibold text-[#111827] dark:text-[#F9FAFB]">
                     {t("seo.title")}
                   </h2>
-                  <p className="text-sm text-default-600 dark:text-default-400">
+                  <p className="text-sm text-[#4B5563] dark:text-[#9CA3AF]">
                     {t("seo.description")}
                   </p>
                 </div>
               </CardHeader>
               <CardBody className="space-y-8 p-6">
                 <div>
-                  <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                  <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                     {t("seo.metaTitle")}
                   </label>
                   <Input
@@ -581,7 +582,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                  <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                     {t("seo.metaDescription")}
                   </label>
                   <Textarea
@@ -600,7 +601,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                  <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                     {t("seo.keywords")}
                   </label>
                   <Input
@@ -633,20 +634,20 @@ export default function SettingsPage() {
 
           {/* API设置 - 仅在API标签页显示 */}
           {activeTab === "api" && (
-            <Card className="shadow-lg hover:shadow-xl transition-all rounded-xl border border-default-200 dark:border-default-800">
-              <CardHeader className="border-b border-default-200 dark:border-default-800 pb-4">
+            <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl border border-[#E5E7EB] dark:border-[#374151] bg-white dark:bg-[#1A1A1A] shadow-[#0080FF]/5 dark:shadow-[#3D9AFF]/10">
+              <CardHeader className="border-b border-[#E5E7EB] dark:border-[#374151] pb-4">
                 <div className="space-y-1.5">
-                  <h2 className="text-xl font-semibold text-default-900 dark:text-default-50">
+                  <h2 className="text-xl font-semibold text-[#111827] dark:text-[#F9FAFB]">
                     {t("api.title")}
                   </h2>
-                  <p className="text-sm text-default-600 dark:text-default-400">
+                  <p className="text-sm text-[#4B5563] dark:text-[#9CA3AF]">
                     {t("api.description")}
                   </p>
                 </div>
               </CardHeader>
               <CardBody className="space-y-8 p-6">
                 <div>
-                  <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                  <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                     API 密钥
                   </label>
                   <Input
@@ -662,7 +663,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                  <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
                     API 请求限制 (每分钟)
                   </label>
                   <Input
@@ -690,7 +691,7 @@ export default function SettingsPage() {
                   />
                   <label
                     htmlFor="api-enabled"
-                    className="text-default-700 dark:text-default-300 text-sm cursor-pointer"
+                    className="text-[#374151] dark:text-[#D1D5DB] text-sm cursor-pointer"
                   >
                     启用 API 访问
                   </label>
@@ -704,7 +705,7 @@ export default function SettingsPage() {
               variant="bordered"
               color="default"
               radius="full"
-              className="px-6 bg-transparent border-default-300 dark:border-default-600 text-default-700 dark:text-default-300 transition-all duration-300 hover:bg-default-100 dark:hover:bg-default-800"
+              className="px-6 bg-white dark:bg-[#1A1A1A] border-[#D1D5DB] dark:border-[#4B5563] text-[#374151] dark:text-[#F3F4F6] transition-all duration-300 hover:bg-[#F3F4F6] dark:hover:bg-[#262626] hover:shadow-sm"
               onPress={confirmDiscardChanges}
               isDisabled={!hasChanges || isSaving}
             >
@@ -714,7 +715,7 @@ export default function SettingsPage() {
               color="primary"
               variant="solid"
               radius="full"
-              className="px-6 font-medium text-white dark:text-default-900 bg-primary-500 dark:bg-secondary-400 transition-all duration-300 shadow-md hover:shadow-lg hover:bg-primary-700 dark:hover:bg-primary-300"
+              className="px-6 font-medium text-white transition-all duration-300 shadow-md shadow-[#0080FF]/20 hover:shadow-lg hover:shadow-[#0080FF]/30 hover:bg-[#0062C3] dark:hover:bg-[#0055AA] dark:text-white bg-black"
               onPress={saveSettings}
               isLoading={isSaving}
               isDisabled={!hasChanges}
@@ -726,17 +727,37 @@ export default function SettingsPage() {
       </main>
 
       {/* 确认放弃更改的模态框 */}
-      <Modal isOpen={isOpen} onClose={onClose} backdrop="blur">
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-[#111827]/60 backdrop-blur-sm",
+          base: "border border-[#E5E7EB] dark:border-[#374151] bg-white dark:bg-[#111827] shadow-xl shadow-[#0080FF]/10 dark:shadow-[#3D9AFF]/20",
+        }}
+      >
         <ModalContent>
-          <ModalHeader>确认放弃更改</ModalHeader>
+          <ModalHeader className="border-b border-[#E5E7EB] dark:border-[#374151]">
+            确认放弃更改
+          </ModalHeader>
           <ModalBody>
-            <p>您确定要放弃所有未保存的更改吗？此操作无法撤销。</p>
+            <p className="text-[#374151] dark:text-[#D1D5DB]">
+              您确定要放弃所有未保存的更改吗？此操作无法撤销。
+            </p>
           </ModalBody>
           <ModalFooter>
-            <Button variant="flat" onPress={onClose}>
+            <Button
+              variant="flat"
+              onPress={onClose}
+              className="bg-[#F3F4F6] dark:bg-[#1F2937] text-[#374151] dark:text-[#F3F4F6] hover:bg-[#E5E7EB] dark:hover:bg-[#374151]"
+            >
               取消
             </Button>
-            <Button color="danger" onPress={discardChanges}>
+            <Button
+              color="danger"
+              onPress={discardChanges}
+              className="bg-[#EF4444] text-white hover:bg-[#DC2626] dark:bg-[#DC2626] dark:hover:bg-[#B91C1C] shadow-sm shadow-[#EF4444]/20 hover:shadow-[#EF4444]/30"
+            >
               放弃更改
             </Button>
           </ModalFooter>

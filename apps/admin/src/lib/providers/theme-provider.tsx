@@ -52,8 +52,7 @@ class ThemeErrorBoundary extends React.Component<
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error) {
-    console.error("Theme provider error:", error);
+  componentDidCatch() {
     addToast({
       title: "主题加载错误",
       description: "主题系统出现问题，已回退到默认主题",
@@ -75,6 +74,40 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<ThemeSettings>(defaultTheme);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 使用 useCallback 优化主题更新方法
+  const handleSetTheme = useCallback(
+    async (newSettings: Partial<ThemeSettings>) => {
+      try {
+        const updatedTheme = { ...theme, ...newSettings };
+
+        setTheme(updatedTheme);
+
+        // 保存到数据库
+        const settingsToUpdate = Object.entries(newSettings).map(
+          ([key, value]) => ({
+            key,
+            value: String(value),
+            category: "appearance",
+          }),
+        );
+
+        const response = await SettingsService.saveSettings(settingsToUpdate);
+
+        if (!response.success) {
+          throw new Error(response.error || "保存失败");
+        }
+      } catch {
+        addToast({
+          title: "保存主题设置失败",
+          description: "无法保存主题设置，请重试",
+          color: "danger",
+          variant: "solid",
+        });
+      }
+    },
+    [theme],
+  );
+
   // 使用 useMemo 优化主题状态
   const themeValue = useMemo(
     () => ({
@@ -82,7 +115,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTheme: handleSetTheme,
       isLoading,
     }),
-    [theme, isLoading],
+    [theme, isLoading, handleSetTheme],
   );
 
   // 加载主题设置
@@ -221,8 +254,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           ...settings,
         }));
       }
-    } catch (error) {
-      console.error("Failed to load theme settings:", error);
+    } catch {
       addToast({
         title: "加载主题设置失败",
         description: "无法加载主题设置，将使用默认主题",
@@ -233,41 +265,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   };
-
-  // 使用 useCallback 优化主题更新方法
-  const handleSetTheme = useCallback(
-    async (newSettings: Partial<ThemeSettings>) => {
-      try {
-        const updatedTheme = { ...theme, ...newSettings };
-
-        setTheme(updatedTheme);
-
-        // 保存到数据库
-        const settingsToUpdate = Object.entries(newSettings).map(
-          ([key, value]) => ({
-            key,
-            value: String(value),
-            category: "appearance",
-          }),
-        );
-
-        const response = await SettingsService.saveSettings(settingsToUpdate);
-
-        if (!response.success) {
-          throw new Error(response.error || "保存失败");
-        }
-      } catch (error) {
-        console.error("Failed to save theme settings:", error);
-        addToast({
-          title: "保存主题设置失败",
-          description: "无法保存主题设置，请重试",
-          color: "danger",
-          variant: "solid",
-        });
-      }
-    },
-    [theme],
-  );
 
   return (
     <ThemeErrorBoundary>

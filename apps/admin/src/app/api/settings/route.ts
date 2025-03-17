@@ -1,5 +1,6 @@
-import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+
+import { db } from "@/lib/db";
 
 interface SettingResponse {
   id: string;
@@ -38,9 +39,7 @@ export async function GET() {
       success: true,
       data: settingsByCategory,
     });
-  } catch (error) {
-    console.error("获取设置失败:", error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -83,9 +82,7 @@ export async function POST(req: Request) {
         updatedAt: setting.updatedAt.toISOString(),
       },
     });
-  } catch (error) {
-    console.error("保存设置失败:", error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -146,13 +143,10 @@ export async function PUT(req: Request) {
         updatedAt: setting.updatedAt.toISOString(),
       })),
     });
-  } catch (error) {
-    console.error("批量保存设置失败:", error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "批量保存设置失败",
       },
       { status: 500 },
     );

@@ -11,6 +11,7 @@ export interface DbConnectionStatus {
   isConnected: boolean;
   message: string;
   latency?: number;
+  error?: string;
 }
 
 // 创建或更新设置项的请求参数
@@ -124,47 +125,58 @@ export const SettingsService = {
 
   // 测试数据库连接
   async testDatabaseConnection(): Promise<ApiResponse<DbConnectionStatus>> {
-    try {
-      const startTime = performance.now();
+    const startTime = performance.now();
 
+    try {
+      // 从本地缓存中获取设置，避免多次API调用
+      const settings = await this.getAllSettings();
+      const dbSettings: Record<string, string> = {};
+
+      // 如果获取设置失败，使用默认值
+      if (!settings.success || !settings.data) {
+        // 使用默认值继续测试
+      } else {
+        // 从设置中提取数据库配置
+        if (settings.data.database) {
+          settings.data.database.forEach((setting) => {
+            dbSettings[setting.key] = setting.value;
+          });
+        }
+      }
+
+      const host = dbSettings.dbHost || "localhost";
+      const port = dbSettings.dbPort || "5432";
+      const database = dbSettings.dbName || "trendhub_production";
+      const user = dbSettings.dbUser || "trendhub_admin";
+      const password = dbSettings.dbPassword || "";
+      const ssl = dbSettings.dbUseSSL === "true";
+
+      // 发送连接测试请求
       const response = await fetch("/api/settings/test-db-connection", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          host: await SettingsService.getSetting("dbHost").then(
-            (res) => res.data?.value || "localhost",
-          ),
-          port: await SettingsService.getSetting("dbPort").then(
-            (res) => res.data?.value || "5432",
-          ),
-          database: await SettingsService.getSetting("dbName").then(
-            (res) => res.data?.value || "trendhub",
-          ),
-          user: await SettingsService.getSetting("dbUser").then(
-            (res) => res.data?.value || "admin",
-          ),
-          password: await SettingsService.getSetting("dbPassword").then(
-            (res) => res.data?.value || "",
-          ),
-          ssl: await SettingsService.getSetting("dbUseSSL").then(
-            (res) => res.data?.value === "true",
-          ),
+          host,
+          port,
+          database,
+          user,
+          password,
+          ssl,
         }),
       });
 
+      const data = await response.json();
       const endTime = performance.now();
       const latency = Math.round(endTime - startTime);
 
-      const data = await response.json();
-
       if (data.success) {
         return {
-          ...data,
+          success: true,
           data: {
             ...data.data,
-            latency,
+            latency: data.data.latency || latency,
           },
         };
       }
@@ -173,15 +185,30 @@ export const SettingsService = {
         success: false,
         data: {
           isConnected: false,
-          message: data.error || "数据库连接失败",
+          message: data.data?.message || "数据库连接失败",
+          error: data.data?.error,
+          latency,
         },
       };
-    } catch {
+    } catch (error) {
+      const endTime = performance.now();
+      const latency = Math.round(endTime - startTime);
+
+      let errorMessage = "连接测试失败: 网络或服务器错误";
+      let errorDetail = "";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        errorDetail = error.stack || "";
+      }
+
       return {
         success: false,
         data: {
           isConnected: false,
-          message: "连接测试失败: 服务器错误",
+          message: errorMessage,
+          error: errorDetail,
+          latency,
         },
       };
     }

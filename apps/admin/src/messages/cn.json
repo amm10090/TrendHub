@@ -170,6 +170,7 @@
       "password": "数据库密码",
       "port": "数据库端口",
       "testConnection": "测试连接",
+      "testingConnection": "设置.数据库.测试连接",
       "title": "数据库配置",
       "useSSL": "使用SSL连接",
       "user": "数据库用户"

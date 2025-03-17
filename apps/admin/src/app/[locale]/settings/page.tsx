@@ -69,8 +69,7 @@ export default function SettingsPage() {
           variant: "solid",
         });
       }
-    } catch (error) {
-      console.error("Failed to load settings:", error);
+    } catch {
       addToast({
         title: "加载设置失败",
         description: "发生错误，请重试",
@@ -167,8 +166,7 @@ export default function SettingsPage() {
           variant: "solid",
         });
       }
-    } catch (error) {
-      console.error("Failed to save settings:", error);
+    } catch {
       addToast({
         title: "保存失败",
         description: "发生错误，请重试",

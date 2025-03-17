@@ -19,7 +19,9 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ["localhost:3001"],
+    },
   },
   webpack: (config) => {
     config.resolve.alias = {

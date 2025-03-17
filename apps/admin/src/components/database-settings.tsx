@@ -6,14 +6,12 @@ import {
   Input,
   Switch,
   addToast,
+  Tooltip,
 } from "@heroui/react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
-import {
-  DbConnectionStatus,
-  SettingsService,
-} from "@/lib/services/settings-service";
+import { DbConnectionStatus } from "@/lib/services/settings-service";
 
 import { DatabaseConnectionStatus } from "./database-connection-status";
 
@@ -31,25 +29,86 @@ export function DatabaseSettings({
   const [connectionStatus, setConnectionStatus] =
     useState<DbConnectionStatus | null>(null);
 
-  // 测试数据库连接
+  // 用于存储表单引用
+  const hostInputRef = useRef<HTMLInputElement>(null);
+  const portInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const userInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const sslSwitchRef = useRef<HTMLInputElement>(null);
+
+  // 初始化数据库配置默认值
+  useEffect(() => {
+    const initDefaultValues = async () => {
+      // 检查是否已经有设置值
+      const hostValue = getSettingValue("dbHost", "");
+
+      if (!hostValue) {
+        // 如果没有设置值，设置为环境变量中的默认配置
+        handleFieldChange("dbHost", "localhost");
+        handleFieldChange("dbPort", "5432");
+        handleFieldChange("dbName", "trendhub_production");
+        handleFieldChange("dbUser", "trendhub_admin");
+        handleFieldChange("dbPassword", "admin12345");
+        handleFieldChange("dbUseSSL", "false");
+      }
+    };
+
+    initDefaultValues();
+  }, [getSettingValue, handleFieldChange]);
+
+  // 测试数据库连接 - 使用当前表单值
   const testConnection = async () => {
     setIsTestingConnection(true);
     try {
-      const response = await SettingsService.testDatabaseConnection();
+      // 直接从表单中获取当前值
+      const formSettings = {
+        dbHost:
+          hostInputRef.current?.value || getSettingValue("dbHost", "localhost"),
+        dbPort:
+          portInputRef.current?.value || getSettingValue("dbPort", "5432"),
+        dbName:
+          nameInputRef.current?.value ||
+          getSettingValue("dbName", "trendhub_production"),
+        dbUser:
+          userInputRef.current?.value ||
+          getSettingValue("dbUser", "trendhub_admin"),
+        dbPassword:
+          passwordInputRef.current?.value || getSettingValue("dbPassword", ""),
+        dbUseSSL: sslSwitchRef.current?.checked ? "true" : "false",
+      };
 
-      if (response.data) {
-        setConnectionStatus(response.data);
+      // 覆盖默认设置服务的行为，直接调用API进行测试
+      const response = await fetch("/api/settings/test-db-connection", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          host: formSettings.dbHost,
+          port: formSettings.dbPort,
+          database: formSettings.dbName,
+          user: formSettings.dbUser,
+          password: formSettings.dbPassword,
+          ssl: formSettings.dbUseSSL === "true",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.data) {
+        setConnectionStatus(data.data);
 
         // 显示连接状态提示
         addToast({
-          title: response.data.isConnected ? "连接成功" : "连接失败",
-          description: response.data.message,
+          title: data.data.isConnected ? "连接成功" : "连接失败",
+          description: data.data.message,
           variant: "solid",
-          color: response.data.isConnected ? "success" : "danger",
+          color: data.data.isConnected ? "success" : "danger",
           timeout: 3000,
           classNames: {
             base: `bg-gradient-to-r ${
-              response.data.isConnected
+              data.data.isConnected
                 ? "from-success-500/90 to-success-600/90 dark:from-success-600/90 dark:to-success-700/90 border-success-500/20"
                 : "from-danger-500/90 to-danger-600/90 dark:from-danger-600/90 dark:to-danger-700/90 border-danger-500/20"
             } 
@@ -65,6 +124,14 @@ export function DatabaseSettings({
           shouldShowTimeoutProgress: true,
         });
       }
+    } catch (error) {
+      addToast({
+        title: "连接测试失败",
+        description: error instanceof Error ? error.message : "未知错误",
+        variant: "solid",
+        color: "danger",
+        timeout: 3000,
+      });
     } finally {
       setIsTestingConnection(false);
     }
@@ -92,10 +159,11 @@ export function DatabaseSettings({
           </label>
           <Input
             placeholder="localhost"
-            value={getSettingValue("dbHost", "db.trendhub.com")}
+            value={getSettingValue("dbHost", "localhost")}
             onChange={(e) => handleFieldChange("dbHost", e.target.value)}
             variant="bordered"
             radius="md"
+            ref={hostInputRef}
             className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
           />
         </div>
@@ -105,11 +173,12 @@ export function DatabaseSettings({
               {t("database.name")}
             </label>
             <Input
-              placeholder="my_database"
+              placeholder="trendhub_production"
               value={getSettingValue("dbName", "trendhub_production")}
               onChange={(e) => handleFieldChange("dbName", e.target.value)}
               variant="bordered"
               radius="md"
+              ref={nameInputRef}
               className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
             />
           </div>
@@ -118,11 +187,12 @@ export function DatabaseSettings({
               {t("database.port")}
             </label>
             <Input
-              placeholder="3306"
+              placeholder="5432"
               value={getSettingValue("dbPort", "5432")}
               onChange={(e) => handleFieldChange("dbPort", e.target.value)}
               variant="bordered"
               radius="md"
+              ref={portInputRef}
               className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
             />
           </div>
@@ -133,11 +203,12 @@ export function DatabaseSettings({
               {t("database.user")}
             </label>
             <Input
-              placeholder="username"
+              placeholder="trendhub_admin"
               value={getSettingValue("dbUser", "trendhub_admin")}
               onChange={(e) => handleFieldChange("dbUser", e.target.value)}
               variant="bordered"
               radius="md"
+              ref={userInputRef}
               className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
             />
           </div>
@@ -148,21 +219,23 @@ export function DatabaseSettings({
             <Input
               type="password"
               placeholder="••••••••"
-              value={getSettingValue("dbPassword", "••••••••••••")}
+              value={getSettingValue("dbPassword", "")}
               onChange={(e) => handleFieldChange("dbPassword", e.target.value)}
               variant="bordered"
               radius="md"
+              ref={passwordInputRef}
               className="w-full hover:border-primary-400 focus:border-primary-500 dark:hover:border-primary-600 dark:focus:border-primary-500 transition-all duration-200"
             />
           </div>
         </div>
         <div className="flex items-center space-x-3 mt-4">
           <Switch
-            defaultSelected={getSettingValue("dbUseSSL", "true") === "true"}
+            defaultSelected={getSettingValue("dbUseSSL", "false") === "true"}
             onChange={(isSelected) =>
               handleFieldChange("dbUseSSL", isSelected.toString())
             }
             id="db-ssl"
+            ref={sslSwitchRef}
             color="primary"
           />
           <label
@@ -173,33 +246,67 @@ export function DatabaseSettings({
           </label>
         </div>
         <div className="flex gap-4">
-          <Button
-            color="primary"
-            className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300"
-            radius="md"
-            isLoading={isTestingConnection}
-            onPress={testConnection}
-            startContent={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="M9 12l2 2 4-4" />
-              </svg>
-            }
-          >
-            {isTestingConnection
-              ? t("database.testingConnection")
-              : t("database.testConnection")}
-          </Button>
+          <Tooltip content="测试数据库连接状态" placement="top" showArrow>
+            <Button
+              color="primary"
+              className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300"
+              radius="md"
+              isLoading={isTestingConnection}
+              onPress={testConnection}
+              startContent={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg>
+              }
+            >
+              {isTestingConnection
+                ? t("database.testingConnection")
+                : t("database.testConnection")}
+            </Button>
+          </Tooltip>
         </div>
+
+        {connectionStatus && connectionStatus.isConnected && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-success-600 dark:text-success-400">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <span>上次连接成功，延迟：{connectionStatus.latency}ms</span>
+          </div>
+        )}
+
+        {connectionStatus &&
+          !connectionStatus.isConnected &&
+          connectionStatus.error && (
+            <div className="mt-2 p-3 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800/30 rounded-lg">
+              <h3 className="text-sm font-medium text-danger-700 dark:text-danger-400">
+                错误详情：
+              </h3>
+              <pre className="mt-1 text-xs text-danger-600 dark:text-danger-300 overflow-auto max-h-32">
+                {connectionStatus.error}
+              </pre>
+            </div>
+          )}
       </CardBody>
     </Card>
   );

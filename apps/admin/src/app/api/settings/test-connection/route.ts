@@ -18,9 +18,7 @@ export async function POST() {
         message: "数据库连接正常",
       },
     });
-  } catch (error) {
-    console.error("数据库连接测试失败:", error);
-
+  } catch {
     return NextResponse.json({
       success: false,
       data: {
@@ -28,7 +26,6 @@ export async function POST() {
         latency: 0,
         message: "数据库连接失败",
       },
-      error: error instanceof Error ? error.message : "未知错误",
     });
   }
 }

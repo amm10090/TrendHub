@@ -170,6 +170,7 @@
       "password": "Database Password",
       "port": "Database Port",
       "testConnection": "Test Connection",
+      "testingConnection": "",
       "title": "Database Configuration",
       "useSSL": "Use SSL Connection",
       "user": "Database User"

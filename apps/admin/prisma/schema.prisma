@@ -34,3 +34,27 @@ model SiteSetting {
   // 这对于按类别获取设置（如获取所有SEO设置）很重要
   @@index([category])
 }
+
+// Product模型 - 用于存储商品信息
+model Product {
+  id          String    @id @default(cuid())  // 唯一标识符，使用CUID生成
+  name        String                          // 商品名称
+  brand       String                          // 品牌名称
+  category    String                          // 商品分类
+  price       Decimal                         // 商品价格
+  status      String                          // 商品状态（如"In Stock"、"Low Stock"等）
+  description String?                         // 商品描述（可选）
+  images      String[]                        // 商品图片URL数组
+  sku         String    @unique               // 商品SKU，确保唯一性
+  inventory   Int       @default(0)           // 库存数量，替代原有的stock字段
+  isDeleted   Boolean   @default(false)       // 软删除标记
+  updatedAt   DateTime  @updatedAt            // 更新时间
+  createdAt   DateTime  @default(now())       // 创建时间
+
+  // 创建索引以优化查询性能
+  @@index([category])
+  @@index([brand])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([sku])
+}

@@ -68,23 +68,28 @@
   },
   "products": {
     "actions": "Actions",
+    "actionsFor": "Actions for {name}",
     "addProduct": "Add Product",
+    "archive": "Archive",
     "category": "Category",
     "columns": {
       "actions": "Actions",
+      "brand": "Brand",
       "category": "Category",
-      "name": "Product Name",
+      "name": "Name",
       "price": "Price",
-      "status": "Status",
-      "stock": "Stock"
+      "status": "Status"
     },
     "delete": "Delete",
+    "deleting": "Deleting...",
     "description": "Manage and edit product information, control product display and sales",
     "details": "Details",
+    "duplicate": "Duplicate",
     "edit": "Edit",
     "filter": "Filter",
     "id": "ID",
     "name": "Product Name",
+    "openMenuFor": "Open menu for {name}",
     "pagination": {
       "items": "items",
       "next": "Next",
@@ -98,11 +103,13 @@
     "search": "Search products...",
     "status": {
       "inStock": "In Stock",
-      "lowStock": "Low Stock",
-      "outOfStock": "Out of Stock"
+      "lowStock": "Low Stock"
     },
     "stock": "Stock",
-    "title": "Product Management"
+    "title": "Products",
+    "fetchError": "Failed to fetch products",
+    "deleteSuccess": "Product deleted successfully",
+    "deleteError": "Failed to delete product"
   },
   "settings": {
     "account": "Account Settings",

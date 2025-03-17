@@ -49,9 +49,7 @@ export async function GET(
       success: true,
       data: formattedSettings,
     });
-  } catch (error) {
-    console.error(`获取${params.category}类别设置失败:`, error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -81,9 +79,7 @@ export async function DELETE(
         success: true,
         message: `设置 ${key} 已成功删除`,
       });
-    } catch (error) {
-      console.error(`删除设置失败:`, error);
-
+    } catch {
       return NextResponse.json(
         {
           success: false,

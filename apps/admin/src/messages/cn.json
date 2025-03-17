@@ -68,23 +68,28 @@
   },
   "products": {
     "actions": "操作",
-    "addProduct": "添加产品",
+    "actionsFor": "{name}的操作",
+    "addProduct": "添加商品",
+    "archive": "归档",
     "category": "分类",
     "columns": {
       "actions": "操作",
+      "brand": "品牌",
       "category": "分类",
-      "name": "名称",
+      "name": "商品名称",
       "price": "价格",
-      "status": "状态",
-      "stock": "库存"
+      "status": "状态"
     },
     "delete": "删除",
+    "deleting": "删除中...",
     "description": "产品描述",
     "details": "产品详情",
+    "duplicate": "复制",
     "edit": "编辑",
     "filter": "筛选",
     "id": "ID",
-    "name": "产品名称",
+    "name": "商品名称",
+    "openMenuFor": "打开{name}的操作菜单",
     "pagination": {
       "items": "项",
       "next": "下一页",
@@ -93,16 +98,18 @@
       "showing": "显示"
     },
     "price": "价格",
-    "productList": "产品列表",
+    "productList": "商品列表",
     "productListDescription": "管理所有产品信息",
     "search": "搜索",
     "status": {
       "inStock": "有库存",
-      "lowStock": "库存不足",
-      "outOfStock": "无库存"
+      "lowStock": "库存不足"
     },
     "stock": "库存",
-    "title": "产品管理"
+    "title": "商品管理",
+    "fetchError": "获取商品列表失败",
+    "deleteSuccess": "删除商品成功",
+    "deleteError": "删除商品失败"
   },
   "settings": {
     "account": "账户设置",

@@ -6,7 +6,6 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 
 import { Providers } from "@/components/providers";
 import { routing } from "@/i18n/routing";
-import { inter, roboto, poppins, openSans } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -48,10 +47,6 @@ export default async function LocaleLayout({
       <body
         className={cn(
           "min-h-screen font-sans antialiased bg-background text-foreground",
-          inter.variable,
-          roboto.variable,
-          poppins.variable,
-          openSans.variable,
         )}
       >
         <Providers>

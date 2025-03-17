@@ -19,7 +19,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@heroui/react";
-import { Settings, Search, Palette, Database, Code } from "lucide-react";
+import { Settings, Search, Database, Code } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
@@ -259,18 +259,7 @@ export default function SettingsPage() {
               </div>
             }
           />
-          <Tab
-            key="appearance"
-            title={
-              <div className="flex items-center gap-2">
-                <Palette
-                  size={18}
-                  className="group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white"
-                />
-                <span>{t("tabs.appearance")}</span>
-              </div>
-            }
-          />
+
           <Tab
             key="database"
             title={

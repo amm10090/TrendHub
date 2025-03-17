@@ -6,7 +6,6 @@ import {
   Input,
   Switch,
   addToast,
-  Tooltip,
 } from "@heroui/react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect, useRef } from "react";
@@ -104,23 +103,9 @@ export function DatabaseSettings({
           title: data.data.isConnected ? "连接成功" : "连接失败",
           description: data.data.message,
           variant: "solid",
-          color: data.data.isConnected ? "success" : "danger",
+          color: "success",
           timeout: 3000,
-          classNames: {
-            base: `bg-gradient-to-r ${
-              data.data.isConnected
-                ? "from-success-500/90 to-success-600/90 dark:from-success-600/90 dark:to-success-700/90 border-success-500/20"
-                : "from-danger-500/90 to-danger-600/90 dark:from-danger-600/90 dark:to-danger-700/90 border-danger-500/20"
-            } 
-              border dark:border-opacity-20 backdrop-blur-lg shadow-lg rounded-lg`,
-            wrapper: "rounded-lg",
-            title: "text-white dark:text-white font-medium text-base",
-            description: "text-white/90 dark:text-white/90 text-sm",
-            closeButton:
-              "text-white/80 hover:text-white dark:text-white/80 dark:hover:text-white absolute right-4 top-1/2 -translate-y-1/2 transition-colors duration-200 rounded-lg hover:bg-white/10",
-            progressIndicator: "bg-white/30 dark:bg-white/20 rounded-lg",
-          },
-          radius: "lg",
+          classNames: {},
           shouldShowTimeoutProgress: true,
         });
       }
@@ -138,23 +123,25 @@ export function DatabaseSettings({
   };
 
   return (
-    <Card className="shadow-lg shadow-default-500/5 hover:shadow-xl hover:shadow-default-500/10 transition-all duration-300 rounded-2xl border border-default-200/50 dark:border-default-800/50 backdrop-blur-sm">
-      <CardHeader className="border-b border-default-200/50 dark:border-default-800/50 pb-4">
+    <Card className="shadow-lg shadow-gray-500/5 hover:shadow-xl hover:shadow-gray-500/10 transition-all duration-300 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 backdrop-blur-sm">
+      <CardHeader className="border-b border-gray-200/50 dark:border-gray-800/50 pb-4">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-default-900 dark:text-default-50">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
               {t("database.title")}
             </h2>
-            <DatabaseConnectionStatus status={connectionStatus} />
+            <div className="text-sm text-green-600 dark:text-green-400 pl-2">
+              <DatabaseConnectionStatus status={connectionStatus} />
+            </div>
           </div>
-          <p className="text-sm text-default-600 dark:text-default-400">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {t("database.description")}
           </p>
         </div>
       </CardHeader>
       <CardBody className="space-y-8 p-6">
         <div>
-          <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             {t("database.host")}
           </label>
           <Input
@@ -164,12 +151,12 @@ export function DatabaseSettings({
             variant="bordered"
             radius="md"
             ref={hostInputRef}
-            className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
+            className="w-full hover:border-blue-600 focus:border-blue-600 dark:hover:border-blue-500 dark:focus:border-blue-500 transition-all duration-200"
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
           <div>
-            <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t("database.name")}
             </label>
             <Input
@@ -179,11 +166,11 @@ export function DatabaseSettings({
               variant="bordered"
               radius="md"
               ref={nameInputRef}
-              className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
+              className="w-full hover:border-blue-600 focus:border-blue-600 dark:hover:border-blue-500 dark:focus:border-blue-500 transition-all duration-200"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t("database.port")}
             </label>
             <Input
@@ -193,13 +180,13 @@ export function DatabaseSettings({
               variant="bordered"
               radius="md"
               ref={portInputRef}
-              className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
+              className="w-full hover:border-blue-600 focus:border-blue-600 dark:hover:border-blue-500 dark:focus:border-blue-500 transition-all duration-200"
             />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
           <div>
-            <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t("database.user")}
             </label>
             <Input
@@ -209,11 +196,11 @@ export function DatabaseSettings({
               variant="bordered"
               radius="md"
               ref={userInputRef}
-              className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
+              className="w-full hover:border-blue-600 focus:border-blue-600 dark:hover:border-blue-500 dark:focus:border-blue-500 transition-all duration-200"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t("database.password")}
             </label>
             <Input
@@ -224,7 +211,7 @@ export function DatabaseSettings({
               variant="bordered"
               radius="md"
               ref={passwordInputRef}
-              className="w-full hover:border-primary-600 focus:border-primary-600 dark:hover:border-primary-500 dark:focus:border-primary-500 transition-all duration-200"
+              className="w-full hover:border-blue-600 focus:border-blue-600 dark:hover:border-blue-500 dark:focus:border-blue-500 transition-all duration-200"
             />
           </div>
         </div>
@@ -237,56 +224,50 @@ export function DatabaseSettings({
             id="db-ssl"
             ref={sslSwitchRef}
             color="primary"
-            className="data-[selected=true]:bg-primary-600"
+            className="data-[selected=true]:bg-blue-600"
           />
           <label
             htmlFor="db-ssl"
-            className="text-default-700 dark:text-default-300 text-sm cursor-pointer"
+            className="text-gray-700 dark:text-gray-300 text-sm cursor-pointer"
           >
             {t("database.useSSL")}
           </label>
         </div>
         <div className="flex gap-4">
-          <Tooltip content="测试数据库连接状态" placement="top" showArrow>
-            <Button
-              color="primary"
-              variant="solid"
-              size="lg"
-              className="w-full md:w-auto px-8 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 
-                            shadow-lg shadow-primary-600/30 dark:shadow-primary-500/30
-                            hover:shadow-xl hover:shadow-primary-600/40 dark:hover:shadow-primary-500/40 
-                            active:shadow-primary-600/50 dark:active:shadow-primary-500/50
-                            border-0 transition-all duration-300 ease-in-out"
-              radius="full"
-              isLoading={isTestingConnection}
-              onPress={testConnection}
-              startContent={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  <path d="M9 12l2 2 4-4" />
-                </svg>
-              }
-            >
-              <span className="font-medium">
-                {isTestingConnection
-                  ? t("database.testingConnection")
-                  : t("database.testConnection")}
-              </span>
-            </Button>
-          </Tooltip>
+          <Button
+            color="default"
+            variant="solid"
+            size="lg"
+            className="bg-gradient-to-tr from-blue-500 to-blue-800 text-white shadow-lg rounded-full"
+            radius="full"
+            isLoading={isTestingConnection}
+            onPress={testConnection}
+            startContent={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+            }
+          >
+            <span className="font-medium">
+              {isTestingConnection
+                ? t("database.testingConnection")
+                : t("database.testConnection")}
+            </span>
+          </Button>
         </div>
 
         {connectionStatus && connectionStatus.isConnected && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-success-600 dark:text-success-400">
+          <div className="mt-2 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -307,11 +288,11 @@ export function DatabaseSettings({
         {connectionStatus &&
           !connectionStatus.isConnected &&
           connectionStatus.error && (
-            <div className="mt-2 p-3 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800/30 rounded-lg">
-              <h3 className="text-sm font-medium text-danger-700 dark:text-danger-400">
+            <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+              <h3 className="text-sm font-medium text-red-700 dark:text-red-400">
                 错误详情：
               </h3>
-              <pre className="mt-1 text-xs text-danger-600 dark:text-danger-300 overflow-auto max-h-32">
+              <pre className="mt-1 text-xs text-red-600 dark:text-red-300 overflow-auto max-h-32">
                 {connectionStatus.error}
               </pre>
             </div>

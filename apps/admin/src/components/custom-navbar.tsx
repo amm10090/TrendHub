@@ -115,7 +115,7 @@ export function CustomNavbar() {
               size="sm"
               radius="full"
               variant="bordered"
-              className="md:w-[200px] lg:w-[300px] border-default-300 dark:border-default-700 bg-default-50/50 dark:bg-default-900/50 backdrop-blur-sm bg-blue-500  "
+              className="md:w-[200px] lg:w-[300px] border-default-300 dark:border-default-700  dark:bg-default-900/50 backdrop-blur-sm bg-blue-500  "
               startContent={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

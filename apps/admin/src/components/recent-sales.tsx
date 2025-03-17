@@ -1,13 +1,16 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 
 export function RecentSales() {
   return (
     <div className="space-y-8">
       <div className="flex items-center">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src="/placeholder.svg?height=36&width=36" alt="Avatar" />
-          <AvatarFallback>JL</AvatarFallback>
-        </Avatar>
+        <Avatar
+          src="/placeholder.svg?height=36&width=36"
+          alt="Jackson Lee"
+          name="Jackson Lee"
+          size="md"
+          className="h-9 w-9"
+        />
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">Jackson Lee</p>
           <p className="text-sm text-muted-foreground">
@@ -17,10 +20,14 @@ export function RecentSales() {
         <div className="ml-auto font-medium">+$1,999.00</div>
       </div>
       <div className="flex items-center">
-        <Avatar className="flex h-9 w-9 items-center justify-center space-y-0 border">
-          <AvatarImage src="/placeholder.svg?height=36&width=36" alt="Avatar" />
-          <AvatarFallback>SD</AvatarFallback>
-        </Avatar>
+        <Avatar
+          src="/placeholder.svg?height=36&width=36"
+          alt="Sophia Davis"
+          name="Sophia Davis"
+          size="md"
+          isBordered
+          className="h-9 w-9"
+        />
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">Sophia Davis</p>
           <p className="text-sm text-muted-foreground">
@@ -30,10 +37,13 @@ export function RecentSales() {
         <div className="ml-auto font-medium">+$39.00</div>
       </div>
       <div className="flex items-center">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src="/placeholder.svg?height=36&width=36" alt="Avatar" />
-          <AvatarFallback>WK</AvatarFallback>
-        </Avatar>
+        <Avatar
+          src="/placeholder.svg?height=36&width=36"
+          alt="William Kim"
+          name="William Kim"
+          size="md"
+          className="h-9 w-9"
+        />
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">William Kim</p>
           <p className="text-sm text-muted-foreground">
@@ -43,10 +53,13 @@ export function RecentSales() {
         <div className="ml-auto font-medium">+$299.00</div>
       </div>
       <div className="flex items-center">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src="/placeholder.svg?height=36&width=36" alt="Avatar" />
-          <AvatarFallback>OM</AvatarFallback>
-        </Avatar>
+        <Avatar
+          src="/placeholder.svg?height=36&width=36"
+          alt="Olivia Martinez"
+          name="Olivia Martinez"
+          size="md"
+          className="h-9 w-9"
+        />
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">Olivia Martinez</p>
           <p className="text-sm text-muted-foreground">
@@ -56,10 +69,13 @@ export function RecentSales() {
         <div className="ml-auto font-medium">+$99.00</div>
       </div>
       <div className="flex items-center">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src="/placeholder.svg?height=36&width=36" alt="Avatar" />
-          <AvatarFallback>ET</AvatarFallback>
-        </Avatar>
+        <Avatar
+          src="/placeholder.svg?height=36&width=36"
+          alt="Ethan Thompson"
+          name="Ethan Thompson"
+          size="md"
+          className="h-9 w-9"
+        />
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">Ethan Thompson</p>
           <p className="text-sm text-muted-foreground">

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { NewProductClient } from "./new-product-client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-
-import { NewProductClient } from "./new-product-client";
 
 export const metadata: Metadata = {
   title: "Add Product | E-commerce Aggregation Admin",

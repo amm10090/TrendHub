@@ -4,6 +4,7 @@
     "activeNow": "当前活跃",
     "addProduct": "添加产品",
     "analytics": "分析",
+    "analyticsContent": "仪表盘.分析内容",
     "dashboard": {
       "title": "仪表盘"
     },
@@ -13,6 +14,7 @@
     "recentSales": "最近销售",
     "recentSalesDescription": "本月您已完成265笔销售",
     "reports": "报表",
+    "reportsContent": "仪表板.报告内容",
     "revenue": "收入",
     "revenueIncrease": "+20.1% 相比上月",
     "sales": "销售额",
@@ -122,13 +124,43 @@
       "title": "API设置"
     },
     "appearance": {
+      "baseSize": "中",
+      "boxed": "固定宽度",
+      "colorMode": "颜色模式",
       "colors": "颜色",
+      "contentWidth": "内容宽度",
+      "darkMode": "深色模式",
+      "denseMode": "紧凑模式",
+      "denseModeDescription": "减少页面间距，使界面更紧凑",
       "description": "自定义网站主题和布局",
       "favicon": "网站图标",
+      "fontDescription": "自定义网站字体和文字大小",
+      "fontFamily": "字体家族",
+      "fontSettings": "字体设置",
+      "fontSize": "字体大小",
       "fonts": "字体",
+      "fullWidth": "全宽",
+      "horizontal": "水平导航",
+      "interFont": "Inter",
       "layout": "布局",
+      "layoutDescription": "配置网站的布局和导航方式",
+      "layoutSettings": "布局设置",
+      "lgSize": "大",
+      "lightMode": "亮色模式",
       "logo": "Logo",
+      "navigationStyle": "导航样式",
+      "openSansFont": "Open Sans",
+      "poppinsFont": "Poppins",
+      "primaryColor": "主题色",
+      "reducedMotion": "减少动画",
+      "reducedMotionDescription": "减少界面动画效果，提高可访问性",
+      "robotoFont": "Roboto",
+      "sidebar": "侧边栏",
+      "smSize": "小",
+      "systemMode": "跟随系统",
       "theme": "主题",
+      "themeDescription": "自定义网站的主题和颜色方案",
+      "themeSettings": "主题设置",
       "title": "外观设置"
     },
     "database": {
@@ -161,6 +193,11 @@
       "metaTitle": "Meta标题",
       "metaTitlePlaceholder": "输入网站Meta标题",
       "title": "SEO设置"
+    },
+    "settings": {
+      "appearance": {
+        "reducedMotion": "减少动画"
+      }
     },
     "socialMedia": {
       "description": "连接您的社交媒体账号",

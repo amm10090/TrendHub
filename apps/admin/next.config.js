@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@heroui/react"],
+  transpilePackages: ["@heroui/react", "@heroui/dom-animation"],
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -19,6 +19,14 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+    serverActions: true,
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@heroui/dom-animation": "@heroui/dom-animation/dist/index.js",
+    };
+    return config;
   },
 };
 

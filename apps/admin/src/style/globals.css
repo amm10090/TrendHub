@@ -1,12 +1,10 @@
+/* 导入Tailwind CSS核心样式 */
 @import 'tailwindcss';
-/*
-  ---break---
-*/
 
 /* 从HeroUI主题包中导入组件样式 */
-@source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@source '../../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 
-/* 定义暗色模式变体选择器 */
+/* 定义暗色模式变体选择器 - 用于暗色模式样式应用 */
 @custom-variant dark (&:is(.dark *));
 
 /* 定义全局主题变量 - 包含亮色和暗色模式的基础颜色 */
@@ -48,6 +46,136 @@
 
   --color-hover-text-light: #1a1a1a;
   --color-hover-text-dark: #ffffff;
+  
+  /* Tailwind v4兼容的颜色变量 - Primary */
+  --color-primary-50: #EDF5FF;
+  --color-primary-100: #D0E4FF;
+  --color-primary-200: #B3D4FF;
+  --color-primary-300: #66AFFF;
+  --color-primary-400: #3D9AFF;
+  --color-primary-500: #0080FF;
+  --color-primary-600: #0062C3;
+  --color-primary-700: #004A94;
+  --color-primary-800: #003166;
+  --color-primary-900: #001833;
+  --color-primary-foreground: #FFFFFF;
+  
+  /* Tailwind v4兼容的颜色变量 - Secondary */
+  --color-secondary-50: #F4F0FF;
+  --color-secondary-100: #EBE3FF;
+  --color-secondary-200: #D9CCFF;
+  --color-secondary-300: #BEA6FF;
+  --color-secondary-400: #A683FF;
+  --color-secondary-500: #8B5CF6;
+  --color-secondary-600: #7C3AED;
+  --color-secondary-700: #6D28D9;
+  --color-secondary-800: #5B21B6;
+  --color-secondary-900: #4C1D95;
+  --color-secondary-foreground: #FFFFFF;
+  
+  /* Tailwind v4兼容的颜色变量 - Success */
+  --color-success-50: #F0FDF4;
+  --color-success-100: #DCFCE7;
+  --color-success-200: #BBF7D0;
+  --color-success-300: #86EFAC;
+  --color-success-400: #4ADE80;
+  --color-success-500: #22C55E;
+  --color-success-600: #16A34A;
+  --color-success-700: #15803D;
+  --color-success-800: #166534;
+  --color-success-900: #14532D;
+  --color-success-foreground: #FFFFFF;
+  
+  /* Tailwind v4兼容的颜色变量 - Warning */
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-200: #FDE68A;
+  --color-warning-300: #FCD34D;
+  --color-warning-400: #FBBF24;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
+  --color-warning-800: #92400E;
+  --color-warning-900: #78350F;
+  --color-warning-foreground: #FFFFFF;
+  
+  /* Tailwind v4兼容的颜色变量 - Danger */
+  --color-danger-50: #FEF2F2;
+  --color-danger-100: #FEE2E2;
+  --color-danger-200: #FECACA;
+  --color-danger-300: #FCA5A5;
+  --color-danger-400: #F87171;
+  --color-danger-500: #EF4444;
+  --color-danger-600: #DC2626;
+  --color-danger-700: #B91C1C;
+  --color-danger-800: #991B1B;
+  --color-danger-900: #7F1D1D;
+  --color-danger-foreground: #FFFFFF;
+  
+  /* Tailwind v4兼容的颜色变量 - Default */
+  --color-default-50: #F9FAFB;
+  --color-default-100: #F3F4F6;
+  --color-default-200: #E5E7EB;
+  --color-default-300: #D1D5DB;
+  --color-default-400: #9CA3AF;
+  --color-default-500: #6B7280;
+  --color-default-600: #4B5563;
+  --color-default-700: #374151;
+  --color-default-800: #1F2937;
+  --color-default-900: #111827;
+  --color-default-foreground: #FFFFFF;
+  
+  /* 新增 - Tailwind v4兼容的颜色变量 - Info (蓝青色系) */
+  --color-info-50: #ECFDFF;
+  --color-info-100: #CFF9FE;
+  --color-info-200: #A5F0FC;
+  --color-info-300: #67E3F9;
+  --color-info-400: #22CCEE;
+  --color-info-500: #06B6D4;
+  --color-info-600: #0891B2;
+  --color-info-700: #0E7490;
+  --color-info-800: #155E75;
+  --color-info-900: #164E63;
+  --color-info-foreground: #FFFFFF;
+  
+  /* 新增 - Tailwind v4兼容的颜色变量 - Muted (灰褐色系) */
+  --color-muted-50: #F8FAFC;
+  --color-muted-100: #F1F5F9;
+  --color-muted-200: #E2E8F0;
+  --color-muted-300: #CBD5E1;
+  --color-muted-400: #94A3B8;
+  --color-muted-500: #64748B;
+  --color-muted-600: #475569;
+  --color-muted-700: #334155;
+  --color-muted-800: #1E293B;
+  --color-muted-900: #0F172A;
+  --color-muted-foreground: #FFFFFF;
+  
+  /* 新增 - Tailwind v4兼容的颜色变量 - Accent (橙色系) */
+  --color-accent-50: #FFF7ED;
+  --color-accent-100: #FFEDD5;
+  --color-accent-200: #FED7AA;
+  --color-accent-300: #FDBA74;
+  --color-accent-400: #FB923C;
+  --color-accent-500: #F97316;
+  --color-accent-600: #EA580C;
+  --color-accent-700: #C2410C;
+  --color-accent-800: #9A3412;
+  --color-accent-900: #7C2D12;
+  --color-accent-foreground: #FFFFFF;
+  
+  /* 新增 - 语义化颜色变量 */
+  --color-background: var(--color-bg-primary-light);
+  --color-foreground: var(--color-text-primary-light);
+  --color-muted-foreground: var(--color-text-secondary-light);
+  --color-card: var(--color-bg-secondary-light);
+  --color-card-foreground: var(--color-text-primary-light);
+  --color-popover: var(--color-bg-primary-light);
+  --color-popover-foreground: var(--color-text-primary-light);
+  --color-input: var(--color-bg-secondary-light);
+  --color-input-foreground: var(--color-text-primary-light);
+  --color-border: var(--color-border-primary-light);
+  --color-ring: var(--color-primary-500);
 }
 
 /* 定义容器工具类 - 基础样式 */
@@ -56,57 +184,292 @@
   padding-inline: 1rem;
 }
 
-/* 定义内联主题变量 - 用于组件样式映射 */
-@theme inline {
-  /* 边框圆角变量 */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  /* 设置所有元素的默认边框颜色，确保与Tailwind CSS v3兼容 */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
   
-  /* 颜色映射变量 - 将主题颜色映射到组件使用的变量名 */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  /* HeroUI 主题变量 - 亮色模式 */
+  :root {
+    /* 主要颜色 - 蓝色系列，用于主要按钮、链接和强调元素 */
+    --primary-50: var(--color-primary-50);
+    --primary-100: var(--color-primary-100);
+    --primary-200: var(--color-primary-200);
+    --primary-300: var(--color-primary-300);
+    --primary-400: var(--color-primary-400);
+    --primary-500: var(--color-primary-500);
+    --primary-600: var(--color-primary-600);
+    --primary-700: var(--color-primary-700);
+    --primary-800: var(--color-primary-800);
+    --primary-900: var(--color-primary-900);
+    --primary-foreground: var(--color-primary-foreground);
+    
+    /* 次要颜色 - 紫色系列，用于次要按钮和辅助元素 */
+    --secondary-50: var(--color-secondary-50);
+    --secondary-100: var(--color-secondary-100);
+    --secondary-200: var(--color-secondary-200);
+    --secondary-300: var(--color-secondary-300);
+    --secondary-400: var(--color-secondary-400);
+    --secondary-500: var(--color-secondary-500);
+    --secondary-600: var(--color-secondary-600);
+    --secondary-700: var(--color-secondary-700);
+    --secondary-800: var(--color-secondary-800);
+    --secondary-900: var(--color-secondary-900);
+    --secondary-foreground: var(--color-secondary-foreground);
+    
+    /* 成功颜色 - 绿色系列，用于成功状态和确认操作 */
+    --success-50: var(--color-success-50);
+    --success-100: var(--color-success-100);
+    --success-200: var(--color-success-200);
+    --success-300: var(--color-success-300);
+    --success-400: var(--color-success-400);
+    --success-500: var(--color-success-500);
+    --success-600: var(--color-success-600);
+    --success-700: var(--color-success-700);
+    --success-800: var(--color-success-800);
+    --success-900: var(--color-success-900);
+    --success-foreground: var(--color-success-foreground);
+    
+    /* 警告颜色 - 黄色系列，用于警告状态和需要注意的操作 */
+    --warning-50: var(--color-warning-50);
+    --warning-100: var(--color-warning-100);
+    --warning-200: var(--color-warning-200);
+    --warning-300: var(--color-warning-300);
+    --warning-400: var(--color-warning-400);
+    --warning-500: var(--color-warning-500);
+    --warning-600: var(--color-warning-600);
+    --warning-700: var(--color-warning-700);
+    --warning-800: var(--color-warning-800);
+    --warning-900: var(--color-warning-900);
+    --warning-foreground: var(--color-warning-foreground);
+    
+    /* 危险颜色 - 红色系列，用于错误状态和危险操作 */
+    --danger-50: var(--color-danger-50);
+    --danger-100: var(--color-danger-100);
+    --danger-200: var(--color-danger-200);
+    --danger-300: var(--color-danger-300);
+    --danger-400: var(--color-danger-400);
+    --danger-500: var(--color-danger-500);
+    --danger-600: var(--color-danger-600);
+    --danger-700: var(--color-danger-700);
+    --danger-800: var(--color-danger-800);
+    --danger-900: var(--color-danger-900);
+    --danger-foreground: var(--color-danger-foreground);
+    
+    /* 默认颜色 - 灰色系列，用于文本、边框和中性元素 */
+    --default-50: var(--color-default-50);
+    --default-100: var(--color-default-100);
+    --default-200: var(--color-default-200);
+    --default-300: var(--color-default-300);
+    --default-400: var(--color-default-400);
+    --default-500: var(--color-default-500);
+    --default-600: var(--color-default-600);
+    --default-700: var(--color-default-700);
+    --default-800: var(--color-default-800);
+    --default-900: var(--color-default-900);
+    --default-foreground: var(--color-default-foreground);
+    
+    /* 新增 - 信息颜色 - 蓝青色系列，用于信息提示和通知 */
+    --info-50: var(--color-info-50);
+    --info-100: var(--color-info-100);
+    --info-200: var(--color-info-200);
+    --info-300: var(--color-info-300);
+    --info-400: var(--color-info-400);
+    --info-500: var(--color-info-500);
+    --info-600: var(--color-info-600);
+    --info-700: var(--color-info-700);
+    --info-800: var(--color-info-800);
+    --info-900: var(--color-info-900);
+    --info-foreground: var(--color-info-foreground);
+    
+    /* 新增 - 柔和颜色 - 灰褐色系列，用于次要文本和背景 */
+    --muted-50: var(--color-muted-50);
+    --muted-100: var(--color-muted-100);
+    --muted-200: var(--color-muted-200);
+    --muted-300: var(--color-muted-300);
+    --muted-400: var(--color-muted-400);
+    --muted-500: var(--color-muted-500);
+    --muted-600: var(--color-muted-600);
+    --muted-700: var(--color-muted-700);
+    --muted-800: var(--color-muted-800);
+    --muted-900: var(--color-muted-900);
+    --muted-foreground: var(--color-muted-foreground);
+    
+    /* 新增 - 强调颜色 - 橙色系列，用于强调和突出显示 */
+    --accent-50: var(--color-accent-50);
+    --accent-100: var(--color-accent-100);
+    --accent-200: var(--color-accent-200);
+    --accent-300: var(--color-accent-300);
+    --accent-400: var(--color-accent-400);
+    --accent-500: var(--color-accent-500);
+    --accent-600: var(--color-accent-600);
+    --accent-700: var(--color-accent-700);
+    --accent-800: var(--color-accent-800);
+    --accent-900: var(--color-accent-900);
+    --accent-foreground: var(--color-accent-foreground);
+    
+    /* 新增 - 语义化颜色变量 */
+    --background: var(--color-background);
+    --foreground: var(--color-foreground);
+    --card: var(--color-card);
+    --card-foreground: var(--color-card-foreground);
+    --popover: var(--color-popover);
+    --popover-foreground: var(--color-popover-foreground);
+    --input: var(--color-input);
+    --input-foreground: var(--color-input-foreground);
+    --border: var(--color-border);
+    --ring: var(--color-ring);
+  }
   
-  /* 图表颜色变量 */
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  
-  /* 侧边栏颜色变量 */
-  --color-sidebar-background: var(--sidebar-background);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  /* HeroUI 主题变量 - 暗色模式 */
+  .dark {
+    /* 主要颜色 - 暗色模式下颜色顺序反转，深色变浅色，浅色变深色 */
+    --primary-50: #001833;
+    --primary-100: #003166;
+    --primary-200: #004A94;
+    --primary-300: #0062C3;
+    --primary-400: #0080FF;
+    --primary-500: #3D9AFF; /* 暗色模式主色调 */
+    --primary-600: #66AFFF;
+    --primary-700: #B3D4FF;
+    --primary-800: #D0E4FF;
+    --primary-900: #EDF5FF;
+    --primary-foreground: #000000;
+    
+    /* 次要颜色 - 暗色模式下的紫色系列 */
+    --secondary-50: #4C1D95;
+    --secondary-100: #5B21B6;
+    --secondary-200: #6D28D9;
+    --secondary-300: #7C3AED;
+    --secondary-400: #8B5CF6;
+    --secondary-500: #A683FF; /* 暗色模式次色调 */
+    --secondary-600: #BEA6FF;
+    --secondary-700: #D9CCFF;
+    --secondary-800: #EBE3FF;
+    --secondary-900: #F4F0FF;
+    --secondary-foreground: #000000;
+    
+    /* 成功颜色 - 暗色模式下的绿色系列 */
+    --success-50: #14532D;
+    --success-100: #166534;
+    --success-200: #15803D;
+    --success-300: #16A34A;
+    --success-400: #22C55E;
+    --success-500: #4ADE80; /* 暗色模式主成功色 */
+    --success-600: #86EFAC;
+    --success-700: #BBF7D0;
+    --success-800: #DCFCE7;
+    --success-900: #F0FDF4;
+    --success-foreground: #000000;
+    
+    /* 警告颜色 - 暗色模式下的黄色系列 */
+    --warning-50: #78350F;
+    --warning-100: #92400E;
+    --warning-200: #B45309;
+    --warning-300: #D97706;
+    --warning-400: #F59E0B;
+    --warning-500: #FBBF24; /* 暗色模式主警告色 */
+    --warning-600: #FCD34D;
+    --warning-700: #FDE68A;
+    --warning-800: #FEF3C7;
+    --warning-900: #FFFBEB;
+    --warning-foreground: #000000;
+    
+    /* 危险颜色 - 暗色模式下的红色系列 */
+    --danger-50: #7F1D1D;
+    --danger-100: #991B1B;
+    --danger-200: #B91C1C;
+    --danger-300: #DC2626;
+    --danger-400: #EF4444;
+    --danger-500: #F87171; /* 暗色模式主危险色 */
+    --danger-600: #FCA5A5;
+    --danger-700: #FECACA;
+    --danger-800: #FEE2E2;
+    --danger-900: #FEF2F2;
+    --danger-foreground: #000000;
+    
+    /* 默认颜色 - 暗色模式下的灰色系列 */
+    --default-50: #111827;
+    --default-100: #1F2937;
+    --default-200: #374151;
+    --default-300: #4B5563;
+    --default-400: #6B7280;
+    --default-500: #9CA3AF; /* 暗色模式主默认色 */
+    --default-600: #D1D5DB;
+    --default-700: #E5E7EB;
+    --default-800: #F3F4F6;
+    --default-900: #F9FAFB;
+    --default-foreground: #000000;
+    
+    /* 新增 - 信息颜色 - 暗色模式下的蓝青色系列 */
+    --info-50: #164E63;
+    --info-100: #155E75;
+    --info-200: #0E7490;
+    --info-300: #0891B2;
+    --info-400: #06B6D4;
+    --info-500: #22CCEE; /* 暗色模式主信息色 */
+    --info-600: #67E3F9;
+    --info-700: #A5F0FC;
+    --info-800: #CFF9FE;
+    --info-900: #ECFDFF;
+    --info-foreground: #000000;
+    
+    /* 新增 - 柔和颜色 - 暗色模式下的灰褐色系列 */
+    --muted-50: #0F172A;
+    --muted-100: #1E293B;
+    --muted-200: #334155;
+    --muted-300: #475569;
+    --muted-400: #64748B;
+    --muted-500: #94A3B8; /* 暗色模式主柔和色 */
+    --muted-600: #CBD5E1;
+    --muted-700: #E2E8F0;
+    --muted-800: #F1F5F9;
+    --muted-900: #F8FAFC;
+    --muted-foreground: #000000;
+    
+    /* 新增 - 强调颜色 - 暗色模式下的橙色系列 */
+    --accent-50: #7C2D12;
+    --accent-100: #9A3412;
+    --accent-200: #C2410C;
+    --accent-300: #EA580C;
+    --accent-400: #F97316;
+    --accent-500: #FB923C; /* 暗色模式主强调色 */
+    --accent-600: #FDBA74;
+    --accent-700: #FED7AA;
+    --accent-800: #FFEDD5;
+    --accent-900: #FFF7ED;
+    --accent-foreground: #000000;
+    
+    /* 新增 - 语义化颜色变量 - 暗色模式 */
+    --background: var(--color-bg-primary-dark);
+    --foreground: var(--color-text-primary-dark);
+    --card: var(--color-bg-secondary-dark);
+    --card-foreground: var(--color-text-primary-dark);
+    --popover: var(--color-bg-primary-dark);
+    --popover-foreground: var(--color-text-primary-dark);
+    --input: var(--color-bg-secondary-dark);
+    --input-foreground: var(--color-text-primary-dark);
+    --border: var(--color-border-primary-dark);
+    --ring: var(--color-primary-500);
+  }
 }
 
 /* 定义响应式容器工具类 - 包含断点适配 */
 @utility container {
-  margin-inline: auto;
-  padding-inline: 1rem;
-  @apply w-full mx-auto px-4;
+  @apply w-full mx-auto px-4; /* 应用基础样式 */
   max-width: 100%;
 
   /* 小屏幕断点 (640px) */
@@ -137,463 +500,158 @@
   }
 }
 
-/* 隐藏滚动条但保留滚动功能 */
-@utility scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-
-  &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
-  }
-}
-/*
-  ---break---
-*/
-
-/* 文本平衡功能 - 优化文本换行显示 */
-@utility text-balance {
-  text-wrap: balance;
-}
-
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  /* 设置所有元素的默认边框颜色，确保与Tailwind CSS v3兼容 */
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
-
-  /* HeroUI 主题变量 - 亮色模式 */
-  :root {
-    /* 主要颜色 - 蓝色系列，用于主要按钮、链接和强调元素 */
-    --primary-50: #EDF5FF;
-    --primary-100: #D0E4FF;
-    --primary-200: #B3D4FF;
-    --primary-300: #66AFFF;
-    --primary-400: #3D9AFF;
-    --primary-500: #0080FF; /* 主色调 */
-    --primary-600: #0062C3;
-    --primary-700: #004A94;
-    --primary-800: #003166;
-    --primary-900: #001833;
-    --primary-foreground: #FFFFFF;
-
-    /* 次要颜色 - 紫色系列，用于次要按钮和辅助元素 */
-    --secondary-50: #F4F0FF;
-    --secondary-100: #EBE3FF;
-    --secondary-200: #D9CCFF;
-    --secondary-300: #BEA6FF;
-    --secondary-400: #A683FF;
-    --secondary-500: #8B5CF6; /* 次色调 */
-    --secondary-600: #7C3AED;
-    --secondary-700: #6D28D9;
-    --secondary-800: #5B21B6;
-    --secondary-900: #4C1D95;
-    --secondary-foreground: #FFFFFF;
-
-    /* 成功颜色 - 绿色系列，用于成功状态和确认操作 */
-    --success-50: #F0FDF4;
-    --success-100: #DCFCE7;
-    --success-200: #BBF7D0;
-    --success-300: #86EFAC;
-    --success-400: #4ADE80;
-    --success-500: #22C55E; /* 主成功色 */
-    --success-600: #16A34A;
-    --success-700: #15803D;
-    --success-800: #166534;
-    --success-900: #14532D;
-    --success-foreground: #FFFFFF;
-
-    /* 警告颜色 - 黄色系列，用于警告状态和需要注意的操作 */
-    --warning-50: #FFFBEB;
-    --warning-100: #FEF3C7;
-    --warning-200: #FDE68A;
-    --warning-300: #FCD34D;
-    --warning-400: #FBBF24;
-    --warning-500: #F59E0B; /* 主警告色 */
-    --warning-600: #D97706;
-    --warning-700: #B45309;
-    --warning-800: #92400E;
-    --warning-900: #78350F;
-    --warning-foreground: #FFFFFF;
-
-    /* 危险颜色 - 红色系列，用于错误状态和危险操作 */
-    --danger-50: #FEF2F2;
-    --danger-100: #FEE2E2;
-    --danger-200: #FECACA;
-    --danger-300: #FCA5A5;
-    --danger-400: #F87171;
-    --danger-500: #EF4444; /* 主危险色 */
-    --danger-600: #DC2626;
-    --danger-700: #B91C1C;
-    --danger-800: #991B1B;
-    --danger-900: #7F1D1D;
-    --danger-foreground: #FFFFFF;
-
-    /* 默认颜色 - 灰色系列，用于文本、边框和中性元素 */
-    --default-50: #F9FAFB;
-    --default-100: #F3F4F6;
-    --default-200: #E5E7EB;
-    --default-300: #D1D5DB;
-    --default-400: #9CA3AF;
-    --default-500: #6B7280; /* 主默认色 */
-    --default-600: #4B5563;
-    --default-700: #374151;
-    --default-800: #1F2937;
-    --default-900: #111827;
-    --default-foreground: #FFFFFF;
-
-    /* 图表颜色 - 使用HSL格式定义，用于数据可视化 */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    
-    /* 边框半径 - 控制元素圆角大小 */
-    --radius: 0.5rem;
-    
-    /* 侧边栏变量 - 控制侧边栏组件的颜色方案 */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  /* HeroUI 主题变量 - 暗色模式 */
-  .dark {
-    /* 主要颜色 - 暗色模式下颜色顺序反转，深色变浅色，浅色变深色 */
-    --primary-50: #001833;
-    --primary-100: #003166;
-    --primary-200: #004A94;
-    --primary-300: #0062C3;
-    --primary-400: #0080FF;
-    --primary-500: #3D9AFF; /* 暗色模式主色调 */
-    --primary-600: #66AFFF;
-    --primary-700: #B3D4FF;
-    --primary-800: #D0E4FF;
-    --primary-900: #EDF5FF;
-    --primary-foreground: #000000;
-
-    /* 次要颜色 - 暗色模式下的紫色系列 */
-    --secondary-50: #4C1D95;
-    --secondary-100: #5B21B6;
-    --secondary-200: #6D28D9;
-    --secondary-300: #7C3AED;
-    --secondary-400: #8B5CF6;
-    --secondary-500: #A683FF; /* 暗色模式次色调 */
-    --secondary-600: #BEA6FF;
-    --secondary-700: #D9CCFF;
-    --secondary-800: #EBE3FF;
-    --secondary-900: #F4F0FF;
-    --secondary-foreground: #000000;
-
-    /* 成功颜色 - 暗色模式下的绿色系列 */
-    --success-50: #14532D;
-    --success-100: #166534;
-    --success-200: #15803D;
-    --success-300: #16A34A;
-    --success-400: #22C55E;
-    --success-500: #4ADE80; /* 暗色模式主成功色 */
-    --success-600: #86EFAC;
-    --success-700: #BBF7D0;
-    --success-800: #DCFCE7;
-    --success-900: #F0FDF4;
-    --success-foreground: #000000;
-
-    /* 警告颜色 - 暗色模式下的黄色系列 */
-    --warning-50: #78350F;
-    --warning-100: #92400E;
-    --warning-200: #B45309;
-    --warning-300: #D97706;
-    --warning-400: #F59E0B;
-    --warning-500: #FBBF24; /* 暗色模式主警告色 */
-    --warning-600: #FCD34D;
-    --warning-700: #FDE68A;
-    --warning-800: #FEF3C7;
-    --warning-900: #FFFBEB;
-    --warning-foreground: #000000;
-
-    /* 危险颜色 - 暗色模式下的红色系列 */
-    --danger-50: #7F1D1D;
-    --danger-100: #991B1B;
-    --danger-200: #B91C1C;
-    --danger-300: #DC2626;
-    --danger-400: #EF4444;
-    --danger-500: #F87171; /* 暗色模式主危险色 */
-    --danger-600: #FCA5A5;
-    --danger-700: #FECACA;
-    --danger-800: #FEE2E2;
-    --danger-900: #FEF2F2;
-    --danger-foreground: #000000;
-
-    /* 默认颜色 - 暗色模式下的灰色系列 */
-    --default-50: #111827;
-    --default-100: #1F2937;
-    --default-200: #374151;
-    --default-300: #4B5563;
-    --default-400: #6B7280;
-    --default-500: #9CA3AF; /* 暗色模式主默认色 */
-    --default-600: #D1D5DB;
-    --default-700: #E5E7EB;
-    --default-800: #F3F4F6;
-    --default-900: #F9FAFB;
-    --default-foreground: #000000;
-
-    /* 图表颜色 - 暗色模式下的数据可视化颜色 */
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    
-    /* 侧边栏变量 - 暗色模式下的侧边栏颜色方案 */
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
 /* 基础盒模型设置 */
 @layer base {
   * {
-    @apply box-border p-0 m-0;
+    @apply box-border p-0 m-0; /* 应用盒模型、内边距和外边距重置 */
   }
 
   html, body {
-    @apply h-full;
+    @apply h-full; /* 设置HTML和body元素高度为100% */
   }
 }
 
-/* 定义工具类层 - 使用OKLCH颜色空间定义主题变量 */
+/* 隐藏滚动条但保留滚动功能 */
 @layer utilities {
-  :root {
-    /* 基础变量 */
-    --radius: 0.625rem;
-    
-    /* 使用OKLCH颜色空间定义亮色模式颜色 */
-    --background: oklch(1 0 0); /* 纯白色 */
-    --foreground: oklch(0.145 0 0); /* 近黑色 */
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325); /* 红色 */
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    
-    /* 图表颜色 - OKLCH格式 */
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    
-    /* 侧边栏颜色 - OKLCH格式 */
-    --sidebar-background: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE和Edge浏览器 */
+    scrollbar-width: none;     /* Firefox浏览器 */
   }
   
-  /* 暗色模式 - OKLCH颜色空间 */
-  .dark {
-    /* 暗色模式基础颜色 */
-    --background: oklch(0.145 0 0); /* 近黑色 */
-    --foreground: oklch(0.985 0 0); /* 近白色 */
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216); /* 暗色模式红色 */
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    
-    /* 暗色模式图表颜色 */
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    
-    /* 暗色模式侧边栏颜色 */
-    --sidebar-background: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;             /* Chrome、Safari和Opera浏览器 */
+  }
+}
+
+/* 确保按钮颜色正确显示的工具类 */
+@layer utilities {
+  .bg-primary-500 {
+    background-color: var(--color-primary-500) !important;
   }
   
-  /* 设置默认字体 */
-  body {
-    font-family: Arial, Helvetica, sans-serif;
+  .hover\:bg-primary-600:hover {
+    background-color: var(--color-primary-600) !important;
   }
-}
-/*
-  ---break---
-*/
-
-/* 设置基础元素样式 */
-@layer base {
-  * {
-    @apply border-border outline-ring/50; /* 应用边框和轮廓样式 */
+  
+  .active\:bg-primary-700:active {
+    background-color: var(--color-primary-700) !important;
   }
-  body {
-    @apply bg-background text-foreground; /* 应用背景和文本颜色 */
+  
+  .dark .dark\:bg-primary-600 {
+    background-color: var(--color-primary-600) !important;
   }
-}
-
-/* 定义HSL颜色空间的主题变量 */
-@layer base {
-  :root {
-    /* 基础颜色 - 亮色模式 */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-
-    /* 卡片颜色 */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-
-    /* 弹出层颜色 */
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-
-    /* 主要颜色 - 蓝色 */
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-
-    /* 次要颜色 - 浅灰色 */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    /* 静音颜色 - 用于不突出的元素 */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    /* 强调颜色 */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    /* 危险颜色 - 红色 */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    /* 成功颜色 - 绿色 */
-    --success: 142.1 76.2% 36.3%;
-    --success-foreground: 355.7 100% 97.3%;
-
-    /* 警告颜色 - 黄色 */
-    --warning: 38 92% 50%;
-    --warning-foreground: 210 40% 98%;
-
-    /* 边框和输入框颜色 */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-
-    /* 边框圆角 */
-    --radius: 0.5rem;
+  
+  .dark .dark\:hover\:bg-primary-700:hover {
+    background-color: var(--color-primary-700) !important;
   }
-
-  /* 暗色模式颜色变量 */
-  .dark {
-    /* 基础颜色 - 暗色模式 */
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-
-    /* 卡片颜色 */
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    /* 弹出层颜色 */
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    /* 主要颜色 - 蓝色 */
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    /* 次要颜色 - 深灰色 */
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    /* 静音颜色 */
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    /* 强调颜色 */
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    /* 危险颜色 - 深红色 */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    /* 成功颜色 - 深绿色 */
-    --success: 142.1 70.6% 45.3%;
-    --success-foreground: 144.9 80.4% 10%;
-
-    /* 警告颜色 - 深黄色 */
-    --warning: 47 80% 63%;
-    --warning-foreground: 26 83.3% 14.1%;
-
-    /* 边框和输入框颜色 */
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+  
+  .dark .dark\:active\:bg-primary-800:active {
+    background-color: var(--color-primary-800) !important;
+  }
+  
+  /* 新增 - 信息颜色工具类 */
+  .bg-info-500 {
+    background-color: var(--color-info-500) !important;
+  }
+  
+  .hover\:bg-info-600:hover {
+    background-color: var(--color-info-600) !important;
+  }
+  
+  .dark .dark\:bg-info-500 {
+    background-color: var(--color-info-500) !important;
+  }
+  
+  .dark .dark\:hover\:bg-info-600:hover {
+    background-color: var(--color-info-600) !important;
+  }
+  
+  /* 新增 - 柔和颜色工具类 */
+  .bg-muted-500 {
+    background-color: var(--color-muted-500) !important;
+  }
+  
+  .text-muted-500 {
+    color: var(--color-muted-500) !important;
+  }
+  
+  /* 新增 - 强调颜色工具类 */
+  .bg-accent-500 {
+    background-color: var(--color-accent-500) !important;
+  }
+  
+  .hover\:bg-accent-600:hover {
+    background-color: var(--color-accent-600) !important;
+  }
+  
+  .dark .dark\:bg-accent-500 {
+    background-color: var(--color-accent-500) !important;
+  }
+  
+  .dark .dark\:hover\:bg-accent-600:hover {
+    background-color: var(--color-accent-600) !important;
+  }
+  
+  /* 新增 - 语义化颜色工具类 */
+  .bg-background {
+    background-color: var(--background) !important;
+  }
+  
+  .text-foreground {
+    color: var(--foreground) !important;
+  }
+  
+  .border-border {
+    border-color: var(--border) !important;
+  }
+  
+  .ring-ring {
+    --tw-ring-color: var(--ring) !important;
   }
 }
 
-/* 应用基础样式 */
-@layer base {
-  * {
-    @apply border-border; /* 应用边框颜色 */
+/* 新增 - 颜色过渡效果工具类 */
+@layer utilities {
+  .transition-colors {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
-  body {
-    @apply bg-background text-foreground; /* 应用背景和文本颜色 */
+  
+  .transition-shadow {
+    transition-property: box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+}
+
+/* 新增 - 主题配色混合工具类 */
+@layer utilities {
+  .theme-primary {
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+    background-color: hsl(var(--primary-500) / var(--tw-bg-opacity));
+    color: hsl(var(--primary-foreground) / var(--tw-text-opacity));
+  }
+  
+  .theme-secondary {
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+    background-color: hsl(var(--secondary-500) / var(--tw-bg-opacity));
+    color: hsl(var(--secondary-foreground) / var(--tw-text-opacity));
+  }
+  
+  .theme-accent {
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+    background-color: hsl(var(--accent-500) / var(--tw-bg-opacity));
+    color: hsl(var(--accent-foreground) / var(--tw-text-opacity));
+  }
+  
+  .theme-muted {
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+    background-color: hsl(var(--muted-500) / var(--tw-bg-opacity));
+    color: hsl(var(--muted-foreground) / var(--tw-text-opacity));
   }
 }

@@ -1,6 +1,8 @@
 import { MoreHorizontal, Plus } from "lucide-react";
 import type { Metadata } from "next";
 
+import { MainNav } from "@/components/main-nav";
+import { Search } from "@/components/search";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,9 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-import { MainNav } from "@/components/main-nav";
-import { Search } from "@/components/search";
 import { UserNav } from "@/components/user-nav";
 
 export const metadata: Metadata = {

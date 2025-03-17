@@ -7,20 +7,207 @@ import {
   CardHeader,
   Input,
   Switch,
+  Tabs,
+  Tab,
   Textarea,
+  addToast,
+  Spinner,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@heroui/react";
+import { Settings, Search, Palette, Database, Code } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { CustomNavbar } from "@/components/custom-navbar";
+import { DatabaseSettings } from "@/components/database-settings";
+import {
+  SettingsService,
+  SettingPayload,
+} from "@/lib/services/settings-service";
 
 export default function SettingsPage() {
   const t = useTranslations("settings");
   const [activeTab, setActiveTab] = useState("general");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [settings, setSettings] = useState<Record<string, string>>({});
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
+  // 初次加载时获取所有设置
+  useEffect(() => {
+    loadAllSettings();
+  }, []);
+
+  // 加载所有设置
+  const loadAllSettings = async () => {
+    setIsLoading(true);
+    try {
+      const response = await SettingsService.getAllSettings();
+
+      if (response.success && response.data) {
+        // 将所有类别的设置合并到一个扁平对象中
+        const allSettings: Record<string, string> = {};
+
+        Object.values(response.data).forEach((categorySettings) => {
+          categorySettings.forEach((setting) => {
+            allSettings[setting.key] = setting.value;
+          });
+        });
+
+        setSettings(allSettings);
+      } else {
+        addToast({
+          title: "加载设置失败",
+          description: response.error || "无法加载设置",
+          color: "danger",
+          variant: "solid",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+      addToast({
+        title: "加载设置失败",
+        description: "发生错误，请重试",
+        color: "danger",
+        variant: "solid",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // 处理标签页切换
+  const handleTabChange = (key: React.Key) => {
+    setActiveTab(key as string);
+  };
+
+  // 获取设置值
+  const getSettingValue = (key: string, defaultValue: string = ""): string => {
+    return settings[key] !== undefined ? settings[key] : defaultValue;
+  };
+
+  // 处理字段变更
+  const handleFieldChange = (key: string, value: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+    setHasChanges(true);
+  };
+
+  // 处理开关变更
+  const handleSwitchChange = (key: string, isSelected: boolean) => {
+    handleFieldChange(key, isSelected.toString());
+  };
+
+  // 保存设置
+  const saveSettings = async () => {
+    setIsSaving(true);
+    try {
+      // 将更改的设置转换为API需要的格式
+      const settingsToSave: SettingPayload[] = Object.entries(settings).map(
+        ([key, value]) => {
+          // 根据设置键确定类别
+          let category = "general";
+
+          if (key.startsWith("meta") || key === "keywords") {
+            category = "seo";
+          } else if (key.startsWith("db")) {
+            category = "database";
+          } else if (key.startsWith("api")) {
+            category = "api";
+          } else if (
+            [
+              "colorMode",
+              "primaryColor",
+              "contentWidth",
+              "navigationStyle",
+              "fontSize",
+              "fontFamily",
+              "reducedMotion",
+              "denseMode",
+            ].includes(key)
+          ) {
+            category = "appearance";
+          } else if (
+            ["facebook", "instagram", "twitter", "pinterest"].includes(key)
+          ) {
+            category = "social";
+          }
+
+          return {
+            key,
+            value,
+            category,
+          };
+        },
+      );
+
+      const response = await SettingsService.saveSettings(settingsToSave);
+
+      if (response.success) {
+        addToast({
+          title: "保存成功",
+          description: "设置已成功保存",
+          color: "success",
+          variant: "solid",
+        });
+        setHasChanges(false);
+      } else {
+        addToast({
+          title: "保存失败",
+          description: response.error || "无法保存设置",
+          color: "danger",
+          variant: "solid",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+      addToast({
+        title: "保存失败",
+        description: "发生错误，请重试",
+        color: "danger",
+        variant: "solid",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 确认放弃更改
+  const confirmDiscardChanges = () => {
+    onOpen();
+  };
+
+  // 放弃更改
+  const discardChanges = () => {
+    loadAllSettings();
+    setHasChanges(false);
+    onClose();
+  };
+
+  // 如果正在加载，显示加载中
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col bg-bg-primary-light dark:bg-bg-primary-dark">
+        <CustomNavbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Spinner size="lg" color="primary" />
+            <p className="mt-4 text-default-600 dark:text-default-400">
+              加载设置中...
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-primary-light dark:bg-bg-primary-dark">
@@ -32,20 +219,84 @@ export default function SettingsPage() {
           </h1>
         </div>
 
-        {/* 标签页导航 */}
-        <div className="flex flex-wrap gap-3 border-b border-default-200 dark:border-default-800 pb-4 mb-8">
-          {["general", "seo", "appearance", "database", "api"].map((tab) => (
-            <Button
-              key={tab}
-              variant={activeTab === tab ? "solid" : "light"}
-              color={activeTab === tab ? "primary" : "default"}
-              className="capitalize transition-all duration-300"
-              onPress={() => handleTabChange(tab)}
-            >
-              {t(`tabs.${tab}`)}
-            </Button>
-          ))}
-        </div>
+        {/* 使用Tabs组件替换按钮组 */}
+        <Tabs
+          selectedKey={activeTab}
+          onSelectionChange={handleTabChange}
+          variant="light"
+          color="primary"
+          radius="md"
+          className="mb-8"
+          classNames={{
+            tabList:
+              "gap-2 p-1 bg-default-100/50 dark:bg-default-100/10 rounded-xl",
+            tab: "rounded-lg data-[selected=true]:bg-white dark:data-[selected=true]:bg-primary-500 data-[selected=true]:shadow-md py-2.5 px-4 font-medium transition-all duration-200 hover:bg-default-200/50 dark:hover:bg-default-600/30",
+            tabContent:
+              "flex items-center gap-2 group-data-[selected=true]:text-primary-600 dark:group-data-[selected=true]:text-default-900",
+            cursor: "bg-white dark:bg-primary-500 shadow-md rounded-lg",
+          }}
+        >
+          <Tab
+            key="general"
+            title={
+              <div className="flex items-center gap-2">
+                <Settings
+                  size={18}
+                  className="group-data-[selected=true]:text-primary"
+                />
+                <span>{t("tabs.general")}</span>
+              </div>
+            }
+          />
+          <Tab
+            key="seo"
+            title={
+              <div className="flex items-center gap-2">
+                <Search
+                  size={18}
+                  className="group-data-[selected=true]:text-primary"
+                />
+                <span>{t("tabs.seo")}</span>
+              </div>
+            }
+          />
+          <Tab
+            key="appearance"
+            title={
+              <div className="flex items-center gap-2">
+                <Palette
+                  size={18}
+                  className="group-data-[selected=true]:text-primary"
+                />
+                <span>{t("tabs.appearance")}</span>
+              </div>
+            }
+          />
+          <Tab
+            key="database"
+            title={
+              <div className="flex items-center gap-2">
+                <Database
+                  size={18}
+                  className="group-data-[selected=true]:text-primary"
+                />
+                <span>{t("tabs.database")}</span>
+              </div>
+            }
+          />
+          <Tab
+            key="api"
+            title={
+              <div className="flex items-center gap-2">
+                <Code
+                  size={18}
+                  className="group-data-[selected=true]:text-primary"
+                />
+                <span>{t("tabs.api")}</span>
+              </div>
+            }
+          />
+        </Tabs>
 
         {/* 内容区域 */}
         <div className="space-y-8">
@@ -70,7 +321,10 @@ export default function SettingsPage() {
                     </label>
                     <Input
                       placeholder={t("websiteInfo.siteNamePlaceholder")}
-                      defaultValue="TrendHub"
+                      value={getSettingValue("siteName", "TrendHub")}
+                      onChange={(e) =>
+                        handleFieldChange("siteName", e.target.value)
+                      }
                       variant="bordered"
                       radius="md"
                       className="w-full"
@@ -83,7 +337,13 @@ export default function SettingsPage() {
                     </label>
                     <Textarea
                       placeholder={t("websiteInfo.siteDescriptionPlaceholder")}
-                      defaultValue={t("websiteInfo.defaultDescription")}
+                      value={getSettingValue(
+                        "siteDescription",
+                        t("websiteInfo.defaultDescription"),
+                      )}
+                      onChange={(e) =>
+                        handleFieldChange("siteDescription", e.target.value)
+                      }
                       variant="bordered"
                       radius="md"
                       minRows={3}
@@ -99,7 +359,13 @@ export default function SettingsPage() {
                       <Input
                         type="email"
                         placeholder="contact@example.com"
-                        defaultValue="support@trendhub.com"
+                        value={getSettingValue(
+                          "contactEmail",
+                          "support@trendhub.com",
+                        )}
+                        onChange={(e) =>
+                          handleFieldChange("contactEmail", e.target.value)
+                        }
                         variant="bordered"
                         radius="md"
                         className="w-full"
@@ -111,7 +377,13 @@ export default function SettingsPage() {
                       </label>
                       <Input
                         placeholder="+1 (555) 123-4567"
-                        defaultValue="+1 (555) 987-6543"
+                        value={getSettingValue(
+                          "contactPhone",
+                          "+1 (555) 987-6543",
+                        )}
+                        onChange={(e) =>
+                          handleFieldChange("contactPhone", e.target.value)
+                        }
                         variant="bordered"
                         radius="md"
                         className="w-full"
@@ -125,7 +397,13 @@ export default function SettingsPage() {
                     </label>
                     <Textarea
                       placeholder={t("websiteInfo.addressPlaceholder")}
-                      defaultValue="123 E-commerce Street, Suite 100, New York, NY 10001, USA"
+                      value={getSettingValue(
+                        "businessAddress",
+                        "123 E-commerce Street, Suite 100, New York, NY 10001, USA",
+                      )}
+                      onChange={(e) =>
+                        handleFieldChange("businessAddress", e.target.value)
+                      }
                       variant="bordered"
                       radius="md"
                       minRows={2}
@@ -154,7 +432,13 @@ export default function SettingsPage() {
                       </label>
                       <Input
                         placeholder="https://facebook.com/yourpage"
-                        defaultValue="https://facebook.com/trendhub"
+                        value={getSettingValue(
+                          "facebook",
+                          "https://facebook.com/trendhub",
+                        )}
+                        onChange={(e) =>
+                          handleFieldChange("facebook", e.target.value)
+                        }
                         variant="bordered"
                         radius="md"
                         className="w-full"
@@ -176,7 +460,13 @@ export default function SettingsPage() {
                       </label>
                       <Input
                         placeholder="https://instagram.com/yourhandle"
-                        defaultValue="https://instagram.com/trendhub"
+                        value={getSettingValue(
+                          "instagram",
+                          "https://instagram.com/trendhub",
+                        )}
+                        onChange={(e) =>
+                          handleFieldChange("instagram", e.target.value)
+                        }
                         variant="bordered"
                         radius="md"
                         className="w-full"
@@ -200,7 +490,13 @@ export default function SettingsPage() {
                       </label>
                       <Input
                         placeholder="https://twitter.com/yourhandle"
-                        defaultValue="https://twitter.com/trendhub"
+                        value={getSettingValue(
+                          "twitter",
+                          "https://twitter.com/trendhub",
+                        )}
+                        onChange={(e) =>
+                          handleFieldChange("twitter", e.target.value)
+                        }
                         variant="bordered"
                         radius="md"
                         className="w-full"
@@ -222,7 +518,13 @@ export default function SettingsPage() {
                       </label>
                       <Input
                         placeholder="https://pinterest.com/yourpage"
-                        defaultValue="https://pinterest.com/trendhub"
+                        value={getSettingValue(
+                          "pinterest",
+                          "https://pinterest.com/trendhub",
+                        )}
+                        onChange={(e) =>
+                          handleFieldChange("pinterest", e.target.value)
+                        }
                         variant="bordered"
                         radius="md"
                         className="w-full"
@@ -248,101 +550,6 @@ export default function SettingsPage() {
             </>
           )}
 
-          {/* 数据库设置 - 仅在Database标签页显示 */}
-          {activeTab === "database" && (
-            <Card className="shadow-lg hover:shadow-xl transition-all rounded-xl border border-default-200 dark:border-default-800">
-              <CardHeader className="border-b border-default-200 dark:border-default-800 pb-4">
-                <div className="space-y-1.5">
-                  <h2 className="text-xl font-semibold text-default-900 dark:text-default-50">
-                    {t("database.title")}
-                  </h2>
-                  <p className="text-sm text-default-600 dark:text-default-400">
-                    {t("database.description")}
-                  </p>
-                </div>
-              </CardHeader>
-              <CardBody className="space-y-8 p-6">
-                <div>
-                  <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
-                    {t("database.host")}
-                  </label>
-                  <Input
-                    placeholder="localhost"
-                    defaultValue="db.trendhub.com"
-                    variant="bordered"
-                    radius="md"
-                    className="w-full"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
-                      {t("database.name")}
-                    </label>
-                    <Input
-                      placeholder="my_database"
-                      defaultValue="trendhub_production"
-                      variant="bordered"
-                      radius="md"
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
-                      {t("database.port")}
-                    </label>
-                    <Input
-                      placeholder="3306"
-                      defaultValue="5432"
-                      variant="bordered"
-                      radius="md"
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
-                      {t("database.user")}
-                    </label>
-                    <Input
-                      placeholder="username"
-                      defaultValue="trendhub_admin"
-                      variant="bordered"
-                      radius="md"
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
-                      {t("database.password")}
-                    </label>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      defaultValue="••••••••••••"
-                      variant="bordered"
-                      radius="md"
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 mt-4">
-                  <Switch defaultSelected id="db-ssl" color="primary" />
-                  <label
-                    htmlFor="db-ssl"
-                    className="text-default-700 dark:text-default-300 text-sm cursor-pointer"
-                  >
-                    {t("database.useSSL")}
-                  </label>
-                </div>
-                <Button color="primary" className="mt-4" radius="md">
-                  {t("database.testConnection")}
-                </Button>
-              </CardBody>
-            </Card>
-          )}
-
           {/* SEO 设置 - 仅在SEO标签页显示 */}
           {activeTab === "seo" && (
             <Card className="shadow-lg hover:shadow-xl transition-all rounded-xl border border-default-200 dark:border-default-800">
@@ -363,7 +570,13 @@ export default function SettingsPage() {
                   </label>
                   <Input
                     placeholder={t("seo.metaTitlePlaceholder")}
-                    defaultValue="TrendHub - Fashion E-commerce Platform"
+                    value={getSettingValue(
+                      "metaTitle",
+                      "TrendHub - Fashion E-commerce Platform",
+                    )}
+                    onChange={(e) =>
+                      handleFieldChange("metaTitle", e.target.value)
+                    }
                     variant="bordered"
                     radius="md"
                     className="w-full"
@@ -375,7 +588,13 @@ export default function SettingsPage() {
                   </label>
                   <Textarea
                     placeholder={t("seo.metaDescriptionPlaceholder")}
-                    defaultValue={t("seo.defaultMetaDescription")}
+                    value={getSettingValue(
+                      "metaDescription",
+                      t("seo.defaultMetaDescription"),
+                    )}
+                    onChange={(e) =>
+                      handleFieldChange("metaDescription", e.target.value)
+                    }
                     variant="bordered"
                     radius="md"
                     minRows={3}
@@ -388,7 +607,13 @@ export default function SettingsPage() {
                   </label>
                   <Input
                     placeholder={t("seo.keywordsPlaceholder")}
-                    defaultValue="fashion, trend, shopping, ecommerce, platform"
+                    value={getSettingValue(
+                      "keywords",
+                      "fashion, trend, shopping, ecommerce, platform",
+                    )}
+                    onChange={(e) =>
+                      handleFieldChange("keywords", e.target.value)
+                    }
                     variant="bordered"
                     radius="md"
                     className="w-full"
@@ -398,27 +623,127 @@ export default function SettingsPage() {
             </Card>
           )}
 
+          {/* 数据库设置 - 仅在Database标签页显示 */}
+          {activeTab === "database" && (
+            <DatabaseSettings
+              getSettingValue={getSettingValue}
+              handleFieldChange={handleFieldChange}
+            />
+          )}
+
           {/* 这里可以添加更多的标签页内容 */}
+
+          {/* API设置 - 仅在API标签页显示 */}
+          {activeTab === "api" && (
+            <Card className="shadow-lg hover:shadow-xl transition-all rounded-xl border border-default-200 dark:border-default-800">
+              <CardHeader className="border-b border-default-200 dark:border-default-800 pb-4">
+                <div className="space-y-1.5">
+                  <h2 className="text-xl font-semibold text-default-900 dark:text-default-50">
+                    {t("api.title")}
+                  </h2>
+                  <p className="text-sm text-default-600 dark:text-default-400">
+                    {t("api.description")}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardBody className="space-y-8 p-6">
+                <div>
+                  <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                    API 密钥
+                  </label>
+                  <Input
+                    type="password"
+                    placeholder="••••••••••••••••••••••••••••••"
+                    value={getSettingValue("apiKey", "")}
+                    onChange={(e) =>
+                      handleFieldChange("apiKey", e.target.value)
+                    }
+                    variant="bordered"
+                    radius="md"
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-default-700 dark:text-default-300 mb-2">
+                    API 请求限制 (每分钟)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="60"
+                    value={getSettingValue("apiRateLimit", "60")}
+                    onChange={(e) =>
+                      handleFieldChange("apiRateLimit", e.target.value)
+                    }
+                    variant="bordered"
+                    radius="md"
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex items-center space-x-3 mt-4">
+                  <Switch
+                    isSelected={
+                      getSettingValue("apiEnabled", "true") === "true"
+                    }
+                    onValueChange={(isSelected) =>
+                      handleSwitchChange("apiEnabled", isSelected)
+                    }
+                    id="api-enabled"
+                    color="primary"
+                  />
+                  <label
+                    htmlFor="api-enabled"
+                    className="text-default-700 dark:text-default-300 text-sm cursor-pointer"
+                  >
+                    启用 API 访问
+                  </label>
+                </div>
+              </CardBody>
+            </Card>
+          )}
 
           <div className="flex justify-end space-x-4 pt-6">
             <Button
-              variant="flat"
+              variant="bordered"
               color="default"
-              radius="md"
-              className="transition-all duration-300"
+              radius="full"
+              className="px-6 bg-transparent border-default-300 dark:border-default-600 text-default-700 dark:text-default-300 transition-all duration-300 hover:bg-default-100 dark:hover:bg-default-800"
+              onPress={confirmDiscardChanges}
+              isDisabled={!hasChanges || isSaving}
             >
               {t("actions.cancel")}
             </Button>
             <Button
               color="primary"
-              radius="md"
-              className="transition-all duration-300 shadow-md shadow-primary/20"
+              variant="solid"
+              radius="full"
+              className="px-6 font-medium text-white dark:text-default-900 bg-primary-500 dark:bg-secondary-400 transition-all duration-300 shadow-md hover:shadow-lg hover:bg-primary-700 dark:hover:bg-primary-300"
+              onPress={saveSettings}
+              isLoading={isSaving}
+              isDisabled={!hasChanges}
             >
-              {t("actions.saveChanges")}
+              {isSaving ? "保存中..." : t("actions.saveChanges")}
             </Button>
           </div>
         </div>
       </main>
+
+      {/* 确认放弃更改的模态框 */}
+      <Modal isOpen={isOpen} onClose={onClose} backdrop="blur">
+        <ModalContent>
+          <ModalHeader>确认放弃更改</ModalHeader>
+          <ModalBody>
+            <p>您确定要放弃所有未保存的更改吗？此操作无法撤销。</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={onClose}>
+              取消
+            </Button>
+            <Button color="danger" onPress={discardChanges}>
+              放弃更改
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

@@ -4,11 +4,17 @@ import { NextIntlClientProvider } from "next-intl";
 import { hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 
+import { Providers } from "@/components/providers";
 import { routing } from "@/i18n/routing";
+import { inter, roboto, poppins, openSans } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "TrendHub Admin System",
-  description: "TrendHub Backend Management System",
+  title: "TrendHub Admin",
+  description: "TrendHub Admin Dashboard",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export function generateStaticParams() {
@@ -37,8 +43,23 @@ export default async function LocaleLayout({
   const messages = await getMessages({ locale });
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <div className="h-full">{children}</div>
-    </NextIntlClientProvider>
+    <html lang={locale} suppressHydrationWarning>
+      <head />
+      <body
+        className={cn(
+          "min-h-screen font-sans antialiased bg-background text-foreground",
+          inter.variable,
+          roboto.variable,
+          poppins.variable,
+          openSans.variable,
+        )}
+      >
+        <Providers>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            {children}
+          </NextIntlClientProvider>
+        </Providers>
+      </body>
+    </html>
   );
 }

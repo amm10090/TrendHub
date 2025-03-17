@@ -4,22 +4,33 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// 数据库模式定义文件 - 定义了TrendHub后台系统的数据模型和数据库连接配置
+// 本文件定义了网站设置功能所需的数据结构，用于存储和管理可配置的网站参数
+
+// Prisma配置部分 - 指定使用的客户端生成器
+// 这将生成TypeScript类型安全的数据库客户端
 generator client {
   provider = "prisma-client-js"
 }
 
+// 数据库连接配置 - 指定使用PostgreSQL数据库
+// 连接URL从环境变量中读取，确保安全性和环境隔离
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// SiteSetting模型 - 用于存储网站配置的键值对
+// 采用分类存储方式，便于管理不同类型的设置（如general、seo、appearance等）
 model SiteSetting {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     String
-  category  String
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  id        String   @id @default(cuid()) // 唯一标识符，使用CUID生成
+  key       String   @unique              // 设置键名，如"siteName"，确保唯一性
+  value     String                        // 设置值，存储为字符串（可以是序列化的JSON）
+  category  String                        // 设置类别，如"general"、"seo"等，用于分组显示
+  updatedAt DateTime @updatedAt           // 更新时间，由Prisma自动维护
+  createdAt DateTime @default(now())      // 创建时间，默认为记录创建时的时间
 
+  // 在category字段上创建索引，优化按类别查询性能
+  // 这对于按类别获取设置（如获取所有SEO设置）很重要
   @@index([category])
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ProductsClient } from "./products-client";
+
 import {
   Table,
   TableBody,
@@ -9,8 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-import { ProductsClient } from "./products-client";
 
 export const metadata: Metadata = {
   title: "Products | E-commerce Aggregation Admin",

@@ -9,6 +9,7 @@ import { MoreHorizontal, Plus } from "lucide-react";
 import type { Metadata } from "next";
 
 import { CustomNavbar } from "@/components/custom-navbar";
+
 import {
   Table,
   TableBody,

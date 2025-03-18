@@ -2,7 +2,12 @@ packages:
   - packages/*
   - apps/*
 onlyBuiltDependencies:
+  - '@heroui/shared-utils'
   - '@prisma/client'
   - '@prisma/engines'
+  - '@swc/core'
+  - '@vercel/speed-insights'
   - core-js-pure
+  - esbuild
   - prisma
+  - sharp

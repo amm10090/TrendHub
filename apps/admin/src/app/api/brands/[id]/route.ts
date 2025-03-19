@@ -30,8 +30,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const brand = await brandService.updateBrand(params.id, data);
 
     return NextResponse.json(brand);
-  } catch {
-    return NextResponse.json({ error: "更新品牌失败" }, { status: 500 });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "更新品牌失败";
+
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -41,7 +44,10 @@ export async function DELETE(_: Request, { params }: RouteParams) {
     await brandService.deleteBrand(params.id);
 
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ status: 500 });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "删除品牌失败";
+
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -37,7 +37,10 @@ export async function POST(request: Request) {
     const brand = await brandService.createBrand(data);
 
     return NextResponse.json(brand, { status: 201 });
-  } catch {
-    return NextResponse.json({ status: 500 });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "创建品牌失败";
+
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -20,14 +20,21 @@ import {
   Input,
   Textarea,
   Switch,
+  Spinner,
 } from "@heroui/react";
 import { Plus } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { CustomNavbar } from "@/components/custom-navbar";
+import { useToast } from "@/hooks/use-toast";
+import { Brand } from "@/lib/services/brand.service";
 
 export default function BrandsPage() {
+  const { toast } = useToast();
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [newBrand, setNewBrand] = useState({
     name: "",
@@ -41,6 +48,104 @@ export default function BrandsPage() {
     name: false,
     slug: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 获取品牌列表
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/brands");
+
+        if (!response.ok) {
+          throw new Error("获取品牌列表失败");
+        }
+        const data = await response.json();
+
+        setBrands(data.items || []);
+        setError(null);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "获取品牌列表失败");
+        toast({
+          title: "错误",
+          description: "获取品牌列表失败",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBrands();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 处理品牌状态切换
+  const handleToggleBrandStatus = async (
+    brandId: string,
+    isActive: boolean,
+  ) => {
+    try {
+      const response = await fetch(`/api/brands/${brandId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+
+      if (!response.ok) {
+        throw new Error("更新品牌状态失败");
+      }
+
+      const updatedBrand = await response.json();
+
+      // 更新品牌列表
+      setBrands((prev) =>
+        prev.map((brand) => (brand.id === brandId ? updatedBrand : brand)),
+      );
+
+      // 显示成功提示
+      toast({
+        title: "成功",
+        description: `品牌已${!isActive ? "激活" : "停用"}`,
+      });
+    } catch {
+      toast({
+        title: "错误",
+        description: "更新品牌状态失败",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // 处理删除品牌
+  const handleDeleteBrand = async (brandId: string) => {
+    try {
+      const response = await fetch(`/api/brands/${brandId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("删除品牌失败");
+      }
+
+      // 从列表中移除品牌
+      setBrands((prev) => prev.filter((brand) => brand.id !== brandId));
+
+      // 显示成功提示
+      toast({
+        title: "成功",
+        description: "品牌已删除",
+      });
+    } catch {
+      toast({
+        title: "错误",
+        description: "删除品牌失败",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleOpenDrawer = () => setIsDrawerOpen(true);
 
@@ -106,7 +211,7 @@ export default function BrandsPage() {
     }
   };
 
-  const handleAddBrand = () => {
+  const handleAddBrand = async () => {
     // 表单验证
     const errors = {
       name: !newBrand.name.trim(),
@@ -120,11 +225,48 @@ export default function BrandsPage() {
       return;
     }
 
-    // 调用API保存品牌
-    // 这里可以添加API调用代码
+    try {
+      setIsSubmitting(true);
+      // 调用API保存品牌
+      const response = await fetch("/api/brands", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newBrand),
+      });
 
-    // 关闭抽屉
-    handleCloseDrawer();
+      if (!response.ok) {
+        const errorData = await response.json();
+
+        throw new Error(errorData.error || "创建品牌失败");
+      }
+
+      const createdBrand = await response.json();
+
+      // 更新品牌列表
+      setBrands((prev) => [...prev, createdBrand]);
+
+      // 显示成功提示
+      toast({
+        title: "成功",
+        description: "品牌创建成功",
+      });
+
+      // 关闭抽屉
+      handleCloseDrawer();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "创建品牌失败";
+
+      toast({
+        title: "错误",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -132,105 +274,137 @@ export default function BrandsPage() {
       <CustomNavbar />
       <div className="flex-1 space-y-4 p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Brands</h2>
+          <h2 className="text-3xl font-bold tracking-tight">品牌管理</h2>
           <div className="flex items-center space-x-2">
             <Button
               color="primary"
               startContent={<Plus className="h-4 w-4" />}
               onPress={handleOpenDrawer}
             >
-              Add Brand
+              添加品牌
             </Button>
           </div>
         </div>
 
         {/* 品牌列表表格 */}
         <div className="rounded-md border">
-          <Table aria-label="Brands table">
-            <TableHeader>
-              <TableColumn>Brand</TableColumn>
-              <TableColumn>Products</TableColumn>
-              <TableColumn>Website</TableColumn>
-              <TableColumn className="text-center">Status</TableColumn>
-              <TableColumn className="text-right">Actions</TableColumn>
-            </TableHeader>
-            <TableBody>
-              {brands.map((brand) => (
-                <TableRow key={brand.id}>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-md bg-gray-100 p-1 mr-3">
-                        <Image
-                          src={`/placeholder.svg?height=40&width=40&text=${brand.name.charAt(0)}`}
-                          alt={brand.name}
-                          width={40}
-                          height={40}
-                          className="h-full w-full object-contain"
-                        />
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Spinner size="lg" />
+            </div>
+          ) : error ? (
+            <div className="p-8 text-center text-red-500">{error}</div>
+          ) : brands.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">暂无品牌数据</div>
+          ) : (
+            <Table aria-label="品牌列表">
+              <TableHeader>
+                <TableColumn>品牌</TableColumn>
+                <TableColumn>产品数量</TableColumn>
+                <TableColumn>网站</TableColumn>
+                <TableColumn className="text-center">状态</TableColumn>
+                <TableColumn className="text-right">操作</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {brands.map((brand) => (
+                  <TableRow key={brand.id}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 rounded-md bg-gray-100 p-1 mr-3">
+                          {brand.logo ? (
+                            <Image
+                              src={brand.logo}
+                              alt={brand.name}
+                              width={40}
+                              height={40}
+                              className="h-full w-full object-contain"
+                            />
+                          ) : (
+                            <Image
+                              src={`/placeholder.svg?height=40&width=40&text=${brand.name.charAt(0)}`}
+                              alt={brand.name}
+                              width={40}
+                              height={40}
+                              className="h-full w-full object-contain"
+                            />
+                          )}
+                        </div>
+                        {brand.name}
                       </div>
-                      {brand.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>{brand.products}</TableCell>
-                  <TableCell>{brand.website}</TableCell>
-                  <TableCell className="text-center">
-                    <div
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        brand.status === "Active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {brand.status}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Dropdown>
-                      <DropdownTrigger>
-                        <Button variant="light" size="sm" isIconOnly>
-                          <span className="sr-only">Open menu</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-4 w-4"
+                    </TableCell>
+                    <TableCell>0</TableCell>
+                    <TableCell>{brand.website || "无"}</TableCell>
+                    <TableCell className="text-center">
+                      <div
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          brand.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {brand.isActive ? "激活" : "禁用"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Dropdown>
+                        <DropdownTrigger>
+                          <Button variant="light" size="sm" isIconOnly>
+                            <span className="sr-only">打开菜单</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-4 w-4"
+                            >
+                              <circle cx="12" cy="12" r="1" />
+                              <circle cx="19" cy="12" r="1" />
+                              <circle cx="5" cy="12" r="1" />
+                            </svg>
+                          </Button>
+                        </DropdownTrigger>
+                        <DropdownMenu aria-label="品牌操作">
+                          <DropdownItem
+                            key="title"
+                            isReadOnly
+                            className="font-semibold"
                           >
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
-                        </Button>
-                      </DropdownTrigger>
-                      <DropdownMenu aria-label="Brand actions">
-                        <DropdownItem
-                          key="title"
-                          isReadOnly
-                          className="font-semibold"
-                        >
-                          Actions
-                        </DropdownItem>
-                        <DropdownItem key="edit">Edit</DropdownItem>
-                        <DropdownSection showDivider>
-                          <DropdownItem key="deactivate">
-                            Deactivate
+                            操作
                           </DropdownItem>
-                        </DropdownSection>
-                        <DropdownItem key="delete" className="text-danger">
-                          Delete
-                        </DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                          <DropdownItem key="edit">编辑</DropdownItem>
+                          <DropdownSection showDivider>
+                            <DropdownItem
+                              key="toggle-status"
+                              onPress={() =>
+                                handleToggleBrandStatus(
+                                  brand.id,
+                                  brand.isActive,
+                                )
+                              }
+                            >
+                              {brand.isActive ? "禁用" : "激活"}
+                            </DropdownItem>
+                          </DropdownSection>
+                          <DropdownItem
+                            key="delete"
+                            className="text-danger"
+                            onPress={() => handleDeleteBrand(brand.id)}
+                          >
+                            删除
+                          </DropdownItem>
+                        </DropdownMenu>
+                      </Dropdown>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </div>
 
@@ -330,10 +504,19 @@ export default function BrandsPage() {
             </div>
           </DrawerBody>
           <DrawerFooter>
-            <Button variant="flat" onPress={handleCloseDrawer}>
+            <Button
+              variant="flat"
+              onPress={handleCloseDrawer}
+              isDisabled={isSubmitting}
+            >
               取消
             </Button>
-            <Button color="primary" onPress={handleAddBrand}>
+            <Button
+              color="primary"
+              onPress={handleAddBrand}
+              isLoading={isSubmitting}
+              isDisabled={isSubmitting}
+            >
               添加品牌
             </Button>
           </DrawerFooter>
@@ -342,62 +525,3 @@ export default function BrandsPage() {
     </div>
   );
 }
-
-const brands = [
-  {
-    id: "1",
-    name: "Nike",
-    products: 128,
-    website: "nike.com",
-    status: "Active",
-  },
-  {
-    id: "2",
-    name: "Adidas",
-    products: 94,
-    website: "adidas.com",
-    status: "Active",
-  },
-  {
-    id: "3",
-    name: "Puma",
-    products: 56,
-    website: "puma.com",
-    status: "Active",
-  },
-  {
-    id: "4",
-    name: "Levi's",
-    products: 72,
-    website: "levis.com",
-    status: "Active",
-  },
-  {
-    id: "5",
-    name: "H&M",
-    products: 143,
-    website: "hm.com",
-    status: "Active",
-  },
-  {
-    id: "6",
-    name: "Zara",
-    products: 167,
-    website: "zara.com",
-    status: "Active",
-  },
-  {
-    id: "7",
-    name: "Ray-Ban",
-    products: 38,
-    website: "ray-ban.com",
-    status: "Inactive",
-  },
-  {
-    id: "8",
-    name: "Casio",
-    products: 42,
-    website: "casio.com",
-    status: "Active",
-  },
-];

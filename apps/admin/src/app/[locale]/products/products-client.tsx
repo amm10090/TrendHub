@@ -1,7 +1,34 @@
 "use client";
 
-import { Button, Autocomplete, AutocompleteItem, Chip } from "@heroui/react";
-import { ChevronRight } from "lucide-react";
+import {
+  Button,
+  Autocomplete,
+  AutocompleteItem,
+  Chip,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Input,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  toast,
+} from "@heroui/react";
+import {
+  ChevronRight,
+  Pencil,
+  EyeOff,
+  Eye,
+  Trash2,
+  Check,
+  X,
+} from "lucide-react";
 import { ReactNode, useState, useEffect, useMemo } from "react";
 
 import { CustomNavbar } from "@/components/custom-navbar";
@@ -29,22 +56,59 @@ function AddCategoryButton() {
 
 interface ActionMenuProps {
   onDelete: () => void;
+  onEdit: () => void;
+  onToggleStatus: () => void;
   isDeleting: boolean;
+  isActive?: boolean;
 }
 
-function ActionMenu({ onDelete, isDeleting }: ActionMenuProps) {
+function ActionMenu({
+  onDelete,
+  onEdit,
+  onToggleStatus,
+  isDeleting,
+  isActive = true,
+}: ActionMenuProps) {
   return (
-    <div className="flex items-center gap-2 justify-end">
-      <Button
-        color="danger"
-        variant="light"
-        size="sm"
-        isLoading={isDeleting}
-        onPress={onDelete}
-      >
-        删除
-      </Button>
-    </div>
+    <Dropdown>
+      <DropdownTrigger>
+        <Button variant="light" size="sm">
+          操作
+        </Button>
+      </DropdownTrigger>
+      <DropdownMenu aria-label="商品操作">
+        <DropdownItem
+          key="edit"
+          startContent={<Pencil className="w-4 h-4" />}
+          onPress={onEdit}
+        >
+          编辑
+        </DropdownItem>
+        <DropdownItem
+          key="toggle"
+          startContent={
+            isActive ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )
+          }
+          onPress={onToggleStatus}
+        >
+          {isActive ? "禁用" : "启用"}
+        </DropdownItem>
+        <DropdownItem
+          key="delete"
+          className="text-danger"
+          color="danger"
+          startContent={<Trash2 className="w-4 h-4" />}
+          onPress={onDelete}
+          isDisabled={isDeleting}
+        >
+          {isDeleting ? "删除中..." : "删除"}
+        </DropdownItem>
+      </DropdownMenu>
+    </Dropdown>
   );
 }
 
@@ -292,6 +356,336 @@ function CascadeCategorySelector({
   );
 }
 
+interface QuickEditProps {
+  value: string;
+  onSave: (value: string) => Promise<void>;
+  type?: "text" | "number";
+  formatter?: (value: string) => string;
+}
+
+function QuickEdit({
+  value,
+  onSave,
+  type = "text",
+  formatter,
+}: QuickEditProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      await onSave(editValue);
+      setIsOpen(false);
+      toast({
+        title: "更新成功",
+        color: "success",
+        variant: "solid",
+      });
+    } catch (error) {
+      toast({
+        title: "更新失败",
+        description: error instanceof Error ? error.message : "未知错误",
+        color: "danger",
+        variant: "solid",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const displayValue = formatter ? formatter(value) : value;
+
+  return (
+    <Popover isOpen={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger>
+        <Button
+          variant="light"
+          className="px-2 h-8 text-left justify-start font-normal w-full"
+        >
+          {displayValue}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <div className="p-2">
+          <div className="flex flex-col gap-2">
+            <Input
+              type={type}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSave();
+                } else if (e.key === "Escape") {
+                  setIsOpen(false);
+                }
+              }}
+              autoFocus
+              size="sm"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="light"
+                color="danger"
+                onPress={() => setIsOpen(false)}
+                startContent={<X className="w-4 h-4" />}
+              >
+                取消
+              </Button>
+              <Button
+                size="sm"
+                color="primary"
+                onPress={handleSave}
+                isLoading={isLoading}
+                startContent={!isLoading && <Check className="w-4 h-4" />}
+              >
+                保存
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+interface QuickSelectProps<T extends object> {
+  value: string;
+  items: T[];
+  onSave: (value: string) => Promise<void>;
+  getItemLabel: (item: T) => string;
+  getItemValue: (item: T) => string;
+  placeholder?: string;
+  isLoading?: boolean;
+}
+
+function QuickSelect<T extends object>({
+  value,
+  items,
+  onSave,
+  getItemLabel,
+  getItemValue,
+  placeholder,
+  isLoading,
+}: QuickSelectProps<T>) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedKey, setSelectedKey] = useState(value);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await onSave(selectedKey);
+      setIsOpen(false);
+      toast({
+        title: "更新成功",
+        color: "success",
+        variant: "solid",
+      });
+    } catch (error) {
+      toast({
+        title: "更新失败",
+        description: error instanceof Error ? error.message : "未知错误",
+        color: "danger",
+        variant: "solid",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const currentLabel = useMemo(() => {
+    const item = items.find((item) => getItemValue(item) === value);
+
+    return item ? getItemLabel(item) : "未设置";
+  }, [items, value, getItemLabel, getItemValue]);
+
+  return (
+    <Popover isOpen={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger>
+        <Button
+          variant="light"
+          className="px-2 h-8 text-left justify-start font-normal w-full"
+          isLoading={isLoading}
+        >
+          {currentLabel}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <div className="p-2">
+          <div className="flex flex-col gap-2">
+            <Autocomplete
+              label=""
+              placeholder={placeholder}
+              selectedKey={selectedKey}
+              onSelectionChange={(key) => setSelectedKey(key as string)}
+              defaultItems={items}
+              size="sm"
+              isLoading={isLoading}
+            >
+              {(item) => (
+                <AutocompleteItem key={getItemValue(item)}>
+                  {getItemLabel(item)}
+                </AutocompleteItem>
+              )}
+            </Autocomplete>
+            <div className="flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="light"
+                color="danger"
+                onPress={() => setIsOpen(false)}
+                startContent={<X className="w-4 h-4" />}
+              >
+                取消
+              </Button>
+              <Button
+                size="sm"
+                color="primary"
+                onPress={handleSave}
+                isLoading={isSaving}
+                startContent={!isSaving && <Check className="w-4 h-4" />}
+              >
+                保存
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+interface QuickCategorySelectProps {
+  value?: string;
+  categoryId?: string;
+  categories: Category[];
+  onSave: (value: string) => Promise<void>;
+  isLoading?: boolean;
+}
+
+function QuickCategorySelect({
+  value,
+  categoryId,
+  categories,
+  onSave,
+  isLoading,
+}: QuickCategorySelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(
+    categoryId || "",
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 找到当前分类的完整路径名称
+  const getCategoryPath = (categoryId?: string): string => {
+    if (!categoryId || !categories.length) return "未设置";
+
+    const findCategory = (id: string): Category | undefined => {
+      return categories.find((cat) => cat.id === id);
+    };
+
+    const buildPath = (id: string): string[] => {
+      const category = findCategory(id);
+
+      if (!category) return [];
+
+      if (category.parentId) {
+        return [...buildPath(category.parentId), category.name];
+      }
+
+      return [category.name];
+    };
+
+    const path = buildPath(categoryId);
+
+    return path.join(" > ");
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await onSave(selectedCategoryId);
+      setIsOpen(false);
+      toast({
+        title: "分类更新成功",
+        color: "success",
+        variant: "solid",
+      });
+    } catch (error) {
+      toast({
+        title: "分类更新失败",
+        description: error instanceof Error ? error.message : "未知错误",
+        color: "danger",
+        variant: "solid",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+  };
+
+  const displayValue = value || getCategoryPath(categoryId);
+
+  return (
+    <>
+      <Button
+        variant="light"
+        className="px-2 h-8 text-left justify-start font-normal w-full"
+        onPress={() => setIsOpen(true)}
+        isLoading={isLoading}
+      >
+        {displayValue}
+      </Button>
+
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        placement="center"
+        scrollBehavior="inside"
+        size="lg"
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            选择商品分类
+          </ModalHeader>
+          <ModalBody>
+            <CascadeCategorySelector
+              categories={categories}
+              onCategoryChange={handleCategoryChange}
+              value={selectedCategoryId}
+              isLoading={isLoading}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              variant="light"
+              color="danger"
+              onPress={() => setIsOpen(false)}
+              startContent={<X className="w-4 h-4" />}
+            >
+              取消
+            </Button>
+            <Button
+              color="primary"
+              onPress={handleSave}
+              isLoading={isSaving}
+              startContent={!isSaving && <Check className="w-4 h-4" />}
+            >
+              保存
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
+  );
+}
+
 export const ProductsClient = {
   NavbarWrapper,
   PageWrapper,
@@ -299,4 +693,7 @@ export const ProductsClient = {
   AddCategoryButton,
   ActionMenu,
   CascadeCategorySelector,
+  QuickEdit,
+  QuickSelect,
+  QuickCategorySelect,
 };

@@ -15,6 +15,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { useBrands } from "@/hooks/use-brands";
+import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,11 +30,24 @@ export default function ProductsPage() {
   const [limit] = useState(10);
   const [selectedTab, setSelectedTab] = useState("products");
 
-  const { products, totalPages, isLoading, error, deleteProduct, isDeleting } =
-    useProducts({
-      page,
-      limit,
-    });
+  const {
+    products,
+    totalPages,
+    isLoading,
+    error,
+    deleteProduct,
+    isDeleting,
+    updateProduct,
+  } = useProducts({
+    page,
+    limit,
+  });
+
+  // 获取所有品牌和分类
+  const { brands, isLoading: isBrandsLoading } = useBrands();
+  const { categories, isLoading: isCategoriesLoading } = useCategories({
+    limit: 999,
+  });
 
   const handlePageChange = (page: number) => {
     setPage(page);
@@ -48,6 +63,114 @@ export default function ProductsPage() {
     } catch {
       toast({
         title: t("deleteError"),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (id: string) => {
+    // 跳转到编辑页面
+    window.location.href = `/products/edit/${id}`;
+  };
+
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    try {
+      // 切换商品状态
+      const newStatus =
+        currentStatus === "In Stock" ? "Out of Stock" : "In Stock";
+
+      await updateProduct({
+        id,
+        data: { status: newStatus },
+      });
+
+      toast({
+        title: newStatus === "In Stock" ? "商品已启用" : "商品已禁用",
+        variant: "success",
+      });
+    } catch {
+      toast({
+        title: "操作失败",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateProductName = async (id: string, newName: string) => {
+    try {
+      await updateProduct({
+        id,
+        data: { name: newName },
+      });
+      toast({
+        title: "商品名称已更新",
+        variant: "success",
+      });
+    } catch {
+      toast({
+        title: "更新失败",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateProductPrice = async (id: string, newPrice: string) => {
+    try {
+      const price = parseFloat(newPrice);
+
+      if (isNaN(price) || price < 0) {
+        throw new Error("无效的价格");
+      }
+      await updateProduct({
+        id,
+        data: { price },
+      });
+      toast({
+        title: "商品价格已更新",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: error instanceof Error ? error.message : "更新失败",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateProductBrand = async (id: string, brandId: string) => {
+    try {
+      await updateProduct({
+        id,
+        data: { brandId },
+      });
+      toast({
+        title: "商品品牌已更新",
+        variant: "success",
+      });
+    } catch {
+      toast({
+        title: "更新失败",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateProductCategory = async (
+    id: string,
+    categoryId: string,
+  ) => {
+    try {
+      await updateProduct({
+        id,
+        data: { categoryId },
+      });
+      toast({
+        title: "商品分类已更新",
+        variant: "success",
+      });
+    } catch {
+      toast({
+        title: "更新失败",
         variant: "destructive",
       });
     }
@@ -106,12 +229,47 @@ export default function ProductsPage() {
                     {(product) => (
                       <TableRow key={product.id}>
                         <TableCell className="font-medium">
-                          {product.name}
+                          <ProductsClient.QuickEdit
+                            value={product.name}
+                            onSave={(value) =>
+                              handleUpdateProductName(product.id, value)
+                            }
+                          />
                         </TableCell>
-                        <TableCell>{product.brand?.name}</TableCell>
-                        <TableCell>{product.category?.name}</TableCell>
+                        <TableCell>
+                          <ProductsClient.QuickSelect
+                            value={product.brand?.id || ""}
+                            items={brands}
+                            onSave={(value) =>
+                              handleUpdateProductBrand(product.id, value)
+                            }
+                            getItemLabel={(brand) => brand.name}
+                            getItemValue={(brand) => brand.id}
+                            placeholder="选择品牌"
+                            isLoading={isBrandsLoading}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <ProductsClient.QuickCategorySelect
+                            categoryId={product.category?.id}
+                            categories={categories}
+                            onSave={(value) =>
+                              handleUpdateProductCategory(product.id, value)
+                            }
+                            isLoading={isCategoriesLoading}
+                          />
+                        </TableCell>
                         <TableCell className="text-right">
-                          ${parseFloat(String(product.price)).toFixed(2)}
+                          <ProductsClient.QuickEdit
+                            value={String(product.price)}
+                            onSave={(value) =>
+                              handleUpdateProductPrice(product.id, value)
+                            }
+                            type="number"
+                            formatter={(value) =>
+                              `$${parseFloat(value).toFixed(2)}`
+                            }
+                          />
                         </TableCell>
                         <TableCell className="text-center">
                           <div
@@ -133,7 +291,12 @@ export default function ProductsPage() {
                         <TableCell className="text-right">
                           <ProductsClient.ActionMenu
                             onDelete={() => handleDelete(product.id)}
+                            onEdit={() => handleEdit(product.id)}
+                            onToggleStatus={() =>
+                              handleToggleStatus(product.id, product.status)
+                            }
                             isDeleting={isDeleting}
+                            isActive={product.status === "In Stock"}
                           />
                         </TableCell>
                       </TableRow>

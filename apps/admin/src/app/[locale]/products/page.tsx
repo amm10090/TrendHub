@@ -8,6 +8,8 @@ import {
   TableCell,
   Spinner,
   Pagination,
+  Tabs,
+  Tab,
 } from "@heroui/react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -16,6 +18,7 @@ import { useState } from "react";
 import { useProducts } from "@/hooks/use-products";
 import { useToast } from "@/hooks/use-toast";
 
+import { CategoryTable } from "./category-table";
 import { ProductsClient } from "./products-client";
 
 export default function ProductsPage() {
@@ -23,6 +26,7 @@ export default function ProductsPage() {
   const { toast } = useToast();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [selectedTab, setSelectedTab] = useState("products");
 
   const { products, totalPages, isLoading, error, deleteProduct, isDeleting } =
     useProducts({
@@ -62,74 +66,96 @@ export default function ProductsPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
         <div className="flex items-center space-x-2">
-          <Link href="/products/new">
-            <ProductsClient.AddButton />
-          </Link>
+          {selectedTab === "products" ? (
+            <Link href="/products/new">
+              <ProductsClient.AddButton />
+            </Link>
+          ) : (
+            <ProductsClient.AddCategoryButton />
+          )}
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex h-[400px] items-center justify-center">
-          <Spinner />
-        </div>
-      ) : (
-        <>
-          <div className="rounded-md border">
-            <Table aria-label={t("productList")}>
-              <TableHeader>
-                <TableColumn>{t("columns.name")}</TableColumn>
-                <TableColumn>{t("columns.brand")}</TableColumn>
-                <TableColumn>{t("columns.category")}</TableColumn>
-                <TableColumn align="end">{t("columns.price")}</TableColumn>
-                <TableColumn align="center">{t("columns.status")}</TableColumn>
-                <TableColumn align="end">{t("columns.actions")}</TableColumn>
-              </TableHeader>
-              <TableBody items={products}>
-                {(product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">
-                      {product.name}
-                    </TableCell>
-                    <TableCell>{product.brand}</TableCell>
-                    <TableCell>{product.category}</TableCell>
-                    <TableCell className="text-right">
-                      ${product.price.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          product.status === "In Stock"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {t(
-                          `status.${product.status === "In Stock" ? "inStock" : "lowStock"}`,
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <ProductsClient.ActionMenu
-                        product={product}
-                        onDelete={() => handleDelete(product.id)}
-                        isDeleting={isDeleting}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+      <Tabs
+        selectedKey={selectedTab}
+        onSelectionChange={(key) => setSelectedTab(key.toString())}
+        className="mt-4"
+      >
+        <Tab key="products" title="商品列表">
+          {isLoading ? (
+            <div className="flex h-[400px] items-center justify-center">
+              <Spinner />
+            </div>
+          ) : (
+            <>
+              <div className="rounded-md border">
+                <Table aria-label={t("productList")}>
+                  <TableHeader>
+                    <TableColumn>{t("columns.name")}</TableColumn>
+                    <TableColumn>{t("columns.brand")}</TableColumn>
+                    <TableColumn>{t("columns.category")}</TableColumn>
+                    <TableColumn align="end">{t("columns.price")}</TableColumn>
+                    <TableColumn align="center">
+                      {t("columns.status")}
+                    </TableColumn>
+                    <TableColumn align="end">
+                      {t("columns.actions")}
+                    </TableColumn>
+                  </TableHeader>
+                  <TableBody items={products}>
+                    {(product) => (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">
+                          {product.name}
+                        </TableCell>
+                        <TableCell>{product.brand?.name}</TableCell>
+                        <TableCell>{product.category?.name}</TableCell>
+                        <TableCell className="text-right">
+                          ${parseFloat(String(product.price)).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                              product.status === "In Stock"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {t(
+                              `status.${
+                                product.status === "In Stock"
+                                  ? "inStock"
+                                  : "lowStock"
+                              }`,
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <ProductsClient.ActionMenu
+                            onDelete={() => handleDelete(product.id)}
+                            isDeleting={isDeleting}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
-          <div className="mt-4 flex justify-center">
-            <Pagination
-              total={totalPages}
-              page={page}
-              onChange={handlePageChange}
-            />
-          </div>
-        </>
-      )}
+              <div className="mt-4 flex justify-center">
+                <Pagination
+                  total={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                />
+              </div>
+            </>
+          )}
+        </Tab>
+        <Tab key="categories" title="分类管理">
+          <CategoryTable />
+        </Tab>
+      </Tabs>
     </ProductsClient.PageWrapper>
   );
 }

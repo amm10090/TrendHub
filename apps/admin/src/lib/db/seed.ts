@@ -54,14 +54,31 @@ const defaultSettings = [
   { key: "secondaryColor", value: "#6366f1", category: "appearance" },
 ];
 
+// 定义默认品牌数据
+const defaultBrands = [
+  { name: "TrendBasics", slug: "trend-basics", description: "基础时尚品牌" },
+  { name: "VintageDenim", slug: "vintage-denim", description: "复古牛仔品牌" },
+  { name: "SportLife", slug: "sport-life", description: "运动生活品牌" },
+  { name: "LuxLeather", slug: "lux-leather", description: "奢华皮具品牌" },
+  { name: "WoolMaster", slug: "wool-master", description: "羊毛制品专家" },
+];
+
+// 定义默认分类数据
+const defaultCategories = [
+  { name: "上装", slug: "tops", level: 1, description: "各类上衣" },
+  { name: "外套", slug: "outerwear", level: 1, description: "各类外套" },
+  { name: "裤装", slug: "bottoms", level: 1, description: "各类裤子" },
+  { name: "配饰", slug: "accessories", level: 1, description: "各类配饰" },
+];
+
 // 定义示例产品数据
 const defaultProducts = [
   {
     name: "经典白色T恤",
     description: "100%纯棉，简约舒适的基础款T恤",
     price: 199.0,
-    brand: "TrendBasics",
-    category: "上装",
+    brandSlug: "trend-basics",
+    categorySlug: "tops",
     status: "In Stock",
     images: ["/products/white-tshirt.jpg"],
     inventory: 100,
@@ -71,8 +88,8 @@ const defaultProducts = [
     name: "复古牛仔夹克",
     description: "水洗工艺，复古做旧效果的牛仔外套",
     price: 599.0,
-    brand: "VintageDenim",
-    category: "外套",
+    brandSlug: "vintage-denim",
+    categorySlug: "outerwear",
     status: "In Stock",
     images: ["/products/denim-jacket.jpg"],
     inventory: 50,
@@ -82,8 +99,8 @@ const defaultProducts = [
     name: "运动休闲裤",
     description: "弹力面料，舒适透气的运动裤",
     price: 299.0,
-    brand: "SportLife",
-    category: "裤装",
+    brandSlug: "sport-life",
+    categorySlug: "bottoms",
     status: "In Stock",
     images: ["/products/sport-pants.jpg"],
     inventory: 80,
@@ -93,8 +110,8 @@ const defaultProducts = [
     name: "真皮小方包",
     description: "进口牛皮，简约时尚的单肩包",
     price: 899.0,
-    brand: "LuxLeather",
-    category: "配饰",
+    brandSlug: "lux-leather",
+    categorySlug: "accessories",
     status: "Low Stock",
     images: ["/products/leather-bag.jpg"],
     inventory: 10,
@@ -104,8 +121,8 @@ const defaultProducts = [
     name: "羊毛针织衫",
     description: "澳洲美利奴羊毛，保暖舒适的针织衫",
     price: 499.0,
-    brand: "WoolMaster",
-    category: "上装",
+    brandSlug: "wool-master",
+    categorySlug: "tops",
     status: "In Stock",
     images: ["/products/wool-sweater.jpg"],
     inventory: 60,
@@ -125,18 +142,56 @@ async function main() {
       }),
     );
 
+    // 初始化品牌数据
+    const brandPromises = defaultBrands.map((brand) =>
+      prisma.brand.upsert({
+        where: { slug: brand.slug },
+        update: brand,
+        create: { ...brand, isActive: true },
+      }),
+    );
+
+    // 初始化分类数据
+    const categoryPromises = defaultCategories.map((category) =>
+      prisma.category.upsert({
+        where: { slug: category.slug },
+        update: category,
+        create: { ...category, isActive: true },
+      }),
+    );
+
+    // 等待品牌和分类创建完成
+    const [brands, categories] = await Promise.all([
+      Promise.all(brandPromises),
+      Promise.all(categoryPromises),
+    ]);
+
+    // 创建品牌和分类的映射
+    const brandMap = new Map(brands.map((b) => [b.slug, b.id]));
+    const categoryMap = new Map(categories.map((c) => [c.slug, c.id]));
+
     // 初始化产品数据
     const productPromises = defaultProducts.map((product) => {
-      const { sku, ...productData } = product;
+      const { brandSlug, categorySlug, ...productData } = product;
 
       return prisma.product.upsert({
-        where: { sku },
-        update: productData,
-        create: product,
+        where: { sku: product.sku },
+        update: {
+          ...productData,
+          brandId: brandMap.get(brandSlug)!,
+
+          categoryId: categoryMap.get(categorySlug)!,
+        },
+        create: {
+          ...productData,
+          brandId: brandMap.get(brandSlug)!,
+
+          categoryId: categoryMap.get(categorySlug)!,
+        },
       });
     });
 
-    // 并行执行所有初始化操作
+    // 执行所有初始化操作
     const [settingResults, productResults] = await Promise.all([
       Promise.all(settingPromises),
       Promise.all(productPromises),

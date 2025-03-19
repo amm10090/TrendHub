@@ -35,26 +35,72 @@ model SiteSetting {
   @@index([category])
 }
 
-// Product模型 - 用于存储商品信息
-model Product {
-  id          String    @id @default(cuid())  // 唯一标识符，使用CUID生成
-  name        String                          // 商品名称
-  brand       String                          // 品牌名称
-  category    String                          // 商品分类
-  price       Decimal                         // 商品价格
-  status      String                          // 商品状态（如"In Stock"、"Low Stock"等）
-  description String?                         // 商品描述（可选）
-  images      String[]                        // 商品图片URL数组
-  sku         String    @unique               // 商品SKU，确保唯一性
-  inventory   Int       @default(0)           // 库存数量，替代原有的stock字段
-  isDeleted   Boolean   @default(false)       // 软删除标记
-  updatedAt   DateTime  @updatedAt            // 更新时间
+// Category模型 - 用于存储商品分类信息
+model Category {
+  id          String     @id @default(cuid())  // 唯一标识符
+  name        String                           // 分类名称
+  slug        String     @unique               // URL友好的唯一标识符
+  description String?                          // 分类描述（可选）
+  level       Int                              // 分类层级 (1=一级分类，2=二级分类，3=三级分类)
+  parentId    String?                          // 父级分类ID（可选，用于构建分类层级）
+  parent      Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children    Category[] @relation("SubCategories")
+  image       String?                          // 分类图片URL（可选）
+  isActive    Boolean    @default(true)        // 分类是否激活
+  products    Product[]                        // 与该分类关联的商品
+  createdAt   DateTime   @default(now())       // 创建时间
+  updatedAt   DateTime   @updatedAt            // 更新时间
+
+  @@index([parentId])
+  @@index([level])
+  @@index([isActive])
+}
+
+// Brand模型 - 用于存储品牌信息
+model Brand {
+  id          String    @id @default(cuid())  // 唯一标识符
+  name        String    @unique               // 品牌名称
+  slug        String    @unique               // URL友好的唯一标识符
+  description String?                         // 品牌描述（可选）
+  logo        String?                         // 品牌LOGO URL（可选）
+  website     String?                         // 品牌官网URL（可选）
+  isActive    Boolean   @default(true)        // 品牌是否激活
+  products    Product[]                       // 与该品牌关联的商品
   createdAt   DateTime  @default(now())       // 创建时间
+  updatedAt   DateTime  @updatedAt            // 更新时间
+
+  @@index([isActive])
+}
+
+// Product模型 - 更新以关联Category和Brand
+model Product {
+  id           String    @id @default(cuid())  // 唯一标识符，使用CUID生成
+  name         String                          // 商品名称
+  brandId      String                          // 关联的品牌ID
+  brand        Brand     @relation(fields: [brandId], references: [id])
+  categoryId   String                          // 关联的分类ID
+  category     Category  @relation(fields: [categoryId], references: [id])
+  price        Decimal                         // 商品价格
+  status       String                          // 商品状态（如"In Stock"、"Low Stock"等）
+  description  String?                         // 商品描述（可选）
+  images       String[]                        // 商品图片URL数组
+  sku          String    @unique               // 商品SKU，确保唯一性
+  inventory    Int       @default(0)           // 库存数量，替代原有的stock字段
+  source       String?                         // 商品来源（可选）
+  colors       String[]  @default([])          // 商品颜色数组
+  sizes        String[]  @default([])          // 商品尺码数组
+  material     String?                         // 商品材质（可选）
+  cautions     String?                         // 商品注意事项（可选）
+  promotionUrl String?                         // 商品推广链接（可选）
+  isDeleted    Boolean   @default(false)       // 软删除标记
+  updatedAt    DateTime  @updatedAt            // 更新时间
+  createdAt    DateTime  @default(now())       // 创建时间
 
   // 创建索引以优化查询性能
-  @@index([category])
-  @@index([brand])
+  @@index([categoryId])
+  @@index([brandId])
   @@index([status])
   @@index([isDeleted])
   @@index([sku])
+  @@index([source])
 }

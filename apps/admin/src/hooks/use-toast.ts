@@ -1,4 +1,4 @@
-import { toast } from "@heroui/react";
+import { addToast } from "@heroui/react";
 
 export interface ToastOptions {
   title: string;
@@ -17,14 +17,17 @@ export interface ToastOptions {
 export function useToast() {
   const showToast = (options: ToastOptions) => {
     const {
+      title,
+      description,
       variant = "default",
       duration = 3000,
-      placement = "top-right",
-      ...rest
+      // 暂时移除placement，因为HeroUI的addToast可能不支持此参数
+      // placement = "top-right",
     } = options;
 
-    toast({
-      ...rest,
+    addToast({
+      title,
+      description,
       variant: "solid",
       color:
         variant === "success"
@@ -34,8 +37,7 @@ export function useToast() {
             : variant === "info"
               ? "primary"
               : "default",
-      duration,
-      placement,
+      timeout: duration,
     });
   };
 

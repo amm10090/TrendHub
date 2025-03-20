@@ -18,7 +18,6 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  toast,
 } from "@heroui/react";
 import {
   ChevronRight,
@@ -32,6 +31,7 @@ import {
 import { ReactNode, useState, useEffect, useMemo } from "react";
 
 import { CustomNavbar } from "@/components/custom-navbar";
+import { useToast } from "@/hooks/use-toast";
 
 function NavbarWrapper() {
   return <CustomNavbar />;
@@ -372,6 +372,7 @@ function QuickEdit({
   const [isOpen, setIsOpen] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSave = async () => {
     try {
@@ -380,15 +381,13 @@ function QuickEdit({
       setIsOpen(false);
       toast({
         title: "更新成功",
-        color: "success",
-        variant: "solid",
+        variant: "success",
       });
     } catch (error) {
       toast({
         title: "更新失败",
         description: error instanceof Error ? error.message : "未知错误",
-        color: "danger",
-        variant: "solid",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -473,6 +472,7 @@ function QuickSelect<T extends object>({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState(value);
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   const handleSave = async () => {
     try {
@@ -481,15 +481,13 @@ function QuickSelect<T extends object>({
       setIsOpen(false);
       toast({
         title: "更新成功",
-        color: "success",
-        variant: "solid",
+        variant: "success",
       });
     } catch (error) {
       toast({
         title: "更新失败",
         description: error instanceof Error ? error.message : "未知错误",
-        color: "danger",
-        variant: "solid",
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -578,6 +576,7 @@ function QuickCategorySelect({
     categoryId || "",
   );
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   // 找到当前分类的完整路径名称
   const getCategoryPath = (categoryId?: string): string => {
@@ -611,15 +610,13 @@ function QuickCategorySelect({
       setIsOpen(false);
       toast({
         title: "分类更新成功",
-        color: "success",
-        variant: "solid",
+        variant: "success",
       });
     } catch (error) {
       toast({
         title: "分类更新失败",
         description: error instanceof Error ? error.message : "未知错误",
-        color: "danger",
-        variant: "solid",
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);

@@ -39,6 +39,15 @@
     "viewAll": "View All",
     "welcome": "Welcome back, check the latest website statistics and data"
   },
+  "disclaimer": {
+    "last_updated": "",
+    "sections": {
+      "contact": {
+        "email": ""
+      }
+    },
+    "title": ""
+  },
   "layout": {
     "admin": "Admin",
     "adminEmail": "admin@example.com",

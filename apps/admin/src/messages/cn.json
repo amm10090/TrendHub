@@ -39,6 +39,15 @@
     "viewAll": "查看全部",
     "welcome": "欢迎回来"
   },
+  "disclaimer": {
+    "last_updated": "免责声明.最后更新",
+    "sections": {
+      "contact": {
+        "email": "免责声明.部门.联系.电子邮件"
+      }
+    },
+    "title": "免责声明.title"
+  },
   "layout": {
     "admin": "管理员",
     "adminEmail": "admin@example.com",

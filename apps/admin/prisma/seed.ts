@@ -90,13 +90,10 @@ async function main() {
       },
     ],
   });
-
-  console.log("种子数据创建成功");
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
+  .catch(() => {
     process.exit(1);
   })
   .finally(async () => {

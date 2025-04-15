@@ -66,6 +66,11 @@
     "shortcutSettings": "⌘S",
     "userMenu": "用户菜单"
   },
+  "product": {
+    "breadcrumb": {
+      "home": "产品.面包屑.首页"
+    }
+  },
   "products": {
     "actions": "操作",
     "actionsFor": "{name}的操作",
@@ -81,11 +86,14 @@
       "status": "状态"
     },
     "delete": "删除",
+    "deleteError": "删除商品失败",
+    "deleteSuccess": "删除商品成功",
     "deleting": "删除中...",
     "description": "产品描述",
     "details": "产品详情",
     "duplicate": "复制",
     "edit": "编辑",
+    "fetchError": "获取商品列表失败",
     "filter": "筛选",
     "id": "ID",
     "name": "商品名称",
@@ -106,10 +114,7 @@
       "lowStock": "库存不足"
     },
     "stock": "库存",
-    "title": "商品管理",
-    "fetchError": "获取商品列表失败",
-    "deleteSuccess": "删除商品成功",
-    "deleteError": "删除商品失败"
+    "title": "商品管理"
   },
   "settings": {
     "account": "账户设置",

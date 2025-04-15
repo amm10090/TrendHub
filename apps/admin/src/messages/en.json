@@ -66,6 +66,11 @@
     "shortcutSettings": "⌘S",
     "userMenu": "User Menu"
   },
+  "product": {
+    "breadcrumb": {
+      "home": ""
+    }
+  },
   "products": {
     "actions": "Actions",
     "actionsFor": "Actions for {name}",
@@ -81,11 +86,14 @@
       "status": "Status"
     },
     "delete": "Delete",
+    "deleteError": "Failed to delete product",
+    "deleteSuccess": "Product deleted successfully",
     "deleting": "Deleting...",
     "description": "Manage and edit product information, control product display and sales",
     "details": "Details",
     "duplicate": "Duplicate",
     "edit": "Edit",
+    "fetchError": "Failed to fetch products",
     "filter": "Filter",
     "id": "ID",
     "name": "Product Name",
@@ -106,10 +114,7 @@
       "lowStock": "Low Stock"
     },
     "stock": "Stock",
-    "title": "Products",
-    "fetchError": "Failed to fetch products",
-    "deleteSuccess": "Product deleted successfully",
-    "deleteError": "Failed to delete product"
+    "title": "Products"
   },
   "settings": {
     "account": "Account Settings",

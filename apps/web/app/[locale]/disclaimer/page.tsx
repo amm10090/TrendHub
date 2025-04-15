@@ -57,7 +57,7 @@ export default function DisclaimerPage() {
         </ul>
       )}
       {section === 'contact' && (
-        <div className="flex items-center flex flex-row gap-x-2">
+        <div className="items-center flex flex-row gap-x-2">
           <Mail className="w-4 h-4 text-text-primary-light dark:text-text-primary-dark" />
           <Link
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"

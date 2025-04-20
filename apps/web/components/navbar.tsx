@@ -208,7 +208,7 @@ export const Navbar = () => {
     },
   ];
 
-  const handleItemClick = (item: MenuItem, e: React.MouseEvent<HTMLElement>) => {
+  const handleItemClick = (item: MenuItem, e: React.MouseEvent<Element>) => {
     e.preventDefault();
     if (item.items) {
       setCurrentSubmenu({
@@ -221,7 +221,7 @@ export const Navbar = () => {
     }
   };
 
-  const handleItemKeyDown = (item: MenuItem, e: React.KeyboardEvent<HTMLElement>) => {
+  const handleItemKeyDown = (item: MenuItem, e: React.KeyboardEvent<Element>) => {
     if (e.key === 'Enter' || e.key === 'Space') {
       e.preventDefault();
       if (item.items) {
@@ -236,25 +236,25 @@ export const Navbar = () => {
     }
   };
 
-  const handleBackClick = (e: React.MouseEvent<HTMLElement>) => {
+  const handleBackClick = (e: React.MouseEvent<Element>) => {
     e.preventDefault();
     setCurrentSubmenu(null);
   };
 
-  const handleBackKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+  const handleBackKeyDown = (e: React.KeyboardEvent<Element>) => {
     if (e.key === 'Enter' || e.key === 'Space') {
       e.preventDefault();
       setCurrentSubmenu(null);
     }
   };
 
-  const handleSubItemClick = (subItem: SubMenuItem, e: React.MouseEvent<HTMLElement>) => {
+  const handleSubItemClick = (subItem: SubMenuItem, e: React.MouseEvent<Element>) => {
     e.preventDefault();
     router.push(subItem.href);
     setIsMenuOpen(false);
   };
 
-  const handleSubItemKeyDown = (subItem: SubMenuItem, e: React.KeyboardEvent<HTMLElement>) => {
+  const handleSubItemKeyDown = (subItem: SubMenuItem, e: React.KeyboardEvent<Element>) => {
     if (e.key === 'Enter' || e.key === 'Space') {
       e.preventDefault();
       router.push(subItem.href);
@@ -262,13 +262,13 @@ export const Navbar = () => {
     }
   };
 
-  const handleAlphabetClick = (item: AlphabetItem, e: React.MouseEvent<HTMLElement>) => {
+  const handleAlphabetClick = (item: AlphabetItem, e: React.MouseEvent<Element>) => {
     e.preventDefault();
     router.push(item.href);
     setIsMenuOpen(false);
   };
 
-  const handleAlphabetKeyDown = (item: AlphabetItem, e: React.KeyboardEvent<HTMLElement>) => {
+  const handleAlphabetKeyDown = (item: AlphabetItem, e: React.KeyboardEvent<Element>) => {
     if (e.key === 'Enter' || e.key === 'Space') {
       e.preventDefault();
       router.push(item.href);

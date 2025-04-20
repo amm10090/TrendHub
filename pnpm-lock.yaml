@@ -4,10 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  '@heroui/dom-animation@2.1.8-beta.2':
-    hash: 9151cc885af4a6c250aaf760ef34ed623e7ca6a90fa2c46b40b665ec30281d20
-    path: patches/@heroui__dom-animation@2.1.8-beta.2.patch
 
 importers:
 

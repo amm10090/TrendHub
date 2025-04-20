@@ -1,6 +1,5 @@
 /* 导入Tailwind CSS核心样式 */
 @import 'tailwindcss';
-@config "../../tailwind.config.mjs";
 
 /* 从HeroUI主题包中导入组件样式 */
 @source '../../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';

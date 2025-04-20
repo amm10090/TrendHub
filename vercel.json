@@ -1,12 +1,7 @@
 {
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "installCommand": "corepack prepare pnpm@10.8.1 --activate && pnpm install"
-      }
-    }
-  ],
-  "buildCommand": "corepack prepare pnpm@10.8.1 --activate && pnpm run build"
+  "crons": {
+    "version": 2
+  },
+  "buildCommand": "corepack enable && pnpm install && pnpm run build",
+  "installCommand": "corepack enable && pnpm install"
 }

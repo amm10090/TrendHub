@@ -27,6 +27,9 @@ const nextConfig = {
     scrollRestoration: true,
   },
 
+  // 将turbo配置从experimental中移出
+  turbopack: true,
+
   // 优化图片加载
   images: {
     formats: ['image/avif', 'image/webp'],

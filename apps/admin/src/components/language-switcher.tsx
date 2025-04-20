@@ -19,8 +19,8 @@ export function LanguageSwitcher() {
   const pathname = usePathname();
 
   const handleLocaleChange = (newLocale: string) => {
-    // 使用replace而不是push，避免浏览器历史堆积
-    router.replace(pathname, { locale: newLocale });
+    // 使用正确的路由切换方法
+    router.replace(pathname, { locale: newLocale as "en" | "cn" });
   };
 
   return (

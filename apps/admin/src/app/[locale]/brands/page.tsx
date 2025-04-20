@@ -25,17 +25,20 @@ import {
 import { Plus } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 import { CustomNavbar } from "@/components/custom-navbar";
 import { useToast } from "@/hooks/use-toast";
 import { Brand } from "@/lib/services/brand.service";
 
 export default function BrandsPage() {
+  const t = useTranslations("brands");
   const { toast } = useToast();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [newBrand, setNewBrand] = useState({
     name: "",
     slug: "",
@@ -58,17 +61,17 @@ export default function BrandsPage() {
         const response = await fetch("/api/brands");
 
         if (!response.ok) {
-          throw new Error("获取品牌列表失败");
+          throw new Error(t("fetchError"));
         }
         const data = await response.json();
 
         setBrands(data.items || []);
         setError(null);
       } catch (error) {
-        setError(error instanceof Error ? error.message : "获取品牌列表失败");
+        setError(error instanceof Error ? error.message : t("fetchError"));
         toast({
-          title: "错误",
-          description: "获取品牌列表失败",
+          title: t("error"),
+          description: t("fetchError"),
           variant: "destructive",
         });
       } finally {
@@ -95,7 +98,7 @@ export default function BrandsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("更新品牌状态失败");
+        throw new Error(t("updateError"));
       }
 
       const updatedBrand = await response.json();
@@ -107,13 +110,15 @@ export default function BrandsPage() {
 
       // 显示成功提示
       toast({
-        title: "成功",
-        description: `品牌已${!isActive ? "激活" : "停用"}`,
+        title: t("success"),
+        description: t("statusUpdateSuccess", {
+          status: !isActive ? t("status.active") : t("status.inactive"),
+        }),
       });
     } catch {
       toast({
-        title: "错误",
-        description: "更新品牌状态失败",
+        title: t("error"),
+        description: t("updateError"),
         variant: "destructive",
       });
     }
@@ -127,7 +132,7 @@ export default function BrandsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("删除品牌失败");
+        throw new Error(t("deleteError"));
       }
 
       // 从列表中移除品牌
@@ -135,22 +140,49 @@ export default function BrandsPage() {
 
       // 显示成功提示
       toast({
-        title: "成功",
-        description: "品牌已删除",
+        title: t("success"),
+        description: t("deleteSuccess"),
       });
     } catch {
       toast({
-        title: "错误",
-        description: "删除品牌失败",
+        title: t("error"),
+        description: t("deleteError"),
         variant: "destructive",
       });
     }
   };
 
-  const handleOpenDrawer = () => setIsDrawerOpen(true);
+  // 打开添加品牌抽屉
+  const handleOpenDrawer = () => {
+    setEditingBrand(null);
+    setNewBrand({
+      name: "",
+      slug: "",
+      description: "",
+      logo: "",
+      website: "",
+      isActive: true,
+    });
+    setIsDrawerOpen(true);
+  };
+
+  // 打开编辑品牌抽屉
+  const handleOpenEditDrawer = (brand: Brand) => {
+    setEditingBrand(brand);
+    setNewBrand({
+      name: brand.name,
+      slug: brand.slug,
+      description: brand.description || "",
+      logo: brand.logo || "",
+      website: brand.website || "",
+      isActive: brand.isActive,
+    });
+    setIsDrawerOpen(true);
+  };
 
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false);
+    setEditingBrand(null);
     // 重置表单
     setNewBrand({
       name: "",
@@ -211,7 +243,8 @@ export default function BrandsPage() {
     }
   };
 
-  const handleAddBrand = async () => {
+  // 处理添加或更新品牌
+  const handleSaveBrand = async () => {
     // 表单验证
     const errors = {
       name: !newBrand.name.trim(),
@@ -227,40 +260,72 @@ export default function BrandsPage() {
 
     try {
       setIsSubmitting(true);
-      // 调用API保存品牌
-      const response = await fetch("/api/brands", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newBrand),
-      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      // 判断是编辑还是新增
+      if (editingBrand) {
+        // 编辑品牌
+        const response = await fetch(`/api/brands/${editingBrand.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newBrand),
+        });
 
-        throw new Error(errorData.error || "创建品牌失败");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || t("updateError"));
+        }
+
+        const updatedBrand = await response.json();
+
+        // 更新品牌列表
+        setBrands((prev) =>
+          prev.map((brand) =>
+            brand.id === editingBrand.id ? updatedBrand : brand,
+          ),
+        );
+
+        // 显示成功提示
+        toast({
+          title: t("success"),
+          description: t("updateSuccess"),
+        });
+      } else {
+        // 新增品牌
+        const response = await fetch("/api/brands", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newBrand),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || t("createError"));
+        }
+
+        const createdBrand = await response.json();
+
+        // 更新品牌列表
+        setBrands((prev) => [...prev, createdBrand]);
+
+        // 显示成功提示
+        toast({
+          title: t("success"),
+          description: t("createSuccess"),
+        });
       }
-
-      const createdBrand = await response.json();
-
-      // 更新品牌列表
-      setBrands((prev) => [...prev, createdBrand]);
-
-      // 显示成功提示
-      toast({
-        title: "成功",
-        description: "品牌创建成功",
-      });
 
       // 关闭抽屉
       handleCloseDrawer();
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "创建品牌失败";
+        error instanceof Error ? error.message : t("operationError");
 
       toast({
-        title: "错误",
+        title: t("error"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -274,14 +339,14 @@ export default function BrandsPage() {
       <CustomNavbar />
       <div className="flex-1 space-y-4 p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">品牌管理</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
           <div className="flex items-center space-x-2">
             <Button
               color="primary"
               startContent={<Plus className="h-4 w-4" />}
               onPress={handleOpenDrawer}
             >
-              添加品牌
+              {t("addBrand")}
             </Button>
           </div>
         </div>
@@ -295,15 +360,19 @@ export default function BrandsPage() {
           ) : error ? (
             <div className="p-8 text-center text-red-500">{error}</div>
           ) : brands.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">暂无品牌数据</div>
+            <div className="p-8 text-center text-gray-500">{t("noData")}</div>
           ) : (
-            <Table aria-label="品牌列表">
+            <Table aria-label={t("title")}>
               <TableHeader>
-                <TableColumn>品牌</TableColumn>
-                <TableColumn>产品数量</TableColumn>
-                <TableColumn>网站</TableColumn>
-                <TableColumn className="text-center">状态</TableColumn>
-                <TableColumn className="text-right">操作</TableColumn>
+                <TableColumn>{t("columns.brand")}</TableColumn>
+                <TableColumn>{t("columns.products")}</TableColumn>
+                <TableColumn>{t("columns.website")}</TableColumn>
+                <TableColumn className="text-center">
+                  {t("columns.status")}
+                </TableColumn>
+                <TableColumn className="text-right">
+                  {t("columns.actions")}
+                </TableColumn>
               </TableHeader>
               <TableBody>
                 {brands.map((brand) => (
@@ -333,7 +402,7 @@ export default function BrandsPage() {
                       </div>
                     </TableCell>
                     <TableCell>0</TableCell>
-                    <TableCell>{brand.website || "无"}</TableCell>
+                    <TableCell>{brand.website || "-"}</TableCell>
                     <TableCell className="text-center">
                       <div
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
@@ -342,14 +411,18 @@ export default function BrandsPage() {
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {brand.isActive ? "激活" : "禁用"}
+                        {brand.isActive
+                          ? t("status.active")
+                          : t("status.inactive")}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <Dropdown>
                         <DropdownTrigger>
                           <Button variant="light" size="sm" isIconOnly>
-                            <span className="sr-only">打开菜单</span>
+                            <span className="sr-only">
+                              {t("columns.actions")}
+                            </span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
@@ -368,15 +441,20 @@ export default function BrandsPage() {
                             </svg>
                           </Button>
                         </DropdownTrigger>
-                        <DropdownMenu aria-label="品牌操作">
+                        <DropdownMenu aria-label={t("columns.actions")}>
                           <DropdownItem
                             key="title"
                             isReadOnly
                             className="font-semibold"
                           >
-                            操作
+                            {t("actions.title")}
                           </DropdownItem>
-                          <DropdownItem key="edit">编辑</DropdownItem>
+                          <DropdownItem
+                            key="edit"
+                            onPress={() => handleOpenEditDrawer(brand)}
+                          >
+                            {t("actions.edit")}
+                          </DropdownItem>
                           <DropdownSection showDivider>
                             <DropdownItem
                               key="toggle-status"
@@ -387,7 +465,9 @@ export default function BrandsPage() {
                                 )
                               }
                             >
-                              {brand.isActive ? "禁用" : "激活"}
+                              {brand.isActive
+                                ? t("actions.deactivate")
+                                : t("actions.activate")}
                             </DropdownItem>
                           </DropdownSection>
                           <DropdownItem
@@ -395,7 +475,7 @@ export default function BrandsPage() {
                             className="text-danger"
                             onPress={() => handleDeleteBrand(brand.id)}
                           >
-                            删除
+                            {t("actions.delete")}
                           </DropdownItem>
                         </DropdownMenu>
                       </Dropdown>
@@ -408,7 +488,7 @@ export default function BrandsPage() {
         </div>
       </div>
 
-      {/* 添加品牌抽屉 */}
+      {/* 添加/编辑品牌抽屉 */}
       <Drawer
         isOpen={isDrawerOpen}
         onOpenChange={setIsDrawerOpen}
@@ -417,83 +497,94 @@ export default function BrandsPage() {
       >
         <DrawerContent>
           <DrawerHeader className="flex flex-col gap-1">
-            <h3 className="text-xl font-medium">添加新品牌</h3>
+            <h3 className="text-xl font-medium">
+              {editingBrand ? t("drawer.editTitle") : t("drawer.addTitle")}
+            </h3>
             <p className="text-sm text-default-500">
-              填写下面的表单以添加新品牌
+              {editingBrand
+                ? t("drawer.editDescription")
+                : t("drawer.addDescription")}
             </p>
           </DrawerHeader>
           <DrawerBody>
             <div className="flex flex-col gap-4">
               <Input
-                label="品牌名称"
+                label={t("drawer.nameLabel")}
                 name="name"
                 value={newBrand.name}
                 onChange={handleInputChange}
                 onBlur={handleNameBlur}
-                placeholder="输入品牌名称"
+                placeholder={t("drawer.namePlaceholder")}
                 variant="bordered"
                 autoFocus
                 isInvalid={formErrors.name}
-                errorMessage={formErrors.name ? "请输入品牌名称" : ""}
+                errorMessage={formErrors.name ? t("drawer.nameError") : ""}
                 isRequired
               />
 
               <div className="flex gap-2 items-end">
                 <Input
-                  label="品牌Slug"
+                  label={t("drawer.slugLabel")}
                   name="slug"
                   value={newBrand.slug}
                   onChange={handleInputChange}
-                  placeholder="品牌URL标识"
+                  placeholder={t("drawer.slugPlaceholder")}
                   variant="bordered"
                   isInvalid={formErrors.slug}
-                  errorMessage={formErrors.slug ? "请输入品牌Slug" : ""}
-                  description="用于URL的唯一标识，仅允许使用小写字母、数字和连字符"
+                  errorMessage={formErrors.slug ? t("drawer.slugError") : ""}
+                  description={t("drawer.slugDescription")}
                   className="flex-1"
                   isRequired
+                  isDisabled={!!editingBrand} // 编辑模式下禁用Slug修改
                 />
-                <Button
-                  size="sm"
-                  variant="flat"
-                  onPress={generateSlug}
-                  className="mb-1"
-                >
-                  生成
-                </Button>
+                {!editingBrand && (
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    onPress={generateSlug}
+                    className="mb-1"
+                  >
+                    {t("drawer.generateSlug")}
+                  </Button>
+                )}
               </div>
 
               <Input
-                label="品牌Logo URL"
+                label={t("drawer.logoLabel")}
                 name="logo"
                 value={newBrand.logo}
                 onChange={handleInputChange}
-                placeholder="输入品牌Logo图片链接"
+                placeholder={t("drawer.logoPlaceholder")}
                 variant="bordered"
               />
 
               <Input
-                label="品牌网站"
+                label={t("drawer.websiteLabel")}
                 name="website"
                 value={newBrand.website}
                 onChange={handleInputChange}
-                placeholder="输入品牌官网地址"
+                placeholder={t("drawer.websitePlaceholder")}
                 variant="bordered"
               />
 
               <Textarea
-                label="品牌描述"
+                label={t("drawer.descriptionLabel")}
                 name="description"
                 value={newBrand.description}
                 onChange={handleInputChange}
-                placeholder="输入品牌描述信息"
+                placeholder={t("drawer.descriptionPlaceholder")}
                 variant="bordered"
                 minRows={3}
               />
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">品牌状态</p>
-                  <p className="text-xs text-default-500">设置品牌是否激活</p>
+                  <p className="text-sm font-medium">
+                    {t("drawer.statusLabel")}
+                  </p>
+                  <p className="text-xs text-default-500">
+                    {t("drawer.statusDescription")}
+                  </p>
                 </div>
                 <Switch
                   isSelected={newBrand.isActive}
@@ -509,15 +600,15 @@ export default function BrandsPage() {
               onPress={handleCloseDrawer}
               isDisabled={isSubmitting}
             >
-              取消
+              {t("drawer.cancel")}
             </Button>
             <Button
               color="primary"
-              onPress={handleAddBrand}
+              onPress={handleSaveBrand}
               isLoading={isSubmitting}
               isDisabled={isSubmitting}
             >
-              添加品牌
+              {editingBrand ? t("drawer.save") : t("drawer.add")}
             </Button>
           </DrawerFooter>
         </DrawerContent>

@@ -104,3 +104,15 @@ model Product {
   @@index([sku])
   @@index([source])
 }
+
+model Page {
+  id          String   @id @default(cuid())
+  title       String
+  url         String   @unique
+  content     String?  @db.Text
+  mainImage   String?                        // 页面主图字段（可选）
+  status      String   @default("Draft") // "Published" 或 "Draft"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  publishedAt DateTime?
+}

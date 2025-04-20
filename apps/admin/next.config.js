@@ -15,6 +15,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  turbopack: {
+    // 如果有特定设置，放在这里
+  },
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,

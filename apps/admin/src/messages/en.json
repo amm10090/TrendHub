@@ -39,6 +39,65 @@
     "viewAll": "View All",
     "welcome": "Welcome back, check the latest website statistics and data"
   },
+  "brands": {
+    "title": "Brand Management",
+    "addBrand": "Add Brand",
+    "columns": {
+      "brand": "Brand",
+      "products": "Products",
+      "website": "Website",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "edit": "Edit",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "delete": "Delete",
+      "title": "Actions"
+    },
+    "drawer": {
+      "addTitle": "Add New Brand",
+      "editTitle": "Edit Brand",
+      "addDescription": "Fill the form below to add a new brand",
+      "editDescription": "Modify brand information",
+      "nameLabel": "Brand Name",
+      "namePlaceholder": "Enter brand name",
+      "nameError": "Please enter a brand name",
+      "slugLabel": "Brand Slug",
+      "slugPlaceholder": "Brand URL identifier",
+      "slugDescription": "Unique identifier for URLs, only lowercase letters, numbers, and hyphens allowed",
+      "slugError": "Please enter a brand slug",
+      "generateSlug": "Generate",
+      "logoLabel": "Brand Logo URL",
+      "logoPlaceholder": "Enter brand logo image link",
+      "websiteLabel": "Brand Website",
+      "websitePlaceholder": "Enter brand official website",
+      "descriptionLabel": "Brand Description",
+      "descriptionPlaceholder": "Enter brand description",
+      "statusLabel": "Brand Status",
+      "statusDescription": "Set whether the brand is active",
+      "cancel": "Cancel",
+      "add": "Add Brand",
+      "save": "Save Changes"
+    },
+    "noData": "No brand data available",
+    "fetchError": "Failed to fetch brands",
+    "createSuccess": "Brand created successfully",
+    "updateSuccess": "Brand updated successfully",
+    "createError": "Failed to create brand",
+    "updateError": "Failed to update brand",
+    "deleteSuccess": "Brand deleted",
+    "deleteError": "Failed to delete brand",
+    "statusUpdateSuccess": "Brand has been {status}",
+    "operationError": "Operation failed",
+    "error": "Error",
+    "success": "Success"
+  },
   "disclaimer": {
     "last_updated": "",
     "sections": {
@@ -251,6 +310,64 @@
       "siteName": "Site Name",
       "siteNamePlaceholder": "Enter website name",
       "title": "Website Information"
+    }
+  },
+  "pages": {
+    "title": "Website Pages",
+    "addPage": "Add Page",
+    "createPage": "Create New Page",
+    "editPage": "Edit Page",
+    "confirmDelete": "Confirm Delete",
+    "deleteConfirmation": "Are you sure you want to delete page \"{title}\"? This action cannot be undone.",
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "publish": "Publish",
+      "unpublish": "Unpublish"
+    },
+    "fields": {
+      "title": "Title",
+      "url": "URL",
+      "content": "Content",
+      "mainImage": "Main Image",
+      "noImage": "No Image",
+      "status": "Status",
+      "lastUpdated": "Last Updated",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "create": "Create"
+    },
+    "placeholders": {
+      "title": "Enter page title",
+      "url": "Enter page URL (e.g., /about)",
+      "content": "Enter page content",
+      "mainImage": "Enter image URL for page thumbnail",
+      "mainImageHelp": "Enter the full URL of the image (e.g., https://example.com/image.jpg)"
+    },
+    "preview": "Preview",
+    "validation": {
+      "titleRequired": "Title is required",
+      "urlRequired": "URL is required",
+      "urlExists": "This URL is already in use"
+    },
+    "messages": {
+      "createSuccess": "Page created successfully",
+      "updateSuccess": "Page updated successfully",
+      "deleteSuccess": "Page deleted successfully",
+      "fetchError": "Failed to fetch pages",
+      "fetchDetailError": "Failed to fetch page details",
+      "createError": "Failed to create page",
+      "updateError": "Failed to update page",
+      "deleteError": "Failed to delete page",
+      "toggleStatusError": "Failed to toggle page status"
+    },
+    "table": {
+      "emptyContent": "No pages found"
     }
   }
 }

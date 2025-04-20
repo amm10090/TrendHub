@@ -39,6 +39,65 @@
     "viewAll": "查看全部",
     "welcome": "欢迎回来"
   },
+  "brands": {
+    "title": "品牌管理",
+    "addBrand": "添加品牌",
+    "columns": {
+      "brand": "品牌",
+      "products": "产品数量",
+      "website": "网站",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "status": {
+      "active": "激活",
+      "inactive": "禁用"
+    },
+    "actions": {
+      "edit": "编辑",
+      "activate": "激活",
+      "deactivate": "禁用",
+      "delete": "删除",
+      "title": "操作"
+    },
+    "drawer": {
+      "addTitle": "添加新品牌",
+      "editTitle": "编辑品牌",
+      "addDescription": "填写下面的表单以添加新品牌",
+      "editDescription": "修改品牌信息",
+      "nameLabel": "品牌名称",
+      "namePlaceholder": "输入品牌名称",
+      "nameError": "请输入品牌名称",
+      "slugLabel": "品牌Slug",
+      "slugPlaceholder": "品牌URL标识",
+      "slugDescription": "用于URL的唯一标识，仅允许使用小写字母、数字和连字符",
+      "slugError": "请输入品牌Slug",
+      "generateSlug": "生成",
+      "logoLabel": "品牌Logo URL",
+      "logoPlaceholder": "输入品牌Logo图片链接",
+      "websiteLabel": "品牌网站",
+      "websitePlaceholder": "输入品牌官网地址",
+      "descriptionLabel": "品牌描述",
+      "descriptionPlaceholder": "输入品牌描述信息",
+      "statusLabel": "品牌状态",
+      "statusDescription": "设置品牌是否激活",
+      "cancel": "取消",
+      "add": "添加品牌",
+      "save": "保存修改"
+    },
+    "noData": "暂无品牌数据",
+    "fetchError": "获取品牌列表失败",
+    "createSuccess": "品牌创建成功",
+    "updateSuccess": "品牌更新成功",
+    "createError": "创建品牌失败",
+    "updateError": "更新品牌失败",
+    "deleteSuccess": "品牌已删除",
+    "deleteError": "删除品牌失败",
+    "statusUpdateSuccess": "品牌已{status}",
+    "operationError": "操作失败",
+    "error": "错误",
+    "success": "成功"
+  },
   "disclaimer": {
     "last_updated": "免责声明.最后更新",
     "sections": {
@@ -251,6 +310,64 @@
       "siteName": "设置.网站信息.站点名称",
       "siteNamePlaceholder": "网站名称占位符",
       "title": "网站信息"
+    }
+  },
+  "pages": {
+    "title": "网站页面",
+    "addPage": "添加页面",
+    "createPage": "创建新页面",
+    "editPage": "编辑页面",
+    "confirmDelete": "确认删除",
+    "deleteConfirmation": "确定要删除页面 \"{title}\" 吗？此操作无法撤销。",
+    "status": {
+      "published": "已发布",
+      "draft": "草稿",
+      "publish": "发布",
+      "unpublish": "取消发布"
+    },
+    "fields": {
+      "title": "标题",
+      "url": "URL",
+      "content": "内容",
+      "mainImage": "主图",
+      "noImage": "无图片",
+      "status": "状态",
+      "lastUpdated": "最后更新",
+      "actions": "操作"
+    },
+    "actions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "cancel": "取消",
+      "save": "保存更改",
+      "create": "创建"
+    },
+    "placeholders": {
+      "title": "输入页面标题",
+      "url": "输入页面URL (例如: /about)",
+      "content": "输入页面内容",
+      "mainImage": "输入页面主图URL",
+      "mainImageHelp": "输入图片的完整URL地址（例如: https://example.com/image.jpg）"
+    },
+    "preview": "预览",
+    "validation": {
+      "titleRequired": "标题不能为空",
+      "urlRequired": "URL不能为空",
+      "urlExists": "此URL已被使用"
+    },
+    "messages": {
+      "createSuccess": "页面创建成功",
+      "updateSuccess": "页面更新成功",
+      "deleteSuccess": "页面删除成功",
+      "fetchError": "获取页面列表失败",
+      "fetchDetailError": "获取页面详情失败",
+      "createError": "创建页面失败",
+      "updateError": "更新页面失败",
+      "deleteError": "删除页面失败",
+      "toggleStatusError": "切换页面状态失败"
+    },
+    "table": {
+      "emptyContent": "没有找到页面数据"
     }
   }
 }

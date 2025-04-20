@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownItem,
   Button,
+  Tooltip,
 } from "@heroui/react";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
@@ -25,33 +26,37 @@ export function LanguageSwitcher() {
 
   return (
     <Dropdown placement="bottom-end">
-      <DropdownTrigger>
-        <Button
-          variant="light"
-          size="sm"
-          isIconOnly
-          className="rounded-full bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 backdrop-blur-sm"
-          aria-label={t("language")}
-        >
-          {locale === "en" ? "🇺🇸" : "🇨🇳"}
-        </Button>
-      </DropdownTrigger>
+      <Tooltip content={t("language")}>
+        <DropdownTrigger>
+          <Button
+            variant="flat"
+            size="sm"
+            isIconOnly
+            className="rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+            aria-label={t("language")}
+          >
+            <span className="text-base leading-none">
+              {locale === "en" ? "🇺🇸" : "🇨🇳"}
+            </span>
+          </Button>
+        </DropdownTrigger>
+      </Tooltip>
       <DropdownMenu
         aria-label={t("language")}
-        className="min-w-[120px]"
+        className="min-w-[160px] p-1 rounded-xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg border border-gray-100 dark:border-gray-800"
         variant="shadow"
         selectionMode="single"
         selectedKeys={new Set([locale])}
         disallowEmptySelection
         itemClasses={{
-          base: "data-[hover=true]:bg-primary-100 dark:data-[hover=true]:bg-primary-800/40",
-          title: "text-primary-700 dark:text-primary-300 font-medium",
-          description: "text-default-500",
+          base: "rounded-lg data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-gray-800/70",
+          title: "text-gray-700 dark:text-gray-200 font-medium",
+          description: "text-gray-500 dark:text-gray-400",
         }}
       >
         <DropdownItem
           key="en"
-          startContent={<span className="text-lg">🇺🇸</span>}
+          startContent={<span className="text-lg mr-1">🇺🇸</span>}
           description="English"
           onClick={() => handleLocaleChange("en")}
           className="py-2"
@@ -60,7 +65,7 @@ export function LanguageSwitcher() {
         </DropdownItem>
         <DropdownItem
           key="cn"
-          startContent={<span className="text-lg">🇨🇳</span>}
+          startContent={<span className="text-lg mr-1">🇨🇳</span>}
           description="Chinese"
           onClick={() => handleLocaleChange("cn")}
           className="py-2"

@@ -19,10 +19,12 @@ import {
   DrawerBody,
   DrawerFooter,
   Button,
+  Tooltip,
 } from "@heroui/react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Search, Moon, Sun, Settings, LogOut, User, Menu } from "lucide-react";
 
 import { Link, usePathname } from "@/i18n";
 
@@ -30,9 +32,24 @@ import { LanguageSwitcher } from "./language-switcher";
 
 export function CustomNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
   const t = useTranslations("layout");
   const pathname = usePathname();
+
+  // 监听滚动事件，用于导航栏样式变化
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navItems = [
     { href: "/", label: t("dashboard"), active: pathname === "/" },
@@ -62,39 +79,48 @@ export function CustomNavbar() {
   return (
     <>
       <Navbar
-        className="border-b-2 border-indigo-500  dark:border-default-800 bg-bg-primary-light dark:bg-bg-primary-dark after:content-[''] after:absolute after:left-0 after:right-0 after:bottom-0 after:h-[1px] after:bg-gradient-to-r after:from-transparent after:via-primary-500/30 after:to-transparent"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-md ${
+          scrolled
+            ? "bg-white/80 dark:bg-gray-900/90 shadow-lg"
+            : "bg-white/50 dark:bg-gray-900/50"
+        }`}
         maxWidth="full"
         height="20"
-        isBordered
       >
         <NavbarContent>
           <NavbarMenuToggle
             aria-label={isMenuOpen ? t("closeMenu") : t("openMenu")}
-            className="sm:hidden"
+            className="sm:hidden text-primary-700 dark:text-primary-300"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            icon={<Menu size={24} />}
           />
-          <NavbarBrand>
+          <NavbarBrand className="ml-0 sm:ml-4">
             <Link
               href="/"
-              className="font-bold text-xl text-primary-700 dark:text-primary-300"
+              className="flex items-center gap-2 font-bold text-xl"
             >
-              {t("appName")}
+              <span className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-primary-500 to-primary-700 text-white shadow-md">
+                T
+              </span>
+              <span className="text-primary-700 dark:text-primary-300 bg-gradient-to-r from-primary-700 to-primary-500 dark:from-primary-300 dark:to-primary-500 bg-clip-text ">
+                {t("appName")}
+              </span>
             </Link>
           </NavbarBrand>
         </NavbarContent>
 
         <NavbarContent
-          className="hidden sm:flex gap-4 lg:gap-6 mx-6"
-          justify="start"
+          className="hidden sm:flex gap-1 lg:gap-2 mx-4"
+          justify="center"
         >
           {navItems.map((item) => (
             <NavbarItem key={item.href} isActive={item.active}>
               <Link
                 href={item.href}
-                className={`text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-full transition-all duration-200 text-sm font-medium ${
                   item.active
-                    ? "text-primary-700 dark:text-primary-300"
-                    : "text-default-600 dark:text-default-400 hover:text-primary-600 dark:hover:text-primary-400"
+                    ? "bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-semibold shadow-sm"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/30"
                 }`}
               >
                 {item.label}
@@ -105,120 +131,93 @@ export function CustomNavbar() {
 
         <NavbarContent
           justify="end"
-          className="ml-auto flex items-center space-x-4"
+          className="ml-auto flex items-center space-x-1 sm:space-x-2"
         >
           {/* 搜索框 */}
-          <div className="hidden md:bloc">
+          <div className="hidden md:block relative">
             <Input
               type="search"
               placeholder={t("search")}
               size="sm"
               radius="full"
-              variant="bordered"
-              className="md:w-[200px] lg:w-[300px] border-default-300 dark:border-default-700  dark:bg-default-900/50 backdrop-blur-sm bg-blue-500  "
-              startContent={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-4 h-4 text-default-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                  />
-                </svg>
-              }
+              className="md:w-[180px] lg:w-[240px] border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 shadow-inner"
+              startContent={<Search size={16} className="text-gray-400" />}
             />
+          </div>
+
+          {/* 主题切换 */}
+          <div className="flex items-center">
+            <Tooltip
+              content={theme === "dark" ? t("lightMode") : t("darkMode")}
+            >
+              <Button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                variant="flat"
+                size="sm"
+                isIconOnly
+                className="rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                aria-label={theme === "dark" ? t("lightMode") : t("darkMode")}
+              >
+                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+              </Button>
+            </Tooltip>
           </div>
 
           {/* 语言切换 */}
           <LanguageSwitcher />
 
-          {/* 主题切换 */}
-          <Button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            variant="light"
-            size="sm"
-            isIconOnly
-            className="rounded-full bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 backdrop-blur-sm"
-            aria-label={theme === "dark" ? t("lightMode") : t("darkMode")}
-          >
-            {theme === "dark" ? "🌞" : "🌙"}
-          </Button>
-
           {/* 用户导航 */}
-          <Dropdown>
+          <Dropdown placement="bottom-end">
             <DropdownTrigger>
-              <Avatar
-                isBordered
-                as="button"
-                size="sm"
-                className="transition-transform"
-                src="/placeholder.svg?height=32&width=32"
-                name={t("admin")}
-                color="primary"
-              />
+              <Button
+                variant="flat"
+                className="p-0 rounded-full bg-transparent min-w-0 overflow-visible"
+              >
+                <Avatar
+                  isBordered
+                  size="sm"
+                  className="transition-transform scale-100 hover:scale-105"
+                  src="/placeholder.svg?height=32&width=32"
+                  name={t("admin")}
+                  color="primary"
+                />
+              </Button>
             </DropdownTrigger>
-            <DropdownMenu aria-label={t("userMenu")} className="w-56">
-              <DropdownItem key="user-info" isReadOnly className="h-14 gap-2">
+            <DropdownMenu
+              aria-label={t("userMenu")}
+              className="w-64 p-1 rounded-xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-2xl border border-gray-100 dark:border-gray-800"
+              itemClasses={{
+                base: "rounded-lg data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-gray-800/70",
+              }}
+            >
+              <DropdownItem
+                key="user-info"
+                isReadOnly
+                className="h-16 gap-3 opacity-100"
+              >
                 <div className="flex flex-col">
-                  <p className="text-sm font-medium leading-none">
+                  <p className="text-base font-semibold text-gray-900 dark:text-gray-50">
                     {t("admin")}
                   </p>
-                  <p className="text-xs text-default-500">{t("adminEmail")}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {t("adminEmail")}
+                  </p>
                 </div>
               </DropdownItem>
               <DropdownSection showDivider>
                 <DropdownItem
                   key="profile"
                   shortcut={t("shortcutProfile")}
-                  startContent={
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                      />
-                    </svg>
-                  }
+                  startContent={<User size={18} />}
+                  className="py-2 text-gray-700 dark:text-gray-200"
                 >
                   {t("profile")}
                 </DropdownItem>
                 <DropdownItem
                   key="settings"
                   shortcut={t("shortcutSettings")}
-                  startContent={
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                      />
-                    </svg>
-                  }
+                  startContent={<Settings size={18} />}
+                  className="py-2 text-gray-700 dark:text-gray-200"
                 >
                   {t("settings")}
                 </DropdownItem>
@@ -227,22 +226,8 @@ export function CustomNavbar() {
                 key="logout"
                 color="danger"
                 shortcut={t("shortcutLogout")}
-                startContent={
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15"
-                    />
-                  </svg>
-                }
+                startContent={<LogOut size={18} />}
+                className="py-2 mt-1"
               >
                 {t("logout")}
               </DropdownItem>
@@ -250,6 +235,9 @@ export function CustomNavbar() {
           </Dropdown>
         </NavbarContent>
       </Navbar>
+
+      {/* 导航栏高度的占位符 */}
+      <div className="h-20"></div>
 
       {/* 移动端抽屉菜单 */}
       <Drawer
@@ -259,28 +247,36 @@ export function CustomNavbar() {
         size="xs"
         backdrop="blur"
       >
-        <DrawerContent className="bg-bg-primary-light dark:bg-bg-primary-dark">
-          <DrawerHeader className="border-b border-default-200 dark:border-default-800">
+        <DrawerContent className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
+          <DrawerHeader className="border-b border-gray-100 dark:border-gray-800">
             <div className="flex justify-between items-center">
-              <span className="text-xl font-bold text-primary-700 dark:text-primary-300">
-                {t("appName")}
-              </span>
-              <div className="flex items-center gap-2">
-                <LanguageSwitcher />
+              <Link
+                href="/"
+                className="flex items-center gap-2 font-bold text-xl"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-primary-500 to-primary-700 text-white shadow-md">
+                  T
+                </span>
+                <span className="text-primary-700 dark:text-primary-300 bg-gradient-to-r from-primary-700 to-primary-500 dark:from-primary-300 dark:to-primary-500 bg-clip-text ">
+                  {t("appName")}
+                </span>
+              </Link>
+              <div className="flex items-center gap-1">
                 <Button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  variant="light"
+                  variant="flat"
                   size="sm"
                   isIconOnly
-                  className="rounded-full bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 backdrop-blur-sm"
-                  aria-label={theme === "dark" ? t("lightMode") : t("darkMode")}
+                  className="rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
                 >
-                  {theme === "dark" ? "🌞" : "🌙"}
+                  {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
                 </Button>
+                <LanguageSwitcher />
               </div>
             </div>
           </DrawerHeader>
-          <DrawerBody className="py-6">
+          <DrawerBody className="px-4 py-6">
             <div className="mb-6">
               <Input
                 type="search"
@@ -288,34 +284,19 @@ export function CustomNavbar() {
                 size="sm"
                 radius="full"
                 variant="bordered"
-                className="w-full border-default-300 dark:border-default-700 bg-default-50/50 dark:bg-default-900/50"
-                startContent={
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-4 h-4 text-default-400"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                    />
-                  </svg>
-                }
+                className="w-full bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700"
+                startContent={<Search size={16} className="text-gray-400" />}
               />
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`text-lg font-medium py-2 px-4 rounded-md transition-colors ${
+                  className={`text-base font-medium py-3 px-4 rounded-xl transition-all duration-200 ${
                     item.active
-                      ? "bg-primary-100 dark:bg-primary-800/30 text-primary-700 dark:text-primary-300"
-                      : "text-default-600 dark:text-default-400 hover:bg-default-100 dark:hover:bg-default-800/30"
+                      ? "bg-primary-50 dark:bg-primary-800/30 text-primary-700 dark:text-primary-300 shadow-sm font-semibold"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/30"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -324,40 +305,30 @@ export function CustomNavbar() {
               ))}
             </div>
           </DrawerBody>
-          <DrawerFooter className="border-t border-default-200 dark:border-default-800">
-            <div className="flex items-center gap-3">
+          <DrawerFooter className="border-t border-gray-100 dark:border-gray-800 px-4 py-4">
+            <div className="flex items-center gap-3 mb-4">
               <Avatar
                 isBordered
-                size="sm"
-                src="/placeholder.svg?height=32&width=32"
+                size="md"
+                src="/placeholder.svg?height=40&width=40"
                 name={t("admin")}
                 color="primary"
+                className="shadow-md"
               />
               <div className="flex flex-col">
-                <p className="text-sm font-medium leading-none">{t("admin")}</p>
-                <p className="text-xs text-default-500">{t("adminEmail")}</p>
+                <p className="text-base font-semibold text-gray-900 dark:text-gray-50">
+                  {t("admin")}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {t("adminEmail")}
+                </p>
               </div>
             </div>
             <Button
               color="danger"
               variant="flat"
-              className="mt-4 w-full"
-              startContent={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-4 h-4"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15"
-                  />
-                </svg>
-              }
+              className="w-full rounded-xl py-6 font-medium"
+              startContent={<LogOut size={18} />}
             >
               {t("logout")}
             </Button>

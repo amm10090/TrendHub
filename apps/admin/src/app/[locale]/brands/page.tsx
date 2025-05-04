@@ -1,4 +1,10 @@
 "use client";
+import { Plus } from "lucide-react";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { useState, useEffect } from "react";
+
+import { CustomNavbar } from "@/components/custom-navbar";
 import {
   Button,
   Table,
@@ -9,9 +15,9 @@ import {
   TableRow,
   Dropdown,
   DropdownTrigger,
-  DropdownMenu,
   DropdownSection,
   DropdownItem,
+  DropdownMenuContent,
   Drawer,
   DrawerContent,
   DrawerHeader,
@@ -21,13 +27,7 @@ import {
   Textarea,
   Switch,
   Spinner,
-} from "@heroui/react";
-import { Plus } from "lucide-react";
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
-
-import { CustomNavbar } from "@/components/custom-navbar";
+} from "@/components/ui";
 import { useToast } from "@/hooks/use-toast";
 import { Brand } from "@/lib/services/brand.service";
 
@@ -274,6 +274,7 @@ export default function BrandsPage() {
 
         if (!response.ok) {
           const errorData = await response.json();
+
           throw new Error(errorData.error || t("updateError"));
         }
 
@@ -303,6 +304,7 @@ export default function BrandsPage() {
 
         if (!response.ok) {
           const errorData = await response.json();
+
           throw new Error(errorData.error || t("createError"));
         }
 
@@ -344,7 +346,7 @@ export default function BrandsPage() {
             <Button
               color="primary"
               startContent={<Plus className="h-4 w-4" />}
-              onPress={handleOpenDrawer}
+              onClick={handleOpenDrawer}
             >
               {t("addBrand")}
             </Button>
@@ -419,7 +421,7 @@ export default function BrandsPage() {
                     <TableCell className="text-right">
                       <Dropdown>
                         <DropdownTrigger>
-                          <Button variant="light" size="sm" isIconOnly>
+                          <div className="inline-flex items-center justify-center w-9 h-9 rounded-md hover:bg-accent">
                             <span className="sr-only">
                               {t("columns.actions")}
                             </span>
@@ -439,9 +441,9 @@ export default function BrandsPage() {
                               <circle cx="19" cy="12" r="1" />
                               <circle cx="5" cy="12" r="1" />
                             </svg>
-                          </Button>
+                          </div>
                         </DropdownTrigger>
-                        <DropdownMenu aria-label={t("columns.actions")}>
+                        <DropdownMenuContent>
                           <DropdownItem
                             key="title"
                             isReadOnly
@@ -451,14 +453,14 @@ export default function BrandsPage() {
                           </DropdownItem>
                           <DropdownItem
                             key="edit"
-                            onPress={() => handleOpenEditDrawer(brand)}
+                            onClick={() => handleOpenEditDrawer(brand)}
                           >
                             {t("actions.edit")}
                           </DropdownItem>
                           <DropdownSection showDivider>
                             <DropdownItem
                               key="toggle-status"
-                              onPress={() =>
+                              onClick={() =>
                                 handleToggleBrandStatus(
                                   brand.id,
                                   brand.isActive,
@@ -473,11 +475,11 @@ export default function BrandsPage() {
                           <DropdownItem
                             key="delete"
                             className="text-danger"
-                            onPress={() => handleDeleteBrand(brand.id)}
+                            onClick={() => handleDeleteBrand(brand.id)}
                           >
                             {t("actions.delete")}
                           </DropdownItem>
-                        </DropdownMenu>
+                        </DropdownMenuContent>
                       </Dropdown>
                     </TableCell>
                   </TableRow>
@@ -535,13 +537,13 @@ export default function BrandsPage() {
                   description={t("drawer.slugDescription")}
                   className="flex-1"
                   isRequired
-                  isDisabled={!!editingBrand} // 编辑模式下禁用Slug修改
+                  disabled={!!editingBrand} // 编辑模式下禁用Slug修改
                 />
                 {!editingBrand && (
                   <Button
                     size="sm"
                     variant="flat"
-                    onPress={generateSlug}
+                    onClick={generateSlug}
                     className="mb-1"
                   >
                     {t("drawer.generateSlug")}
@@ -597,18 +599,20 @@ export default function BrandsPage() {
           <DrawerFooter>
             <Button
               variant="flat"
-              onPress={handleCloseDrawer}
-              isDisabled={isSubmitting}
+              onClick={handleCloseDrawer}
+              disabled={isSubmitting}
             >
               {t("drawer.cancel")}
             </Button>
             <Button
               color="primary"
-              onPress={handleSaveBrand}
-              isLoading={isSubmitting}
-              isDisabled={isSubmitting}
+              onClick={handleSaveBrand}
+              disabled={isSubmitting}
             >
               {editingBrand ? t("drawer.save") : t("drawer.add")}
+              {isSubmitting && (
+                <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              )}
             </Button>
           </DrawerFooter>
         </DrawerContent>

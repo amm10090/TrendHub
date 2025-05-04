@@ -200,8 +200,8 @@ async function main() {
     console.log(
       `Successfully initialized ${settingResults.length} settings and ${productResults.length} products.`,
     );
-  } catch (error) {
-    console.error("Failed to initialize data:", error);
+  } catch {
+    return;
   } finally {
     await prisma.$disconnect();
   }

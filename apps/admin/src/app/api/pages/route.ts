@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { z } from "zod";
+
+import { db } from "@/lib/db";
 
 // 获取所有页面
 export async function GET() {
@@ -10,8 +11,7 @@ export async function GET() {
     });
 
     return NextResponse.json(pages);
-  } catch (error) {
-    console.error("获取页面失败:", error);
+  } catch {
     return NextResponse.json({ error: "获取页面失败" }, { status: 500 });
   }
 }
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
       mainImage: validatedData.mainImage,
       status: validatedData.status,
     };
+
     if (validatedData.status === "Published") {
       pageData.publishedAt = new Date();
     }
@@ -72,7 +73,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("创建页面失败:", error);
     return NextResponse.json({ error: "创建页面失败" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { z } from "zod";
+
+import { db } from "@/lib/db";
 
 // 单个页面的路由处理
 
@@ -19,8 +20,7 @@ export async function GET(
     }
 
     return NextResponse.json(page);
-  } catch (error) {
-    console.error("获取页面失败:", error);
+  } catch {
     return NextResponse.json({ error: "获取页面失败" }, { status: 500 });
   }
 }
@@ -64,6 +64,7 @@ export async function PATCH(
 
     // 处理状态变更
     let publishedAt = existingPage.publishedAt;
+
     if (validatedData.status === "Published" && !existingPage.publishedAt) {
       publishedAt = new Date();
     } else if (
@@ -92,7 +93,6 @@ export async function PATCH(
       );
     }
 
-    console.error("更新页面失败:", error);
     return NextResponse.json({ error: "更新页面失败" }, { status: 500 });
   }
 }
@@ -118,8 +118,7 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("删除页面失败:", error);
+  } catch {
     return NextResponse.json({ error: "删除页面失败" }, { status: 500 });
   }
 }

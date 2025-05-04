@@ -1,10 +1,18 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { MoreHorizontal, Plus, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { useCallback, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { CustomNavbar } from "@/components/custom-navbar";
 import {
   Button,
   Dropdown,
   DropdownTrigger,
-  DropdownMenu,
   DropdownItem,
   DropdownSection,
   Table,
@@ -13,30 +21,16 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-  Chip,
-  Selection,
-  SortDescriptor,
-  ChipProps,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
+  Dialog as Modal,
+  DialogContent as ModalContent,
+  DialogHeader as ModalHeader,
+  DialogFooter as ModalFooter,
+  DialogTitle as ModalTitle,
   Input,
-  Select,
-  SelectItem,
   Textarea,
-} from "@heroui/react";
-import { MoreHorizontal, Plus, Loader2 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+  DropdownMenuContent,
+} from "@/components/ui";
 import { usePages, type Page } from "@/hooks/use-pages";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
-
-import { CustomNavbar } from "@/components/custom-navbar";
 
 // 页面表单模式
 type FormMode = "create" | "edit";
@@ -64,7 +58,7 @@ export default function PagesPage() {
     status: "Published" | "Draft";
   };
 
-  // 获取页面数据和操作方法
+  // 直接调用 usePages hook 并解构
   const {
     pages,
     isLoading,
@@ -74,25 +68,29 @@ export default function PagesPage() {
     togglePageStatus,
   } = usePages();
 
-  // 状态管理
-  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
-  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
+  // 状态管理（虽然目前未使用选择功能，但保留以便将来实现）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_selectedKeys, _setSelectedKeys] = useState<Set<string>>(new Set([]));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sortDescriptor, _setSortDescriptor] = useState({
     column: "updatedAt",
     direction: "descending",
   });
 
   // 模态框状态
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
+  const onOpen = () => setIsOpen(true);
+  const onClose = () => setIsOpen(false);
+
   const [formMode, setFormMode] = useState<FormMode>("create");
   const [editingPage, setEditingPage] = useState<Page | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pageToDelete, setPageToDelete] = useState<Page | null>(null);
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onClose: onDeleteClose,
-  } = useDisclosure();
+
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const onDeleteOpen = () => setIsDeleteOpen(true);
+  const onDeleteClose = () => setIsDeleteOpen(false);
 
   // 表单
   const {
@@ -112,24 +110,27 @@ export default function PagesPage() {
     },
   });
 
-  // 状态标签配置
-  const statusColorMap = useMemo(
+  // 状态样式映射
+  const statusStyleMap = useMemo(
     () => ({
-      Published: "success" as ChipProps["color"],
-      Draft: "warning" as ChipProps["color"],
+      Published: "bg-green-50 text-green-700",
+      Draft: "bg-yellow-50 text-yellow-700",
     }),
     [],
   );
 
   // 表格列定义
-  const columns = [
-    { name: t("fields.title"), uid: "title", sortable: true },
-    { name: t("fields.url"), uid: "url", sortable: true },
-    { name: t("fields.mainImage"), uid: "mainImage", sortable: false },
-    { name: t("fields.lastUpdated"), uid: "updatedAt", sortable: true },
-    { name: t("fields.status"), uid: "status", sortable: true },
-    { name: t("fields.actions"), uid: "actions" },
-  ];
+  const columns = useMemo(
+    () => [
+      { name: t("fields.title"), uid: "title", sortable: true },
+      { name: t("fields.url"), uid: "url", sortable: true },
+      { name: t("fields.mainImage"), uid: "mainImage", sortable: false },
+      { name: t("fields.lastUpdated"), uid: "updatedAt", sortable: true },
+      { name: t("fields.status"), uid: "status", sortable: true },
+      { name: t("fields.actions"), uid: "actions" },
+    ],
+    [t],
+  );
 
   // 排序处理
   const sortedItems = useMemo(() => {
@@ -153,7 +154,7 @@ export default function PagesPage() {
       status: "Draft",
     });
     onOpen();
-  }, [reset, onOpen]);
+  }, [reset]);
 
   // 打开编辑页面模态框
   const openEditModal = useCallback(
@@ -169,17 +170,14 @@ export default function PagesPage() {
 
       onOpen();
     },
-    [setValue, onOpen],
+    [setValue],
   );
 
   // 打开删除确认模态框
-  const openDeleteModal = useCallback(
-    (page: Page) => {
-      setPageToDelete(page);
-      onDeleteOpen();
-    },
-    [onDeleteOpen],
-  );
+  const openDeleteModal = useCallback((page: Page) => {
+    setPageToDelete(page);
+    onDeleteOpen();
+  }, []);
 
   // 提交表单
   const onSubmit = useCallback(
@@ -196,19 +194,20 @@ export default function PagesPage() {
             mainImage: data.mainImage,
             status: data.status,
           };
+
           await createPage(createData);
         } else if (formMode === "edit" && editingPage) {
           await updatePage(editingPage.id, data);
         }
 
         onClose();
-      } catch (error) {
-        console.error("提交页面表单失败:", error);
+      } catch {
+        reset();
       } finally {
         setIsSubmitting(false);
       }
     },
-    [formMode, createPage, updatePage, editingPage, onClose],
+    [formMode, createPage, updatePage, editingPage, reset],
   );
 
   // 确认删除
@@ -219,21 +218,21 @@ export default function PagesPage() {
       setIsDeleting(true);
       await deletePage(pageToDelete.id);
       onDeleteClose();
-    } catch (error) {
-      console.error("删除页面失败:", error);
+    } catch {
+      return;
     } finally {
       setIsDeleting(false);
       setPageToDelete(null);
     }
-  }, [pageToDelete, deletePage, onDeleteClose]);
+  }, [pageToDelete, deletePage]);
 
   // 切换页面状态
   const handleToggleStatus = useCallback(
     async (page: Page) => {
       try {
         await togglePageStatus(page.id, page.status as "Published" | "Draft");
-      } catch (error) {
-        console.error("切换页面状态失败:", error);
+      } catch {
+        return;
       }
     },
     [togglePageStatus],
@@ -245,28 +244,39 @@ export default function PagesPage() {
       switch (columnKey) {
         case "status":
           return (
-            <Chip
-              className="capitalize"
-              color={statusColorMap[page.status]}
-              size="sm"
-              variant="flat"
+            <div
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                statusStyleMap[page.status as keyof typeof statusStyleMap]
+              }`}
             >
               {page.status === "Published"
                 ? t("status.published")
                 : t("status.draft")}
-            </Chip>
+            </div>
           );
         case "updatedAt":
           return new Date(page.updatedAt).toLocaleString();
         case "mainImage":
           return page.mainImage ? (
             <div className="w-16 h-16 relative border rounded overflow-hidden">
-              <img
+              <Image
                 src={page.mainImage}
                 alt={page.title}
+                width={64}
+                height={64}
                 className="object-cover w-full h-full"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/placeholder-image.jpg";
+                  // 使用类型断言确保TypeScript理解这是一个有效操作
+                  const imgElement = e.target as HTMLImageElement;
+
+                  // 检查是否已应用回退，防止无限循环
+                  if (imgElement.getAttribute("data-fallback-applied")) {
+                    return;
+                  }
+
+                  imgElement.src = "/placeholder-image.jpg";
+                  // 标记已应用回退
+                  imgElement.setAttribute("data-fallback-applied", "true");
                 }}
               />
             </div>
@@ -277,34 +287,39 @@ export default function PagesPage() {
           return (
             <div className="flex justify-end">
               <Dropdown>
-                <DropdownTrigger>
+                <DropdownTrigger asChild>
                   <Button variant="ghost" className="h-8 w-8 p-0">
                     <span className="sr-only">打开菜单</span>
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownTrigger>
-                <DropdownMenu aria-label={t("fields.actions")}>
-                  <DropdownItem key="edit" onClick={() => openEditModal(page)}>
-                    {t("actions.edit")}
-                  </DropdownItem>
+                <DropdownMenuContent>
                   <DropdownSection showDivider>
-                    <DropdownItem
-                      key="publish"
-                      onClick={() => handleToggleStatus(page)}
-                    >
-                      {page.status === "Published"
-                        ? t("status.unpublish")
-                        : t("status.publish")}
+                    <DropdownItem onClick={() => openEditModal(page)}>
+                      {t("actions.edit")}
                     </DropdownItem>
                     <DropdownItem
-                      key="delete"
-                      className="text-danger"
+                      onClick={() => handleToggleStatus(page)}
+                      className={
+                        page.status === "Published"
+                          ? "text-yellow-600"
+                          : "text-green-600"
+                      }
+                    >
+                      {page.status === "Published"
+                        ? t("actions.unpublish")
+                        : t("actions.publish")}
+                    </DropdownItem>
+                  </DropdownSection>
+                  <DropdownSection>
+                    <DropdownItem
+                      className="text-red-600"
                       onClick={() => openDeleteModal(page)}
                     >
                       {t("actions.delete")}
                     </DropdownItem>
                   </DropdownSection>
-                </DropdownMenu>
+                </DropdownMenuContent>
               </Dropdown>
             </div>
           );
@@ -312,7 +327,7 @@ export default function PagesPage() {
           return page[columnKey as keyof Page];
       }
     },
-    [t, openEditModal, openDeleteModal, handleToggleStatus, statusColorMap],
+    [t, openEditModal, handleToggleStatus, openDeleteModal, statusStyleMap],
   );
 
   return (
@@ -324,8 +339,8 @@ export default function PagesPage() {
           <div className="flex items-center space-x-2">
             <Button
               color="primary"
-              endContent={<Plus className="h-4 w-4" />}
               onClick={openCreateModal}
+              endContent={<Plus className="h-4 w-4" />}
             >
               {t("addPage")}
             </Button>
@@ -337,36 +352,37 @@ export default function PagesPage() {
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : (
-          <Table
-            aria-label={t("title")}
-            selectionMode="multiple"
-            selectedKeys={selectedKeys}
-            onSelectionChange={setSelectedKeys}
-            sortDescriptor={sortDescriptor}
-            onSortChange={setSortDescriptor}
-            className="mt-4"
-          >
-            <TableHeader columns={columns}>
-              {(column) => (
+          <Table aria-label={t("title")} className="mt-4">
+            <TableHeader>
+              {columns.map((column) => (
                 <TableColumn
                   key={column.uid}
-                  align={column.uid === "actions" ? "end" : "start"}
-                  allowsSorting={column.sortable}
+                  className={column.uid === "actions" ? "text-right" : ""}
                 >
                   {column.name}
                 </TableColumn>
-              )}
+              ))}
             </TableHeader>
-            <TableBody
-              items={sortedItems}
-              emptyContent={t("table.emptyContent")}
-            >
-              {(item) => (
-                <TableRow key={item.id}>
-                  {(columnKey) => (
-                    <TableCell>{renderCell(item, columnKey)}</TableCell>
-                  )}
+            <TableBody>
+              {sortedItems.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="text-center py-6"
+                  >
+                    {t("table.emptyContent")}
+                  </TableCell>
                 </TableRow>
+              ) : (
+                sortedItems.map((item) => (
+                  <TableRow key={item.id}>
+                    {columns.map((column) => (
+                      <TableCell key={column.uid}>
+                        {renderCell(item, column.uid)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
@@ -374,134 +390,163 @@ export default function PagesPage() {
       </div>
 
       {/* 创建/编辑页面模态框 */}
-      <Modal isOpen={isOpen} onClose={onClose} size="3xl">
-        <ModalContent>
-          {(onClose) => (
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <ModalHeader className="flex flex-col gap-1">
+      <Modal open={isOpen} onOpenChange={setIsOpen}>
+        <ModalContent className="sm:max-w-[600px]">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <ModalHeader>
+              <ModalTitle>
                 {formMode === "create" ? t("createPage") : t("editPage")}
-              </ModalHeader>
-              <ModalBody>
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <label htmlFor="title">{t("fields.title")}</label>
-                    <Input
-                      id="title"
-                      placeholder={t("placeholders.title")}
-                      {...register("title")}
-                      isInvalid={!!errors.title}
-                      errorMessage={errors.title?.message}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="url">{t("fields.url")}</label>
-                    <Input
-                      id="url"
-                      placeholder={t("placeholders.url")}
-                      {...register("url")}
-                      isInvalid={!!errors.url}
-                      errorMessage={errors.url?.message}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="content">{t("fields.content")}</label>
-                    <Textarea
-                      id="content"
-                      placeholder={t("placeholders.content")}
-                      rows={6}
-                      {...register("content")}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="mainImage">{t("fields.mainImage")}</label>
-                    <Input
-                      id="mainImage"
-                      placeholder={t("placeholders.mainImage")}
-                      {...register("mainImage")}
-                    />
-                    <p className="text-xs text-gray-500">
-                      {t("placeholders.mainImageHelp")}
+              </ModalTitle>
+            </ModalHeader>
+            <div className="p-6 pt-0 pb-0">
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <label htmlFor="title" className="text-sm font-medium">
+                    {t("fields.title")}
+                  </label>
+                  <Input
+                    id="title"
+                    placeholder={t("placeholders.title")}
+                    {...register("title")}
+                    className={errors.title ? "border-red-500" : ""}
+                  />
+                  {errors.title && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.title.message}
                     </p>
-                    {watch("mainImage") && (
-                      <div className="mt-2">
-                        <p className="text-xs mb-1">{t("preview")}</p>
-                        <div className="w-full h-40 relative border rounded overflow-hidden">
-                          <img
-                            src={watch("mainImage")}
-                            alt="预览"
-                            className="object-contain w-full h-full"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                "/placeholder-image.jpg";
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="status">{t("fields.status")}</label>
-                    <Select
-                      id="status"
-                      defaultSelectedKeys={[
-                        formMode === "create"
-                          ? "Draft"
-                          : editingPage?.status || "Draft",
-                      ]}
-                      {...register("status")}
-                    >
-                      <SelectItem key="Draft">{t("status.draft")}</SelectItem>
-                      <SelectItem key="Published">
-                        {t("status.published")}
-                      </SelectItem>
-                    </Select>
-                  </div>
+                  )}
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button type="button" variant="bordered" onClick={onClose}>
-                  {t("actions.cancel")}
-                </Button>
-                <Button type="submit" color="primary" isLoading={isSubmitting}>
-                  {formMode === "create"
-                    ? t("actions.create")
-                    : t("actions.save")}
-                </Button>
-              </ModalFooter>
-            </form>
-          )}
+
+                <div className="grid gap-2">
+                  <label htmlFor="url" className="text-sm font-medium">
+                    {t("fields.url")}
+                  </label>
+                  <Input
+                    id="url"
+                    placeholder={t("placeholders.url")}
+                    {...register("url")}
+                    className={errors.url ? "border-red-500" : ""}
+                  />
+                  {errors.url && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.url.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <label htmlFor="content" className="text-sm font-medium">
+                    {t("fields.content")}
+                  </label>
+                  <Textarea
+                    id="content"
+                    placeholder={t("placeholders.content")}
+                    rows={6}
+                    {...register("content")}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label htmlFor="mainImage" className="text-sm font-medium">
+                    {t("fields.mainImage")}
+                  </label>
+                  <Input
+                    id="mainImage"
+                    placeholder={t("placeholders.mainImage")}
+                    {...register("mainImage")}
+                  />
+                  <p className="text-xs text-gray-500">
+                    {t("placeholders.mainImageHelp")}
+                  </p>
+                  {watch("mainImage") && (
+                    <div className="mt-2">
+                      <p className="text-xs mb-1">{t("preview")}</p>
+                      <div className="w-full h-40 relative border rounded overflow-hidden">
+                        <Image
+                          src={watch("mainImage")}
+                          alt="预览"
+                          width={320}
+                          height={160}
+                          className="object-contain w-full h-full"
+                          onError={(e) => {
+                            // 使用类型断言确保TypeScript理解这是一个有效操作
+                            const imgElement = e.target as HTMLImageElement;
+
+                            // 检查是否已应用回退，防止无限循环
+                            if (
+                              imgElement.getAttribute("data-fallback-applied")
+                            ) {
+                              return;
+                            }
+
+                            imgElement.src = "/placeholder-image.jpg";
+                            // 标记已应用回退
+                            imgElement.setAttribute(
+                              "data-fallback-applied",
+                              "true",
+                            );
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <label htmlFor="status" className="text-sm font-medium">
+                    {t("fields.status")}
+                  </label>
+                  <select
+                    id="status"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    defaultValue={
+                      formMode === "create"
+                        ? "Draft"
+                        : editingPage?.status || "Draft"
+                    }
+                    {...register("status")}
+                  >
+                    <option value="Draft">{t("status.draft")}</option>
+                    <option value="Published">{t("status.published")}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <ModalFooter>
+              <Button type="button" variant="outline" onClick={onClose}>
+                {t("actions.cancel")}
+              </Button>
+              <Button type="submit" color="primary" isLoading={isSubmitting}>
+                {formMode === "create"
+                  ? t("actions.create")
+                  : t("actions.save")}
+              </Button>
+            </ModalFooter>
+          </form>
         </ModalContent>
       </Modal>
 
       {/* 删除确认模态框 */}
-      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose}>
+      <Modal open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                {t("confirmDelete")}
-              </ModalHeader>
-              <ModalBody>
-                <p>{t("deleteConfirmation", { title: pageToDelete?.title })}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="bordered" onClick={onClose}>
-                  {t("actions.cancel")}
-                </Button>
-                <Button
-                  color="danger"
-                  onClick={confirmDelete}
-                  isLoading={isDeleting}
-                >
-                  {t("actions.delete")}
-                </Button>
-              </ModalFooter>
-            </>
-          )}
+          <ModalHeader>
+            <ModalTitle>{t("confirmDelete")}</ModalTitle>
+          </ModalHeader>
+          <div className="p-6 pt-0 pb-0">
+            <p>{t("deleteConfirmation", { title: pageToDelete?.title })}</p>
+          </div>
+          <ModalFooter>
+            <Button variant="outline" onClick={onDeleteClose}>
+              {t("actions.cancel")}
+            </Button>
+            <Button
+              color="danger"
+              onClick={confirmDelete}
+              isLoading={isDeleting}
+            >
+              {t("actions.delete")}
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </div>

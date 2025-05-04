@@ -21,10 +21,10 @@ import {
   Button,
   Tooltip,
 } from "@heroui/react";
+import { Search, Moon, Sun, Settings, LogOut, User, Menu } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
-import { Search, Moon, Sun, Settings, LogOut, User, Menu } from "lucide-react";
 
 import { Link, usePathname } from "@/i18n";
 
@@ -48,6 +48,7 @@ export function CustomNavbar() {
     };
 
     window.addEventListener("scroll", handleScroll);
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -237,7 +238,7 @@ export function CustomNavbar() {
       </Navbar>
 
       {/* 导航栏高度的占位符 */}
-      <div className="h-20"></div>
+      <div className="h-20" />
 
       {/* 移动端抽屉菜单 */}
       <Drawer

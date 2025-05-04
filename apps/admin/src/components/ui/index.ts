@@ -7,3 +7,4 @@ export * from "./input";
 export * from "./textarea";
 export * from "./switch";
 export * from "./spinner";
+export * from "./label"; // 导出 Label 组件

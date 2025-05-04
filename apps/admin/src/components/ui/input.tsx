@@ -2,69 +2,20 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  description?: string;
-  errorMessage?: string;
-  isInvalid?: boolean;
-  isRequired?: boolean;
-  variant?: "default" | "bordered";
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  return (
+    <input
+      type={type}
+      data-slot="input"
+      className={cn(
+        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
-
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  (
-    {
-      className,
-      type,
-      label,
-      description,
-      errorMessage,
-      isInvalid,
-      isRequired,
-      variant = "default",
-      ...props
-    },
-    ref,
-  ) => {
-    return (
-      <div className="space-y-2">
-        {label && (
-          <label
-            htmlFor={props.id}
-            className={cn(
-              "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-              isInvalid && "text-destructive",
-            )}
-          >
-            {label}
-            {isRequired && <span className="text-destructive ml-1">*</span>}
-          </label>
-        )}
-        <input
-          type={type}
-          className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-            variant === "bordered" && "border-2",
-            isInvalid && "border-destructive focus-visible:ring-destructive",
-            className,
-          )}
-          ref={ref}
-          aria-invalid={isInvalid}
-          aria-required={isRequired}
-          {...props}
-        />
-        {description && !isInvalid && (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        )}
-        {errorMessage && isInvalid && (
-          <p className="text-sm font-medium text-destructive">{errorMessage}</p>
-        )}
-      </div>
-    );
-  },
-);
-
-Input.displayName = "Input";
 
 export { Input };

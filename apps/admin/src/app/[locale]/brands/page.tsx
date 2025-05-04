@@ -13,10 +13,9 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-  Dropdown,
-  DropdownTrigger,
-  DropdownSection,
-  DropdownItem,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
   DropdownMenuContent,
   Drawer,
   DrawerContent,
@@ -27,9 +26,11 @@ import {
   Textarea,
   Switch,
   Spinner,
+  Label,
 } from "@/components/ui";
 import { useToast } from "@/hooks/use-toast";
 import { Brand } from "@/lib/services/brand.service";
+import { cn } from "@/lib/utils";
 
 export default function BrandsPage() {
   const t = useTranslations("brands");
@@ -343,11 +344,8 @@ export default function BrandsPage() {
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
           <div className="flex items-center space-x-2">
-            <Button
-              color="primary"
-              startContent={<Plus className="h-4 w-4" />}
-              onClick={handleOpenDrawer}
-            >
+            <Button color="primary" onClick={handleOpenDrawer}>
+              <Plus className="mr-2 h-4 w-4" />
               {t("addBrand")}
             </Button>
           </div>
@@ -419,8 +417,8 @@ export default function BrandsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Dropdown>
-                        <DropdownTrigger>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
                           <div className="inline-flex items-center justify-center w-9 h-9 rounded-md hover:bg-accent">
                             <span className="sr-only">
                               {t("columns.actions")}
@@ -442,45 +440,40 @@ export default function BrandsPage() {
                               <circle cx="5" cy="12" r="1" />
                             </svg>
                           </div>
-                        </DropdownTrigger>
+                        </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownItem
+                          <DropdownMenuItem
                             key="title"
-                            isReadOnly
+                            disabled
                             className="font-semibold"
                           >
                             {t("actions.title")}
-                          </DropdownItem>
-                          <DropdownItem
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             key="edit"
                             onClick={() => handleOpenEditDrawer(brand)}
                           >
                             {t("actions.edit")}
-                          </DropdownItem>
-                          <DropdownSection showDivider>
-                            <DropdownItem
-                              key="toggle-status"
-                              onClick={() =>
-                                handleToggleBrandStatus(
-                                  brand.id,
-                                  brand.isActive,
-                                )
-                              }
-                            >
-                              {brand.isActive
-                                ? t("actions.deactivate")
-                                : t("actions.activate")}
-                            </DropdownItem>
-                          </DropdownSection>
-                          <DropdownItem
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            key="toggle-status"
+                            onClick={() =>
+                              handleToggleBrandStatus(brand.id, brand.isActive)
+                            }
+                          >
+                            {brand.isActive
+                              ? t("actions.deactivate")
+                              : t("actions.activate")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             key="delete"
                             className="text-danger"
                             onClick={() => handleDeleteBrand(brand.id)}
                           >
                             {t("actions.delete")}
-                          </DropdownItem>
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
-                      </Dropdown>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -510,74 +503,99 @@ export default function BrandsPage() {
           </DrawerHeader>
           <DrawerBody>
             <div className="flex flex-col gap-4">
-              <Input
-                label={t("drawer.nameLabel")}
-                name="name"
-                value={newBrand.name}
-                onChange={handleInputChange}
-                onBlur={handleNameBlur}
-                placeholder={t("drawer.namePlaceholder")}
-                variant="bordered"
-                autoFocus
-                isInvalid={formErrors.name}
-                errorMessage={formErrors.name ? t("drawer.nameError") : ""}
-                isRequired
-              />
-
-              <div className="flex gap-2 items-end">
+              <div className="grid gap-2">
+                <Label htmlFor="brand-name">{t("drawer.nameLabel")}</Label>
                 <Input
-                  label={t("drawer.slugLabel")}
-                  name="slug"
-                  value={newBrand.slug}
+                  id="brand-name"
+                  name="name"
+                  value={newBrand.name}
                   onChange={handleInputChange}
-                  placeholder={t("drawer.slugPlaceholder")}
-                  variant="bordered"
-                  isInvalid={formErrors.slug}
-                  errorMessage={formErrors.slug ? t("drawer.slugError") : ""}
-                  description={t("drawer.slugDescription")}
-                  className="flex-1"
-                  isRequired
-                  disabled={!!editingBrand} // 编辑模式下禁用Slug修改
+                  onBlur={handleNameBlur}
+                  placeholder={t("drawer.namePlaceholder")}
+                  className={cn(formErrors.name ? "border-red-500" : "")}
+                  autoFocus
                 />
-                {!editingBrand && (
-                  <Button
-                    size="sm"
-                    variant="flat"
-                    onClick={generateSlug}
-                    className="mb-1"
-                  >
-                    {t("drawer.generateSlug")}
-                  </Button>
+                {formErrors.name && (
+                  <p className="text-sm text-destructive">
+                    {t("drawer.nameError")}
+                  </p>
                 )}
               </div>
 
-              <Input
-                label={t("drawer.logoLabel")}
-                name="logo"
-                value={newBrand.logo}
-                onChange={handleInputChange}
-                placeholder={t("drawer.logoPlaceholder")}
-                variant="bordered"
-              />
+              <div className="grid gap-2">
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 grid gap-1.5">
+                    <Label htmlFor="brand-slug" className="sr-only">
+                      {t("drawer.slugLabel")}
+                    </Label>
+                    <Input
+                      id="brand-slug"
+                      name="slug"
+                      value={newBrand.slug}
+                      onChange={handleInputChange}
+                      placeholder={t("drawer.slugPlaceholder")}
+                      className={cn(formErrors.slug ? "border-red-500" : "")}
+                      disabled={!!editingBrand}
+                    />
+                  </div>
+                  {!editingBrand && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={generateSlug}
+                      className="mb-1"
+                    >
+                      {t("drawer.generateSlug")}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("drawer.slugDescription")}
+                </p>
+                {formErrors.slug && (
+                  <p className="text-sm text-destructive">
+                    {t("drawer.slugError")}
+                  </p>
+                )}
+              </div>
 
-              <Input
-                label={t("drawer.websiteLabel")}
-                name="website"
-                value={newBrand.website}
-                onChange={handleInputChange}
-                placeholder={t("drawer.websitePlaceholder")}
-                variant="bordered"
-              />
+              <div className="grid gap-2">
+                <Label htmlFor="brand-logo">{t("drawer.logoLabel")}</Label>
+                <Input
+                  id="brand-logo"
+                  name="logo"
+                  value={newBrand.logo}
+                  onChange={handleInputChange}
+                  placeholder={t("drawer.logoPlaceholder")}
+                />
+              </div>
 
-              <Textarea
-                label={t("drawer.descriptionLabel")}
-                name="description"
-                value={newBrand.description}
-                onChange={handleInputChange}
-                placeholder={t("drawer.descriptionPlaceholder")}
-                variant="bordered"
-                minRows={3}
-              />
+              <div className="grid gap-2">
+                <Label htmlFor="brand-website">
+                  {t("drawer.websiteLabel")}
+                </Label>
+                <Input
+                  id="brand-website"
+                  name="website"
+                  value={newBrand.website}
+                  onChange={handleInputChange}
+                  placeholder={t("drawer.websitePlaceholder")}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="brand-description">
+                  {t("drawer.descriptionLabel")}
+                </Label>
+                <Textarea
+                  id="brand-description"
+                  name="description"
+                  value={newBrand.description}
+                  onChange={handleInputChange}
+                  placeholder={t("drawer.descriptionPlaceholder")}
+                  minRows={3}
+                />
+              </div>
 
               <div className="flex items-center justify-between">
                 <div>
@@ -598,7 +616,7 @@ export default function BrandsPage() {
           </DrawerBody>
           <DrawerFooter>
             <Button
-              variant="flat"
+              variant="outline"
               onClick={handleCloseDrawer}
               disabled={isSubmitting}
             >

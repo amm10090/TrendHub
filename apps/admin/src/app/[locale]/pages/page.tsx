@@ -11,10 +11,10 @@ import { z } from "zod";
 import { CustomNavbar } from "@/components/custom-navbar";
 import {
   Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownItem,
-  DropdownSection,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   Table,
   TableHeader,
   TableBody,
@@ -286,41 +286,38 @@ export default function PagesPage() {
         case "actions":
           return (
             <div className="flex justify-end">
-              <Dropdown>
-                <DropdownTrigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-8 w-8 p-0">
                     <span className="sr-only">打开菜单</span>
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
-                </DropdownTrigger>
+                </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownSection showDivider>
-                    <DropdownItem onClick={() => openEditModal(page)}>
-                      {t("actions.edit")}
-                    </DropdownItem>
-                    <DropdownItem
-                      onClick={() => handleToggleStatus(page)}
-                      className={
-                        page.status === "Published"
-                          ? "text-yellow-600"
-                          : "text-green-600"
-                      }
-                    >
-                      {page.status === "Published"
-                        ? t("actions.unpublish")
-                        : t("actions.publish")}
-                    </DropdownItem>
-                  </DropdownSection>
-                  <DropdownSection>
-                    <DropdownItem
-                      className="text-red-600"
-                      onClick={() => openDeleteModal(page)}
-                    >
-                      {t("actions.delete")}
-                    </DropdownItem>
-                  </DropdownSection>
+                  <DropdownMenuItem onClick={() => openEditModal(page)}>
+                    {t("actions.edit")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleToggleStatus(page)}
+                    className={
+                      page.status === "Published"
+                        ? "text-yellow-600"
+                        : "text-green-600"
+                    }
+                  >
+                    {page.status === "Published"
+                      ? t("actions.unpublish")
+                      : t("actions.publish")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    onClick={() => openDeleteModal(page)}
+                  >
+                    {t("actions.delete")}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
-              </Dropdown>
+              </DropdownMenu>
             </div>
           );
         default:
@@ -337,12 +334,9 @@ export default function PagesPage() {
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
           <div className="flex items-center space-x-2">
-            <Button
-              color="primary"
-              onClick={openCreateModal}
-              endContent={<Plus className="h-4 w-4" />}
-            >
+            <Button color="primary" onClick={openCreateModal}>
               {t("addPage")}
+              <Plus className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -516,7 +510,10 @@ export default function PagesPage() {
               <Button type="button" variant="outline" onClick={onClose}>
                 {t("actions.cancel")}
               </Button>
-              <Button type="submit" color="primary" isLoading={isSubmitting}>
+              <Button type="submit" color="primary" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {formMode === "create"
                   ? t("actions.create")
                   : t("actions.save")}
@@ -542,8 +539,9 @@ export default function PagesPage() {
             <Button
               color="danger"
               onClick={confirmDelete}
-              isLoading={isDeleting}
+              disabled={isDeleting}
             >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t("actions.delete")}
             </Button>
           </ModalFooter>

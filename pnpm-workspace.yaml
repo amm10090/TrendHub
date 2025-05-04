@@ -13,5 +13,3 @@ onlyBuiltDependencies:
   - prisma
   - sharp
 
-patchedDependencies:
-  '@heroui/dom-animation@2.1.8-beta.2': patches/@heroui__dom-animation@2.1.8-beta.2.patch

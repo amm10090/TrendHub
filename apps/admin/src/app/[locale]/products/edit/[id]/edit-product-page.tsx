@@ -23,13 +23,13 @@ import { useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { EditProductClient } from "./edit-product-client";
-
 import { ProductsClient } from "@/app/[locale]/products/products-client";
 import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
 import type { CategoryTreeNode } from "@/lib/services/category.service";
+
+import { EditProductClient } from "./edit-product-client";
 
 // 声明接收id作为prop的客户端组件
 export function EditProductPage({ id }: { id: string }) {

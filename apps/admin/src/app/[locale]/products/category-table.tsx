@@ -1,31 +1,39 @@
 "use client";
 
-import {
-  Chip,
-  Button,
-  Spinner,
-  Pagination,
-  useDisclosure,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Input,
-  Select,
-  SelectItem,
-  Tabs,
-  Tab,
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerFooter,
-} from "@heroui/react";
-import { ChevronRight, ChevronDown } from "lucide-react";
-import { useState, useCallback } from "react";
+// 导入 Shadcn UI 组件 和 React Hooks - 清理未使用的，保留即将使用的
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl"; // 添加 next-intl
+import { useCallback, useState } from "react"; // 移除 useEffect
 import { toast } from "sonner";
 
+import {
+  Badge,
+  Button,
+  CustomPagination,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Spinner,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui";
 import { useCategories } from "@/hooks/use-categories";
 import type { Category } from "@/lib/services/category.service";
 
@@ -40,12 +48,23 @@ interface CategoryForm {
 }
 
 export function CategoryTable() {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isDrawerOpen,
-    onOpen: onDrawerOpen,
-    onClose: onDrawerClose,
-  } = useDisclosure();
+  // const { t } = useTranslation(); // 移除旧的 t
+  const tCat = useTranslations("categories");
+  const tProd = useTranslations("products");
+  const tCommon = useTranslations("common");
+  const tActions = useTranslations("actions");
+  // 移除 useDisclosure
+  // const { isOpen, onOpen, onClose } = useDisclosure();
+  // const {
+  //   isOpen: isDrawerOpen,
+  //   onOpen: onDrawerOpen,
+  //   onClose: onDrawerClose,
+  // } = useDisclosure();
+
+  // 添加 useState 替换 useDisclosure
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [genderFilter, setGenderFilter] = useState<string | null>(null);
@@ -104,11 +123,13 @@ export function CategoryTable() {
 
   // 处理分类点击，打开抽屉展示详细信息
   const handleCategoryClick = useCallback(
-    (category: Category) => {
+    (category: Category, e: React.MouseEvent) => {
+      e.stopPropagation();
       setSelectedCategory(category);
-      onDrawerOpen();
+      // onDrawerOpen(); // 替换为:
+      setIsDetailSheetOpen(true);
     },
-    [onDrawerOpen],
+    [], // 移除 onDrawerOpen 依赖
   );
 
   // 获取分类的子分类
@@ -148,17 +169,17 @@ export function CategoryTable() {
         const result = await deleteCategory(id);
 
         if (result && result.success) {
-          toast.success("分类删除成功", {
-            description: "分类及其关联数据已成功删除",
+          toast.success(tCat("deleteSuccessTitle"), {
+            // 使用 tCat
+            description: tCat("deleteSuccessDesc"), // 使用 tCat
             duration: 3000,
           });
         }
       } catch (error) {
-        toast.error("分类删除失败", {
+        toast.error(tCat("deleteErrorTitle"), {
+          // 使用 tCat
           description:
-            error instanceof Error
-              ? error.message
-              : "删除过程中发生错误，请稍后重试",
+            error instanceof Error ? error.message : tCat("deleteErrorDesc"), // 使用 tCat
           duration: 5000,
         });
       } finally {
@@ -172,12 +193,13 @@ export function CategoryTable() {
         });
       }
     },
-    [deleteCategory],
+    [deleteCategory, tCat], // 重新添加 tCat 依赖
   );
 
   // 处理状态变更
   const handleStatusChange = useCallback(
-    async (category: Category) => {
+    async (category: Category, e: React.MouseEvent) => {
+      e.stopPropagation(); // 阻止事件冒泡
       try {
         // 将该分类ID添加到正在更新状态的集合中
         setUpdatingStatusCategoryIds((prev) => new Set(prev).add(category.id));
@@ -188,19 +210,25 @@ export function CategoryTable() {
         );
 
         if (result) {
-          toast.success("状态更新成功", {
-            description: `分类"${category.name}"已${
-              !category.isActive ? "启用" : "禁用"
-            }`,
+          const statusKey = category.isActive ? "inactive" : "active"; // 根据当前状态确定目标状态 key
+
+          toast.success(tCat("statusUpdateSuccessTitle"), {
+            // 使用 tCat
+            description: tCat("statusUpdateSuccessDesc", {
+              // 使用 tCat 和插值
+              name: category.name,
+              status: tProd(statusKey), // 从 products 获取 active/inactive 翻译
+            }),
             duration: 3000,
           });
         }
       } catch (error) {
-        toast.error("状态更新失败", {
+        toast.error(tCat("statusUpdateErrorTitle"), {
+          // 使用 tCat
           description:
             error instanceof Error
               ? error.message
-              : "更新过程中发生错误，请稍后重试",
+              : tCat("statusUpdateErrorDesc"), // 使用 tCat
           duration: 5000,
         });
       } finally {
@@ -214,7 +242,7 @@ export function CategoryTable() {
         });
       }
     },
-    [updateCategoryStatus],
+    [updateCategoryStatus, tCat, tProd], // 重新添加 tCat, tProd 依赖
   );
 
   // 渲染分类树结构
@@ -230,6 +258,7 @@ export function CategoryTable() {
         : null;
       const showParentBadge =
         !genderFilter && category.level > 1 && parentCategory;
+      const statusKey = category.isActive ? "active" : "inactive";
 
       return (
         <div key={category.id} className="space-y-2">
@@ -263,50 +292,49 @@ export function CategoryTable() {
                   {category.name}
                 </span>
                 {showParentBadge && (
-                  <Chip
-                    color={
-                      parentCategory?.name.includes("女") ? "danger" : "primary"
-                    }
-                    variant="flat"
-                    size="sm"
-                    className="ml-2"
+                  <Badge // 使用 Shadcn Badge
+                    className={`ml-2 ${
+                      parentCategory?.name.includes("女")
+                        ? "bg-pink-100 text-pink-700" // 女士分类样式
+                        : "bg-blue-100 text-blue-700" // 其他分类样式 (例如男士)
+                    }`}
                   >
                     {parentCategory?.name}
-                  </Chip>
+                  </Badge>
                 )}
               </div>
-              <Chip
-                color={category.isActive ? "success" : "danger"}
-                variant="flat"
-                size="sm"
-                className="cursor-pointer"
-                onClick={() => handleStatusChange(category)}
-                isDisabled={isUpdatingStatus}
+              <Badge // 使用 Shadcn Badge
+                className={`cursor-pointer ${
+                  category.isActive
+                    ? "bg-green-100 text-green-700 hover:bg-green-200" // 激活状态样式
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200" // 禁用状态样式
+                }`}
+                onClick={(e) => handleStatusChange(category, e)}
               >
-                {isUpdatingStatus
-                  ? "处理中..."
-                  : category.isActive
-                    ? "启用"
-                    : "禁用"}
-              </Chip>
+                {
+                  isUpdatingStatus
+                    ? tCommon("processing") /* 使用 tCommon */
+                    : tProd(statusKey) /* 使用 tProd */
+                }
+              </Badge>
             </div>
             <div className="flex items-center space-x-2">
-              <Button
-                color="primary"
-                variant="light"
+              <Button // 使用 Shadcn Button
+                variant="ghost" // 使用 ghost 变体
                 size="sm"
-                onPress={() => handleCategoryClick(category)}
+                onClick={(e) => handleCategoryClick(category, e)} // 传递事件对象 e
               >
-                详情
+                {tActions("details")} {/* 使用 tActions */}
               </Button>
-              <Button
-                color="danger"
-                variant="light"
+              <Button // 使用 Shadcn Button
+                variant="ghost" // 使用 ghost 变体
+                className="text-destructive hover:text-destructive" // 添加颜色类
                 size="sm"
                 isLoading={isDeleting}
-                onPress={() => handleDeleteCategory(category.id)}
+                onClick={() => handleDeleteCategory(category.id)}
               >
-                删除
+                {isDeleting ? tCommon("deleting") : tActions("delete")}{" "}
+                {/* 使用 tCommon/tActions */}
               </Button>
             </div>
           </div>
@@ -330,6 +358,9 @@ export function CategoryTable() {
       handleDeleteCategory,
       handleStatusChange,
       handleToggleExpand,
+      tProd,
+      tCommon,
+      tActions,
     ],
   );
 
@@ -352,16 +383,18 @@ export function CategoryTable() {
     try {
       // 表单验证
       if (!newCategory.name.trim()) {
-        toast.error("请输入分类名称", {
-          description: "分类名称不能为空",
+        toast.error(tCat("validation.nameRequiredTitle"), {
+          // 使用 tCat
+          description: tCat("validation.nameRequiredDesc"), // 使用 tCat
           duration: 4000,
         });
 
         return;
       }
       if (!newCategory.slug.trim()) {
-        toast.error("请输入分类标识", {
-          description: "分类标识用于URL，不能为空",
+        toast.error(tCat("validation.slugRequiredTitle"), {
+          // 使用 tCat
+          description: tCat("validation.slugRequiredDesc"), // 使用 tCat
           duration: 4000,
         });
 
@@ -370,8 +403,9 @@ export function CategoryTable() {
 
       // 如果不是一级分类，必须选择父分类
       if (newCategory.level > 1 && !newCategory.parentId) {
-        toast.error("请选择父级分类", {
-          description: "创建子分类时必须选择上级分类",
+        toast.error(tCat("validation.parentRequiredTitle"), {
+          // 使用 tCat
+          description: tCat("validation.parentRequiredDesc"), // 使用 tCat
           duration: 4000,
         });
 
@@ -390,14 +424,16 @@ export function CategoryTable() {
       });
 
       if (result) {
-        onClose();
+        // onClose(); // 替换为:
+        setIsAddModalOpen(false);
         // 成功创建后立即更新数据
         await Promise.all([
           mutateAllCategories(), // 更新所有分类数据，这会刷新顶部标签
         ]);
 
-        toast.success("分类创建成功", {
-          description: `已成功创建分类"${name}"`,
+        toast.success(tCat("createSuccessTitle"), {
+          // 使用 tCat
+          description: tCat("createSuccessDesc", { name: newCategory.name }), // 使用 tCat 和插值
           duration: 3000,
         });
         setNewCategory({
@@ -409,15 +445,14 @@ export function CategoryTable() {
         });
       }
     } catch (error) {
-      toast.error("分类创建失败", {
+      toast.error(tCat("createErrorTitle"), {
+        // 使用 tCat
         description:
-          error instanceof Error
-            ? error.message
-            : "创建过程中发生错误，请稍后重试",
+          error instanceof Error ? error.message : tCat("createErrorDesc"), // 使用 tCat
         duration: 5000,
       });
     }
-  }, [createCategory, mutateAllCategories, newCategory, onClose]);
+  }, [createCategory, mutateAllCategories, newCategory, tCat]); // 确保包含 tCat 依赖
 
   // 在切换标签时重置展开状态
   const handleTabChange = useCallback((key: string | number) => {
@@ -439,7 +474,7 @@ export function CategoryTable() {
   if (isError) {
     return (
       <div className="flex h-[400px] items-center justify-center">
-        <p className="text-red-500">获取分类列表失败</p>
+        <p className="text-red-500">{tCat("fetchError")}</p> {/* 使用 tCat */}
       </div>
     );
   }
@@ -448,18 +483,27 @@ export function CategoryTable() {
     <>
       <div className="flex justify-between mb-4">
         <div>
-          <Tabs
-            selectedKey={genderFilter || "all"}
-            onSelectionChange={handleTabChange}
+          <Tabs // 使用 Shadcn Tabs
+            value={genderFilter || "all"} // 使用 value
+            onValueChange={handleTabChange} // 使用 onValueChange
           >
-            <Tab key="all" title="全部" />
-            {genderCategories.map((cat) => (
-              <Tab key={cat.id} title={cat.name} />
-            ))}
+            <TabsList>
+              {" "}
+              {/* 使用 TabsList 包裹 */}
+              <TabsTrigger value="all">{tCommon("all")}</TabsTrigger>{" "}
+              {/* 使用 TabsTrigger 和 tCommon */}
+              {genderCategories.map((cat) => (
+                <TabsTrigger key={cat.id} value={cat.id}>
+                  {cat.name}
+                </TabsTrigger> // 使用 TabsTrigger
+              ))}
+            </TabsList>
           </Tabs>
         </div>
-        <Button color="primary" onPress={onOpen}>
-          添加分类
+        <Button onClick={() => setIsAddModalOpen(true)}>
+          {" "}
+          {/* 更新 onClick */}
+          {tCat("addCategory")} {/* 使用 tCat */}
         </Button>
       </div>
 
@@ -468,237 +512,309 @@ export function CategoryTable() {
       </div>
 
       <div className="mt-4 flex justify-center">
-        <Pagination
-          total={totalPages || 1}
+        <CustomPagination
+          totalPages={totalPages || 1}
           page={page}
-          onChange={handlePageChange}
+          onPageChange={handlePageChange}
         />
       </div>
 
-      {/* 分类详情抽屉 */}
-      <Drawer
-        isOpen={isDrawerOpen}
-        onClose={onDrawerClose}
-        size="sm"
-        placement="right"
-      >
-        <DrawerContent>
-          <DrawerHeader>分类详情</DrawerHeader>
-          <DrawerBody>
+      {/* 分类详情抽屉 - 用 Sheet 替换 */}
+      <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+        {/* SheetTrigger can be added later if needed */}
+        <SheetContent className="sm:max-w-sm">
+          {" "}
+          {/* 控制宽度 */}
+          <SheetHeader>
+            <SheetTitle>{tCat("detailsTitle")}</SheetTitle>
+            {/* <SheetDescription>Optional description</SheetDescription> */}
+          </SheetHeader>
+          {/* Sheet Body - 使用 div 模拟 HerouiDrawerBody */}
+          <div className="py-4">
             {selectedCategory && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    名称
-                  </label>
-                  <p className="mt-1">{selectedCategory.name}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    标识
-                  </label>
-                  <p className="mt-1">{selectedCategory.slug}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    描述
-                  </label>
-                  <p className="mt-1">
-                    {selectedCategory.description || "暂无描述"}
+                  <Label>{tCat("nameLabel")}</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {selectedCategory.name}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    层级
-                  </label>
-                  <p className="mt-1">
+                  <Label>{tCat("slugLabel")}</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {selectedCategory.slug}
+                  </p>
+                </div>
+                <div>
+                  <Label>{tCat("descriptionLabel")}</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {selectedCategory.description || tCat("noDescription")}
+                  </p>
+                </div>
+                <div>
+                  <Label>{tCat("levelLabel")}</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {selectedCategory.level === 1
-                      ? "性别分类"
+                      ? tCat("level1")
                       : selectedCategory.level === 2
-                        ? "商品大类"
-                        : "具体商品类型"}
+                        ? tCat("level2")
+                        : tCat("level3")}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    父分类
-                  </label>
-                  <p className="mt-1">
+                  <Label>{tCat("parentCategoryLabel")}</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {allCategories?.find(
                       (cat) => cat.id === selectedCategory.parentId,
                     )?.name || "-"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    子分类
-                  </label>
+                  <Label>{tCat("childCategoriesLabel")}</Label>
                   <div className="mt-2 space-y-2">
                     {getChildCategories(selectedCategory.id).map((child) => (
                       <div
                         key={child.id}
-                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                        className="flex items-center justify-between p-2 bg-muted/50 rounded"
                       >
-                        <span>{child.name}</span>
-                        <Chip
-                          color={child.isActive ? "success" : "danger"}
-                          variant="flat"
-                          size="sm"
+                        <span className="text-sm">{child.name}</span>
+                        <Badge
+                          variant={child.isActive ? "default" : "destructive"}
                         >
-                          {child.isActive ? "启用" : "禁用"}
-                        </Chip>
+                          {child.isActive ? tProd("active") : tProd("inactive")}
+                        </Badge>
                       </div>
                     ))}
+                    {getChildCategories(selectedCategory.id).length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {tCat("noChildCategories")}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
             )}
-          </DrawerBody>
-          <DrawerFooter>
-            <Button color="primary" variant="light" onPress={onDrawerClose}>
-              关闭
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+          </div>
+          <SheetFooter>
+            <SheetClose asChild>
+              <Button variant="outline">{tCommon("close")}</Button>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalContent>
-          <ModalHeader>添加分类</ModalHeader>
-          <ModalBody>
+      {/* 添加分类 Modal - 用 Dialog 替换 */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        {/* DialogTrigger can be added if the main Button should trigger it */}
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tCat("addTitle")}</DialogTitle>
+            {/* <DialogDescription>Optional description</DialogDescription> */}
+          </DialogHeader>
+          {/* Dialog Body */}
+          <div className="py-4">
             <div className="space-y-4">
-              <Select
-                label="分类层级"
-                placeholder="请选择分类层级"
-                selectedKeys={[String(newCategory.level)]}
-                onChange={(e) => {
-                  const level = Number(e.target.value);
-
-                  setNewCategory({
-                    ...newCategory,
-                    level,
-                    // 重置父分类ID
-                    parentId: "",
-                  });
-                }}
-                isRequired
-              >
-                <SelectItem key="1">性别分类</SelectItem>
-                <SelectItem key="2">商品大类</SelectItem>
-                <SelectItem key="3">具体商品类型</SelectItem>
-              </Select>
-
-              {newCategory.level === 2 && (
+              {/* --- Select 层级 --- */}
+              {/* <HerouiSelect ...> */}
+              <div className="grid gap-2">
+                <Label htmlFor="category-level">{tCat("levelLabel")}</Label>
                 <Select
-                  label="选择性别分类"
-                  placeholder="请选择性别分类"
-                  selectedKeys={
-                    newCategory.parentId ? [newCategory.parentId] : []
-                  }
-                  onChange={(e) =>
-                    setNewCategory({ ...newCategory, parentId: e.target.value })
-                  }
-                  isRequired
+                  value={String(newCategory.level)} // 绑定 value
+                  onValueChange={(value) => {
+                    // 使用 onValueChange
+                    const level = Number(value);
+
+                    setNewCategory({
+                      ...newCategory,
+                      level,
+                      parentId: "",
+                      tempGenderId: "", // 重置 tempGenderId
+                    });
+                  }}
+                  // selectedKeys, onChange, label, isRequired 移除
                 >
-                  {genderCategories.map((cat) => (
-                    <SelectItem key={cat.id}>{cat.name}</SelectItem>
-                  ))}
+                  <SelectTrigger id="category-level">
+                    <SelectValue placeholder={tCat("levelPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">{tCat("level1")}</SelectItem>
+                    <SelectItem value="2">{tCat("level2")}</SelectItem>
+                    <SelectItem value="3">{tCat("level3")}</SelectItem>
+                  </SelectContent>
                 </Select>
+              </div>
+
+              {/* --- Select 性别 (level 2) --- */}
+              {newCategory.level === 2 && (
+                // <HerouiSelect ...>
+                <div className="grid gap-2">
+                  <Label htmlFor="parent-gender-l2">
+                    {tCat("parentGenderLabel")}
+                  </Label>
+                  <Select
+                    value={newCategory.parentId} // 绑定 value
+                    onValueChange={(
+                      value, // 使用 onValueChange
+                    ) => setNewCategory({ ...newCategory, parentId: value })}
+                    // selectedKeys, onChange, label, isRequired 移除
+                  >
+                    <SelectTrigger id="parent-gender-l2">
+                      <SelectValue
+                        placeholder={tCat("parentGenderPlaceholder")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {genderCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
 
+              {/* --- Select 性别 & 大类 (level 3) --- */}
               {newCategory.level === 3 && (
                 <>
-                  <Select
-                    label="选择性别分类"
-                    placeholder="请先选择性别分类"
-                    onChange={(e) => {
-                      // 选择性别后，清空产品大类选择
-                      setNewCategory({
-                        ...newCategory,
-                        parentId: "",
-                        tempGenderId: e.target.value,
-                      });
-                    }}
-                    isRequired
-                  >
-                    {genderCategories.map((cat) => (
-                      <SelectItem key={cat.id}>{cat.name}</SelectItem>
-                    ))}
-                  </Select>
-
-                  {/* 如果已选择性别，显示对应的商品大类 */}
-                  {newCategory.tempGenderId && (
+                  {/* --- Select 性别 (level 3) --- */}
+                  {/* <HerouiSelect ...> */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="parent-gender-l3">
+                      {tCat("parentGenderLabel")}
+                    </Label>
                     <Select
-                      label="选择商品大类"
-                      placeholder="请选择商品大类"
-                      selectedKeys={
-                        newCategory.parentId ? [newCategory.parentId] : []
-                      }
-                      onChange={(e) =>
+                      value={newCategory.tempGenderId} // 绑定到 tempGenderId
+                      onValueChange={(value) => {
+                        // 使用 onValueChange
                         setNewCategory({
                           ...newCategory,
-                          parentId: e.target.value,
-                        })
-                      }
-                      isRequired
+                          parentId: "", // 重置 parentId
+                          tempGenderId: value,
+                        });
+                      }}
+                      // onChange, label, isRequired 移除
                     >
-                      {productTypeCategories
-                        .filter(
-                          (cat) => cat.parentId === newCategory.tempGenderId,
-                        )
-                        .map((cat) => (
-                          <SelectItem key={cat.id}>{cat.name}</SelectItem>
+                      <SelectTrigger id="parent-gender-l3">
+                        <SelectValue
+                          placeholder={tCat("parentGenderPlaceholder")}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {genderCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
                         ))}
+                      </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* --- Select 商品大类 (level 3) --- */}
+                  {newCategory.tempGenderId && (
+                    // <HerouiSelect ...>
+                    <div className="grid gap-2">
+                      <Label htmlFor="parent-type-l3">
+                        {tCat("parentProductTypeLabel")}
+                      </Label>
+                      <Select
+                        value={newCategory.parentId} // 绑定 value
+                        onValueChange={(
+                          value, // 使用 onValueChange
+                        ) =>
+                          setNewCategory({
+                            ...newCategory,
+                            parentId: value,
+                          })
+                        }
+                        // selectedKeys, onChange, label, isRequired 移除
+                      >
+                        <SelectTrigger id="parent-type-l3">
+                          <SelectValue
+                            placeholder={tCat("parentProductTypePlaceholder")}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {productTypeCategories
+                            .filter(
+                              (cat) =>
+                                cat.parentId === newCategory.tempGenderId,
+                            )
+                            .map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
                 </>
               )}
 
-              <Input
-                label="分类名称"
-                placeholder="请输入分类名称"
-                value={newCategory.name}
-                onChange={(e) =>
-                  setNewCategory({ ...newCategory, name: e.target.value })
-                }
-                isRequired
-              />
-              <Input
-                label="分类标识"
-                placeholder="请输入分类标识"
-                value={newCategory.slug}
-                onChange={(e) =>
-                  setNewCategory({ ...newCategory, slug: e.target.value })
-                }
-                isRequired
-              />
-              <Input
-                label="分类描述"
-                placeholder="请输入分类描述"
-                value={newCategory.description}
-                onChange={(e) =>
-                  setNewCategory({
-                    ...newCategory,
-                    description: e.target.value,
-                  })
-                }
-              />
+              {/* --- Inputs --- */}
+              {/* <HerouiInput ... /> */}
+              <div className="grid gap-2">
+                <Label htmlFor="category-name">{tCat("nameLabel")}</Label>
+                <Input
+                  id="category-name"
+                  placeholder={tCat("namePlaceholder")}
+                  value={newCategory.name}
+                  onChange={(e) =>
+                    setNewCategory({ ...newCategory, name: e.target.value })
+                  }
+                  // label, isRequired 移除
+                />
+              </div>
+
+              {/* <HerouiInput ... /> */}
+              <div className="grid gap-2">
+                <Label htmlFor="category-slug">{tCat("slugLabel")}</Label>
+                <Input
+                  id="category-slug"
+                  placeholder={tCat("slugPlaceholder")}
+                  value={newCategory.slug}
+                  onChange={(e) =>
+                    setNewCategory({ ...newCategory, slug: e.target.value })
+                  }
+                  // label, isRequired 移除
+                />
+              </div>
+
+              {/* <HerouiInput ... /> */}
+              <div className="grid gap-2">
+                <Label htmlFor="category-description">
+                  {tCat("descriptionLabel")}
+                </Label>
+                <Input
+                  id="category-description"
+                  placeholder={tCat("descriptionPlaceholder")}
+                  value={newCategory.description}
+                  onChange={(e) =>
+                    setNewCategory({
+                      ...newCategory,
+                      description: e.target.value,
+                    })
+                  }
+                  // label 移除
+                />
+              </div>
             </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button color="danger" variant="light" onPress={onClose}>
-              取消
-            </Button>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">{tCommon("cancel")}</Button>
+            </DialogClose>
             <Button
-              color="primary"
-              onPress={handleCreateCategory}
+              onClick={handleCreateCategory} // 使用 onClick
               isLoading={isCreating}
+              // type="submit" // 可以考虑添加 type submit 如果用 form 包裹
             >
-              确定
+              {tCommon("confirm")}
             </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

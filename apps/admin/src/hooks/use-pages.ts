@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-
-import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "next-intl";
+import { useState, useEffect, useCallback } from "react";
+// 导入 useTranslations
+// 添加 sonner 的 toast 导入
+import { toast } from "sonner";
 
 // 页面类型定义
 export type Page = {
@@ -30,10 +32,13 @@ export function usePages() {
   const [pages, setPages] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true); // 初始设为 true
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-  const toastRef = useRef(toast); // 保持 toast 引用稳定
+  // 使用 useTranslations
+  const t = useTranslations("pages");
+  // 移除 useToast 调用和 useRef
+  // const { toast } = useToast();
+  // const toastRef = useRef(toast); // 保持 toast 引用稳定
 
-  toastRef.current = toast;
+  // toastRef.current = toast;
 
   // 获取所有页面
   const fetchPages = useCallback(async () => {
@@ -50,17 +55,15 @@ export function usePages() {
 
       setPages(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "获取页面列表失败";
+      const message =
+        err instanceof Error ? err.message : t("messages.fetchError"); // 使用翻译
 
       setError(message);
-      toastRef.current({
-        title: message,
-        variant: "destructive",
-      });
+      toast.error(message); // 错误消息优先显示 API 返回的，或翻译后的默认错误
     } finally {
       setIsLoading(false);
     }
-  }, []); // 依赖为空，只在 Hook 初始化时创建一次
+  }, [t]); // 添加 t 依赖
 
   // 在 Hook 挂载时获取初始数据
   useEffect(() => {
@@ -68,28 +71,29 @@ export function usePages() {
   }, [fetchPages]); // 依赖 fetchPages
 
   // 获取单个页面 (此功能似乎未在 PagesPage 中使用，但保留)
-  const fetchPage = useCallback(async (id: string): Promise<Page | null> => {
-    // 单个获取时，可以不全局 isLoading，或者引入局部 loading 状态
-    try {
-      const response = await fetch(`/api/pages/${id}`);
+  const fetchPage = useCallback(
+    async (id: string): Promise<Page | null> => {
+      // 单个获取时，可以不全局 isLoading，或者引入局部 loading 状态
+      try {
+        const response = await fetch(`/api/pages/${id}`);
 
-      if (!response.ok) {
-        throw new Error(`获取页面详情失败: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`获取页面详情失败: ${response.status}`);
+        }
+
+        return await response.json();
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : t("messages.fetchDetailError"); // 使用翻译
+
+        toast.error(message); // 错误消息优先显示 API 返回的，或翻译后的默认错误
+        // 返回 null 或抛出错误，取决于调用处的期望
+
+        return null;
       }
-
-      return await response.json();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "获取页面详情失败";
-
-      toastRef.current({
-        title: message,
-        variant: "destructive",
-      });
-      // 返回 null 或抛出错误，取决于调用处的期望
-
-      return null;
-    }
-  }, []);
+    },
+    [t],
+  ); // 添加 t 依赖
 
   // 创建页面
   const createPage = useCallback(
@@ -112,24 +116,22 @@ export function usePages() {
 
         // 更新本地状态
         setPages((prevPages) => [...prevPages, data]);
-        toastRef.current({
-          title: "页面创建成功",
-          variant: "success",
-        });
+        toast.success(t("messages.createSuccess")); // 使用翻译
 
         return data;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "创建页面失败";
+        // API 返回的错误优先，否则使用翻译
+        const message =
+          err instanceof Error && err.message
+            ? err.message
+            : t("messages.createError");
 
-        toastRef.current({
-          title: message,
-          variant: "destructive",
-        });
+        toast.error(message);
 
         return null;
       }
     },
-    [], // 依赖为空
+    [t], // 添加 t 依赖
   );
 
   // 更新页面
@@ -155,24 +157,22 @@ export function usePages() {
         setPages((prevPages) =>
           prevPages.map((page) => (page.id === id ? data : page)),
         );
-        toastRef.current({
-          title: "页面更新成功",
-          variant: "success",
-        });
+        toast.success(t("messages.updateSuccess")); // 使用翻译
 
         return data;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "更新页面失败";
+        // API 返回的错误优先，否则使用翻译
+        const message =
+          err instanceof Error && err.message
+            ? err.message
+            : t("messages.updateError");
 
-        toastRef.current({
-          title: message,
-          variant: "destructive",
-        });
+        toast.error(message);
 
         return null;
       }
     },
-    [], // 依赖为空
+    [t], // 添加 t 依赖
   );
 
   // 删除页面
@@ -192,24 +192,22 @@ export function usePages() {
 
         // 更新本地状态
         setPages((prevPages) => prevPages.filter((page) => page.id !== id));
-        toastRef.current({
-          title: "页面删除成功",
-          variant: "success",
-        });
+        toast.success(t("messages.deleteSuccess")); // 使用翻译
 
         return true;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "删除页面失败";
+        // API 返回的错误优先，否则使用翻译
+        const message =
+          err instanceof Error && err.message
+            ? err.message
+            : t("messages.deleteError");
 
-        toastRef.current({
-          title: message,
-          variant: "destructive",
-        });
+        toast.error(message);
 
         return false;
       }
     },
-    [], // 依赖为空
+    [t], // 添加 t 依赖
   );
 
   // 切换页面状态

@@ -15,6 +15,14 @@ export * from "./data-table-pagination";
 export * from "./data-table-view-options";
 export * from "./card";
 export * from "./alert-dialog";
+export * from "./avatar";
+export * from "./separator";
+export * from "./sheet";
+export * from "./sonner";
+export * from "./tooltip";
+export * from "./command";
+export * from "./custom-pagination"; // 导出 CustomPagination
+export * from "./tabs"; // 添加 Tabs 导出
 
 export {
   Dialog,
@@ -61,6 +69,8 @@ export {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetFooter,
+  SheetClose,
 } from "./sheet";
 export { Spinner } from "./spinner";
 export { Switch } from "./switch";
@@ -74,6 +84,7 @@ export {
   TableCell,
   TableColumn,
 } from "./table";
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 export { Textarea } from "./textarea";
 export { Toaster } from "./sonner";
 export {

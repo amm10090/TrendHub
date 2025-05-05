@@ -348,14 +348,16 @@ export default function PagesPage() {
         ) : (
           <Table aria-label={t("title")} className="mt-4">
             <TableHeader>
-              {columns.map((column) => (
-                <TableColumn
-                  key={column.uid}
-                  className={column.uid === "actions" ? "text-right" : ""}
-                >
-                  {column.name}
-                </TableColumn>
-              ))}
+              <TableRow>
+                {columns.map((column) => (
+                  <TableColumn
+                    key={column.uid}
+                    className={column.uid === "actions" ? "text-right" : ""}
+                  >
+                    {column.name}
+                  </TableColumn>
+                ))}
+              </TableRow>
             </TableHeader>
             <TableBody>
               {sortedItems.length === 0 ? (

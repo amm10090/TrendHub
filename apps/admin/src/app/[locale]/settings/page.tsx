@@ -19,10 +19,11 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@heroui/react";
-import { Settings, Search, Database, Code } from "lucide-react";
+import { Settings, Search, Database, Code, Code2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
+import { CodeSnippetsTab } from "@/components/code-snippets/CodeSnippetsTab";
 import { CustomNavbar } from "@/components/custom-navbar";
 import { DatabaseSettings } from "@/components/database-settings";
 import {
@@ -39,13 +40,8 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // 初次加载时获取所有设置
-  useEffect(() => {
-    loadAllSettings();
-  }, []);
-
   // 加载所有设置
-  const loadAllSettings = async () => {
+  const loadAllSettings = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await SettingsService.getAllSettings();
@@ -63,23 +59,28 @@ export default function SettingsPage() {
         setSettings(allSettings);
       } else {
         addToast({
-          title: "加载设置失败",
-          description: response.error || "无法加载设置",
+          title: t("messages.loadError"),
+          description: response.error || t("messages.loadErrorDesc"),
           color: "danger",
           variant: "solid",
         });
       }
     } catch {
       addToast({
-        title: "加载设置失败",
-        description: "发生错误，请重试",
+        title: t("messages.loadError"),
+        description: t("messages.loadErrorNetwork"),
         color: "danger",
         variant: "solid",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
+
+  // 初次加载时获取所有设置
+  useEffect(() => {
+    loadAllSettings();
+  }, [loadAllSettings]);
 
   // 处理标签页切换
   const handleTabChange = (key: React.Key) => {
@@ -110,8 +111,9 @@ export default function SettingsPage() {
     setIsSaving(true);
     try {
       // 将更改的设置转换为API需要的格式
-      const settingsToSave: SettingPayload[] = Object.entries(settings).map(
-        ([key, value]) => {
+      const settingsToSave: SettingPayload[] = Object.entries(settings)
+        .filter(([key]) => !key.startsWith("cs-")) // Filter out potential snippet keys if needed, though they shouldn't be in this state
+        .map(([key, value]) => {
           // 根据设置键确定类别
           let category = "general";
 
@@ -145,31 +147,50 @@ export default function SettingsPage() {
             value,
             category,
           };
-        },
-      );
+        });
 
-      const response = await SettingsService.saveSettings(settingsToSave);
+      // Only save if there are non-snippet settings to save
+      if (settingsToSave.length > 0) {
+        const response = await SettingsService.saveSettings(settingsToSave);
 
-      if (response.success) {
+        if (response.success) {
+          addToast({
+            title: t("messages.saveSuccess"),
+            description: t("messages.saveSuccessDesc"),
+            color: "success",
+            variant: "solid",
+          });
+          setHasChanges(false); // Reset changes only if save was successful
+        } else {
+          addToast({
+            title: t("messages.saveError"),
+            description: response.error || t("messages.saveErrorDesc"),
+            color: "danger",
+            variant: "solid",
+          });
+        }
+      } else if (!hasChanges) {
+        // If only snippet changes were made, show success but don't call saveSettings
         addToast({
-          title: "保存成功",
-          description: "设置已成功保存",
-          color: "success",
+          title: t("tabs.codeSnippets"),
+          description: t("messages.snippetInfo2"),
+          color: "default",
           variant: "solid",
         });
-        setHasChanges(false);
       } else {
+        // If there are changes but only for snippets (which are handled elsewhere)
+        setHasChanges(false); // Still reset hasChanges if only snippet form caused it
         addToast({
-          title: "保存失败",
-          description: response.error || "无法保存设置",
-          color: "danger",
+          title: t("tabs.codeSnippets"),
+          description: t("messages.snippetInfo2"),
+          color: "default",
           variant: "solid",
         });
       }
     } catch {
       addToast({
-        title: "保存失败",
-        description: "发生错误，请重试",
+        title: t("messages.saveError"),
+        description: t("messages.saveErrorNetwork"),
         color: "danger",
         variant: "solid",
       });
@@ -183,11 +204,12 @@ export default function SettingsPage() {
     onOpen();
   };
 
-  // 放弃更改
+  // 放弃更改 (仅重置常规设置)
   const discardChanges = () => {
-    loadAllSettings();
+    loadAllSettings(); // Reloads general settings
     setHasChanges(false);
     onClose();
+    // Note: Snippet changes are managed within CodeSnippetsTab/Form and not reset here
   };
 
   // 如果正在加载，显示加载中
@@ -199,7 +221,7 @@ export default function SettingsPage() {
           <div className="text-center">
             <Spinner size="lg" color="primary" />
             <p className="mt-4 text-[#4B5563] dark:text-[#9CA3AF]">
-              加载设置中...
+              {t("messages.loading")}
             </p>
           </div>
         </main>
@@ -281,6 +303,18 @@ export default function SettingsPage() {
                   className="group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white"
                 />
                 <span>{t("tabs.api")}</span>
+              </div>
+            }
+          />
+          <Tab
+            key="code-snippets"
+            title={
+              <div className="flex items-center gap-2">
+                <Code2
+                  size={18}
+                  className="group-data-[selected=true]:text-[#0080FF] dark:group-data-[selected=true]:text-white"
+                />
+                <span>{t("tabs.codeSnippets")}</span>
               </div>
             }
           />
@@ -619,8 +653,6 @@ export default function SettingsPage() {
             />
           )}
 
-          {/* 这里可以添加更多的标签页内容 */}
-
           {/* API设置 - 仅在API标签页显示 */}
           {activeTab === "api" && (
             <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl border border-[#E5E7EB] dark:border-[#374151] bg-white dark:bg-[#1A1A1A] shadow-[#0080FF]/5 dark:shadow-[#3D9AFF]/10">
@@ -637,11 +669,11 @@ export default function SettingsPage() {
               <CardBody className="space-y-8 p-6">
                 <div>
                   <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
-                    API 密钥
+                    {t("api.apiKeyLabel")}
                   </label>
                   <Input
                     type="password"
-                    placeholder="••••••••••••••••••••••••••••••"
+                    placeholder={t("api.apiKeyPlaceholder")}
                     value={getSettingValue("apiKey", "")}
                     onChange={(e) =>
                       handleFieldChange("apiKey", e.target.value)
@@ -653,11 +685,11 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#374151] dark:text-[#D1D5DB] mb-2">
-                    API 请求限制 (每分钟)
+                    {t("api.rateLimitLabel")}
                   </label>
                   <Input
                     type="number"
-                    placeholder="60"
+                    placeholder={t("api.rateLimitPlaceholder")}
                     value={getSettingValue("apiRateLimit", "60")}
                     onChange={(e) =>
                       handleFieldChange("apiRateLimit", e.target.value)
@@ -682,36 +714,42 @@ export default function SettingsPage() {
                     htmlFor="api-enabled"
                     className="text-[#374151] dark:text-[#D1D5DB] text-sm cursor-pointer"
                   >
-                    启用 API 访问
+                    {t("api.enableApiLabel")}
                   </label>
                 </div>
               </CardBody>
             </Card>
           )}
 
-          <div className="flex justify-end space-x-4 pt-6">
-            <Button
-              variant="bordered"
-              color="default"
-              radius="full"
-              className="px-6 bg-white dark:bg-[#1A1A1A] border-[#D1D5DB] dark:border-[#4B5563] text-[#374151] dark:text-[#F3F4F6] transition-all duration-300 hover:bg-[#F3F4F6] dark:hover:bg-[#262626] hover:shadow-sm"
-              onPress={confirmDiscardChanges}
-              isDisabled={!hasChanges || isSaving}
-            >
-              {t("actions.cancel")}
-            </Button>
-            <Button
-              color="primary"
-              variant="solid"
-              radius="full"
-              className="px-6 font-medium text-white transition-all duration-300 shadow-md shadow-[#0080FF]/20 hover:shadow-lg hover:shadow-[#0080FF]/30 hover:bg-[#0062C3] dark:hover:bg-[#0055AA] dark:text-white bg-black"
-              onPress={saveSettings}
-              isLoading={isSaving}
-              isDisabled={!hasChanges}
-            >
-              {isSaving ? "保存中..." : t("actions.saveChanges")}
-            </Button>
-          </div>
+          {/* Render the new Code Snippets Tab Content */}
+          {activeTab === "code-snippets" && <CodeSnippetsTab />}
+
+          {/* Save/Cancel buttons - Conditionally render if not on snippets tab or if general changes exist */}
+          {(activeTab !== "code-snippets" || hasChanges) && (
+            <div className="flex justify-end space-x-4 pt-6">
+              <Button
+                variant="bordered"
+                color="default"
+                radius="full"
+                className="px-6 bg-white dark:bg-[#1A1A1A] border-[#D1D5DB] dark:border-[#4B5563] text-[#374151] dark:text-[#F3F4F6] transition-all duration-300 hover:bg-[#F3F4F6] dark:hover:bg-[#262626] hover:shadow-sm"
+                onPress={confirmDiscardChanges}
+                isDisabled={!hasChanges || isSaving}
+              >
+                {t("actions.cancel")}
+              </Button>
+              <Button
+                color="primary"
+                variant="solid"
+                radius="full"
+                className="px-6 font-medium text-white transition-all duration-300 shadow-md shadow-[#0080FF]/20 hover:shadow-lg hover:shadow-[#0080FF]/30 hover:bg-[#0062C3] dark:hover:bg-[#0055AA] dark:text-white bg-black"
+                onPress={saveSettings}
+                isLoading={isSaving}
+                isDisabled={!hasChanges}
+              >
+                {isSaving ? t("messages.saving") : t("actions.saveChanges")}
+              </Button>
+            </div>
+          )}
         </div>
       </main>
 
@@ -727,11 +765,11 @@ export default function SettingsPage() {
       >
         <ModalContent>
           <ModalHeader className="border-b border-[#E5E7EB] dark:border-[#374151]">
-            确认放弃更改
+            {t("messages.discardTitle")}
           </ModalHeader>
           <ModalBody>
             <p className="text-[#374151] dark:text-[#D1D5DB]">
-              您确定要放弃所有未保存的更改吗？此操作无法撤销。
+              {t("messages.discardMessage")}
             </p>
           </ModalBody>
           <ModalFooter>
@@ -740,14 +778,14 @@ export default function SettingsPage() {
               onPress={onClose}
               className="bg-[#F3F4F6] dark:bg-[#1F2937] text-[#374151] dark:text-[#F3F4F6] hover:bg-[#E5E7EB] dark:hover:bg-[#374151]"
             >
-              取消
+              {t("actions.cancel")}
             </Button>
             <Button
               color="danger"
               onPress={discardChanges}
               className="bg-[#EF4444] text-white hover:bg-[#DC2626] dark:bg-[#DC2626] dark:hover:bg-[#B91C1C] shadow-sm shadow-[#EF4444]/20 hover:shadow-[#EF4444]/30"
             >
-              放弃更改
+              {t("messages.discardConfirm")}
             </Button>
           </ModalFooter>
         </ModalContent>

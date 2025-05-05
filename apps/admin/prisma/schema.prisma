@@ -116,3 +116,36 @@ model Page {
   updatedAt   DateTime @updatedAt
   publishedAt DateTime?
 }
+
+// Enum for Code Snippet Type
+enum SnippetType {
+  JS  // JavaScript
+  CSS // Cascading Style Sheets
+}
+
+// Enum for Code Snippet Injection Location
+enum SnippetLocation {
+  HEAD       // Inside the <head> tag
+  BODY_START // Immediately after the opening <body> tag
+  BODY_END   // Immediately before the closing </body> tag
+}
+
+// CodeSnippet model - For storing custom code snippets
+model CodeSnippet {
+  id          String          @id @default(cuid())    // Unique identifier
+  name        String                                // Snippet name for identification
+  description String?                               // Optional description
+  code        String          @db.Text              // The actual code snippet
+  type        SnippetType                           // Type of snippet (JS or CSS)
+  location    SnippetLocation                       // Where to inject the snippet
+  paths       String[]        @default([])          // Array of URL path patterns where the snippet should be active
+  priority    Int             @default(10)          // Execution/injection priority (lower numbers run first)
+  isActive    Boolean         @default(false)       // Whether the snippet is active
+  createdAt   DateTime        @default(now())       // Creation timestamp
+  updatedAt   DateTime        @updatedAt            // Last update timestamp
+
+  // Add indices for potentially queried fields
+  @@index([isActive])
+  @@index([type])
+  @@index([location])
+}

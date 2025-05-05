@@ -261,7 +261,12 @@
       "endpoints": "Endpoints",
       "keys": "API Keys",
       "limits": "Usage Limits",
-      "title": "API Settings"
+      "title": "API Settings",
+      "apiKeyLabel": "API Key",
+      "apiKeyPlaceholder": "••••••••••••••••••••••••••••••",
+      "rateLimitLabel": "API Request Limit (per minute)",
+      "rateLimitPlaceholder": "60",
+      "enableApiLabel": "Enable API Access"
     },
     "appearance": {
       "baseSize": "Medium",
@@ -310,7 +315,7 @@
       "password": "Database Password",
       "port": "Database Port",
       "testConnection": "Test Connection",
-      "testingConnection": "",
+      "testingConnection": "Testing connection...",
       "title": "Database Configuration",
       "useSSL": "Use SSL Connection",
       "user": "Database User"
@@ -353,7 +358,8 @@
       "appearance": "Appearance",
       "database": "Database",
       "general": "General",
-      "seo": "SEO"
+      "seo": "SEO",
+      "codeSnippets": "Code Snippets"
     },
     "title": "System Settings",
     "website": "Website Settings",
@@ -370,6 +376,122 @@
       "siteName": "Site Name",
       "siteNamePlaceholder": "Enter website name",
       "title": "Website Information"
+    },
+    "messages": {
+      "loadError": "Failed to load settings",
+      "loadErrorDesc": "Could not fetch settings from server",
+      "loadErrorNetwork": "An error occurred while loading settings, please try again",
+      "saveSuccess": "Save successful",
+      "saveSuccessDesc": "Settings have been saved successfully",
+      "saveError": "Save failed",
+      "saveErrorDesc": "Could not save settings",
+      "saveErrorNetwork": "An error occurred while saving, please try again",
+      "saving": "Saving...",
+      "loading": "Loading settings...",
+      "discardTitle": "Confirm Discard Changes",
+      "discardMessage": "Are you sure you want to discard all unsaved changes? This action cannot be undone.",
+      "discardConfirm": "Discard Changes",
+      "snippetInfo1": "Code snippet changes are handled separately, no need to save general settings.",
+      "snippetInfo2": "Code snippet changes have been processed."
+    }
+  },
+  "codeSnippets": {
+    "title": "Code Snippets Management",
+    "description": "Add, edit, and manage custom JS or CSS code snippets injected into the website frontend.",
+    "addSnippet": "Add New Snippet",
+    "editSnippet": "Edit Code Snippet",
+    "createSnippet": "Create New Code Snippet",
+    "editSnippetDescription": "Modify the configuration for \"{name}\".",
+    "createSnippetDescription": "Add a new custom code snippet to your website.",
+    "deleteConfirmationTitle": "Confirm Delete Code Snippet?",
+    "deleteConfirmationMessage": "Are you sure you want to delete the code snippet \"{name}\"? This action cannot be undone and the code will be removed from your website.",
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "confirmDelete": "Confirm Delete",
+      "cancel": "Cancel",
+      "openMenu": "Open menu"
+    },
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "location": "Location",
+      "priority": "Priority",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "location": {
+      "head": "Header",
+      "bodyStart": "Body Start",
+      "bodyEnd": "Body End"
+    },
+    "type": {
+      "js": "JS",
+      "css": "CSS"
+    },
+    "form": {
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g., Google Analytics Tracking",
+      "nameDescription": "Give this snippet a recognizable name.",
+      "descriptionLabel": "Description (Optional)",
+      "descriptionPlaceholder": "Briefly explain what this snippet does",
+      "codeLabel": "Code",
+      "codeDescription": "Enter your JavaScript or CSS code.",
+      "typeLabel": "Type",
+      "typePlaceholder": "Select code type",
+      "typeJS": "JavaScript",
+      "typeCSS": "CSS",
+      "locationLabel": "Injection Location",
+      "locationPlaceholder": "Select injection location",
+      "locationHead": "Header (<head>)",
+      "locationBodyStart": "Body Start (after <body>)",
+      "locationBodyEnd": "Body End (before </body>)",
+      "pathsLabel": "Activation Paths",
+      "pathsPlaceholder": "One path pattern per line, e.g.:\n/products/*\n/about\n/ (for homepage)",
+      "pathsDescription": "Specify on which page paths this snippet should be active. Use * as wildcard. Leave empty for all pages.",
+      "priorityLabel": "Priority",
+      "priorityPlaceholder": "10",
+      "priorityDescription": "Lower numbers run first.",
+      "statusLabel": "Active Status",
+      "statusDescription": "Controls whether this snippet is active on the frontend.",
+      "saveChanges": "Save Changes",
+      "createSnippet": "Create Snippet",
+      "cancel": "Cancel",
+      "submitting": "Submitting..."
+    },
+    "messages": {
+      "loadError": "Failed to load snippets",
+      "loadErrorDesc": "Could not fetch data from the server.",
+      "loadErrorNetwork": "Error connecting to the server.",
+      "toggleError": "Status toggle failed",
+      "toggleErrorDesc": "Could not update snippet status.",
+      "toggleSuccess": "Snippet \"{name}\" has been {status}",
+      "statusActive": "activated",
+      "statusInactive": "deactivated",
+      "deleteError": "Deletion failed",
+      "deleteErrorDesc": "Could not delete this snippet.",
+      "deleteSuccess": "Snippet \"{name}\" deleted",
+      "updateSuccess": "Update successful",
+      "updateError": "Update failed",
+      "createSuccess": "Creation successful",
+      "createError": "Creation failed",
+      "saveSuccessDesc": "Code snippet \"{name}\" has been saved.",
+      "saveErrorDesc": "An unknown error occurred",
+      "submitError": "Operation failed",
+      "submitErrorDesc": "An error occurred during submission. Check network or contact admin."
+    },
+    "tooltips": {
+      "toggleOn": "Click to deactivate",
+      "toggleOff": "Click to activate"
+    },
+    "table": {
+      "noData": "No code snippets found.",
+      "loading": "Loading...",
+      "filterPlaceholder": "Filter by name...",
+      "toggleColumns": "Toggle columns",
+      "viewOptions": "View"
     }
   }
 }

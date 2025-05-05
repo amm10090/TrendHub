@@ -5,6 +5,7 @@ import { hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 
 import { Providers } from "@/components/providers";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +53,7 @@ export default async function LocaleLayout({
         <Providers>
           <NextIntlClientProvider locale={locale} messages={messages}>
             {children}
+            <SonnerToaster richColors position="top-right" />
           </NextIntlClientProvider>
         </Providers>
       </body>

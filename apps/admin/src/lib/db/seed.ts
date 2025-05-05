@@ -192,14 +192,14 @@ async function main() {
     });
 
     // 执行所有初始化操作
-    const [settingResults, productResults] = await Promise.all([
+    await Promise.all([
       Promise.all(settingPromises),
       Promise.all(productPromises),
     ]);
 
-    console.log(
-      `Successfully initialized ${settingResults.length} settings and ${productResults.length} products.`,
-    );
+    // console.log(
+    //   `Successfully initialized ${settingResults.length} settings and ${productResults.length} products.`,
+    // );
   } catch {
     return;
   } finally {
@@ -208,7 +208,6 @@ async function main() {
 }
 
 // 执行main函数
-main().catch((error) => {
-  console.error("Failed to run seed script:", error);
+main().catch(() => {
   process.exit(1);
 });

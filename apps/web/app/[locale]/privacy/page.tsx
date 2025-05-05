@@ -45,7 +45,7 @@ export default function PrivacyPage() {
         </ul>
       )}
       {section === 'contact' && (
-        <div className="flex items-center flex flex-row gap-x-2">
+        <div className=" items-center flex flex-row gap-x-2">
           <Mail className="w-4 h-4" />
           <Link
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"

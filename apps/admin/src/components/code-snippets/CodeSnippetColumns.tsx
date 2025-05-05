@@ -119,17 +119,13 @@ export const getColumns = (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex"
-                  type="button"
-                >
-                  <Switch
-                    checked={snippet.isActive}
-                    onCheckedChange={() => actions.onToggleActive(snippet)}
-                    aria-label={label}
-                  />
-                </button>
+                <Switch
+                  checked={snippet.isActive}
+                  onCheckedChange={() => {
+                    actions.onToggleActive(snippet);
+                  }}
+                  aria-label={label}
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>{tooltipText}</p>

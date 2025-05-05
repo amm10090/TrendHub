@@ -45,11 +45,13 @@ function PageWrapper({ children }: { children: ReactNode }) {
 
 function AddButton() {
   const t = useTranslations("products");
+
   return <Button>{t("addProduct")}</Button>;
 }
 
 function AddCategoryButton() {
   const t = useTranslations("products");
+
   return <Button>{t("category")}</Button>;
 }
 

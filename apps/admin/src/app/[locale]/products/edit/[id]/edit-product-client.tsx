@@ -21,11 +21,13 @@ function PageWrapper({ children }: { children: ReactNode }) {
 
 function CancelButton() {
   const t = useTranslations("product.edit");
+
   return <Button variant="bordered">{t("cancel")}</Button>;
 }
 
 function SaveButton() {
   const t = useTranslations("product.edit");
+
   return <Button>{t("save")}</Button>;
 }
 

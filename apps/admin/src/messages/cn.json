@@ -197,6 +197,86 @@
   "product": {
     "breadcrumb": {
       "home": "首页"
+    },
+    "edit": {
+      "title": "编辑商品",
+      "save": "保存修改",
+      "cancel": "取消",
+      "backToList": "返回商品列表",
+      "productNotFound": "商品不存在",
+      "fetchError": "获取商品信息失败",
+      "successUpdate": "商品更新成功",
+      "basicInfo": {
+        "title": "基本信息",
+        "source": "商品来源",
+        "sourcePlaceholder": "请输入商品来源",
+        "sourceDescription": "商品生产地或采购来源",
+        "promotionUrl": "商品推广链接",
+        "promotionPlaceholder": "请输入推广链接",
+        "promotionDescription": "外部推广或营销链接",
+        "material": "商品材质",
+        "materialPlaceholder": "请输入商品材质信息",
+        "materialDescription": "描述商品的材质成分",
+        "cautions": "商品注意事项",
+        "cautionsPlaceholder": "请输入商品注意事项",
+        "cautionsDescription": "使用、保养等相关注意事项",
+        "colors": "商品颜色",
+        "colorsPlaceholder": "输入颜色并按回车添加",
+        "sizes": "商品尺码",
+        "sizesPlaceholder": "输入尺码并按回车添加"
+      },
+      "productInfo": {
+        "name": "商品名称",
+        "namePlaceholder": "请输入商品名称",
+        "nameDescription": "给你的商品起一个吸引人的名称",
+        "description": "商品描述",
+        "descriptionPlaceholder": "请输入商品描述",
+        "descriptionHelp": "详细描述商品的特点、用途和优势"
+      },
+      "priceAndInventory": {
+        "title": "价格与库存",
+        "price": "售价",
+        "originalPrice": "原价",
+        "costPrice": "成本价",
+        "inventory": "库存数量",
+        "sku": "SKU",
+        "skuPlaceholder": "例如：SM-BLK-L",
+        "skuDisabledDescription": "SKU在创建后不可修改",
+        "barcode": "条形码",
+        "barcodePlaceholder": "例如：123456789012",
+        "onSale": "特价商品",
+        "onSaleDescription": "设置为特价商品后，将在特价区域显示"
+      },
+      "organization": {
+        "title": "产品分类",
+        "category": "选择商品分类",
+        "categoryDescription": "请选择此商品所属的分类，将影响商品在前台的展示位置",
+        "categoryLevel1": "一级分类",
+        "categoryLevel1Placeholder": "选择一级分类",
+        "categoryLevel2": "二级分类",
+        "categoryLevel2Placeholder": "选择二级分类",
+        "categoryLevel3": "三级分类",
+        "categoryLevel3Placeholder": "选择三级分类"
+      },
+      "visibility": {
+        "title": "可见性",
+        "featured": "特色商品",
+        "featuredDescription": "在首页和特色区域显示"
+      },
+      "errorModal": {
+        "title": "提交失败",
+        "defaultMessage": "请确保填写了所有必填字段（商品名称、售价、库存、品牌和分类）",
+        "emptyName": "商品名称不能为空",
+        "invalidPrice": "商品价格必须大于0",
+        "invalidInventory": "库存数量必须大于等于0",
+        "emptyCategory": "请选择商品分类",
+        "emptyBrand": "请选择商品品牌",
+        "confirmBtn": "确定"
+      },
+      "status": {
+        "active": "激活",
+        "draft": "草稿"
+      }
     }
   },
   "products": {
@@ -205,6 +285,7 @@
     "addProduct": "添加商品",
     "archive": "归档",
     "category": "分类",
+    "categoryManagement": "分类管理",
     "columns": {
       "actions": "操作",
       "brand": "品牌",
@@ -224,8 +305,10 @@
     "fetchError": "获取商品列表失败",
     "filter": "筛选",
     "id": "ID",
+    "invalidPrice": "无效的价格",
     "name": "商品名称",
     "openMenuFor": "打开{name}的操作菜单",
+    "operationError": "操作失败",
     "pagination": {
       "items": "项",
       "next": "下一页",
@@ -237,12 +320,27 @@
     "productList": "商品列表",
     "productListDescription": "管理所有产品信息",
     "search": "搜索",
+    "selectBrand": "选择品牌",
     "status": {
       "inStock": "有库存",
       "lowStock": "库存不足"
     },
+    "statusActiveSuccess": "商品已启用",
+    "statusInactiveSuccess": "商品已禁用",
     "stock": "库存",
-    "title": "商品管理"
+    "title": "商品管理",
+    "unknownError": "未知错误",
+    "updateBrandSuccess": "商品品牌已更新",
+    "updateCategorySuccess": "商品分类已更新",
+    "updateError": "更新失败",
+    "updateNameSuccess": "商品名称已更新",
+    "updatePriceSuccess": "商品价格已更新",
+    "addCategory": "添加分类",
+    "cancel": "取消",
+    "save": "保存",
+    "notSet": "未设置",
+    "loading": "加载中...",
+    "updateSuccess": "更新成功"
   },
   "settings": {
     "account": "账户设置",

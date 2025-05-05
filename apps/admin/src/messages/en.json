@@ -196,7 +196,87 @@
   },
   "product": {
     "breadcrumb": {
-      "home": ""
+      "home": "Home"
+    },
+    "edit": {
+      "title": "Edit Product",
+      "save": "Save Changes",
+      "cancel": "Cancel",
+      "backToList": "Back to Product List",
+      "productNotFound": "Product not found",
+      "fetchError": "Failed to fetch product information",
+      "successUpdate": "Product updated successfully",
+      "basicInfo": {
+        "title": "Basic Information",
+        "source": "Product Source",
+        "sourcePlaceholder": "Enter product source",
+        "sourceDescription": "Product manufacturing or procurement source",
+        "promotionUrl": "Promotion Link",
+        "promotionPlaceholder": "Enter promotion link",
+        "promotionDescription": "External promotion or marketing link",
+        "material": "Material",
+        "materialPlaceholder": "Enter product material information",
+        "materialDescription": "Describe the product's material composition",
+        "cautions": "Cautions",
+        "cautionsPlaceholder": "Enter product cautions",
+        "cautionsDescription": "Usage, maintenance, and related precautions",
+        "colors": "Colors",
+        "colorsPlaceholder": "Enter color and press Enter to add",
+        "sizes": "Sizes",
+        "sizesPlaceholder": "Enter size and press Enter to add"
+      },
+      "productInfo": {
+        "name": "Product Name",
+        "namePlaceholder": "Enter product name",
+        "nameDescription": "Give your product an attractive name",
+        "description": "Product Description",
+        "descriptionPlaceholder": "Enter product description",
+        "descriptionHelp": "Describe the product's features, uses, and benefits in detail"
+      },
+      "priceAndInventory": {
+        "title": "Price & Inventory",
+        "price": "Price",
+        "originalPrice": "Original Price",
+        "costPrice": "Cost Price",
+        "inventory": "Inventory",
+        "sku": "SKU",
+        "skuPlaceholder": "e.g., SM-BLK-L",
+        "skuDisabledDescription": "SKU cannot be modified after creation",
+        "barcode": "Barcode",
+        "barcodePlaceholder": "e.g., 123456789012",
+        "onSale": "On Sale",
+        "onSaleDescription": "Will be displayed in the sale section if enabled"
+      },
+      "organization": {
+        "title": "Product Category",
+        "category": "Select Product Category",
+        "categoryDescription": "Please select the category for this product, which will affect its display position in the frontend",
+        "categoryLevel1": "Level 1 Category",
+        "categoryLevel1Placeholder": "Select Level 1 Category",
+        "categoryLevel2": "Level 2 Category",
+        "categoryLevel2Placeholder": "Select Level 2 Category",
+        "categoryLevel3": "Level 3 Category",
+        "categoryLevel3Placeholder": "Select Level 3 Category"
+      },
+      "visibility": {
+        "title": "Visibility",
+        "featured": "Featured Product",
+        "featuredDescription": "Display on homepage and featured sections"
+      },
+      "errorModal": {
+        "title": "Submission Failed",
+        "defaultMessage": "Please ensure all required fields are filled (product name, price, inventory, brand, and category)",
+        "emptyName": "Product name cannot be empty",
+        "invalidPrice": "Product price must be greater than 0",
+        "invalidInventory": "Inventory must be greater than or equal to 0",
+        "emptyCategory": "Please select a product category",
+        "emptyBrand": "Please select a product brand",
+        "confirmBtn": "OK"
+      },
+      "status": {
+        "active": "Active",
+        "draft": "Draft"
+      }
     }
   },
   "products": {
@@ -205,6 +285,7 @@
     "addProduct": "Add Product",
     "archive": "Archive",
     "category": "Category",
+    "categoryManagement": "Category Management",
     "columns": {
       "actions": "Actions",
       "brand": "Brand",
@@ -224,8 +305,10 @@
     "fetchError": "Failed to fetch products",
     "filter": "Filter",
     "id": "ID",
+    "invalidPrice": "Invalid price",
     "name": "Product Name",
     "openMenuFor": "Open menu for {name}",
+    "operationError": "Operation failed",
     "pagination": {
       "items": "items",
       "next": "Next",
@@ -237,12 +320,27 @@
     "productList": "Product List",
     "productListDescription": "Manage all product information and status",
     "search": "Search products...",
+    "selectBrand": "Select brand",
     "status": {
       "inStock": "In Stock",
       "lowStock": "Low Stock"
     },
+    "statusActiveSuccess": "Activate",
+    "statusInactiveSuccess": "Deactivate",
     "stock": "Stock",
-    "title": "Products"
+    "title": "Products",
+    "unknownError": "Unknown error",
+    "updateBrandSuccess": "Product brand updated",
+    "updateCategorySuccess": "Category updated successfully",
+    "updateError": "Update failed",
+    "updateNameSuccess": "Product name updated",
+    "updatePriceSuccess": "Product price updated",
+    "addCategory": "Add Category",
+    "cancel": "Cancel",
+    "save": "Save",
+    "notSet": "Not set",
+    "loading": "Loading...",
+    "updateSuccess": "Update successful"
   },
   "settings": {
     "account": "Account Settings",

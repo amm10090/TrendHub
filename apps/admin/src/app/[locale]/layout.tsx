@@ -5,9 +5,8 @@ import { hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 
 import { Providers } from "@/components/providers";
-import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { routing } from "@/i18n/routing";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "TrendHub Admin",
@@ -43,20 +42,11 @@ export default async function LocaleLayout({
   const messages = await getMessages({ locale });
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <head />
-      <body
-        className={cn(
-          "min-h-screen font-sans antialiased bg-background text-foreground",
-        )}
-      >
-        <Providers>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            {children}
-            <SonnerToaster richColors position="top-right" />
-          </NextIntlClientProvider>
-        </Providers>
-      </body>
-    </html>
+    <Providers>
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        {children}
+        <Toaster />
+      </NextIntlClientProvider>
+    </Providers>
   );
 }

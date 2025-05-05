@@ -30,15 +30,17 @@ export default function Loading() {
         <div className="rounded-md border">
           <Table aria-label={`${t("title")} Loading`}>
             <TableHeader>
-              <TableColumn>{t("columns.brand")}</TableColumn>
-              <TableColumn>{t("columns.products")}</TableColumn>
-              <TableColumn>{t("columns.website")}</TableColumn>
-              <TableColumn className="text-center">
-                {t("columns.status")}
-              </TableColumn>
-              <TableColumn className="text-right">
-                {t("columns.actions")}
-              </TableColumn>
+              <TableRow>
+                <TableColumn>{t("columns.brand")}</TableColumn>
+                <TableColumn>{t("columns.products")}</TableColumn>
+                <TableColumn>{t("columns.website")}</TableColumn>
+                <TableColumn className="text-center">
+                  {t("columns.status")}
+                </TableColumn>
+                <TableColumn className="text-right">
+                  {t("columns.actions")}
+                </TableColumn>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {Array(5)

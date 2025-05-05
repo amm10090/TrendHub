@@ -1,31 +1,27 @@
 "use client";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableHeader,
   TableBody,
-  TableColumn,
   TableRow,
   TableCell,
-  Spinner,
-  Pagination,
-  Tabs,
-  Tab,
-} from "@heroui/react";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { useState } from "react";
-
+  TableHead,
+} from "@/components/ui/table";
 import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
-import { useToast } from "@/hooks/use-toast";
 
 import { CategoryTable } from "./category-table";
 import { ProductsClient } from "./products-client";
 
 export default function ProductsPage() {
   const t = useTranslations("products");
-  const { toast } = useToast();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [selectedTab, setSelectedTab] = useState("products");
@@ -56,21 +52,17 @@ export default function ProductsPage() {
   const handleDelete = async (id: string) => {
     try {
       await deleteProduct(id);
-      toast({
-        title: t("deleteSuccess"),
-        variant: "success",
-      });
+      toast.success(t("deleteSuccess"));
     } catch {
-      toast({
-        title: t("deleteError"),
-        variant: "destructive",
-      });
+      toast.error(t("deleteError"));
     }
   };
 
   const handleEdit = (id: string) => {
-    // 跳转到编辑页面
-    window.location.href = `/products/edit/${id}`;
+    // 跳转到编辑页面，使用当前语言环境
+    const locale = window.location.pathname.split("/")[1] || "en";
+
+    window.location.href = `/${locale}/products/edit/${id}`;
   };
 
   const handleToggleStatus = async (id: string, currentStatus: string) => {
@@ -84,15 +76,13 @@ export default function ProductsPage() {
         data: { status: newStatus },
       });
 
-      toast({
-        title: newStatus === "In Stock" ? "商品已启用" : "商品已禁用",
-        variant: "success",
-      });
+      toast.success(
+        newStatus === "In Stock"
+          ? t("statusActiveSuccess")
+          : t("statusInactiveSuccess"),
+      );
     } catch {
-      toast({
-        title: "操作失败",
-        variant: "destructive",
-      });
+      toast.error(t("operationError"));
     }
   };
 
@@ -102,15 +92,9 @@ export default function ProductsPage() {
         id,
         data: { name: newName },
       });
-      toast({
-        title: "商品名称已更新",
-        variant: "success",
-      });
+      toast.success(t("updateNameSuccess"));
     } catch {
-      toast({
-        title: "更新失败",
-        variant: "destructive",
-      });
+      toast.error(t("updateError"));
     }
   };
 
@@ -119,20 +103,16 @@ export default function ProductsPage() {
       const price = parseFloat(newPrice);
 
       if (isNaN(price) || price < 0) {
-        throw new Error("无效的价格");
+        throw new Error(t("invalidPrice"));
       }
       await updateProduct({
         id,
         data: { price },
       });
-      toast({
-        title: "商品价格已更新",
-        variant: "success",
-      });
+      toast.success(t("updatePriceSuccess"));
     } catch (error) {
-      toast({
-        title: error instanceof Error ? error.message : "更新失败",
-        variant: "destructive",
+      toast.error(t("updateError"), {
+        description: error instanceof Error ? error.message : t("unknownError"),
       });
     }
   };
@@ -143,15 +123,9 @@ export default function ProductsPage() {
         id,
         data: { brandId },
       });
-      toast({
-        title: "商品品牌已更新",
-        variant: "success",
-      });
+      toast.success(t("updateBrandSuccess"));
     } catch {
-      toast({
-        title: "更新失败",
-        variant: "destructive",
-      });
+      toast.error(t("updateError"));
     }
   };
 
@@ -164,15 +138,9 @@ export default function ProductsPage() {
         id,
         data: { categoryId },
       });
-      toast({
-        title: "商品分类已更新",
-        variant: "success",
-      });
+      toast.success(t("updateCategorySuccess"));
     } catch {
-      toast({
-        title: "更新失败",
-        variant: "destructive",
-      });
+      toast.error(t("updateError"));
     }
   };
 
@@ -199,126 +167,162 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <Tabs
-        selectedKey={selectedTab}
-        onSelectionChange={(key) => setSelectedTab(key.toString())}
-        className="mt-4"
-      >
-        <Tab key="products" title="商品列表">
-          {isLoading ? (
-            <div className="flex h-[400px] items-center justify-center">
-              <Spinner />
-            </div>
-          ) : (
-            <>
-              <div className="rounded-md border">
-                <Table aria-label={t("productList")}>
-                  <TableHeader>
-                    <TableColumn>{t("columns.name")}</TableColumn>
-                    <TableColumn>{t("columns.brand")}</TableColumn>
-                    <TableColumn>{t("columns.category")}</TableColumn>
-                    <TableColumn align="end">{t("columns.price")}</TableColumn>
-                    <TableColumn align="center">
-                      {t("columns.status")}
-                    </TableColumn>
-                    <TableColumn align="end">
-                      {t("columns.actions")}
-                    </TableColumn>
-                  </TableHeader>
-                  <TableBody items={products}>
-                    {(product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-medium">
-                          <ProductsClient.QuickEdit
-                            value={product.name}
-                            onSave={(value) =>
-                              handleUpdateProductName(product.id, value)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <ProductsClient.QuickSelect
-                            value={product.brand?.id || ""}
-                            items={brands}
-                            onSave={(value) =>
-                              handleUpdateProductBrand(product.id, value)
-                            }
-                            getItemLabel={(brand) => brand.name}
-                            getItemValue={(brand) => brand.id}
-                            placeholder="选择品牌"
-                            isLoading={isBrandsLoading}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <ProductsClient.QuickCategorySelect
-                            categoryId={product.category?.id}
-                            categories={categories}
-                            onSave={(value) =>
-                              handleUpdateProductCategory(product.id, value)
-                            }
-                            isLoading={isCategoriesLoading}
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <ProductsClient.QuickEdit
-                            value={String(product.price)}
-                            onSave={(value) =>
-                              handleUpdateProductPrice(product.id, value)
-                            }
-                            type="number"
-                            formatter={(value) =>
-                              `$${parseFloat(value).toFixed(2)}`
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                              product.status === "In Stock"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
-                          >
-                            {t(
-                              `status.${
-                                product.status === "In Stock"
-                                  ? "inStock"
-                                  : "lowStock"
-                              }`,
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <ProductsClient.ActionMenu
-                            onDelete={() => handleDelete(product.id)}
-                            onEdit={() => handleEdit(product.id)}
-                            onToggleStatus={() =>
-                              handleToggleStatus(product.id, product.status)
-                            }
-                            isDeleting={isDeleting}
-                            isActive={product.status === "In Stock"}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+      <div className="mt-4">
+        <div className="flex border-b">
+          <button
+            className={`px-4 py-2 font-medium ${selectedTab === "products" ? "border-b-2 border-primary" : ""}`}
+            onClick={() => setSelectedTab("products")}
+          >
+            {t("productList")}
+          </button>
+          <button
+            className={`px-4 py-2 font-medium ${selectedTab === "categories" ? "border-b-2 border-primary" : ""}`}
+            onClick={() => setSelectedTab("categories")}
+          >
+            {t("categoryManagement")}
+          </button>
+        </div>
 
-              <div className="mt-4 flex justify-center">
-                <Pagination
-                  total={totalPages}
-                  page={page}
-                  onChange={handlePageChange}
-                />
+        {selectedTab === "products" ? (
+          <>
+            {isLoading ? (
+              <div className="flex h-[400px] items-center justify-center">
+                <Spinner />
               </div>
-            </>
-          )}
-        </Tab>
-        <Tab key="categories" title="分类管理">
-          <CategoryTable />
-        </Tab>
-      </Tabs>
+            ) : (
+              <>
+                <div className="rounded-md border mt-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("columns.name")}</TableHead>
+                        <TableHead>{t("columns.brand")}</TableHead>
+                        <TableHead>{t("columns.category")}</TableHead>
+                        <TableHead className="text-right">
+                          {t("columns.price")}
+                        </TableHead>
+                        <TableHead className="text-center">
+                          {t("columns.status")}
+                        </TableHead>
+                        <TableHead className="text-right">
+                          {t("columns.actions")}
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">
+                            <ProductsClient.QuickEdit
+                              value={product.name}
+                              onSave={(value) =>
+                                handleUpdateProductName(product.id, value)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <ProductsClient.QuickSelect
+                              value={product.brand?.id || ""}
+                              items={brands}
+                              onSave={(value) =>
+                                handleUpdateProductBrand(product.id, value)
+                              }
+                              getItemLabel={(brand) => brand.name}
+                              getItemValue={(brand) => brand.id}
+                              placeholder={t("selectBrand")}
+                              isLoading={isBrandsLoading}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <ProductsClient.QuickCategorySelect
+                              categoryId={product.category?.id}
+                              categories={categories}
+                              onSave={(value) =>
+                                handleUpdateProductCategory(product.id, value)
+                              }
+                              isLoading={isCategoriesLoading}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <ProductsClient.QuickEdit
+                              value={String(product.price)}
+                              onSave={(value) =>
+                                handleUpdateProductPrice(product.id, value)
+                              }
+                              type="number"
+                              formatter={(value) =>
+                                `$${parseFloat(value).toFixed(2)}`
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                product.status === "In Stock"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}
+                            >
+                              {t(
+                                `status.${
+                                  product.status === "In Stock"
+                                    ? "inStock"
+                                    : "lowStock"
+                                }`,
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <ProductsClient.ActionMenu
+                              onDelete={() => handleDelete(product.id)}
+                              onEdit={() => handleEdit(product.id)}
+                              onToggleStatus={() =>
+                                handleToggleStatus(product.id, product.status)
+                              }
+                              isDeleting={isDeleting}
+                              isActive={product.status === "In Stock"}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className="mt-4 flex justify-center">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handlePageChange(page > 1 ? page - 1 : 1)}
+                      disabled={page <= 1}
+                      className="px-3 py-1 border rounded disabled:opacity-50"
+                    >
+                      {t("pagination.prev")}
+                    </button>
+                    <span className="text-sm">
+                      {page} / {totalPages}
+                    </span>
+                    <button
+                      onClick={() =>
+                        handlePageChange(
+                          page < totalPages ? page + 1 : totalPages,
+                        )
+                      }
+                      disabled={page >= totalPages}
+                      className="px-3 py-1 border rounded disabled:opacity-50"
+                    >
+                      {t("pagination.next")}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="mt-4">
+            <CategoryTable />
+          </div>
+        )}
+      </div>
     </ProductsClient.PageWrapper>
   );
 }

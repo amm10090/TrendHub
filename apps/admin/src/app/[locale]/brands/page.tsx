@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 import { CustomNavbar } from "@/components/custom-navbar";
 import {
@@ -28,13 +29,11 @@ import {
   Spinner,
   Label,
 } from "@/components/ui";
-import { useToast } from "@/hooks/use-toast";
 import { Brand } from "@/lib/services/brand.service";
 import { cn } from "@/lib/utils";
 
 export default function BrandsPage() {
   const t = useTranslations("brands");
-  const { toast } = useToast();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,11 +69,7 @@ export default function BrandsPage() {
         setError(null);
       } catch (error) {
         setError(error instanceof Error ? error.message : t("fetchError"));
-        toast({
-          title: t("error"),
-          description: t("fetchError"),
-          variant: "destructive",
-        });
+        toast.error(t("fetchError"));
       } finally {
         setIsLoading(false);
       }
@@ -110,18 +105,13 @@ export default function BrandsPage() {
       );
 
       // 显示成功提示
-      toast({
-        title: t("success"),
-        description: t("statusUpdateSuccess", {
+      toast.success(
+        t("statusUpdateSuccess", {
           status: !isActive ? t("status.active") : t("status.inactive"),
         }),
-      });
+      );
     } catch {
-      toast({
-        title: t("error"),
-        description: t("updateError"),
-        variant: "destructive",
-      });
+      toast.error(t("updateError"));
     }
   };
 
@@ -140,16 +130,9 @@ export default function BrandsPage() {
       setBrands((prev) => prev.filter((brand) => brand.id !== brandId));
 
       // 显示成功提示
-      toast({
-        title: t("success"),
-        description: t("deleteSuccess"),
-      });
+      toast.success(t("deleteSuccess"));
     } catch {
-      toast({
-        title: t("error"),
-        description: t("deleteError"),
-        variant: "destructive",
-      });
+      toast.error(t("deleteError"));
     }
   };
 
@@ -289,10 +272,7 @@ export default function BrandsPage() {
         );
 
         // 显示成功提示
-        toast({
-          title: t("success"),
-          description: t("updateSuccess"),
-        });
+        toast.success(t("updateSuccess"));
       } else {
         // 新增品牌
         const response = await fetch("/api/brands", {
@@ -315,10 +295,7 @@ export default function BrandsPage() {
         setBrands((prev) => [...prev, createdBrand]);
 
         // 显示成功提示
-        toast({
-          title: t("success"),
-          description: t("createSuccess"),
-        });
+        toast.success(t("createSuccess"));
       }
 
       // 关闭抽屉
@@ -327,11 +304,7 @@ export default function BrandsPage() {
       const errorMessage =
         error instanceof Error ? error.message : t("operationError");
 
-      toast({
-        title: t("error"),
-        description: errorMessage,
-        variant: "destructive",
-      });
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -364,15 +337,17 @@ export default function BrandsPage() {
           ) : (
             <Table aria-label={t("title")}>
               <TableHeader>
-                <TableColumn>{t("columns.brand")}</TableColumn>
-                <TableColumn>{t("columns.products")}</TableColumn>
-                <TableColumn>{t("columns.website")}</TableColumn>
-                <TableColumn className="text-center">
-                  {t("columns.status")}
-                </TableColumn>
-                <TableColumn className="text-right">
-                  {t("columns.actions")}
-                </TableColumn>
+                <TableRow>
+                  <TableColumn>{t("columns.brand")}</TableColumn>
+                  <TableColumn>{t("columns.products")}</TableColumn>
+                  <TableColumn>{t("columns.website")}</TableColumn>
+                  <TableColumn className="text-center">
+                    {t("columns.status")}
+                  </TableColumn>
+                  <TableColumn className="text-right">
+                    {t("columns.actions")}
+                  </TableColumn>
+                </TableRow>
               </TableHeader>
               <TableBody>
                 {brands.map((brand) => (

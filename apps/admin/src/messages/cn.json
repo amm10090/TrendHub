@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "delete": "删除",
+    "details": "详情"
+  },
   "brands": {
     "actions": {
       "activate": "激活",
@@ -60,60 +64,155 @@
   },
   "categories": {
     "addCategory": "添加分类",
-    "deleteSuccessTitle": "删除成功",
-    "deleteSuccessDesc": "分类已成功删除。",
-    "deleteErrorTitle": "删除失败",
-    "deleteErrorDesc": "删除分类时出错。",
-    "statusUpdateSuccessTitle": "状态更新成功",
-    "statusUpdateSuccessDesc": "分类 {name} 的状态已更新为 {status}。",
-    "statusUpdateErrorTitle": "状态更新失败",
-    "statusUpdateErrorDesc": "更新分类状态时出错。",
-    "validation": {
-      "nameRequiredTitle": "需要名称",
-      "nameRequiredDesc": "分类名称不能为空。",
-      "slugRequiredTitle": "需要 Slug",
-      "slugRequiredDesc": "分类 Slug 不能为空。",
-      "parentRequiredTitle": "需要父分类",
-      "parentRequiredDesc": "二级或三级分类必须选择父分类。"
-    },
-    "createSuccessTitle": "创建成功",
-    "createSuccessDesc": "分类 {name} 已成功创建。",
-    "createErrorTitle": "创建失败",
+    "addTitle": "添加新分类",
+    "childCategoriesLabel": "子分类",
     "createErrorDesc": "创建分类时出错。",
-    "fetchError": "获取分类失败",
-    "detailsTitle": "分类详情",
-    "nameLabel": "名称",
-    "slugLabel": "Slug",
+    "createErrorTitle": "创建失败",
+    "createSuccessDesc": "分类 {name} 已成功创建。",
+    "createSuccessTitle": "创建成功",
+    "deleteErrorDesc": "删除分类时出错。",
+    "deleteErrorTitle": "删除失败",
+    "deleteSuccessDesc": "分类已成功删除。",
+    "deleteSuccessTitle": "删除成功",
     "descriptionLabel": "描述",
-    "noDescription": "暂无描述",
-    "levelLabel": "层级",
+    "descriptionPlaceholder": "输入分类描述 (可选)",
+    "detailsTitle": "分类详情",
+    "fetchError": "获取分类失败",
     "level1": "一级分类",
     "level2": "二级分类",
     "level3": "三级分类",
-    "parentCategoryLabel": "父分类",
-    "childCategoriesLabel": "子分类",
-    "noChildCategories": "无子分类",
-    "addTitle": "添加新分类",
+    "levelLabel": "层级",
     "levelPlaceholder": "选择分类层级",
+    "nameLabel": "名称",
+    "namePlaceholder": "输入分类名称",
+    "noChildCategories": "无子分类",
+    "noDescription": "暂无描述",
+    "parentCategoryLabel": "父分类",
     "parentGenderLabel": "所属性别分类",
     "parentGenderPlaceholder": "选择所属性别",
     "parentProductTypeLabel": "所属商品大类",
     "parentProductTypePlaceholder": "选择所属商品大类",
-    "namePlaceholder": "输入分类名称",
+    "slugLabel": "Slug",
     "slugPlaceholder": "输入分类 Slug (例如: clothing-men)",
-    "descriptionPlaceholder": "输入分类描述 (可选)"
+    "statusUpdateErrorDesc": "更新分类状态时出错。",
+    "statusUpdateErrorTitle": "状态更新失败",
+    "statusUpdateSuccessDesc": "分类 {name} 的状态已更新为 {status}。",
+    "statusUpdateSuccessTitle": "状态更新成功",
+    "validation": {
+      "nameRequiredDesc": "分类名称不能为空。",
+      "nameRequiredTitle": "需要名称",
+      "parentRequiredDesc": "二级或三级分类必须选择父分类。",
+      "parentRequiredTitle": "需要父分类",
+      "slugRequiredDesc": "分类 Slug 不能为空。",
+      "slugRequiredTitle": "需要 Slug"
+    }
+  },
+  "codeSnippets": {
+    "actions": {
+      "activate": "激活",
+      "cancel": "取消",
+      "confirmDelete": "确认删除",
+      "deactivate": "禁用",
+      "delete": "删除",
+      "edit": "编辑",
+      "openMenu": "打开菜单"
+    },
+    "addSnippet": "添加新片段",
+    "columns": {
+      "actions": "操作",
+      "location": "位置",
+      "name": "名称",
+      "priority": "优先级",
+      "status": "状态",
+      "type": "类型"
+    },
+    "createSnippet": "创建新代码片段",
+    "createSnippetDescription": "添加一个新的自定义代码片段到您的网站。",
+    "deleteConfirmationMessage": "您确定要删除代码片段 \\\"{name}\\\" 吗？此操作无法撤销，代码将从您的网站移除。",
+    "deleteConfirmationTitle": "确认删除代码片段？",
+    "description": "添加、编辑和管理注入到网站前端的自定义 JS 或 CSS 代码。",
+    "editSnippet": "编辑代码片段",
+    "editSnippetDescription": "修改代码片段 \"{name}\" 的配置。",
+    "form": {
+      "cancel": "取消",
+      "codeDescription": "输入您的 JavaScript 或 CSS 代码。",
+      "codeLabel": "代码",
+      "createSnippet": "创建片段",
+      "descriptionLabel": "描述 (可选)",
+      "descriptionPlaceholder": "简要说明这个代码片段的作用",
+      "locationBodyEnd": "主体结束 (</body> 之前)",
+      "locationBodyStart": "主体开始 (<body> 之后)",
+      "locationHead": "头部 (<head>)",
+      "locationLabel": "注入位置",
+      "locationPlaceholder": "选择注入位置",
+      "nameDescription": "给这个代码片段起一个容易识别的名字。",
+      "nameLabel": "名称",
+      "namePlaceholder": "例如：谷歌分析跟踪代码",
+      "pathsDescription": "指定此代码片段在哪些页面路径下生效，支持通配符 *。留空表示在所有页面生效。",
+      "pathsLabel": "生效路径",
+      "pathsPlaceholder": "每行一个路径规则，例如：\n/products/*\n/about\n/ (表示首页)",
+      "priorityDescription": "数字越小，优先级越高，越先加载。",
+      "priorityLabel": "优先级",
+      "priorityPlaceholder": "10",
+      "saveChanges": "保存更改",
+      "statusDescription": "控制此代码片段是否在前端生效。",
+      "statusLabel": "激活状态",
+      "submitting": "提交中...",
+      "typeCSS": "CSS",
+      "typeJS": "JavaScript",
+      "typeLabel": "类型",
+      "typePlaceholder": "选择代码类型"
+    },
+    "location": {
+      "bodyEnd": "Body 结束",
+      "bodyStart": "Body 开始",
+      "head": "头部"
+    },
+    "messages": {
+      "createError": "创建失败",
+      "createSuccess": "创建成功",
+      "deleteError": "删除失败",
+      "deleteErrorDesc": "无法删除此代码片段。",
+      "deleteSuccess": "片段 \"{name}\" 已删除",
+      "loadError": "加载代码片段失败",
+      "loadErrorDesc": "无法从服务器获取数据。",
+      "loadErrorNetwork": "连接服务器时发生错误。",
+      "saveErrorDesc": "发生未知错误",
+      "saveSuccessDesc": "代码片段 \"{name}\" 已保存。",
+      "statusActive": "激活",
+      "statusInactive": "禁用",
+      "submitError": "操作失败",
+      "submitErrorDesc": "提交过程中发生错误，请检查网络或联系管理员。",
+      "toggleError": "状态切换失败",
+      "toggleErrorDesc": "无法更新片段状态。",
+      "toggleSuccess": "片段 \"{name}\" 已{status}",
+      "updateError": "更新失败",
+      "updateSuccess": "更新成功"
+    },
+    "table": {
+      "filterPlaceholder": "按名称筛选...",
+      "loading": "加载中...",
+      "noData": "没有找到代码片段。",
+      "toggleColumns": "切换列显示",
+      "viewOptions": "视图"
+    },
+    "title": "代码片段管理",
+    "tooltips": {
+      "toggleOff": "点击激活",
+      "toggleOn": "点击禁用"
+    },
+    "type": {
+      "css": "CSS",
+      "js": "JS"
+    }
   },
   "common": {
     "all": "全部",
-    "processing": "处理中...",
-    "deleting": "删除中...",
-    "close": "关闭",
     "cancel": "取消",
-    "confirm": "确认"
-  },
-  "actions": {
-    "details": "详情",
-    "delete": "删除"
+    "close": "关闭",
+    "confirm": "确认",
+    "deleting": "删除中...",
+    "processing": "处理中..."
   },
   "dashboard": {
     "activeIncrease": "+201 相比上小时",
@@ -256,56 +355,39 @@
       "home": "首页"
     },
     "edit": {
-      "title": "编辑商品",
-      "save": "保存修改",
-      "cancel": "取消",
       "backToList": "返回商品列表",
-      "productNotFound": "商品不存在",
-      "fetchError": "获取商品信息失败",
-      "successUpdate": "商品更新成功",
       "basicInfo": {
-        "title": "基本信息",
-        "source": "商品来源",
-        "sourcePlaceholder": "请输入商品来源",
-        "sourceDescription": "商品生产地或采购来源",
-        "promotionUrl": "商品推广链接",
-        "promotionPlaceholder": "请输入推广链接",
-        "promotionDescription": "外部推广或营销链接",
-        "material": "商品材质",
-        "materialPlaceholder": "请输入商品材质信息",
-        "materialDescription": "描述商品的材质成分",
         "cautions": "商品注意事项",
-        "cautionsPlaceholder": "请输入商品注意事项",
         "cautionsDescription": "使用、保养等相关注意事项",
+        "cautionsPlaceholder": "请输入商品注意事项",
         "colors": "商品颜色",
         "colorsPlaceholder": "输入颜色并按回车添加",
+        "material": "商品材质",
+        "materialDescription": "描述商品的材质成分",
+        "materialPlaceholder": "请输入商品材质信息",
+        "promotionDescription": "外部推广或营销链接",
+        "promotionPlaceholder": "请输入推广链接",
+        "promotionUrl": "商品推广链接",
         "sizes": "商品尺码",
-        "sizesPlaceholder": "输入尺码并按回车添加"
+        "sizesPlaceholder": "输入尺码并按回车添加",
+        "source": "商品来源",
+        "sourceDescription": "商品生产地或采购来源",
+        "sourcePlaceholder": "请输入商品来源",
+        "title": "基本信息"
       },
-      "productInfo": {
-        "name": "商品名称",
-        "namePlaceholder": "请输入商品名称",
-        "nameDescription": "给你的商品起一个吸引人的名称",
-        "description": "商品描述",
-        "descriptionPlaceholder": "请输入商品描述",
-        "descriptionHelp": "详细描述商品的特点、用途和优势"
+      "cancel": "取消",
+      "errorModal": {
+        "confirmBtn": "确定",
+        "defaultMessage": "请确保填写了所有必填字段（商品名称、售价、库存、品牌和分类）",
+        "emptyBrand": "请选择商品品牌",
+        "emptyCategory": "请选择商品分类",
+        "emptyName": "商品名称不能为空",
+        "invalidInventory": "库存数量必须大于等于0",
+        "invalidPrice": "商品价格必须大于0",
+        "title": "提交失败"
       },
-      "priceAndInventory": {
-        "title": "价格与库存",
-        "price": "售价",
-        "originalPrice": "原价",
-        "costPrice": "成本价",
-        "inventory": "库存数量",
-        "sku": "SKU",
-        "skuPlaceholder": "例如：SM-BLK-L",
-        "skuDisabledDescription": "SKU在创建后不可修改",
-        "barcode": "条形码",
-        "barcodePlaceholder": "例如：123456789012",
-        "onSale": "特价商品",
-        "onSaleDescription": "设置为特价商品后，将在特价区域显示"
-      },
+      "fetchError": "获取商品信息失败",
       "organization": {
-        "title": "产品分类",
         "category": "选择商品分类",
         "categoryDescription": "请选择此商品所属的分类，将影响商品在前台的展示位置",
         "categoryLevel1": "一级分类",
@@ -313,36 +395,54 @@
         "categoryLevel2": "二级分类",
         "categoryLevel2Placeholder": "选择二级分类",
         "categoryLevel3": "三级分类",
-        "categoryLevel3Placeholder": "选择三级分类"
+        "categoryLevel3Placeholder": "选择三级分类",
+        "title": "产品分类"
       },
-      "visibility": {
-        "title": "可见性",
-        "featured": "特色商品",
-        "featuredDescription": "在首页和特色区域显示"
+      "priceAndInventory": {
+        "barcode": "条形码",
+        "barcodePlaceholder": "例如：123456789012",
+        "costPrice": "成本价",
+        "inventory": "库存数量",
+        "onSale": "特价商品",
+        "onSaleDescription": "设置为特价商品后，将在特价区域显示",
+        "originalPrice": "原价",
+        "price": "售价",
+        "sku": "SKU",
+        "skuDisabledDescription": "SKU在创建后不可修改",
+        "skuPlaceholder": "例如：SM-BLK-L",
+        "title": "价格与库存"
       },
-      "errorModal": {
-        "title": "提交失败",
-        "defaultMessage": "请确保填写了所有必填字段（商品名称、售价、库存、品牌和分类）",
-        "emptyName": "商品名称不能为空",
-        "invalidPrice": "商品价格必须大于0",
-        "invalidInventory": "库存数量必须大于等于0",
-        "emptyCategory": "请选择商品分类",
-        "emptyBrand": "请选择商品品牌",
-        "confirmBtn": "确定"
+      "productInfo": {
+        "description": "商品描述",
+        "descriptionHelp": "详细描述商品的特点、用途和优势",
+        "descriptionPlaceholder": "请输入商品描述",
+        "name": "商品名称",
+        "nameDescription": "给你的商品起一个吸引人的名称",
+        "namePlaceholder": "请输入商品名称"
       },
+      "productNotFound": "商品不存在",
+      "save": "保存修改",
       "status": {
         "active": "激活",
         "draft": "草稿"
+      },
+      "successUpdate": "商品更新成功",
+      "title": "编辑商品",
+      "visibility": {
+        "featured": "特色商品",
+        "featuredDescription": "在首页和特色区域显示",
+        "title": "可见性"
       }
     }
   },
   "products": {
     "actions": "操作",
     "actionsFor": "{name}的操作",
+    "active": "激活",
+    "addCategory": "添加分类",
     "addProduct": "添加商品",
     "archive": "归档",
-    "active": "激活",
-    "inactive": "禁用",
+    "cancel": "取消",
     "category": "分类",
     "categoryManagement": "分类管理",
     "columns": {
@@ -364,8 +464,11 @@
     "fetchError": "获取商品列表失败",
     "filter": "筛选",
     "id": "ID",
+    "inactive": "禁用",
     "invalidPrice": "无效的价格",
+    "loading": "加载中...",
     "name": "商品名称",
+    "notSet": "未设置",
     "openMenuFor": "打开{name}的操作菜单",
     "operationError": "操作失败",
     "pagination": {
@@ -376,8 +479,22 @@
       "showing": "显示"
     },
     "price": "价格",
+    "product": {
+      "edit": {
+        "cancel": "产品.产品.编辑.取消",
+        "save": "产品.产品.编辑.保存"
+      }
+    },
     "productList": "商品列表",
     "productListDescription": "管理所有产品信息",
+    "products": {
+      "loading": "产品.产品.加载中",
+      "notSet": "产品.产品.未设置",
+      "unknownError": "产品.产品.未知错误",
+      "updateError": "产品.产品.更新错误",
+      "updateSuccess": "产品.产品.更新成功"
+    },
+    "save": "保存",
     "search": "搜索",
     "selectBrand": "选择品牌",
     "status": {
@@ -394,11 +511,6 @@
     "updateError": "更新失败",
     "updateNameSuccess": "商品名称已更新",
     "updatePriceSuccess": "商品价格已更新",
-    "addCategory": "添加分类",
-    "cancel": "取消",
-    "save": "保存",
-    "notSet": "未设置",
-    "loading": "加载中...",
     "updateSuccess": "更新成功"
   },
   "settings": {
@@ -413,17 +525,17 @@
       "saveChanges": "保存更改"
     },
     "api": {
+      "apiKeyLabel": "API 密钥",
+      "apiKeyPlaceholder": "••••••••••••••••••••••••••••••",
       "description": "管理API访问和集成",
       "documentation": "文档",
+      "enableApiLabel": "启用 API 访问",
       "endpoints": "接入点",
       "keys": "API密钥",
       "limits": "使用限制",
-      "title": "API设置",
-      "apiKeyLabel": "API 密钥",
-      "apiKeyPlaceholder": "••••••••••••••••••••••••••••••",
       "rateLimitLabel": "API 请求限制 (每分钟)",
       "rateLimitPlaceholder": "60",
-      "enableApiLabel": "启用 API 访问"
+      "title": "API设置"
     },
     "appearance": {
       "baseSize": "中",
@@ -482,6 +594,23 @@
     "general": "常规设置",
     "generalDescription": "配置系统的基本参数",
     "manage": "管理设置",
+    "messages": {
+      "discardConfirm": "放弃更改",
+      "discardMessage": "您确定要放弃所有未保存的更改吗？此操作无法撤销。",
+      "discardTitle": "确认放弃更改",
+      "loadError": "加载设置失败",
+      "loadErrorDesc": "无法从服务器获取设置",
+      "loadErrorNetwork": "加载设置时出错，请重试",
+      "loading": "加载设置中...",
+      "saveError": "保存失败",
+      "saveErrorDesc": "无法保存设置",
+      "saveErrorNetwork": "保存时出错，请重试",
+      "saveSuccess": "保存成功",
+      "saveSuccessDesc": "设置已成功保存",
+      "saving": "保存中...",
+      "snippetInfo1": "代码片段更改已单独处理，无需保存常规设置。",
+      "snippetInfo2": "代码片段更改已处理。"
+    },
     "notifications": "通知设置",
     "notificationsDescription": "配置系统通知和提醒",
     "security": "安全设置",
@@ -513,10 +642,10 @@
     "tabs": {
       "api": "API",
       "appearance": "外观",
+      "codeSnippets": "代码片段",
       "database": "数据库",
       "general": "常规",
-      "seo": "SEO",
-      "codeSnippets": "代码片段"
+      "seo": "SEO"
     },
     "title": "系统设置",
     "website": "网站设置",
@@ -533,122 +662,6 @@
       "siteName": "站点名称",
       "siteNamePlaceholder": "输入网站名称",
       "title": "网站信息"
-    },
-    "messages": {
-      "loadError": "加载设置失败",
-      "loadErrorDesc": "无法从服务器获取设置",
-      "loadErrorNetwork": "加载设置时出错，请重试",
-      "saveSuccess": "保存成功",
-      "saveSuccessDesc": "设置已成功保存",
-      "saveError": "保存失败",
-      "saveErrorDesc": "无法保存设置",
-      "saveErrorNetwork": "保存时出错，请重试",
-      "saving": "保存中...",
-      "loading": "加载设置中...",
-      "discardTitle": "确认放弃更改",
-      "discardMessage": "您确定要放弃所有未保存的更改吗？此操作无法撤销。",
-      "discardConfirm": "放弃更改",
-      "snippetInfo1": "代码片段更改已单独处理，无需保存常规设置。",
-      "snippetInfo2": "代码片段更改已处理。"
-    }
-  },
-  "codeSnippets": {
-    "title": "代码片段管理",
-    "description": "添加、编辑和管理注入到网站前端的自定义 JS 或 CSS 代码。",
-    "addSnippet": "添加新片段",
-    "editSnippet": "编辑代码片段",
-    "createSnippet": "创建新代码片段",
-    "editSnippetDescription": "修改代码片段 \"{name}\" 的配置。",
-    "createSnippetDescription": "添加一个新的自定义代码片段到您的网站。",
-    "deleteConfirmationTitle": "确认删除代码片段？",
-    "deleteConfirmationMessage": "您确定要删除代码片段 \\\"{name}\\\" 吗？此操作无法撤销，代码将从您的网站移除。",
-    "actions": {
-      "edit": "编辑",
-      "delete": "删除",
-      "activate": "激活",
-      "deactivate": "禁用",
-      "confirmDelete": "确认删除",
-      "cancel": "取消",
-      "openMenu": "打开菜单"
-    },
-    "columns": {
-      "name": "名称",
-      "type": "类型",
-      "location": "位置",
-      "priority": "优先级",
-      "status": "状态",
-      "actions": "操作"
-    },
-    "location": {
-      "head": "头部",
-      "bodyStart": "Body 开始",
-      "bodyEnd": "Body 结束"
-    },
-    "type": {
-      "js": "JS",
-      "css": "CSS"
-    },
-    "form": {
-      "nameLabel": "名称",
-      "namePlaceholder": "例如：谷歌分析跟踪代码",
-      "nameDescription": "给这个代码片段起一个容易识别的名字。",
-      "descriptionLabel": "描述 (可选)",
-      "descriptionPlaceholder": "简要说明这个代码片段的作用",
-      "codeLabel": "代码",
-      "codeDescription": "输入您的 JavaScript 或 CSS 代码。",
-      "typeLabel": "类型",
-      "typePlaceholder": "选择代码类型",
-      "typeJS": "JavaScript",
-      "typeCSS": "CSS",
-      "locationLabel": "注入位置",
-      "locationPlaceholder": "选择注入位置",
-      "locationHead": "头部 (<head>)",
-      "locationBodyStart": "主体开始 (<body> 之后)",
-      "locationBodyEnd": "主体结束 (</body> 之前)",
-      "pathsLabel": "生效路径",
-      "pathsPlaceholder": "每行一个路径规则，例如：\n/products/*\n/about\n/ (表示首页)",
-      "pathsDescription": "指定此代码片段在哪些页面路径下生效，支持通配符 *。留空表示在所有页面生效。",
-      "priorityLabel": "优先级",
-      "priorityPlaceholder": "10",
-      "priorityDescription": "数字越小，优先级越高，越先加载。",
-      "statusLabel": "激活状态",
-      "statusDescription": "控制此代码片段是否在前端生效。",
-      "saveChanges": "保存更改",
-      "createSnippet": "创建片段",
-      "cancel": "取消",
-      "submitting": "提交中..."
-    },
-    "messages": {
-      "loadError": "加载代码片段失败",
-      "loadErrorDesc": "无法从服务器获取数据。",
-      "loadErrorNetwork": "连接服务器时发生错误。",
-      "toggleError": "状态切换失败",
-      "toggleErrorDesc": "无法更新片段状态。",
-      "toggleSuccess": "片段 \"{name}\" 已{status}",
-      "statusActive": "激活",
-      "statusInactive": "禁用",
-      "deleteError": "删除失败",
-      "deleteErrorDesc": "无法删除此代码片段。",
-      "deleteSuccess": "片段 \"{name}\" 已删除",
-      "updateSuccess": "更新成功",
-      "updateError": "更新失败",
-      "createSuccess": "创建成功",
-      "createError": "创建失败",
-      "saveSuccessDesc": "代码片段 \"{name}\" 已保存。",
-      "saveErrorDesc": "发生未知错误",
-      "submitError": "操作失败",
-      "submitErrorDesc": "提交过程中发生错误，请检查网络或联系管理员。"
-    },
-    "tooltips": {
-      "toggleOn": "点击禁用",
-      "toggleOff": "点击激活"
-    },
-    "table": {
-      "noData": "没有找到代码片段。",
-      "loading": "加载中...",
-      "filterPlaceholder": "按名称筛选...",
-      "toggleColumns": "切换列显示",
-      "viewOptions": "视图"
     }
   }
 }

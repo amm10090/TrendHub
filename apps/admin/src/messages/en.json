@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "delete": "Delete",
+    "details": "Details"
+  },
   "brands": {
     "actions": {
       "activate": "Activate",
@@ -60,60 +64,155 @@
   },
   "categories": {
     "addCategory": "Add Category",
-    "deleteSuccessTitle": "Delete Successful",
-    "deleteSuccessDesc": "Category deleted successfully.",
-    "deleteErrorTitle": "Delete Failed",
-    "deleteErrorDesc": "Error deleting category.",
-    "statusUpdateSuccessTitle": "Status Update Successful",
-    "statusUpdateSuccessDesc": "Category {name}'s status updated to {status}.",
-    "statusUpdateErrorTitle": "Status Update Failed",
-    "statusUpdateErrorDesc": "Error updating category status.",
-    "validation": {
-      "nameRequiredTitle": "Name Required",
-      "nameRequiredDesc": "Category name cannot be empty.",
-      "slugRequiredTitle": "Slug Required",
-      "slugRequiredDesc": "Category slug cannot be empty.",
-      "parentRequiredTitle": "Parent Category Required",
-      "parentRequiredDesc": "Level 2 or 3 categories must have a parent category selected."
-    },
-    "createSuccessTitle": "Creation Successful",
-    "createSuccessDesc": "Category {name} created successfully.",
-    "createErrorTitle": "Creation Failed",
+    "addTitle": "Add New Category",
+    "childCategoriesLabel": "Child Categories",
     "createErrorDesc": "Error creating category.",
-    "fetchError": "Failed to fetch categories",
-    "detailsTitle": "Category Details",
-    "nameLabel": "Name",
-    "slugLabel": "Slug",
+    "createErrorTitle": "Creation Failed",
+    "createSuccessDesc": "Category {name} created successfully.",
+    "createSuccessTitle": "Creation Successful",
+    "deleteErrorDesc": "Error deleting category.",
+    "deleteErrorTitle": "Delete Failed",
+    "deleteSuccessDesc": "Category deleted successfully.",
+    "deleteSuccessTitle": "Delete Successful",
     "descriptionLabel": "Description",
-    "noDescription": "No description provided",
-    "levelLabel": "Level",
+    "descriptionPlaceholder": "Enter category description (optional)",
+    "detailsTitle": "Category Details",
+    "fetchError": "Failed to fetch categories",
     "level1": "Level 1",
     "level2": "Level 2",
     "level3": "Level 3",
-    "parentCategoryLabel": "Parent Category",
-    "childCategoriesLabel": "Child Categories",
-    "noChildCategories": "No child categories",
-    "addTitle": "Add New Category",
+    "levelLabel": "Level",
     "levelPlaceholder": "Select category level",
+    "nameLabel": "Name",
+    "namePlaceholder": "Enter category name",
+    "noChildCategories": "No child categories",
+    "noDescription": "No description provided",
+    "parentCategoryLabel": "Parent Category",
     "parentGenderLabel": "Parent Gender Category",
     "parentGenderPlaceholder": "Select parent gender",
     "parentProductTypeLabel": "Parent Product Type",
     "parentProductTypePlaceholder": "Select parent product type",
-    "namePlaceholder": "Enter category name",
+    "slugLabel": "Slug",
     "slugPlaceholder": "Enter category slug (e.g., clothing-men)",
-    "descriptionPlaceholder": "Enter category description (optional)"
+    "statusUpdateErrorDesc": "Error updating category status.",
+    "statusUpdateErrorTitle": "Status Update Failed",
+    "statusUpdateSuccessDesc": "Category {name}'s status updated to {status}.",
+    "statusUpdateSuccessTitle": "Status Update Successful",
+    "validation": {
+      "nameRequiredDesc": "Category name cannot be empty.",
+      "nameRequiredTitle": "Name Required",
+      "parentRequiredDesc": "Level 2 or 3 categories must have a parent category selected.",
+      "parentRequiredTitle": "Parent Category Required",
+      "slugRequiredDesc": "Category slug cannot be empty.",
+      "slugRequiredTitle": "Slug Required"
+    }
+  },
+  "codeSnippets": {
+    "actions": {
+      "activate": "Activate",
+      "cancel": "Cancel",
+      "confirmDelete": "Confirm Delete",
+      "deactivate": "Deactivate",
+      "delete": "Delete",
+      "edit": "Edit",
+      "openMenu": "Open menu"
+    },
+    "addSnippet": "Add New Snippet",
+    "columns": {
+      "actions": "Actions",
+      "location": "Location",
+      "name": "Name",
+      "priority": "Priority",
+      "status": "Status",
+      "type": "Type"
+    },
+    "createSnippet": "Create New Code Snippet",
+    "createSnippetDescription": "Add a new custom code snippet to your website.",
+    "deleteConfirmationMessage": "Are you sure you want to delete the code snippet \"{name}\"? This action cannot be undone and the code will be removed from your website.",
+    "deleteConfirmationTitle": "Confirm Delete Code Snippet?",
+    "description": "Add, edit, and manage custom JS or CSS code snippets injected into the website frontend.",
+    "editSnippet": "Edit Code Snippet",
+    "editSnippetDescription": "Modify the configuration for \"{name}\".",
+    "form": {
+      "cancel": "Cancel",
+      "codeDescription": "Enter your JavaScript or CSS code.",
+      "codeLabel": "Code",
+      "createSnippet": "Create Snippet",
+      "descriptionLabel": "Description (Optional)",
+      "descriptionPlaceholder": "Briefly explain what this snippet does",
+      "locationBodyEnd": "Body End (before </body>)",
+      "locationBodyStart": "Body Start (after <body>)",
+      "locationHead": "Header (<head>)",
+      "locationLabel": "Injection Location",
+      "locationPlaceholder": "Select injection location",
+      "nameDescription": "Give this snippet a recognizable name.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g., Google Analytics Tracking",
+      "pathsDescription": "Specify on which page paths this snippet should be active. Use * as wildcard. Leave empty for all pages.",
+      "pathsLabel": "Activation Paths",
+      "pathsPlaceholder": "One path pattern per line, e.g.:\n/products/*\n/about\n/ (for homepage)",
+      "priorityDescription": "Lower numbers run first.",
+      "priorityLabel": "Priority",
+      "priorityPlaceholder": "10",
+      "saveChanges": "Save Changes",
+      "statusDescription": "Controls whether this snippet is active on the frontend.",
+      "statusLabel": "Active Status",
+      "submitting": "Submitting...",
+      "typeCSS": "CSS",
+      "typeJS": "JavaScript",
+      "typeLabel": "Type",
+      "typePlaceholder": "Select code type"
+    },
+    "location": {
+      "bodyEnd": "Body End",
+      "bodyStart": "Body Start",
+      "head": "Header"
+    },
+    "messages": {
+      "createError": "Creation failed",
+      "createSuccess": "Creation successful",
+      "deleteError": "Deletion failed",
+      "deleteErrorDesc": "Could not delete this snippet.",
+      "deleteSuccess": "Snippet \"{name}\" deleted",
+      "loadError": "Failed to load snippets",
+      "loadErrorDesc": "Could not fetch data from the server.",
+      "loadErrorNetwork": "Error connecting to the server.",
+      "saveErrorDesc": "An unknown error occurred",
+      "saveSuccessDesc": "Code snippet \"{name}\" has been saved.",
+      "statusActive": "activated",
+      "statusInactive": "deactivated",
+      "submitError": "Operation failed",
+      "submitErrorDesc": "An error occurred during submission. Check network or contact admin.",
+      "toggleError": "Status toggle failed",
+      "toggleErrorDesc": "Could not update snippet status.",
+      "toggleSuccess": "Snippet \"{name}\" has been {status}",
+      "updateError": "Update failed",
+      "updateSuccess": "Update successful"
+    },
+    "table": {
+      "filterPlaceholder": "Filter by name...",
+      "loading": "Loading...",
+      "noData": "No code snippets found.",
+      "toggleColumns": "Toggle columns",
+      "viewOptions": "View"
+    },
+    "title": "Code Snippets Management",
+    "tooltips": {
+      "toggleOff": "Click to activate",
+      "toggleOn": "Click to deactivate"
+    },
+    "type": {
+      "css": "CSS",
+      "js": "JS"
+    }
   },
   "common": {
     "all": "All",
-    "processing": "Processing...",
-    "deleting": "Deleting...",
-    "close": "Close",
     "cancel": "Cancel",
-    "confirm": "Confirm"
-  },
-  "actions": {
-    "details": "Details",
-    "delete": "Delete"
+    "close": "Close",
+    "confirm": "Confirm",
+    "deleting": "Deleting...",
+    "processing": "Processing..."
   },
   "dashboard": {
     "activeIncrease": "+201 since last hour",
@@ -217,15 +316,15 @@
       "url": "URL"
     },
     "messages": {
-      "createSuccess": "Page created successfully",
-      "updateSuccess": "Page updated successfully",
-      "deleteSuccess": "Page deleted successfully",
-      "fetchError": "Failed to fetch pages",
-      "fetchDetailError": "Failed to fetch page details",
-      "toggleStatusError": "Failed to toggle page status",
       "createError": "Failed to create page",
+      "createSuccess": "Page created successfully",
+      "deleteError": "Failed to delete page",
+      "deleteSuccess": "Page deleted successfully",
+      "fetchDetailError": "Failed to fetch page details",
+      "fetchError": "Failed to fetch pages",
+      "toggleStatusError": "Failed to toggle page status",
       "updateError": "Failed to update page",
-      "deleteError": "Failed to delete page"
+      "updateSuccess": "Page updated successfully"
     },
     "placeholders": {
       "content": "Enter page content",
@@ -256,56 +355,39 @@
       "home": "Home"
     },
     "edit": {
-      "title": "Edit Product",
-      "save": "Save Changes",
-      "cancel": "Cancel",
       "backToList": "Back to Product List",
-      "productNotFound": "Product not found",
-      "fetchError": "Failed to fetch product information",
-      "successUpdate": "Product updated successfully",
       "basicInfo": {
-        "title": "Basic Information",
-        "source": "Product Source",
-        "sourcePlaceholder": "Enter product source",
-        "sourceDescription": "Product manufacturing or procurement source",
-        "promotionUrl": "Promotion Link",
-        "promotionPlaceholder": "Enter promotion link",
-        "promotionDescription": "External promotion or marketing link",
-        "material": "Material",
-        "materialPlaceholder": "Enter product material information",
-        "materialDescription": "Describe the product's material composition",
         "cautions": "Cautions",
-        "cautionsPlaceholder": "Enter product cautions",
         "cautionsDescription": "Usage, maintenance, and related precautions",
+        "cautionsPlaceholder": "Enter product cautions",
         "colors": "Colors",
         "colorsPlaceholder": "Enter color and press Enter to add",
+        "material": "Material",
+        "materialDescription": "Describe the product's material composition",
+        "materialPlaceholder": "Enter product material information",
+        "promotionDescription": "External promotion or marketing link",
+        "promotionPlaceholder": "Enter promotion link",
+        "promotionUrl": "Promotion Link",
         "sizes": "Sizes",
-        "sizesPlaceholder": "Enter size and press Enter to add"
+        "sizesPlaceholder": "Enter size and press Enter to add",
+        "source": "Product Source",
+        "sourceDescription": "Product manufacturing or procurement source",
+        "sourcePlaceholder": "Enter product source",
+        "title": "Basic Information"
       },
-      "productInfo": {
-        "name": "Product Name",
-        "namePlaceholder": "Enter product name",
-        "nameDescription": "Give your product an attractive name",
-        "description": "Product Description",
-        "descriptionPlaceholder": "Enter product description",
-        "descriptionHelp": "Describe the product's features, uses, and benefits in detail"
+      "cancel": "Cancel",
+      "errorModal": {
+        "confirmBtn": "OK",
+        "defaultMessage": "Please ensure all required fields are filled (product name, price, inventory, brand, and category)",
+        "emptyBrand": "Please select a product brand",
+        "emptyCategory": "Please select a product category",
+        "emptyName": "Product name cannot be empty",
+        "invalidInventory": "Inventory must be greater than or equal to 0",
+        "invalidPrice": "Product price must be greater than 0",
+        "title": "Submission Failed"
       },
-      "priceAndInventory": {
-        "title": "Price & Inventory",
-        "price": "Price",
-        "originalPrice": "Original Price",
-        "costPrice": "Cost Price",
-        "inventory": "Inventory",
-        "sku": "SKU",
-        "skuPlaceholder": "e.g., SM-BLK-L",
-        "skuDisabledDescription": "SKU cannot be modified after creation",
-        "barcode": "Barcode",
-        "barcodePlaceholder": "e.g., 123456789012",
-        "onSale": "On Sale",
-        "onSaleDescription": "Will be displayed in the sale section if enabled"
-      },
+      "fetchError": "Failed to fetch product information",
       "organization": {
-        "title": "Product Category",
         "category": "Select Product Category",
         "categoryDescription": "Please select the category for this product, which will affect its display position in the frontend",
         "categoryLevel1": "Level 1 Category",
@@ -313,36 +395,54 @@
         "categoryLevel2": "Level 2 Category",
         "categoryLevel2Placeholder": "Select Level 2 Category",
         "categoryLevel3": "Level 3 Category",
-        "categoryLevel3Placeholder": "Select Level 3 Category"
+        "categoryLevel3Placeholder": "Select Level 3 Category",
+        "title": "Product Category"
       },
-      "visibility": {
-        "title": "Visibility",
-        "featured": "Featured Product",
-        "featuredDescription": "Display on homepage and featured sections"
+      "priceAndInventory": {
+        "barcode": "Barcode",
+        "barcodePlaceholder": "e.g., 123456789012",
+        "costPrice": "Cost Price",
+        "inventory": "Inventory",
+        "onSale": "On Sale",
+        "onSaleDescription": "Will be displayed in the sale section if enabled",
+        "originalPrice": "Original Price",
+        "price": "Price",
+        "sku": "SKU",
+        "skuDisabledDescription": "SKU cannot be modified after creation",
+        "skuPlaceholder": "e.g., SM-BLK-L",
+        "title": "Price & Inventory"
       },
-      "errorModal": {
-        "title": "Submission Failed",
-        "defaultMessage": "Please ensure all required fields are filled (product name, price, inventory, brand, and category)",
-        "emptyName": "Product name cannot be empty",
-        "invalidPrice": "Product price must be greater than 0",
-        "invalidInventory": "Inventory must be greater than or equal to 0",
-        "emptyCategory": "Please select a product category",
-        "emptyBrand": "Please select a product brand",
-        "confirmBtn": "OK"
+      "productInfo": {
+        "description": "Product Description",
+        "descriptionHelp": "Describe the product's features, uses, and benefits in detail",
+        "descriptionPlaceholder": "Enter product description",
+        "name": "Product Name",
+        "nameDescription": "Give your product an attractive name",
+        "namePlaceholder": "Enter product name"
       },
+      "productNotFound": "Product not found",
+      "save": "Save Changes",
       "status": {
         "active": "Active",
         "draft": "Draft"
+      },
+      "successUpdate": "Product updated successfully",
+      "title": "Edit Product",
+      "visibility": {
+        "featured": "Featured Product",
+        "featuredDescription": "Display on homepage and featured sections",
+        "title": "Visibility"
       }
     }
   },
   "products": {
     "actions": "Actions",
     "actionsFor": "Actions for {name}",
+    "active": "Active",
+    "addCategory": "Add Category",
     "addProduct": "Add Product",
     "archive": "Archive",
-    "active": "Active",
-    "inactive": "Inactive",
+    "cancel": "Cancel",
     "category": "Category",
     "categoryManagement": "Category Management",
     "columns": {
@@ -364,8 +464,11 @@
     "fetchError": "Failed to fetch products",
     "filter": "Filter",
     "id": "ID",
+    "inactive": "Inactive",
     "invalidPrice": "Invalid price",
+    "loading": "Loading...",
     "name": "Product Name",
+    "notSet": "Not set",
     "openMenuFor": "Open menu for {name}",
     "operationError": "Operation failed",
     "pagination": {
@@ -376,8 +479,22 @@
       "showing": "Showing"
     },
     "price": "Price",
+    "product": {
+      "edit": {
+        "cancel": "",
+        "save": ""
+      }
+    },
     "productList": "Product List",
     "productListDescription": "Manage all product information and status",
+    "products": {
+      "loading": "",
+      "notSet": "",
+      "unknownError": "",
+      "updateError": "",
+      "updateSuccess": ""
+    },
+    "save": "Save",
     "search": "Search products...",
     "selectBrand": "Select brand",
     "status": {
@@ -394,11 +511,6 @@
     "updateError": "Update failed",
     "updateNameSuccess": "Product name updated",
     "updatePriceSuccess": "Product price updated",
-    "addCategory": "Add Category",
-    "cancel": "Cancel",
-    "save": "Save",
-    "notSet": "Not set",
-    "loading": "Loading...",
     "updateSuccess": "Update successful"
   },
   "settings": {
@@ -413,17 +525,17 @@
       "saveChanges": "Save Changes"
     },
     "api": {
+      "apiKeyLabel": "API Key",
+      "apiKeyPlaceholder": "••••••••••••••••••••••••••••••",
       "description": "Manage API access and integrations",
       "documentation": "Documentation",
+      "enableApiLabel": "Enable API Access",
       "endpoints": "Endpoints",
       "keys": "API Keys",
       "limits": "Usage Limits",
-      "title": "API Settings",
-      "apiKeyLabel": "API Key",
-      "apiKeyPlaceholder": "••••••••••••••••••••••••••••••",
       "rateLimitLabel": "API Request Limit (per minute)",
       "rateLimitPlaceholder": "60",
-      "enableApiLabel": "Enable API Access"
+      "title": "API Settings"
     },
     "appearance": {
       "baseSize": "Medium",
@@ -482,6 +594,23 @@
     "general": "General Settings",
     "generalDescription": "Configure basic system parameters",
     "manage": "Manage Settings",
+    "messages": {
+      "discardConfirm": "Discard Changes",
+      "discardMessage": "Are you sure you want to discard all unsaved changes? This action cannot be undone.",
+      "discardTitle": "Confirm Discard Changes",
+      "loadError": "Failed to load settings",
+      "loadErrorDesc": "Could not fetch settings from server",
+      "loadErrorNetwork": "An error occurred while loading settings, please try again",
+      "loading": "Loading settings...",
+      "saveError": "Save failed",
+      "saveErrorDesc": "Could not save settings",
+      "saveErrorNetwork": "An error occurred while saving, please try again",
+      "saveSuccess": "Save successful",
+      "saveSuccessDesc": "Settings have been saved successfully",
+      "saving": "Saving...",
+      "snippetInfo1": "Code snippet changes are handled separately, no need to save general settings.",
+      "snippetInfo2": "Code snippet changes have been processed."
+    },
     "notifications": "Notification Settings",
     "notificationsDescription": "Configure system notifications and alerts",
     "security": "Security Settings",
@@ -513,10 +642,10 @@
     "tabs": {
       "api": "API",
       "appearance": "Appearance",
+      "codeSnippets": "Code Snippets",
       "database": "Database",
       "general": "General",
-      "seo": "SEO",
-      "codeSnippets": "Code Snippets"
+      "seo": "SEO"
     },
     "title": "System Settings",
     "website": "Website Settings",
@@ -533,122 +662,6 @@
       "siteName": "Site Name",
       "siteNamePlaceholder": "Enter website name",
       "title": "Website Information"
-    },
-    "messages": {
-      "loadError": "Failed to load settings",
-      "loadErrorDesc": "Could not fetch settings from server",
-      "loadErrorNetwork": "An error occurred while loading settings, please try again",
-      "saveSuccess": "Save successful",
-      "saveSuccessDesc": "Settings have been saved successfully",
-      "saveError": "Save failed",
-      "saveErrorDesc": "Could not save settings",
-      "saveErrorNetwork": "An error occurred while saving, please try again",
-      "saving": "Saving...",
-      "loading": "Loading settings...",
-      "discardTitle": "Confirm Discard Changes",
-      "discardMessage": "Are you sure you want to discard all unsaved changes? This action cannot be undone.",
-      "discardConfirm": "Discard Changes",
-      "snippetInfo1": "Code snippet changes are handled separately, no need to save general settings.",
-      "snippetInfo2": "Code snippet changes have been processed."
-    }
-  },
-  "codeSnippets": {
-    "title": "Code Snippets Management",
-    "description": "Add, edit, and manage custom JS or CSS code snippets injected into the website frontend.",
-    "addSnippet": "Add New Snippet",
-    "editSnippet": "Edit Code Snippet",
-    "createSnippet": "Create New Code Snippet",
-    "editSnippetDescription": "Modify the configuration for \"{name}\".",
-    "createSnippetDescription": "Add a new custom code snippet to your website.",
-    "deleteConfirmationTitle": "Confirm Delete Code Snippet?",
-    "deleteConfirmationMessage": "Are you sure you want to delete the code snippet \"{name}\"? This action cannot be undone and the code will be removed from your website.",
-    "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "activate": "Activate",
-      "deactivate": "Deactivate",
-      "confirmDelete": "Confirm Delete",
-      "cancel": "Cancel",
-      "openMenu": "Open menu"
-    },
-    "columns": {
-      "name": "Name",
-      "type": "Type",
-      "location": "Location",
-      "priority": "Priority",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "location": {
-      "head": "Header",
-      "bodyStart": "Body Start",
-      "bodyEnd": "Body End"
-    },
-    "type": {
-      "js": "JS",
-      "css": "CSS"
-    },
-    "form": {
-      "nameLabel": "Name",
-      "namePlaceholder": "e.g., Google Analytics Tracking",
-      "nameDescription": "Give this snippet a recognizable name.",
-      "descriptionLabel": "Description (Optional)",
-      "descriptionPlaceholder": "Briefly explain what this snippet does",
-      "codeLabel": "Code",
-      "codeDescription": "Enter your JavaScript or CSS code.",
-      "typeLabel": "Type",
-      "typePlaceholder": "Select code type",
-      "typeJS": "JavaScript",
-      "typeCSS": "CSS",
-      "locationLabel": "Injection Location",
-      "locationPlaceholder": "Select injection location",
-      "locationHead": "Header (<head>)",
-      "locationBodyStart": "Body Start (after <body>)",
-      "locationBodyEnd": "Body End (before </body>)",
-      "pathsLabel": "Activation Paths",
-      "pathsPlaceholder": "One path pattern per line, e.g.:\n/products/*\n/about\n/ (for homepage)",
-      "pathsDescription": "Specify on which page paths this snippet should be active. Use * as wildcard. Leave empty for all pages.",
-      "priorityLabel": "Priority",
-      "priorityPlaceholder": "10",
-      "priorityDescription": "Lower numbers run first.",
-      "statusLabel": "Active Status",
-      "statusDescription": "Controls whether this snippet is active on the frontend.",
-      "saveChanges": "Save Changes",
-      "createSnippet": "Create Snippet",
-      "cancel": "Cancel",
-      "submitting": "Submitting..."
-    },
-    "messages": {
-      "loadError": "Failed to load snippets",
-      "loadErrorDesc": "Could not fetch data from the server.",
-      "loadErrorNetwork": "Error connecting to the server.",
-      "toggleError": "Status toggle failed",
-      "toggleErrorDesc": "Could not update snippet status.",
-      "toggleSuccess": "Snippet \"{name}\" has been {status}",
-      "statusActive": "activated",
-      "statusInactive": "deactivated",
-      "deleteError": "Deletion failed",
-      "deleteErrorDesc": "Could not delete this snippet.",
-      "deleteSuccess": "Snippet \"{name}\" deleted",
-      "updateSuccess": "Update successful",
-      "updateError": "Update failed",
-      "createSuccess": "Creation successful",
-      "createError": "Creation failed",
-      "saveSuccessDesc": "Code snippet \"{name}\" has been saved.",
-      "saveErrorDesc": "An unknown error occurred",
-      "submitError": "Operation failed",
-      "submitErrorDesc": "An error occurred during submission. Check network or contact admin."
-    },
-    "tooltips": {
-      "toggleOn": "Click to deactivate",
-      "toggleOff": "Click to activate"
-    },
-    "table": {
-      "noData": "No code snippets found.",
-      "loading": "Loading...",
-      "filterPlaceholder": "Filter by name...",
-      "toggleColumns": "Toggle columns",
-      "viewOptions": "View"
     }
   }
 }

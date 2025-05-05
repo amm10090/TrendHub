@@ -80,7 +80,6 @@ export function CustomNavbar() {
       label: t("settings"),
       active: pathname.startsWith("/settings"),
     },
-    { href: "/logs", label: t("logs"), active: pathname.startsWith("/logs") },
   ];
 
   return (

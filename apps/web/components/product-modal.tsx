@@ -1,8 +1,7 @@
 /**
- * 产品模态框组件
+ * 产品模态框组件 (更新版)
  *
- * 该组件是一个简化版的产品详情模态框，用于展示产品的基本信息
- * 并提供跳转到详细产品页面的功能
+ * 使用标准 ProductDetail 类型
  */
 
 'use client';
@@ -21,30 +20,17 @@ import {
   ModalHeader,
 } from '@heroui/react';
 import { ExternalLink, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'use-intl';
 
-/**
- * 产品详情数据结构
- */
-interface ProductDetail {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  image: string;
-  description: string;
-  availableQuantity: number;
-  isFavorite?: boolean;
-  discount?: number;
-  originalPrice?: number;
-}
+// 导入标准 ProductDetail 类型
+import { type ProductDetail as AppProductDetailType } from '@/types/product';
 
 /**
- * 产品模态框组件属性
+ * 产品模态框组件属性 (使用标准类型)
  */
 interface ProductModalProps {
-  product: ProductDetail;
+  product: AppProductDetailType;
   isOpen: boolean;
   onClose: () => void;
   onOpenInNewTab?: () => void;
@@ -62,11 +48,17 @@ export function ProductModal({
   const trackT = useTranslations('track');
   const [isFavorite, setIsFavorite] = useState(product.isFavorite || false);
 
+  // 当 product prop 变化时，同步 isFavorite 状态
+  useEffect(() => {
+    setIsFavorite(product.isFavorite || false);
+  }, [product.isFavorite, product.id]);
+
   /**
    * 切换收藏状态
    */
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
+    // TODO: 调用 API 更新收藏状态
   };
 
   /**
@@ -108,7 +100,7 @@ export function ProductModal({
           <h2 className="text-xl font-medium text-default-900 dark:text-default-50">
             {product.name}
           </h2>
-          <p className="text-sm text-default-600 dark:text-default-400">{product.brand}</p>
+          <p className="text-sm text-default-600 dark:text-default-400">{product.brand.name}</p>
         </ModalHeader>
         <ModalBody>
           <Card className="border-none shadow-none bg-bg-primary-light dark:bg-bg-primary-dark rounded-b-xl scrollbar-hide">
@@ -124,7 +116,7 @@ export function ProductModal({
                       img: 'w-full h-full object-cover object-center transition-transform duration-500 rounded-xl',
                       zoomedWrapper: 'transition-all duration-500',
                     }}
-                    src={product.image}
+                    src={product.image || '/images/products/placeholder.jpg'}
                   />
                 </div>
 
@@ -136,15 +128,15 @@ export function ProductModal({
                         <p
                           className={`text-2xl font-medium ${product.discount ? 'text-danger-500 dark:text-danger-400' : 'text-default-900 dark:text-default-50'}`}
                         >
-                          ¥{product.price.toLocaleString()}
+                          ¥{Number(product.price).toLocaleString()}
                         </p>
                         {product.originalPrice && product.discount && (
                           <p className="text-sm line-through text-default-400 dark:text-default-500">
-                            ¥{product.originalPrice.toLocaleString()}
+                            ¥{Number(product.originalPrice).toLocaleString()}
                           </p>
                         )}
                       </div>
-                      {product.discount && (
+                      {product.discount != null && (
                         <span className="px-2.5 py-1 text-xs font-medium text-white bg-danger-500 dark:bg-danger-600 rounded-md shadow-sm">
                           -{product.discount}% {t('discount')}
                         </span>

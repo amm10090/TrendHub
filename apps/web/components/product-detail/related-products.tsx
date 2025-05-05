@@ -132,7 +132,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                 </div>
                 <div className="mt-4 flex flex-col gap-y-2">
                   <h3 className="text-[11px] sm:text-sm font-semibold tracking-wide text-text-secondary-light dark:text-text-secondary-dark">
-                    {product.brand}
+                    {product.brandName || 'Brand'}
                   </h3>
                   <Link className="block  flex-col gap-y-1" href={`/product/${product.id}`}>
                     <p className="text-[11px] sm:text-sm font-normal text-text-primary-light dark:text-text-primary-dark line-clamp-2 leading-relaxed">

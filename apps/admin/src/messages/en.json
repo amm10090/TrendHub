@@ -432,6 +432,10 @@
         "featured": "Featured Product",
         "featuredDescription": "Display on homepage and featured sections",
         "title": "Visibility"
+      },
+      "toast": {
+        "createSuccess": "Product created successfully!",
+        "createErrorFallback": "Failed to create product, please try again later"
       }
     }
   },

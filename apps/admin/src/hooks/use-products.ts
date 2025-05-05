@@ -6,13 +6,23 @@ import type {
   CreateProductData,
   UpdateProductData,
   ProductQueryParams,
-  PaginatedResponse,
 } from "@/lib/services/product.service";
+
+// 定义实际的 API 响应结构
+interface ActualApiResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalItems: number;
+  };
+}
 
 // API调用函数
 const fetchProducts = async (
   params: ProductQueryParams,
-): Promise<PaginatedResponse<Product>> => {
+): Promise<ActualApiResponse<Product>> => {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
@@ -157,9 +167,9 @@ export function useProducts(params: ProductQueryParams = {}) {
 
   return {
     // 查询状态和数据
-    products: productsQuery.data?.items ?? [],
-    total: productsQuery.data?.total ?? 0,
-    totalPages: productsQuery.data?.totalPages ?? 0,
+    products: productsQuery.data?.data ?? [],
+    total: productsQuery.data?.pagination?.totalItems ?? 0,
+    totalPages: productsQuery.data?.pagination?.totalPages ?? 0,
     isLoading: productsQuery.isLoading,
     error: productsQuery.error,
 

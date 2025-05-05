@@ -432,6 +432,10 @@
         "featured": "特色商品",
         "featuredDescription": "在首页和特色区域显示",
         "title": "可见性"
+      },
+      "toast": {
+        "createSuccess": "商品创建成功！",
+        "createErrorFallback": "创建商品失败，请稍后重试"
       }
     }
   },

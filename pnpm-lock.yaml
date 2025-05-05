@@ -403,6 +403,9 @@ importers:
       '@types/node':
         specifier: 22.13.17
         version: 22.13.17
+      '@types/qs':
+        specifier: 6.9.18
+        version: 6.9.18
       '@types/react':
         specifier: 19.1.2
         version: 19.1.2
@@ -3506,6 +3509,9 @@ packages:
 
   '@types/nodemailer@6.4.17':
     resolution: {integrity: sha512-I9CCaIp6DTldEg7vyUTZi8+9Vo0hi1/T8gv3C89yk1rSAAzoKQ8H8ki/jBYJSFoH/BisgLP8tkZMlQ91CIquww==}
+
+  '@types/qs@6.9.18':
+    resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
 
   '@types/react-dom@19.1.2':
     resolution: {integrity: sha512-XGJkWF41Qq305SKWEILa1O8vzhb3aOo3ogBlSmiqNko/WmRb6QIaweuZCXjKygVDXpzXb5wyxKTSOsmkuqj+Qw==}
@@ -11157,6 +11163,8 @@ snapshots:
   '@types/nodemailer@6.4.17':
     dependencies:
       '@types/node': 22.15.3
+
+  '@types/qs@6.9.18': {}
 
   '@types/react-dom@19.1.2(@types/react@19.1.2)':
     dependencies:

@@ -84,8 +84,9 @@ model Product {
   status       String                          // 商品状态（如"In Stock"、"Low Stock"等）
   description  String?                         // 商品描述（可选）
   images       String[]                        // 商品图片URL数组
+  videos       String[]  @default([])          // 商品视频URL数组
   sku          String    @unique               // 商品SKU，确保唯一性
-  inventory    Int       @default(0)           // 库存数量，替代原有的stock字段
+  inventory    Int       @default(0)           // 库存数量
   source       String?                         // 商品来源（可选）
   colors       String[]  @default([])          // 商品颜色数组
   sizes        String[]  @default([])          // 商品尺码数组
@@ -93,6 +94,7 @@ model Product {
   cautions     String?                         // 商品注意事项（可选）
   promotionUrl String?                         // 商品推广链接（可选）
   isDeleted    Boolean   @default(false)       // 软删除标记
+  isNew        Boolean   @default(false)       // 是否新品标记
   updatedAt    DateTime  @updatedAt            // 更新时间
   createdAt    DateTime  @default(now())       // 创建时间
 

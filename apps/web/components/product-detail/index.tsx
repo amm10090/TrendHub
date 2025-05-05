@@ -4,7 +4,7 @@ import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { ProductDetail as ProductDetailType } from '@/types/product';
+import { type ProductDetail as ProductDetailType } from '@/types/product';
 
 import { ProductAccordion } from './product-accordion';
 import { ProductImages } from './product-images';
@@ -32,8 +32,8 @@ export function ProductDetail({ product }: ProductDetailProps) {
         {/* 面包屑导航 */}
         <Breadcrumbs className="mb-4">
           <BreadcrumbItem href="/">{t('breadcrumb.home')}</BreadcrumbItem>
-          <BreadcrumbItem href={`/category/${product.brand.toLowerCase()}`}>
-            {product.brand}
+          <BreadcrumbItem href={`/category/${product.category.slug}`}>
+            {product.category.name}
           </BreadcrumbItem>
           <BreadcrumbItem isCurrent>{product.name}</BreadcrumbItem>
         </Breadcrumbs>
@@ -42,7 +42,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
           {/* 商品图片 */}
           <div>
-            <ProductImages images={product.images} productName={product.name} />
+            <ProductImages images={product.images || [product.image]} productName={product.name} />
           </div>
 
           {/* 商品信息和购买选项 */}

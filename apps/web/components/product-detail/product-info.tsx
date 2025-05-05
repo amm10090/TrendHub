@@ -3,10 +3,10 @@
 import { Chip } from '@heroui/react';
 import { useTranslations } from 'use-intl';
 
-import { ProductDetail } from '@/types/product';
+import { type ProductDetail as ProductDetailType } from '@/types/product';
 
 interface ProductInfoProps {
-  product: ProductDetail;
+  product: ProductDetailType;
 }
 
 /**
@@ -24,7 +24,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
     <div className="flex flex-col gap-y-4">
       {/* 品牌名 */}
       <h1 className="text-lg md:text-xl font-bold uppercase tracking-wider text-text-primary-light dark:text-text-primary-dark">
-        {product.brand}
+        {product.brand.name}
       </h1>
 
       {/* 商品名称 */}
@@ -38,12 +38,12 @@ export function ProductInfo({ product }: ProductInfoProps) {
           <span
             className={`text-xl md:text-2xl font-medium ${hasDiscount ? 'text-red-600 dark:text-red-400' : 'text-text-primary-light dark:text-text-primary-dark'}`}
           >
-            ¥{product.price.toLocaleString()}
+            ¥{Number(product.price).toLocaleString()}
           </span>
 
           {hasDiscount && product.originalPrice && (
             <span className="text-sm md:text-base line-through text-text-tertiary-light dark:text-text-tertiary-dark">
-              ¥{product.originalPrice.toLocaleString()}
+              ¥{Number(product.originalPrice).toLocaleString()}
             </span>
           )}
         </div>

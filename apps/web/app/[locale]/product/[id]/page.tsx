@@ -1,13 +1,71 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { ProductDetail } from '@/components/product-detail';
-import { isFeatureEnabled } from '@/lib/dev-config';
+import { type ProductDetail as ProductDetailType } from '@/types/product';
 
 interface ProductPageProps {
-  params: Promise<{
+  params: {
     id: string;
     locale: string;
-  }>;
+  };
+}
+
+async function getProductData(id: string): Promise<ProductDetailType | null> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+    const res = await fetch(`${apiUrl}/api/public/products/${id}`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      if (res.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch product ${id}: ${res.statusText}`);
+    }
+    const productData = await res.json();
+
+    return productData as ProductDetailType;
+  } catch {
+    return null;
+  }
+}
+
+type Props = {
+  params: { id: string; locale: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export async function generateMetadata(
+  { params }: Props
+  // parent: ResolvingMetadata // 移除未使用的 parent 参数
+): Promise<Metadata> {
+  const product = await getProductData(params.id);
+
+  if (!product) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
+
+  return {
+    title: `${product.name} - ${product.brand.name}`,
+    description: product.description.substring(0, 160),
+    openGraph: {
+      title: `${product.name} - ${product.brand.name}`,
+      description: product.description.substring(0, 160),
+      images: [
+        {
+          url: product.image || '/images/products/placeholder.jpg',
+          width: 800,
+          height: 600,
+        },
+      ],
+      url: `/product/${product.id}`,
+      type: 'website', // 修正: 使用有效的 Open Graph 类型，例如 'website'
+    },
+  };
 }
 
 /**
@@ -15,41 +73,11 @@ interface ProductPageProps {
  * 使用服务器组件渲染商品详情
  */
 export default async function ProductPage({ params }: ProductPageProps) {
-  const resolvedParams = await params;
+  const product = await getProductData(params.id);
 
-  if (!isFeatureEnabled('enableTraditionalProductPage')) {
+  if (!product) {
     notFound();
   }
-
-  // TODO: 从 API 获取商品数据
-  const product = {
-    id: resolvedParams.id,
-    name: '商品名称',
-    brand: '品牌名称',
-    price: 1000,
-    image: '/images/products/placeholder.jpg',
-    description: '商品描述',
-    availableQuantity: 10,
-    images: ['/images/products/placeholder.jpg'],
-    sizes: ['S', 'M', 'L'],
-    colors: [
-      { name: '黑色', value: '#000000' },
-      { name: '白色', value: '#FFFFFF' },
-    ],
-    details: ['商品详细信息', '商品特点', '商品规格'],
-    material: '材质信息',
-    careInstructions: ['干洗', '不可漂白', '中温熨烫'],
-    sku: 'SKU123456',
-    relatedProducts: [],
-    currency: '$',
-    gender: 'unisex' as const,
-    specifications: {
-      material: '主要材质',
-      color: '多色',
-      size: 'S-L',
-      origin: '中国',
-    },
-  };
 
   return (
     <div className="min-h-screen bg-bg-primary-light dark:bg-bg-primary-dark py-8">

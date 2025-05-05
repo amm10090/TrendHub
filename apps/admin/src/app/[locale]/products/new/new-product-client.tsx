@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@heroui/react";
 import { ReactNode } from "react";
 
 import { CustomNavbar } from "@/components/custom-navbar";
+import { Button } from "@/components/ui/button";
 
 function NavbarWrapper() {
   return <CustomNavbar />;
@@ -19,7 +19,7 @@ function PageWrapper({ children }: { children: ReactNode }) {
 }
 
 function SaveDraftButton() {
-  return <Button variant="bordered">Save as Draft</Button>;
+  return <Button variant="outline">Save as Draft</Button>;
 }
 
 function PublishButton() {

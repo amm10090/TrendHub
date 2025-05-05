@@ -1,10 +1,5 @@
-import { PrismaClient, CodeSnippet } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
-
-// 扩展CodeSnippet类型，添加paths字段
-interface CodeSnippetWithPaths extends CodeSnippet {
-  paths?: string[];
-}
 
 // 使用单例模式确保每个实例只创建一次PrismaClient
 declare global {
@@ -47,13 +42,10 @@ export async function GET(request: Request) {
 
     // 过滤匹配当前路径的片段
     const matchingSnippets = snippets.filter((snippet) => {
-      const snippetWithPaths = snippet as CodeSnippetWithPaths;
       // 如果片段没有指定路径限制，则在所有页面生效
-      if (!snippetWithPaths.paths?.length) return true;
+      if (!snippet.paths?.length) return true;
       // 否则检查当前路径是否匹配任意一个指定的路径模式
-      return snippetWithPaths.paths.some((pattern) =>
-        pathMatchesPattern(path, pattern),
-      );
+      return snippet.paths.some((pattern) => pathMatchesPattern(path, pattern));
     });
 
     // 返回过滤后的结果

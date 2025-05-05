@@ -1,8 +1,8 @@
 'use client';
 
 import { Divider, Image, Link as HeroLink } from '@heroui/react';
-import { Facebook, Instagram, Twitter } from 'lucide-react';
 import * as React from 'react';
+import { SocialIcon } from 'react-social-icons';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { useSettings } from '@/contexts/SettingsContext';
@@ -29,9 +29,10 @@ export const Footer: React.FC = () => {
       { name: t('huawei'), href: '#', qrCode: settings.socialHuaweiQRCode },
     ],
     socialEn: [
-      { name: 'Facebook', href: settings.facebook, icon: Facebook },
-      { name: 'Twitter', href: settings.twitter, icon: Twitter },
-      { name: 'Instagram', href: settings.instagram, icon: Instagram },
+      { name: 'Facebook', href: settings.facebook },
+      { name: 'Twitter', href: settings.twitter },
+      { name: 'Instagram', href: settings.instagram },
+      { name: 'Pinterest', href: settings.pinterest },
     ],
   };
 
@@ -109,20 +110,20 @@ export const Footer: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col gap-y-6">
-                <div className="flex flex-wrap gap-4">
-                  {socialLinksEn.map((platform) => (
-                    <HeroLink
-                      key={platform.name}
-                      className="text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
-                      href={platform.href || '#'}
+              <div className="flex flex-wrap gap-4">
+                {socialLinksEn.map((platform) =>
+                  platform.href && platform.href !== '#' ? (
+                    <SocialIcon
+                      key={platform.name || platform.href}
+                      url={platform.href}
+                      style={{ height: 25, width: 25 }}
                       target="_blank"
                       rel="noopener noreferrer"
-                    >
-                      {platform.icon && <platform.icon className="w-5 h-5" />}
-                    </HeroLink>
-                  ))}
-                </div>
+                      className="transition-opacity hover:opacity-80"
+                      fgColor="#ffffff"
+                    />
+                  ) : null
+                )}
               </div>
             )}
           </div>

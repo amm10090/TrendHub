@@ -1,15 +1,18 @@
 'use client';
 
 import { Divider, Image, Link as HeroLink } from '@heroui/react';
-import { Facebook, Instagram, Linkedin, Twitter, Youtube } from 'lucide-react';
+import { Facebook, Instagram, Twitter } from 'lucide-react';
 import * as React from 'react';
 import { useLocale, useTranslations } from 'use-intl';
+
+import { useSettings } from '@/contexts/SettingsContext';
 
 import { NewsletterSubscribe } from './NewsletterSubscribe';
 
 export const Footer: React.FC = () => {
   const t = useTranslations('footer');
   const locale = useLocale();
+  const { settings } = useSettings();
 
   const footerLinks = {
     customerService: [
@@ -21,18 +24,22 @@ export const Footer: React.FC = () => {
       { name: t('contact'), href: '/contact' },
     ],
     socialZh: [
-      { name: 'iOS App', href: '#', qrCode: '/images/qr-ios.png' },
-      { name: t('wechat'), href: '#', qrCode: '/images/qr-wechat.png' },
-      { name: t('huawei'), href: '#', qrCode: '/images/qr-huawei.png' },
+      { name: 'iOS App', href: '#', qrCode: settings.socialIOSQRCode },
+      { name: t('wechat'), href: '#', qrCode: settings.socialWechatQRCode },
+      { name: t('huawei'), href: '#', qrCode: settings.socialHuaweiQRCode },
     ],
     socialEn: [
-      { name: 'LinkedIn', href: '#', icon: Linkedin },
-      { name: 'Facebook', href: '#', icon: Facebook },
-      { name: 'Twitter', href: '#', icon: Twitter },
-      { name: 'Instagram', href: '#', icon: Instagram },
-      { name: 'YouTube', href: '#', icon: Youtube },
+      { name: 'Facebook', href: settings.facebook, icon: Facebook },
+      { name: 'Twitter', href: settings.twitter, icon: Twitter },
+      { name: 'Instagram', href: settings.instagram, icon: Instagram },
     ],
   };
+
+  const socialLinksZh = footerLinks.socialZh.filter((link) => link.qrCode);
+  const socialLinksEn = footerLinks.socialEn.filter((link) => link.href);
+
+  const copyrightText =
+    settings.siteCopyright || `${settings.siteName || 'TrendHub'}. ${t('copyright')}`;
 
   return (
     <footer className="bg-bg-secondary-light dark:bg-bg-secondary-dark">
@@ -84,15 +91,17 @@ export const Footer: React.FC = () => {
             </h3>
             {locale === 'zh' ? (
               <div className="grid grid-cols-3 gap-4">
-                {footerLinks.socialZh.map((platform) => (
+                {socialLinksZh.map((platform) => (
                   <div key={platform.name} className="text-center">
-                    <div className="w-24 h-24 mx-auto mb-2 bg-bg-tertiary-light dark:bg-bg-tertiary-dark rounded-lg relative overflow-hidden">
-                      <Image
-                        alt={`${platform.name} QR Code`}
-                        className="object-cover w-full h-full"
-                        src={platform.qrCode}
-                      />
-                    </div>
+                    {platform.qrCode && (
+                      <div className="w-24 h-24 mx-auto mb-2 bg-bg-tertiary-light dark:bg-bg-tertiary-dark rounded-lg relative overflow-hidden">
+                        <Image
+                          alt={`${platform.name} QR Code`}
+                          className="object-cover w-full h-full"
+                          src={platform.qrCode}
+                        />
+                      </div>
+                    )}
                     <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
                       {platform.name}
                     </p>
@@ -102,13 +111,15 @@ export const Footer: React.FC = () => {
             ) : (
               <div className="flex flex-col gap-y-6">
                 <div className="flex flex-wrap gap-4">
-                  {footerLinks.socialEn.map((platform) => (
+                  {socialLinksEn.map((platform) => (
                     <HeroLink
                       key={platform.name}
                       className="text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark transition-colors"
-                      href={platform.href}
+                      href={platform.href || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      <platform.icon className="w-5 h-5" />
+                      {platform.icon && <platform.icon className="w-5 h-5" />}
                     </HeroLink>
                   ))}
                 </div>
@@ -121,7 +132,7 @@ export const Footer: React.FC = () => {
 
         <div className="text-center">
           <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-            &copy; {new Date().getFullYear()} TrendHub. {t('copyright')}
+            &copy; {new Date().getFullYear()} {copyrightText}
           </p>
         </div>
       </div>

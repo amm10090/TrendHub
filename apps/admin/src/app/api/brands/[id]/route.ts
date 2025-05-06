@@ -9,9 +9,11 @@ interface RouteParams {
 }
 
 // 获取单个品牌
-export async function GET(_: Request, { params }: RouteParams) {
+export async function GET(_: Request, context: Promise<RouteParams>) {
   try {
-    const brand = await brandService.getBrand(params.id);
+    const { params } = await context;
+    const { id } = await params;
+    const brand = await brandService.getBrand(id);
 
     if (!brand) {
       return NextResponse.json({ error: "品牌不存在" }, { status: 404 });
@@ -24,10 +26,12 @@ export async function GET(_: Request, { params }: RouteParams) {
 }
 
 // 更新品牌
-export async function PUT(request: Request, { params }: RouteParams) {
+export async function PUT(request: Request, context: Promise<RouteParams>) {
   try {
+    const { params } = await context;
+    const { id } = await params;
     const data = await request.json();
-    const brand = await brandService.updateBrand(params.id, data);
+    const brand = await brandService.updateBrand(id, data);
 
     return NextResponse.json(brand);
   } catch (error) {
@@ -39,9 +43,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 // 删除品牌
-export async function DELETE(_: Request, { params }: RouteParams) {
+export async function DELETE(_: Request, context: Promise<RouteParams>) {
   try {
-    await brandService.deleteBrand(params.id);
+    const { params } = await context;
+    const { id } = await params;
+
+    await brandService.deleteBrand(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

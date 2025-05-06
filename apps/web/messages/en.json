@@ -1,62 +1,319 @@
 {
+  "about": {
+    "contact": {
+      "button": "Send Email",
+      "description": "If you have any questions or suggestions, feel free to contact us",
+      "title": "Contact Us"
+    },
+    "hero": {
+      "description": "TrendHub is your most trusted source for discovering exquisite luxury fashion. Our expert buying team travels the globe to curate a selection of over 200 international luxury brands.",
+      "title": "About TrendHub"
+    },
+    "mission": {
+      "description": "TrendHub is dedicated to creating a platform that connects global fashion brands with consumers, making quality fashion accessible to everyone.",
+      "title": "Our Mission",
+      "values": {
+        "value1": "Provide the best shopping experience for customers",
+        "value2": "Ensure product authenticity and quality",
+        "value3": "Continuous innovation and leading fashion trends"
+      }
+    },
+    "nav": {
+      "about": "About Us",
+      "affiliate": "Affiliate Program",
+      "sustainability": "Sustainability"
+    },
+    "services": {
+      "guarantee": {
+        "description": "All items sourced directly from brands",
+        "title": "Authenticity Guaranteed"
+      },
+      "shipping": {
+        "description": "Professional logistics to 130+ countries",
+        "title": "Global Fast Shipping"
+      },
+      "support": {
+        "description": "Premium customer service in 13 languages",
+        "title": "24/7 Expert Support"
+      }
+    },
+    "stats": {
+      "brands": "International Luxury Brands",
+      "countries": "Shipping Destinations",
+      "newArrivals": "Weekly New Arrivals",
+      "team": "Expert Buyers"
+    },
+    "sustainability": {
+      "description": "Our sustainability framework is built on four pillars that shape our approach to environmental, social, and governance (ESG) issues.",
+      "pillars": {
+        "planet": {
+          "description": "Committed to improving our global operations' impact on greenhouse gas emissions and waste management, while providing sustainable choices for our customers.",
+          "title": "Planet"
+        },
+        "policy": {
+          "description": "Maintaining the highest standards in corporate culture, governance, and digital operations, including data management and corporate conduct.",
+          "title": "Policy"
+        },
+        "product": {
+          "description": "Committed to full transparency in brand and product ESG impact, supporting animal welfare, responsible sourcing, and circular economy.",
+          "title": "Product"
+        },
+        "talent": {
+          "description": "Creating a diverse, equitable, inclusive, and positive culture for our employees, partners, customers, and the luxury industry as a whole.",
+          "title": "Talent"
+        }
+      },
+      "reports": {
+        "description": "Learn about our latest progress and future plans in sustainability.",
+        "title": "Sustainability Reports"
+      },
+      "title": "TrendHub Sustainability Commitment",
+      "vision": {
+        "date": "January 2024",
+        "quote": "Sustainability is a journey, not a destination; it's about practice, not just goals. In a world where environmental, social, and governance issues are increasingly urgent, we aim to grow our business in the most sustainable way possible.",
+        "signature": "TrendHub Management Team"
+      }
+    },
+    "team": {
+      "members": {
+        "member1": {
+          "description": "Over 15 years of experience in e-commerce and fashion industry",
+          "name": "Ming Zhang",
+          "position": "Founder & CEO"
+        },
+        "member2": {
+          "description": "Focused on creating ultimate user experience and technical innovation",
+          "name": "Howard Li",
+          "position": "CTO"
+        },
+        "member3": {
+          "description": "Dedicated to creating unique visual experiences and brand identity",
+          "name": "Jane Wang",
+          "position": "Design Director"
+        }
+      },
+      "title": "Our Team"
+    }
+  },
+  "banner": {
+    "cta": "Explore Now",
+    "description": "Explore Gucci Spring/Summer 2024 Collection, experience the perfect blend of Italian luxury and modern fashion",
+    "title": "Gucci New Season"
+  },
+  "brands": {
+    "backToBrands": "Back to Brands",
+    "backToTop": "",
+    "descriptions": {
+      "alessandra_rich": "Alessandra Rich is a brand founded by the Italian designer of the same name, known for elegant, feminine designs with a vintage-inspired aesthetic.",
+      "burberry": "Burberry is a British luxury fashion house established in 1856, known for its iconic check pattern and exceptional craftsmanship.",
+      "gucci": "Gucci is an Italian luxury brand founded in 1921, renowned for its high-quality leather goods and distinctive design aesthetic.",
+      "jimmy_choo": "Jimmy Choo is a luxury footwear and accessories brand celebrated for its sophisticated designs and exquisite craftsmanship."
+    },
+    "errorFetchingProducts": "There was a problem loading products for this brand. Please try again later.",
+    "noProducts": "No products available for this brand",
+    "products": "Products",
+    "seo": {
+      "brandDescription": "Shop {brand} latest collections at TrendHub. Explore luxury fashion, accessories, and more with worldwide shipping.",
+      "brandTitle": "{brand} - Official Store | TrendHub",
+      "notFound": "Brand Not Found",
+      "notFoundDesc": "The brand you're looking for doesn't exist or is no longer available."
+    },
+    "viewAllBrands": "",
+    "visitWebsite": "Visit Official Website"
+  },
+  "common": {
+    "hello": "English translation test"
+  },
+  "disclaimer": {
+    "last_updated": "Last Updated: February 25, 2024",
+    "sections": {
+      "contact": {
+        "content": "If you have any questions about this disclaimer, please contact us at:",
+        "email": "legal@trendhub.com",
+        "title": "Contact Information"
+      },
+      "general": {
+        "content": "The information provided on TrendHub is for general informational purposes only. All product information is subject to change without notice.",
+        "items": {
+          "0": "Product images may vary from actual items due to photography lighting, display settings, or design updates",
+          "1": "Colors shown may not be exact representations of actual products",
+          "2": "Information from third-party sources is presented as received and we cannot guarantee its accuracy"
+        },
+        "title": "General Information"
+      },
+      "intellectual": {
+        "content": "Regarding intellectual property rights:",
+        "items": {
+          "0": "The TrendHub name, logo, and content are protected by copyright and other intellectual property laws",
+          "1": "Users may not reproduce, distribute, or use our content without explicit permission",
+          "2": "Brand names, logos, and product images belong to their respective owners",
+          "3": "We respect intellectual property rights and expect users to do the same"
+        },
+        "title": "Intellectual Property"
+      },
+      "liability": {
+        "content": "TrendHub and its affiliates shall not be liable for:",
+        "items": {
+          "0": "Any direct, indirect, incidental, or consequential damages arising from using our platform",
+          "1": "Issues related to product quality, safety, or performance of items purchased through linked retailers",
+          "2": "Delays or failures in performance resulting from causes beyond our control",
+          "3": "Data loss or service interruptions"
+        },
+        "title": "Limitation of Liability"
+      },
+      "modifications": {
+        "content": "We reserve the right to modify this disclaimer at any time:",
+        "items": {
+          "0": "Changes will be effective immediately upon posting to our website",
+          "1": "Your continued use of TrendHub after modifications constitutes acceptance of the updated disclaimer",
+          "2": "We encourage users to review this disclaimer periodically for changes"
+        },
+        "title": "Policy Modifications"
+      },
+      "pricing": {
+        "content": "While we strive to provide accurate product and pricing information, errors may occur:",
+        "items": {
+          "0": "Prices are subject to change without notice",
+          "1": "Product availability cannot be guaranteed until order confirmation",
+          "2": "We reserve the right to refuse or cancel orders with incorrect pricing information",
+          "3": "Special offers may have time limitations and conditions that apply"
+        },
+        "title": "Pricing and Availability"
+      },
+      "thirdparty": {
+        "content": "Our platform features products from various retailers and brands:",
+        "items": {
+          "0": "We are not responsible for the content, policies, or practices of third-party retailers",
+          "1": "Links to external websites are provided for convenience only",
+          "2": "TrendHub does not endorse any specific brand, retailer, or product featured on our platform",
+          "3": "Users should review the terms and policies of third-party retailers before making purchases"
+        },
+        "title": "Third-Party Content"
+      }
+    },
+    "title": "Disclaimer"
+  },
+  "footer": {
+    "aboutUs": "About Us",
+    "company": {
+      "title": "Company"
+    },
+    "contact": "Contact",
+    "copyright": "All rights reserved",
+    "customerService": "Customer Service",
+    "disclaimer": {
+      "title": "Disclaimer"
+    },
+    "followUs": "Follow Us",
+    "giftCards": "Gift Cards",
+    "help": {
+      "title": "Help"
+    },
+    "huawei": "Huawei App",
+    "legal": {
+      "title": "Follow Us"
+    },
+    "newsletter": {
+      "description": "Subscribe to receive updates, access to exclusive deals, and more.",
+      "error": "Failed to subscribe. Please try again later.",
+      "invalid_email": "Please enter a valid email address",
+      "placeholder": "Enter your email",
+      "subscribe": "Subscribe",
+      "success": "Thank you for subscribing!",
+      "title": "Subscribe to our newsletter"
+    },
+    "payment": "Payment Methods",
+    "privacy": {
+      "title": "Privacy Policy"
+    },
+    "returns": "Returns & Exchanges",
+    "shipping": "Shipping",
+    "wechat": "WeChat Mini Program"
+  },
+  "introduction": {
+    "bottom_text": "Shop with us and discover why Mytheresa is your final destination for online shopping for women.",
+    "description": "Mytheresa is the most-trusted source for finding the finest selection of luxurious womenswear. Our expert buying team travels the globe with a simple mission: to bring international fashion's finest directly to your doorstep. With our runway-fresh new arrivals every week, an easy-to-navigate platform and a mobile app to shop on-the-go, we ensure a boutique-like feeling for a unique shopping experience.",
+    "features": {
+      "left": "The finest edit of more than 200 international luxury brands\\n900 new arrivals each week directly from the runway\\nWell-curated selection of items for a boutique-like shopping experience",
+      "right": "Exclusive designer collaborations and capsule collections that you won't find anywhere else\\nExceptional customer service available 24 hours a day, 7 days a week in 13 different languages\\nFast, worldwide shipping to more than 130 countries"
+    },
+    "guarantees": {
+      "authentic": {
+        "description": "Every item is guaranteed authentic, sourced directly from designers and authorized retailers.",
+        "title": "100% Authentic"
+      },
+      "payment": {
+        "description": "Multiple secure payment options and buyer protection on all purchases.",
+        "title": "Secure Payment"
+      },
+      "shipping": {
+        "description": "Fast and secure worldwide shipping with full tracking and customs clearance service.",
+        "title": "Global Shipping"
+      }
+    },
+    "title": "A luxury shopping experience"
+  },
   "nav": {
-    "women": "Women",
-    "men": "Men",
-    "clothing": "Clothing",
-    "shoes": "Shoes",
-    "bags": "Bags",
     "accessories": "Accessories",
-    "jewelry": "Jewelry",
-    "brands": "Brands",
-    "guides": "Guides",
-    "search": {
-      "label": "Search",
-      "placeholder": "Search for items and brands",
-      "close": "Close search",
-      "clear": "nav.search.clear"
+    "accessories_categories": {
+      "all": "All Accessories",
+      "belts": "Belts",
+      "faceMasks": "Face Masks",
+      "gloves": "Gloves",
+      "hairAccessories": "Headbands & Hair Accessories",
+      "hats": "Hats",
+      "phoneCases": "Phone Cases",
+      "scarves": "Scarves & Mufflers",
+      "sunglasses": "Sunglasses",
+      "umbrellas": "Umbrellas",
+      "wallets": "Wallets & Cardholders",
+      "watches": "Watches"
     },
     "account": "Account",
-    "wishlist": "Wishlist",
-    "cart": "Cart",
-    "back": "Back",
-    "newArrivals": "New Arrivals",
-    "popular_brands": "Popular Brands",
-    "brands_a_z": "Brands A-Z",
-    "view_all_brands": "View All Brands",
-    "category": "Category",
-    "viewAllCategories": "View All Categories",
-    "viewAllClothing": "View All Clothing",
-    "viewAll": "View All",
-    "onSale": "On Sale",
-    "trending": "Trending",
-    "black": "Black",
-    "white": "White",
-    "red": "Red",
-    "blue": "Blue",
-    "green": "Green",
-    "casual": "Casual",
-    "formal": "Formal",
-    "sporty": "Sporty",
-    "vintage": "Vintage",
-    "clear_categories": "Clear Categories",
+    "all": "nav.all",
     "apply_filters": "Apply Filters",
-    "popular_brand_names": {
-      "balenciaga": "Balenciaga",
-      "bottega_veneta": "Bottega Veneta",
-      "chloe": "Chloé",
-      "ganni": "Ganni",
-      "gucci": "Gucci",
-      "h_and_m": "H&M",
-      "isabel_marant": "Isabel Marant",
-      "other_stories": "& Other Stories",
-      "prada": "Prada",
-      "saint_laurent": "Saint Laurent",
-      "reformation": "Reformation",
-      "valentino": "Valentino",
-      "zara": "Zara",
-      "tory_burch": "Tory Burch"
+    "back": "Back",
+    "bags": "Bags",
+    "bags_categories": {
+      "all": "All Bags",
+      "backpacks": "Backpacks",
+      "bagAccessories": "Bag Accessories",
+      "beachBags": "Beach Bags",
+      "beltBags": "Belt Bags",
+      "briefcases": "Briefcases & Work Bags",
+      "bucketBags": "Bucket Bags",
+      "clutches": "Clutches & Evening Bags",
+      "crossbody": "Crossbody Bags",
+      "duffelBags": "Duffel & Weekend Bags",
+      "hoboBags": "Hobo Bags",
+      "luggage": "Luggage",
+      "makeupBags": "Makeup Bags & Cases",
+      "satchelBags": "Satchel Bags",
+      "shoulderBags": "Shoulder Bags",
+      "topHandleBags": "Top-Handle Bags",
+      "toteBags": "Tote Bags"
     },
+    "black": "Black",
+    "blue": "Blue",
+    "brands": "Brands",
+    "brands_a_z": "Brands A-Z",
+    "brands_categories": {
+      "affordable": "Affordable Luxury",
+      "all": "All Brands",
+      "contemporary": "Contemporary",
+      "designers": "Designer Brands",
+      "luxury": "Luxury",
+      "popular": "Popular Brands",
+      "sustainable": "Sustainable"
+    },
+    "cart": "Cart",
+    "casual": "Casual",
+    "category": "Category",
+    "clear": "Clear",
+    "clear_categories": "Clear Categories",
+    "clothing": "Clothing",
     "clothing_categories": {
+      "activewear": "Activewear",
       "all": "All Clothing",
       "beachwear": "Beachwear & Swimwear",
       "coats": "Coats",
@@ -72,49 +329,15 @@
       "shorts": "Shorts",
       "skirts": "Skirts",
       "suits": "Suits",
-      "activewear": "Activewear",
       "tops": "Tops"
     },
-    "shoes_categories": {
-      "all": "All Shoes",
-      "boots": "Boots",
-      "flats": "Flats",
-      "heels": "Heels",
-      "sneakers": "Sneakers"
+    "filters": {
+      "title": "nav.filters.title"
     },
-    "accessories_categories": {
-      "all": "All Accessories",
-      "belts": "Belts",
-      "phoneCases": "Phone Cases",
-      "faceMasks": "Face Masks",
-      "gloves": "Gloves",
-      "hairAccessories": "Headbands & Hair Accessories",
-      "hats": "Hats",
-      "scarves": "Scarves & Mufflers",
-      "sunglasses": "Sunglasses",
-      "umbrellas": "Umbrellas",
-      "wallets": "Wallets & Cardholders",
-      "watches": "Watches"
-    },
-    "bags_categories": {
-      "all": "All Bags",
-      "backpacks": "Backpacks",
-      "bagAccessories": "Bag Accessories",
-      "beachBags": "Beach Bags",
-      "beltBags": "Belt Bags",
-      "briefcases": "Briefcases & Work Bags",
-      "bucketBags": "Bucket Bags",
-      "clutches": "Clutches & Evening Bags",
-      "crossbody": "Crossbody Bags",
-      "hoboBags": "Hobo Bags",
-      "duffelBags": "Duffel & Weekend Bags",
-      "luggage": "Luggage",
-      "makeupBags": "Makeup Bags & Cases",
-      "satchelBags": "Satchel Bags",
-      "shoulderBags": "Shoulder Bags",
-      "topHandleBags": "Top-Handle Bags",
-      "toteBags": "Tote Bags"
-    },
+    "formal": "Formal",
+    "green": "Green",
+    "guides": "Guides",
+    "jewelry": "Jewelry",
     "jewelry_categories": {
       "all": "All Jewelry",
       "bracelets": "Bracelets",
@@ -123,538 +346,328 @@
       "necklaces": "Necklaces",
       "rings": "Rings"
     },
-    "brands_categories": {
-      "all": "All Brands",
-      "popular": "Popular Brands",
-      "designers": "Designer Brands",
-      "contemporary": "Contemporary",
-      "luxury": "Luxury",
-      "sustainable": "Sustainable",
-      "affordable": "Affordable Luxury"
-    },
+    "men": "Men",
     "menu": "Menu",
-    "clear": "Clear",
-    "filters": {
-      "title": "nav.filters.title"
+    "newArrivals": "New Arrivals",
+    "onSale": "On Sale",
+    "popular_brand_names": {
+      "balenciaga": "Balenciaga",
+      "bottega_veneta": "Bottega Veneta",
+      "chloe": "Chloé",
+      "ganni": "Ganni",
+      "gucci": "Gucci",
+      "h_and_m": "H&M",
+      "isabel_marant": "Isabel Marant",
+      "other_stories": "& Other Stories",
+      "prada": "Prada",
+      "reformation": "Reformation",
+      "saint_laurent": "Saint Laurent",
+      "tory_burch": "Tory Burch",
+      "valentino": "Valentino",
+      "zara": "Zara"
     },
-    "all": "nav.all"
-  },
-  "banner": {
-    "title": "Gucci New Season",
-    "description": "Explore Gucci Spring/Summer 2024 Collection, experience the perfect blend of Italian luxury and modern fashion",
-    "cta": "Explore Now"
-  },
-  "trending": {
-    "title": "Trending",
-    "discover_more": "Discover More",
-    "shining_examples": {
-      "title": "SHINING EXAMPLES",
-      "subtitle": "Strike gold with charming accents",
-      "see_all": "SEE ALL"
+    "popular_brands": "Popular Brands",
+    "red": "Red",
+    "search": {
+      "clear": "nav.search.clear",
+      "close": "Close search",
+      "label": "Search",
+      "placeholder": "Search for items and brands"
     },
-    "items": {
-      "valentino": {
-        "title": "Valentino Garavani",
-        "description": "Discover the latest collection of luxury accessories"
-      },
-      "summer": {
-        "title": "Summer Essentials",
-        "description": "Get ready for the season with our curated selection"
-      },
-      "shoes": {
-        "title": "New in Shoes",
-        "description": "Step into the season with our latest arrivals"
-      },
-      "bags": {
-        "title": "Luxury Bags",
-        "description": "Explore our collection of designer bags"
-      },
-      "spring": {
-        "title": "Spring Collection 2024",
-        "description": "Explore our curated selection of spring essentials. Fresh colors and lightweight fabrics for the new season."
-      },
-      "prada": {
-        "title": "Prada New Bags",
-        "description": "Explore Prada's iconic Re-Edition series, reinterpreting classic designs"
-      },
-      "gucci": {
-        "title": "Gucci Men's Collection",
-        "description": "Discover Gucci's latest menswear collection, combining traditional craftsmanship with modern design"
-      },
-      "new": {
-        "title": "New Arrivals",
-        "description": "Browse the latest brands and items to stay ahead of fashion trends"
-      },
-      "belts": {
-        "title": "Accentuate your looks with logo belts",
-        "subtitle": "Discover our selection of designer belts",
-        "label": "COME FULL CIRCLE"
-      }
+    "shoes": "Shoes",
+    "shoes_categories": {
+      "all": "All Shoes",
+      "boots": "Boots",
+      "flats": "Flats",
+      "heels": "Heels",
+      "sneakers": "Sneakers"
     },
-    "shining_brands": {
-      "valentino": "Valentino Garavani",
-      "balmain": "Balmain",
-      "alessandra": "Alessandra Rich",
-      "jacquemus": "Jacquemus"
-    }
-  },
-  "footer": {
-    "company": {
-      "title": "Company"
-    },
-    "help": {
-      "title": "Help"
-    },
-    "legal": {
-      "title": "Follow Us"
-    },
-    "newsletter": {
-      "title": "Subscribe to our newsletter",
-      "description": "Subscribe to receive updates, access to exclusive deals, and more.",
-      "placeholder": "Enter your email",
-      "subscribe": "Subscribe",
-      "success": "Thank you for subscribing!",
-      "error": "Failed to subscribe. Please try again later.",
-      "invalid_email": "Please enter a valid email address"
-    },
-    "customerService": "Customer Service",
-    "aboutUs": "About Us",
-    "followUs": "Follow Us",
-    "contact": "Contact",
-    "giftCards": "Gift Cards",
-    "payment": "Payment Methods",
-    "shipping": "Shipping",
-    "returns": "Returns & Exchanges",
-    "copyright": "All rights reserved",
-    "wechat": "WeChat Mini Program",
-    "huawei": "Huawei App",
-    "privacy": {
-      "title": "Privacy Policy"
-    },
-    "disclaimer": {
-      "title": "Disclaimer"
-    }
-  },
-  "introduction": {
-    "title": "A luxury shopping experience",
-    "description": "Mytheresa is the most-trusted source for finding the finest selection of luxurious womenswear. Our expert buying team travels the globe with a simple mission: to bring international fashion's finest directly to your doorstep. With our runway-fresh new arrivals every week, an easy-to-navigate platform and a mobile app to shop on-the-go, we ensure a boutique-like feeling for a unique shopping experience.",
-    "features": {
-      "left": "The finest edit of more than 200 international luxury brands\\n900 new arrivals each week directly from the runway\\nWell-curated selection of items for a boutique-like shopping experience",
-      "right": "Exclusive designer collaborations and capsule collections that you won't find anywhere else\\nExceptional customer service available 24 hours a day, 7 days a week in 13 different languages\\nFast, worldwide shipping to more than 130 countries"
-    },
-    "bottom_text": "Shop with us and discover why Mytheresa is your final destination for online shopping for women.",
-    "guarantees": {
-      "authentic": {
-        "title": "100% Authentic",
-        "description": "Every item is guaranteed authentic, sourced directly from designers and authorized retailers."
-      },
-      "shipping": {
-        "title": "Global Shipping",
-        "description": "Fast and secure worldwide shipping with full tracking and customs clearance service."
-      },
-      "payment": {
-        "title": "Secure Payment",
-        "description": "Multiple secure payment options and buyer protection on all purchases."
-      }
-    }
-  },
-  "toast": {
-    "newsletter": {
-      "subscription_success": {
-        "title": "Subscription Successful",
-        "description": "Welcome to TrendHub! You've been added to our newsletter list."
-      },
-      "subscription_error": {
-        "title": "Subscription Failed",
-        "description": "We couldn't process your subscription. Please try again later."
-      },
-      "please_enter_valid_email": {
-        "title": "Invalid Email",
-        "description": "Please enter a valid email address to subscribe."
-      }
-    }
-  },
-  "about": {
-    "nav": {
-      "about": "About Us",
-      "sustainability": "Sustainability",
-      "affiliate": "Affiliate Program"
-    },
-    "hero": {
-      "title": "About TrendHub",
-      "description": "TrendHub is your most trusted source for discovering exquisite luxury fashion. Our expert buying team travels the globe to curate a selection of over 200 international luxury brands."
-    },
-    "stats": {
-      "brands": "International Luxury Brands",
-      "countries": "Shipping Destinations",
-      "team": "Expert Buyers",
-      "newArrivals": "Weekly New Arrivals"
-    },
-    "sustainability": {
-      "title": "TrendHub Sustainability Commitment",
-      "description": "Our sustainability framework is built on four pillars that shape our approach to environmental, social, and governance (ESG) issues.",
-      "pillars": {
-        "planet": {
-          "title": "Planet",
-          "description": "Committed to improving our global operations' impact on greenhouse gas emissions and waste management, while providing sustainable choices for our customers."
-        },
-        "talent": {
-          "title": "Talent",
-          "description": "Creating a diverse, equitable, inclusive, and positive culture for our employees, partners, customers, and the luxury industry as a whole."
-        },
-        "product": {
-          "title": "Product",
-          "description": "Committed to full transparency in brand and product ESG impact, supporting animal welfare, responsible sourcing, and circular economy."
-        },
-        "policy": {
-          "title": "Policy",
-          "description": "Maintaining the highest standards in corporate culture, governance, and digital operations, including data management and corporate conduct."
-        }
-      },
-      "vision": {
-        "quote": "Sustainability is a journey, not a destination; it's about practice, not just goals. In a world where environmental, social, and governance issues are increasingly urgent, we aim to grow our business in the most sustainable way possible.",
-        "signature": "TrendHub Management Team",
-        "date": "January 2024"
-      },
-      "reports": {
-        "title": "Sustainability Reports",
-        "description": "Learn about our latest progress and future plans in sustainability."
-      }
-    },
-    "services": {
-      "support": {
-        "title": "24/7 Expert Support",
-        "description": "Premium customer service in 13 languages"
-      },
-      "shipping": {
-        "title": "Global Fast Shipping",
-        "description": "Professional logistics to 130+ countries"
-      },
-      "guarantee": {
-        "title": "Authenticity Guaranteed",
-        "description": "All items sourced directly from brands"
-      }
-    },
-    "mission": {
-      "title": "Our Mission",
-      "description": "TrendHub is dedicated to creating a platform that connects global fashion brands with consumers, making quality fashion accessible to everyone.",
-      "values": {
-        "value1": "Provide the best shopping experience for customers",
-        "value2": "Ensure product authenticity and quality",
-        "value3": "Continuous innovation and leading fashion trends"
-      }
-    },
-    "team": {
-      "title": "Our Team",
-      "members": {
-        "member1": {
-          "name": "Ming Zhang",
-          "position": "Founder & CEO",
-          "description": "Over 15 years of experience in e-commerce and fashion industry"
-        },
-        "member2": {
-          "name": "Howard Li",
-          "position": "CTO",
-          "description": "Focused on creating ultimate user experience and technical innovation"
-        },
-        "member3": {
-          "name": "Jane Wang",
-          "position": "Design Director",
-          "description": "Dedicated to creating unique visual experiences and brand identity"
-        }
-      }
-    },
-    "contact": {
-      "title": "Contact Us",
-      "description": "If you have any questions or suggestions, feel free to contact us",
-      "button": "Send Email"
-    }
+    "sporty": "Sporty",
+    "trending": "Trending",
+    "viewAll": "View All",
+    "viewAllCategories": "View All Categories",
+    "viewAllClothing": "View All Clothing",
+    "view_all_brands": "View All Brands",
+    "vintage": "Vintage",
+    "white": "White",
+    "wishlist": "Wishlist",
+    "women": "Women"
   },
   "privacy": {
-    "title": "Privacy Policy",
     "last_updated": "Last Updated: February 8, 2024",
     "sections": {
-      "introduction": {
-        "title": "Introduction",
-        "content": "Welcome to TrendHub's Privacy Policy page. We value your privacy and are committed to protecting your personal information.",
-        "items": {
-          "0": "This Privacy Policy explains how we collect, use, and protect your personal information",
-          "1": "By using our services, you agree to the terms of this Privacy Policy",
-          "2": "We regularly update this policy to ensure compliance with the latest privacy protection standards"
-        }
-      },
-      "information_collection": {
-        "title": "Information Collection",
-        "content": "Types of information we collect include:",
-        "items": {
-          "0": "Personal information you actively provide (such as name, email address)",
-          "1": "Browser and device information",
-          "2": "Shopping history and preferences",
-          "3": "Location information"
-        }
-      },
-      "information_use": {
-        "title": "Information Use",
-        "content": "We use the collected information to:",
-        "items": {
-          "0": "Process your orders and provide customer service",
-          "1": "Personalize your shopping experience",
-          "2": "Send marketing communications (with your consent)",
-          "3": "Improve our products and services"
-        }
-      },
-      "information_sharing": {
-        "title": "Information Sharing",
-        "content": "How we share your information:",
-        "items": {
-          "0": "We do not sell your personal information",
-          "1": "Information is only shared with necessary service providers",
-          "2": "Information may be disclosed when required by law",
-          "3": "Third-party sharing only occurs with your explicit consent"
-        }
+      "contact": {
+        "content": "If you have any questions about our Privacy Policy, please don't hesitate to contact us:",
+        "email": "privacy@trendhub.com",
+        "title": "Contact Us"
       },
       "cookies": {
-        "title": "Cookie Policy",
         "content": "We use cookies to enhance your shopping experience:",
         "items": {
           "0": "Essential cookies for basic website functionality",
           "1": "Analytics cookies to help improve our services",
           "2": "Marketing cookies for personalized advertising",
           "3": "You can manage cookies in your browser settings at any time"
-        }
+        },
+        "title": "Cookie Policy"
       },
-      "security": {
-        "title": "Security Measures",
-        "content": "We implement multiple measures to protect your information:",
+      "information_collection": {
+        "content": "Types of information we collect include:",
         "items": {
-          "0": "Data encryption for secure transmission",
-          "1": "Regular security system updates",
-          "2": "Limited employee access to personal information",
-          "3": "Regular security audits"
-        }
+          "0": "Personal information you actively provide (such as name, email address)",
+          "1": "Browser and device information",
+          "2": "Shopping history and preferences",
+          "3": "Location information"
+        },
+        "title": "Information Collection"
+      },
+      "information_sharing": {
+        "content": "How we share your information:",
+        "items": {
+          "0": "We do not sell your personal information",
+          "1": "Information is only shared with necessary service providers",
+          "2": "Information may be disclosed when required by law",
+          "3": "Third-party sharing only occurs with your explicit consent"
+        },
+        "title": "Information Sharing"
+      },
+      "information_use": {
+        "content": "We use the collected information to:",
+        "items": {
+          "0": "Process your orders and provide customer service",
+          "1": "Personalize your shopping experience",
+          "2": "Send marketing communications (with your consent)",
+          "3": "Improve our products and services"
+        },
+        "title": "Information Use"
+      },
+      "introduction": {
+        "content": "Welcome to TrendHub's Privacy Policy page. We value your privacy and are committed to protecting your personal information.",
+        "items": {
+          "0": "This Privacy Policy explains how we collect, use, and protect your personal information",
+          "1": "By using our services, you agree to the terms of this Privacy Policy",
+          "2": "We regularly update this policy to ensure compliance with the latest privacy protection standards"
+        },
+        "title": "Introduction"
       },
       "rights": {
-        "title": "Your Rights",
         "content": "Regarding your personal information, you have the right to:",
         "items": {
           "0": "Access your personal information",
           "1": "Correct inaccurate information",
           "2": "Request deletion of your information",
           "3": "Opt-out of marketing communications"
-        }
+        },
+        "title": "Your Rights"
       },
-      "contact": {
-        "title": "Contact Us",
-        "content": "If you have any questions about our Privacy Policy, please don't hesitate to contact us:",
-        "email": "privacy@trendhub.com"
+      "security": {
+        "content": "We implement multiple measures to protect your information:",
+        "items": {
+          "0": "Data encryption for secure transmission",
+          "1": "Regular security system updates",
+          "2": "Limited employee access to personal information",
+          "3": "Regular security audits"
+        },
+        "title": "Security Measures"
       }
-    }
-  },
-  "disclaimer": {
-    "title": "Disclaimer",
-    "last_updated": "Last Updated: February 25, 2024",
-    "sections": {
-      "general": {
-        "title": "General Information",
-        "content": "The information provided on TrendHub is for general informational purposes only. All product information is subject to change without notice.",
-        "items": {
-          "0": "Product images may vary from actual items due to photography lighting, display settings, or design updates",
-          "1": "Colors shown may not be exact representations of actual products",
-          "2": "Information from third-party sources is presented as received and we cannot guarantee its accuracy"
-        }
-      },
-      "pricing": {
-        "title": "Pricing and Availability",
-        "content": "While we strive to provide accurate product and pricing information, errors may occur:",
-        "items": {
-          "0": "Prices are subject to change without notice",
-          "1": "Product availability cannot be guaranteed until order confirmation",
-          "2": "We reserve the right to refuse or cancel orders with incorrect pricing information",
-          "3": "Special offers may have time limitations and conditions that apply"
-        }
-      },
-      "thirdparty": {
-        "title": "Third-Party Content",
-        "content": "Our platform features products from various retailers and brands:",
-        "items": {
-          "0": "We are not responsible for the content, policies, or practices of third-party retailers",
-          "1": "Links to external websites are provided for convenience only",
-          "2": "TrendHub does not endorse any specific brand, retailer, or product featured on our platform",
-          "3": "Users should review the terms and policies of third-party retailers before making purchases"
-        }
-      },
-      "liability": {
-        "title": "Limitation of Liability",
-        "content": "TrendHub and its affiliates shall not be liable for:",
-        "items": {
-          "0": "Any direct, indirect, incidental, or consequential damages arising from using our platform",
-          "1": "Issues related to product quality, safety, or performance of items purchased through linked retailers",
-          "2": "Delays or failures in performance resulting from causes beyond our control",
-          "3": "Data loss or service interruptions"
-        }
-      },
-      "intellectual": {
-        "title": "Intellectual Property",
-        "content": "Regarding intellectual property rights:",
-        "items": {
-          "0": "The TrendHub name, logo, and content are protected by copyright and other intellectual property laws",
-          "1": "Users may not reproduce, distribute, or use our content without explicit permission",
-          "2": "Brand names, logos, and product images belong to their respective owners",
-          "3": "We respect intellectual property rights and expect users to do the same"
-        }
-      },
-      "modifications": {
-        "title": "Policy Modifications",
-        "content": "We reserve the right to modify this disclaimer at any time:",
-        "items": {
-          "0": "Changes will be effective immediately upon posting to our website",
-          "1": "Your continued use of TrendHub after modifications constitutes acceptance of the updated disclaimer",
-          "2": "We encourage users to review this disclaimer periodically for changes"
-        }
-      },
-      "contact": {
-        "title": "Contact Information",
-        "content": "If you have any questions about this disclaimer, please contact us at:",
-        "email": "legal@trendhub.com"
-      }
-    }
+    },
+    "title": "Privacy Policy"
   },
   "product": {
-    "breadcrumb": {
-      "home": "Home",
-      "category": "Category",
-      "search": "Search Results"
-    },
-    "options": {
-      "selectSize": "Select Size",
-      "selectColor": "Select Color",
-      "quantity": "Quantity",
-      "sizeGuide": "Size Guide",
-      "color": "Color"
-    },
-    "inStock": "In Stock",
-    "outOfStock": "Out of Stock",
-    "availableItems": "{count} Available",
-    "addToCart": "Add to Cart",
-    "addToWishlist": "Add to Wishlist",
-    "removeFromWishlist": "Remove from Wishlist",
-    "relatedProducts": "You May Also Like",
-    "filters": {
-      "title": "Filters",
-      "clearAll": "Clear All",
-      "sale": "Sale",
-      "onSaleOnly": "On Sale Only",
-      "category": "Category",
-      "size": "Size",
-      "price": "Price",
-      "color": "Color",
-      "moreFilters": "More Filters",
-      "style": "Style",
-      "apply": "Apply Filters",
-      "viewAllCategories": "View All Categories",
-      "priceRanges": {
-        "under1000": "Under ¥1,000",
-        "1000to5000": "¥1,000 - ¥5,000",
-        "5000to10000": "¥5,000 - ¥10,000",
-        "10000to20000": "¥10,000 - ¥20,000",
-        "over20000": "Over ¥20,000"
-      },
-      "sort": {
-        "title": "Sort by",
-        "newest": "Recently Added",
-        "priceHighToLow": "Price High to Low",
-        "priceLowToHigh": "Price Low to High"
-      },
-      "results": "{count}+ Products",
-      "sizes": {
-        "XS": "XS",
-        "S": "S",
-        "M": "M",
-        "L": "L",
-        "XL": "XL",
-        "XXL": "XXL",
-        "XXXL": "XXXL",
-        "oneSize": "One Size"
-      },
-      "colors": {
-        "black": "Black",
-        "white": "White",
-        "red": "Red",
-        "blue": "Blue",
-        "green": "Green",
-        "yellow": "Yellow",
-        "purple": "Purple",
-        "pink": "Pink",
-        "orange": "Orange",
-        "brown": "Brown",
-        "gray": "Gray",
-        "beige": "Beige",
-        "gold": "Gold",
-        "silver": "Silver",
-        "multicolor": "Multicolor"
-      }
-    },
-    "tags": {
-      "new": "New",
-      "sale": "Sale",
-      "freeShipping": "Free Shipping",
-      "freeReturns": "Free Returns"
-    },
     "accordion": {
-      "description": "Product Details",
-      "material": "Material & Composition",
       "care": "Care Instructions",
-      "shipping": "Shipping Information",
-      "returns": "Returns & Exchanges",
+      "careInstructions": "Care Instructions",
+      "colors": "Colors",
+      "description": "Product Details",
+      "details": "Details",
+      "material": "Material & Composition",
       "noCareInstructions": "No care instructions available",
-      "shippingInfo": {
-        "free": "We offer free shipping on all orders.",
-        "delivery": "Estimated delivery within {days} business days after shipping.",
-        "international": "International orders may take longer to arrive."
-      },
+      "returns": "Returns & Exchanges",
       "returnsInfo": {
         "free": "Enjoy free returns and exchanges.",
         "period": "Unworn items can be returned within {days} days of receipt."
       },
-      "sizes": "Sizes",
-      "colors": "Colors",
-      "details": "Details",
-      "careInstructions": "Care Instructions"
+      "shipping": "Shipping Information",
+      "shippingInfo": {
+        "delivery": "Estimated delivery within {days} business days after shipping.",
+        "free": "We offer free shipping on all orders.",
+        "international": "International orders may take longer to arrive."
+      },
+      "sizes": "Sizes"
     },
-    "new": "NEW",
-    "discount": "Discount",
-    "original_price": "Original Price",
-    "product_count": "{count} Products",
-    "view_details": "View Details",
+    "addToCart": "Add to Cart",
+    "addToWishlist": "Add to Wishlist",
     "add_to_favorites": "Add to Favorites",
-    "remove_from_favorites": "Remove from Favorites",
-    "sku": "SKU",
-    "no_results": "No products found",
-    "try_other_filters": "Try using different filters or clear all filters",
+    "availableItems": "{count} Available",
     "back_to_top": "Back to top",
-    "results": "products",
+    "breadcrumb": {
+      "category": "Category",
+      "home": "Home",
+      "search": "Search Results"
+    },
+    "discount": "Discount",
+    "filters": {
+      "apply": "Apply Filters",
+      "category": "Category",
+      "clearAll": "Clear All",
+      "color": "Color",
+      "colors": {
+        "beige": "Beige",
+        "black": "Black",
+        "blue": "Blue",
+        "brown": "Brown",
+        "gold": "Gold",
+        "gray": "Gray",
+        "green": "Green",
+        "multicolor": "Multicolor",
+        "orange": "Orange",
+        "pink": "Pink",
+        "purple": "Purple",
+        "red": "Red",
+        "silver": "Silver",
+        "white": "White",
+        "yellow": "Yellow"
+      },
+      "moreFilters": "More Filters",
+      "onSaleOnly": "On Sale Only",
+      "price": "Price",
+      "priceRanges": {
+        "10000to20000": "¥10,000 - ¥20,000",
+        "1000to5000": "¥1,000 - ¥5,000",
+        "5000to10000": "¥5,000 - ¥10,000",
+        "over20000": "Over ¥20,000",
+        "under1000": "Under ¥1,000"
+      },
+      "results": "{count}+ Products",
+      "sale": "Sale",
+      "size": "Size",
+      "sizes": {
+        "L": "L",
+        "M": "M",
+        "S": "S",
+        "XL": "XL",
+        "XS": "XS",
+        "XXL": "XXL",
+        "XXXL": "XXXL",
+        "oneSize": "One Size"
+      },
+      "sort": {
+        "newest": "Recently Added",
+        "priceHighToLow": "Price High to Low",
+        "priceLowToHigh": "Price Low to High",
+        "title": "Sort by"
+      },
+      "style": "Style",
+      "title": "Filters",
+      "viewAllCategories": "View All Categories"
+    },
     "from": "from",
-    "partners": "partners"
+    "inStock": "In Stock",
+    "new": "NEW",
+    "no_results": "No products found",
+    "options": {
+      "color": "Color",
+      "quantity": "Quantity",
+      "selectColor": "Select Color",
+      "selectSize": "Select Size",
+      "sizeGuide": "Size Guide"
+    },
+    "original_price": "Original Price",
+    "outOfStock": "Out of Stock",
+    "partners": "partners",
+    "product_count": "{count} Products",
+    "relatedProducts": "You May Also Like",
+    "removeFromWishlist": "Remove from Wishlist",
+    "remove_from_favorites": "Remove from Favorites",
+    "results": "products",
+    "sku": "SKU",
+    "tags": {
+      "freeReturns": "Free Returns",
+      "freeShipping": "Free Shipping",
+      "new": "New",
+      "sale": "Sale"
+    },
+    "try_other_filters": "Try using different filters or clear all filters",
+    "view_details": "View Details"
   },
-  "track": {
-    "redirecting": "Redirecting...",
-    "please_wait": "Please wait while we take you to the retailer's website",
-    "redirecting_in": "Redirecting in {seconds} seconds",
-    "security_notice": "For your account security, please confirm this is the website you want to visit",
-    "redirect_now": "Redirect Now",
-    "now_taking_you_to": "Now taking you to",
-    "taking_too_long": "Taking too long?",
-    "click_here": "Click here"
-  },
-  "brands": {
-    "descriptions": {
-      "gucci": "Gucci is an Italian luxury brand founded in 1921, renowned for its high-quality leather goods and distinctive design aesthetic.",
-      "burberry": "Burberry is a British luxury fashion house established in 1856, known for its iconic check pattern and exceptional craftsmanship.",
-      "jimmy_choo": "Jimmy Choo is a luxury footwear and accessories brand celebrated for its sophisticated designs and exquisite craftsmanship.",
-      "alessandra_rich": "Alessandra Rich is a brand founded by the Italian designer of the same name, known for elegant, feminine designs with a vintage-inspired aesthetic."
+  "toast": {
+    "newsletter": {
+      "please_enter_valid_email": {
+        "description": "Please enter a valid email address to subscribe.",
+        "title": "Invalid Email"
+      },
+      "subscription_error": {
+        "description": "We couldn't process your subscription. Please try again later.",
+        "title": "Subscription Failed"
+      },
+      "subscription_success": {
+        "description": "Welcome to TrendHub! You've been added to our newsletter list.",
+        "title": "Subscription Successful"
+      }
     }
   },
-  "common": {
-    "hello": "English translation test"
+  "track": {
+    "click_here": "Click here",
+    "now_taking_you_to": "Now taking you to",
+    "please_wait": "Please wait while we take you to the retailer's website",
+    "redirect_now": "Redirect Now",
+    "redirecting": "Redirecting...",
+    "redirecting_in": "Redirecting in {seconds} seconds",
+    "security_notice": "For your account security, please confirm this is the website you want to visit",
+    "taking_too_long": "Taking too long?"
+  },
+  "trending": {
+    "discover_more": "Discover More",
+    "items": {
+      "bags": {
+        "description": "Explore our collection of designer bags",
+        "title": "Luxury Bags"
+      },
+      "belts": {
+        "label": "COME FULL CIRCLE",
+        "subtitle": "Discover our selection of designer belts",
+        "title": "Accentuate your looks with logo belts"
+      },
+      "gucci": {
+        "description": "Discover Gucci's latest menswear collection, combining traditional craftsmanship with modern design",
+        "title": "Gucci Men's Collection"
+      },
+      "new": {
+        "description": "Browse the latest brands and items to stay ahead of fashion trends",
+        "title": "New Arrivals"
+      },
+      "prada": {
+        "description": "Explore Prada's iconic Re-Edition series, reinterpreting classic designs",
+        "title": "Prada New Bags"
+      },
+      "shoes": {
+        "description": "Step into the season with our latest arrivals",
+        "title": "New in Shoes"
+      },
+      "spring": {
+        "description": "Explore our curated selection of spring essentials. Fresh colors and lightweight fabrics for the new season.",
+        "title": "Spring Collection 2024"
+      },
+      "summer": {
+        "description": "Get ready for the season with our curated selection",
+        "title": "Summer Essentials"
+      },
+      "valentino": {
+        "description": "Discover the latest collection of luxury accessories",
+        "title": "Valentino Garavani"
+      }
+    },
+    "shining_brands": {
+      "alessandra": "Alessandra Rich",
+      "balmain": "Balmain",
+      "jacquemus": "Jacquemus",
+      "valentino": "Valentino Garavani"
+    },
+    "shining_examples": {
+      "see_all": "SEE ALL",
+      "subtitle": "Strike gold with charming accents",
+      "title": "SHINING EXAMPLES"
+    },
+    "title": "Trending"
   }
 }

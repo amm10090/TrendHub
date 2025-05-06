@@ -11,6 +11,7 @@ export type Brand = {
   logo?: string;
   website?: string;
   isActive: boolean;
+  popularity: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -21,6 +22,7 @@ export interface BrandQueryParams {
   limit?: number;
   search?: string;
   isActive?: boolean;
+  popularity?: boolean;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
@@ -33,6 +35,7 @@ export interface CreateBrandData {
   logo?: string;
   website?: string;
   isActive?: boolean;
+  popularity?: boolean;
 }
 
 // 定义更新品牌的数据接口
@@ -43,6 +46,7 @@ export interface UpdateBrandData {
   logo?: string;
   website?: string;
   isActive?: boolean;
+  popularity?: boolean;
 }
 
 // 定义分页响应接口
@@ -61,6 +65,12 @@ class BrandService {
     this.prisma = db;
   }
 
+  // 映射前端排序字段到数据库字段 - 不再需要临时映射
+  private mapSortField(field: string): string {
+    // 所有字段已在数据库中定义，无需映射
+    return field;
+  }
+
   // 获取品牌列表，支持分页、搜索和筛选
   async getBrands(
     params: BrandQueryParams = {},
@@ -70,6 +80,7 @@ class BrandService {
       limit = 10,
       search = "",
       isActive,
+      popularity,
       sortBy = "name",
       sortOrder = "asc",
     } = params;
@@ -83,7 +94,11 @@ class BrandService {
         ],
       }),
       ...(isActive !== undefined && { isActive }),
+      ...(popularity !== undefined && { popularity }),
     };
+
+    // 处理排序字段
+    const orderByField = this.mapSortField(sortBy);
 
     // 执行查询
     const [items, total] = await Promise.all([
@@ -91,7 +106,19 @@ class BrandService {
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { [sortBy]: sortOrder },
+        orderBy: { [orderByField]: sortOrder },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          logo: true,
+          website: true,
+          isActive: true,
+          popularity: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       }),
       this.prisma.brand.count({ where }),
     ]);
@@ -109,7 +136,54 @@ class BrandService {
   async getBrand(id: string): Promise<Brand | null> {
     return this.prisma.brand.findUnique({
       where: { id },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        logo: true,
+        website: true,
+        isActive: true,
+        popularity: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
+  }
+
+  // 通过 slug 查找单个品牌
+  async findOneBySlug(
+    slug: string,
+    options: { isActive?: boolean } = {},
+  ): Promise<Brand | null> {
+    try {
+      // 构建查询条件
+      const where: Prisma.BrandWhereInput = {
+        slug,
+        // 如果指定了 isActive，则添加到查询条件中
+        ...(options.isActive !== undefined && { isActive: options.isActive }),
+      };
+
+      return this.prisma.brand.findFirst({
+        where,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          logo: true,
+          website: true,
+          isActive: true,
+          popularity: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    } catch (error) {
+      throw new Error(
+        `查找品牌失败: ${error instanceof Error ? error.message : "未知错误"}`,
+      );
+    }
   }
 
   // 创建品牌
@@ -146,6 +220,19 @@ class BrandService {
         data: {
           ...data,
           isActive: data.isActive ?? true, // 默认为激活状态
+          popularity: data.popularity ?? false, // 默认非热门
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          logo: true,
+          website: true,
+          isActive: true,
+          popularity: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
     } catch (error) {

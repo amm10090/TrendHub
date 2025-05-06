@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import { LanguageSwitch } from './language-switch';
+import { NavbarBrands } from './navbar-brands';
 import { ThemeSwitch } from './theme-switch';
 
 interface SubMenuItem {
@@ -26,26 +27,6 @@ interface MenuItem {
   href: string;
   items?: SubMenuItem[];
   isBrands?: boolean;
-}
-
-interface BrandItem {
-  name: string;
-  href: string;
-}
-
-interface BrandItems {
-  firstRowBrands: BrandItem[];
-  secondRowBrands: BrandItem[];
-  viewAll: BrandItem;
-  alphabet: Array<{
-    letter: string;
-    href: string;
-  }>;
-}
-
-interface AlphabetItem {
-  letter: string;
-  href: string;
 }
 
 export const Navbar = () => {
@@ -83,89 +64,6 @@ export const Navbar = () => {
     return items;
   };
 
-  const getBrandItems = (): BrandItems => {
-    const firstRowBrands = [
-      {
-        name: t('popular_brand_names.balenciaga'),
-        href: `/${activeCategory}/brands/balenciaga`,
-      },
-      {
-        name: t('popular_brand_names.bottega_veneta'),
-        href: `/${activeCategory}/brands/bottega-veneta`,
-      },
-      {
-        name: t('popular_brand_names.chloe'),
-        href: `/${activeCategory}/brands/chloe`,
-      },
-      {
-        name: t('popular_brand_names.ganni'),
-        href: `/${activeCategory}/brands/ganni`,
-      },
-      {
-        name: t('popular_brand_names.gucci'),
-        href: `/${activeCategory}/brands/gucci`,
-      },
-      {
-        name: t('popular_brand_names.h_and_m'),
-        href: `/${activeCategory}/brands/h-and-m`,
-      },
-      {
-        name: t('popular_brand_names.isabel_marant'),
-        href: `/${activeCategory}/brands/isabel-marant`,
-      },
-      {
-        name: t('popular_brand_names.other_stories'),
-        href: `/${activeCategory}/brands/other-stories`,
-      },
-      {
-        name: t('popular_brand_names.prada'),
-        href: `/${activeCategory}/brands/prada`,
-      },
-      {
-        name: t('popular_brand_names.saint_laurent'),
-        href: `/${activeCategory}/brands/saint-laurent`,
-      },
-    ];
-
-    const secondRowBrands = [
-      {
-        name: t('popular_brand_names.reformation'),
-        href: `/${activeCategory}/brands/reformation`,
-      },
-      {
-        name: t('popular_brand_names.valentino'),
-        href: `/${activeCategory}/brands/valentino`,
-      },
-      {
-        name: t('popular_brand_names.zara'),
-        href: `/${activeCategory}/brands/zara`,
-      },
-      {
-        name: t('popular_brand_names.tory_burch'),
-        href: `/${activeCategory}/brands/tory-burch`,
-      },
-    ];
-
-    return {
-      firstRowBrands,
-      secondRowBrands,
-      viewAll: {
-        name: t('view_all_brands'),
-        href: `/${activeCategory}/brands`,
-      },
-      alphabet: [
-        ...Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => ({
-          letter,
-          href: `/${activeCategory}/brands?letter=${letter.toLowerCase()}`,
-        })),
-        {
-          letter: '0-9',
-          href: `/${activeCategory}/brands?letter=0-9`,
-        },
-      ],
-    };
-  };
-
   const navigationItems: MenuItem[] = [
     {
       name: t('clothing'),
@@ -195,11 +93,6 @@ export const Navbar = () => {
     {
       name: t('brands'),
       href: `/${activeCategory}/brands`,
-      items: [
-        ...getBrandItems().firstRowBrands,
-        ...getBrandItems().secondRowBrands,
-        getBrandItems().viewAll,
-      ],
       isBrands: true,
     },
     {
@@ -262,33 +155,10 @@ export const Navbar = () => {
     }
   };
 
-  const handleAlphabetClick = (item: AlphabetItem, e: React.MouseEvent<Element>) => {
-    e.preventDefault();
-    router.push(item.href);
+  const handleBrandMenuItemClick = (href: string) => {
+    router.push(href);
     setIsMenuOpen(false);
   };
-
-  const handleAlphabetKeyDown = (item: AlphabetItem, e: React.KeyboardEvent<Element>) => {
-    if (e.key === 'Enter' || e.key === 'Space') {
-      e.preventDefault();
-      router.push(item.href);
-      setIsMenuOpen(false);
-    }
-  };
-
-  const renderAlphabetItem = (item: AlphabetItem) => (
-    <Link
-      key={item.href}
-      className="flex items-center justify-center w-8 h-8 text-[#1A1A1A] dark:text-white hover:bg-[#F5F5F2] dark:hover:bg-gray-800 transition-colors text-sm"
-      href={item.href}
-      role="button"
-      tabIndex={0}
-      onClick={(e) => handleAlphabetClick(item, e)}
-      onKeyDown={(e) => handleAlphabetKeyDown(item, e)}
-    >
-      {item.letter}
-    </Link>
-  );
 
   return (
     <>
@@ -352,73 +222,13 @@ export const Navbar = () => {
               >
                 {item.name}
               </Link>
-              {item.items && item.isBrands ? (
+              {item.isBrands ? (
                 <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">
-                  <div className="w-full">
-                    <div className="container mx-auto px-4 py-8">
-                      <div className="flex gap-16">
-                        <div className="w-3/4 pr-8 border-r border-border-primary-light dark:border-border-primary-dark">
-                          <div className="mb-6">
-                            <h3 className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
-                              {t('popular_brands')}
-                            </h3>
-                          </div>
-                          <div className="grid grid-cols-2 gap-x-16 gap-y-3">
-                            <div className="flex flex-col gap-y-3">
-                              {getBrandItems().firstRowBrands.map((brand) => (
-                                <Link
-                                  key={brand.href}
-                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded-sm whitespace-nowrap"
-                                  href={brand.href}
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={(e) => handleItemClick(item, e)}
-                                  onKeyDown={(e) => handleItemKeyDown(item, e)}
-                                >
-                                  {brand.name}
-                                </Link>
-                              ))}
-                            </div>
-                            <div className="flex flex-col gap-y-3">
-                              {getBrandItems().secondRowBrands.map((brand) => (
-                                <Link
-                                  key={brand.href}
-                                  className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm hover:shadow-md hover:translate-y-[-2px] p-2 rounded-sm whitespace-nowrap"
-                                  href={brand.href}
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={(e) => handleItemClick(item, e)}
-                                  onKeyDown={(e) => handleItemKeyDown(item, e)}
-                                >
-                                  {brand.name}
-                                </Link>
-                              ))}
-                              <Link
-                                className="block text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-200 text-sm font-medium hover:shadow-md hover:translate-y-[-2px] p-2 rounded-sm whitespace-nowrap underline underline-offset-4"
-                                href={getBrandItems().viewAll.href}
-                                role="button"
-                                tabIndex={0}
-                                onClick={(e) => handleItemClick(item, e)}
-                                onKeyDown={(e) => handleItemKeyDown(item, e)}
-                              >
-                                {getBrandItems().viewAll.name}
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="w-1/4">
-                          <div className="mb-6">
-                            <h3 className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
-                              {t('brands_a_z')}
-                            </h3>
-                          </div>
-                          <div className="grid grid-cols-9 gap-1 p-4">
-                            {getBrandItems().alphabet.map(renderAlphabetItem)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <NavbarBrands
+                    category={activeCategory}
+                    locale={pathname?.split('/')[1] || 'en'}
+                    onItemClick={handleBrandMenuItemClick}
+                  />
                 </div>
               ) : item.items ? (
                 <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">

@@ -46,6 +46,7 @@ export default function BrandsPage() {
     logo: "",
     website: "",
     isActive: true,
+    popularity: false,
   });
   const [formErrors, setFormErrors] = useState({
     name: false,
@@ -146,6 +147,7 @@ export default function BrandsPage() {
       logo: "",
       website: "",
       isActive: true,
+      popularity: false,
     });
     setIsDrawerOpen(true);
   };
@@ -160,6 +162,7 @@ export default function BrandsPage() {
       logo: brand.logo || "",
       website: brand.website || "",
       isActive: brand.isActive,
+      popularity: brand.popularity,
     });
     setIsDrawerOpen(true);
   };
@@ -175,6 +178,7 @@ export default function BrandsPage() {
       logo: "",
       website: "",
       isActive: true,
+      popularity: false,
     });
     // 重置错误状态
     setFormErrors({
@@ -199,8 +203,11 @@ export default function BrandsPage() {
     }
   };
 
-  const handleSwitchChange = (isSelected: boolean) => {
-    setNewBrand((prev) => ({ ...prev, isActive: isSelected }));
+  const handleSwitchChange = (
+    isSelected: boolean,
+    field: "isActive" | "popularity",
+  ) => {
+    setNewBrand((prev) => ({ ...prev, [field]: isSelected }));
   };
 
   const generateSlug = () => {
@@ -328,7 +335,7 @@ export default function BrandsPage() {
         <div className="rounded-md border">
           {isLoading ? (
             <div className="flex items-center justify-center p-8">
-              <Spinner size="lg" />
+              <Spinner className="h-8 w-8" />
             </div>
           ) : error ? (
             <div className="p-8 text-center text-red-500">{error}</div>
@@ -390,6 +397,11 @@ export default function BrandsPage() {
                           ? t("status.active")
                           : t("status.inactive")}
                       </div>
+                      {brand.popularity && (
+                        <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800 ml-2">
+                          {t("status.popular")}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -583,7 +595,27 @@ export default function BrandsPage() {
                 </div>
                 <Switch
                   isSelected={newBrand.isActive}
-                  onValueChange={handleSwitchChange}
+                  onValueChange={(isSelected) =>
+                    handleSwitchChange(isSelected, "isActive")
+                  }
+                  color="success"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">
+                    {t("drawer.popularityLabel")}
+                  </p>
+                  <p className="text-xs text-default-500">
+                    {t("drawer.popularityDescription")}
+                  </p>
+                </div>
+                <Switch
+                  isSelected={newBrand.popularity}
+                  onValueChange={(isSelected) =>
+                    handleSwitchChange(isSelected, "popularity")
+                  }
                   color="success"
                 />
               </div>

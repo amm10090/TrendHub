@@ -10,6 +10,7 @@
     "brands": "品牌",
     "guides": "购物指南",
     "popular_brands": "热门品牌",
+    "brands_loading": "加载中",
     "brands_a_z": "品牌 A-Z",
     "viewAllCategories": "查看全部分类",
     "view_all_brands": "查看全部品牌",
@@ -647,101 +648,124 @@
     "click_here": "点击这里"
   },
   "brands": {
-    "descriptions": {
-      "gucci": "古驰（Gucci）是一家意大利奢侈品品牌，成立于1921年，以其高品质的皮革制品和独特的设计风格而闻名于世。",
-      "burberry": "巴宝莉（Burberry）是英国著名奢侈品品牌，以其标志性的格纹和精湛的工艺而闻名，创立于1856年。",
-      "jimmy_choo": "吉米·周（Jimmy Choo）是一家专注于豪华鞋履和配饰的品牌，以其精致的设计和卓越的工艺而著称。",
-      "alessandra_rich": "亚历山德拉·里奇（Alessandra Rich）是一位意大利设计师创立的品牌，以其优雅、女性化的设计风格而闻名。"
-    }
-  },
-  "common": {
-    "hello": "中文翻译测试"
-  },
-  "dashboard": {
-    "recentActivities": "最近活动",
-    "stats": {
-      "totalRevenue": "总收入",
-      "totalOrders": "总订单",
-      "users": "用户数",
-      "visits": "访问量"
+    "title": "品牌目录",
+    "backToBrands": "返回所有品牌",
+    "noProducts": "该品牌暂无产品",
+    "addToWishlist": "加入收藏夹",
+    "noBrands": "找不到品牌",
+    "viewAllBrands": "查看所有品牌",
+    "clearFilter": "清除筛选",
+    "backToTop": "返回顶部",
+    "visitWebsite": "访问官方网站",
+    "errorFetchingProducts": "加载品牌产品时出现问题，请稍后再试。",
+    "loading": "加载中",
+    "breadcrumb": {
+      "home": "首页",
+      "brands": "品牌"
     },
-    "recentActivitiesDescription": "系统最近的操作和活动记录",
-    "salesStats": "销售统计",
-    "salesStatsDescription": "过去30天的销售趋势和数据分析",
-    "title": "仪表板",
-    "topProducts": "热销产品",
-    "topProductsDescription": "查看销量最高的产品和销售情况",
-    "viewAll": "查看全部",
-    "welcome": "欢迎回来，查看最新的网站统计和数据",
-    "totalProducts": "仪表盘.总产品数",
-    "totalUsers": "仪表板.总用户数",
-    "totalOrders": "仪表盘.总订单",
-    "revenue": "仪表盘.收入",
+    "seo": {
+      "title": "品牌目录 - TrendHub",
+      "description": "浏览TrendHub上的所有品牌，发现您喜爱的时尚品牌。",
+      "notFound": "品牌未找到 - TrendHub",
+      "notFoundDesc": "您查找的品牌不存在或已不可用，请尝试浏览其他品牌。",
+      "brandTitle": "{brand} - 官方店铺 | TrendHub",
+      "brandDescription": "在TrendHub购买{brand}最新系列。探索奢华时尚、配饰等，全球配送。",
+      "descriptions": {
+        "gucci": "古驰（Gucci）是一家意大利奢侈品品牌，成立于1921年，以其高品质的皮革制品和独特的设计风格而闻名于世。",
+        "burberry": "巴宝莉（Burberry）是英国著名奢侈品品牌，以其标志性的格纹和精湛的工艺而闻名，创立于1856年。",
+        "jimmy_choo": "吉米·周（Jimmy Choo）是一家专注于豪华鞋履和配饰的品牌，以其精致的设计和卓越的工艺而著称。",
+        "alessandra_rich": "亚历山德拉·里奇（Alessandra Rich）是一位意大利设计师创立的品牌，以其优雅、女性化的设计风格而闻名。"
+      }
+    },
+    "common": {
+      "hello": "中文翻译测试"
+    },
     "dashboard": {
-      "title": "仪表板.仪表板.标题"
+      "recentActivities": "最近活动",
+      "stats": {
+        "totalRevenue": "总收入",
+        "totalOrders": "总订单",
+        "users": "用户数",
+        "visits": "访问量"
+      },
+      "recentActivitiesDescription": "系统最近的操作和活动记录",
+      "salesStats": "销售统计",
+      "salesStatsDescription": "过去30天的销售趋势和数据分析",
+      "title": "仪表板",
+      "topProducts": "热销产品",
+      "topProductsDescription": "查看销量最高的产品和销售情况",
+      "viewAll": "查看全部",
+      "welcome": "欢迎回来，查看最新的网站统计和数据",
+      "totalProducts": "仪表盘.总产品数",
+      "totalUsers": "仪表板.总用户数",
+      "totalOrders": "仪表盘.总订单",
+      "revenue": "仪表盘.收入",
+      "dashboard": {
+        "title": "仪表板.仪表板.标题"
+      }
+    },
+    "layout": {
+      "admin": "管理员",
+      "brand": "品牌信息",
+      "closeMenu": "关闭菜单",
+      "dashboard": "仪表盘",
+      "logout": "退出登录",
+      "logs": "日志管理",
+      "openMenu": "打开菜单",
+      "pages": "单页管理",
+      "products": "产品管理",
+      "servers": "服务器管理",
+      "settings": "设置",
+      "navigation": "布局.导航",
+      "notifications": "布局.通知",
+      "lightMode": "布局.亮色模式"
+    },
+    "products": {
+      "addProduct": "添加产品",
+      "columns": {
+        "actions": "操作",
+        "category": "分类",
+        "name": "产品名称",
+        "price": "价格",
+        "status": "状态",
+        "stock": "库存"
+      },
+      "description": "管理和编辑产品信息，控制产品展示和销售",
+      "details": "详情",
+      "filter": "筛选",
+      "pagination": {
+        "items": "条",
+        "next": "下一页",
+        "of": "条，共",
+        "prev": "上一页",
+        "showing": "显示"
+      },
+      "productList": "产品列表",
+      "productListDescription": "管理所有产品信息和状态",
+      "search": "搜索产品...",
+      "status": {
+        "inStock": "在售",
+        "lowStock": "库存低",
+        "outOfStock": "缺货"
+      },
+      "title": "产品管理"
+    },
+    "settings": {
+      "account": "账户管理",
+      "accountDescription": "管理用户账户和权限设置",
+      "database": "数据库管理",
+      "databaseDescription": "管理数据库连接和备份",
+      "description": "管理系统配置和功能设置",
+      "general": "通用设置",
+      "generalDescription": "管理系统通用设置和偏好",
+      "manage": "管理",
+      "notifications": "通知设置",
+      "notificationsDescription": "配置系统通知和提醒",
+      "security": "安全设置",
+      "securityDescription": "配置系统安全和访问控制",
+      "title": "系统设置",
+      "website": "网站设置",
+      "websiteDescription": "配置网站基本信息和SEO设置"
     }
-  },
-  "layout": {
-    "admin": "管理员",
-    "brand": "品牌信息",
-    "closeMenu": "关闭菜单",
-    "dashboard": "仪表盘",
-    "logout": "退出登录",
-    "logs": "日志管理",
-    "openMenu": "打开菜单",
-    "pages": "单页管理",
-    "products": "产品管理",
-    "servers": "服务器管理",
-    "settings": "设置",
-    "navigation": "布局.导航",
-    "notifications": "布局.通知",
-    "lightMode": "布局.亮色模式"
-  },
-  "products": {
-    "addProduct": "添加产品",
-    "columns": {
-      "actions": "操作",
-      "category": "分类",
-      "name": "产品名称",
-      "price": "价格",
-      "status": "状态",
-      "stock": "库存"
-    },
-    "description": "管理和编辑产品信息，控制产品展示和销售",
-    "details": "详情",
-    "filter": "筛选",
-    "pagination": {
-      "items": "条",
-      "next": "下一页",
-      "of": "条，共",
-      "prev": "上一页",
-      "showing": "显示"
-    },
-    "productList": "产品列表",
-    "productListDescription": "管理所有产品信息和状态",
-    "search": "搜索产品...",
-    "status": {
-      "inStock": "在售",
-      "lowStock": "库存低",
-      "outOfStock": "缺货"
-    },
-    "title": "产品管理"
-  },
-  "settings": {
-    "account": "账户管理",
-    "accountDescription": "管理用户账户和权限设置",
-    "database": "数据库管理",
-    "databaseDescription": "管理数据库连接和备份",
-    "description": "管理系统配置和功能设置",
-    "general": "通用设置",
-    "generalDescription": "管理系统通用设置和偏好",
-    "manage": "管理",
-    "notifications": "通知设置",
-    "notificationsDescription": "配置系统通知和提醒",
-    "security": "安全设置",
-    "securityDescription": "配置系统安全和访问控制",
-    "title": "系统设置",
-    "website": "网站设置",
-    "websiteDescription": "配置网站基本信息和SEO设置"
   }
 }

@@ -1,12 +1,15 @@
 import { ProductDetail } from '@/types/product';
-import { mockProducts, mockProductDetails } from '@/types/product';
 
 // 模拟商品数据
 export const products: ProductDetail[] = [
   {
     id: '1',
     name: '经典风衣',
-    brand: 'Burberry',
+    brand: {
+      id: 'b001',
+      name: 'Burberry',
+      slug: 'burberry',
+    },
     price: 19800,
     image: '/images/products/coat.jpg',
     description: '经典格纹风衣，采用优质棉质面料，搭配标志性格纹内衬。',
@@ -18,6 +21,7 @@ export const products: ProductDetail[] = [
       '/images/products/coat-2.jpg',
       '/images/products/coat-3.jpg',
     ],
+    videos: [],
     sizes: ['S', 'M', 'L'],
     colors: [
       { name: '驼色', value: '#D2B48C' },
@@ -37,11 +41,20 @@ export const products: ProductDetail[] = [
       size: 'S-L',
       origin: '英国',
     },
+    category: {
+      id: 'c001',
+      name: '外套',
+      slug: 'coats',
+    },
   },
   {
     id: '2',
     name: 'GG Marmont 链条包',
-    brand: 'Gucci',
+    brand: {
+      id: 'b002',
+      name: 'Gucci',
+      slug: 'gucci',
+    },
     price: 21500,
     image: '/images/products/bag.jpg',
     description: 'GG Marmont系列链条包，采用绗缝皮革制成，配以双G logo。',
@@ -55,6 +68,7 @@ export const products: ProductDetail[] = [
       '/images/products/bag-2.jpg',
       '/images/products/bag-3.jpg',
     ],
+    videos: [],
     sizes: ['均码'],
     colors: [
       { name: '黑色', value: '#000000' },
@@ -74,11 +88,20 @@ export const products: ProductDetail[] = [
       size: '均码',
       origin: '意大利',
     },
+    category: {
+      id: 'c002',
+      name: '手袋',
+      slug: 'bags',
+    },
   },
   {
     id: '3',
     name: '高跟凉鞋',
-    brand: 'Jimmy Choo',
+    brand: {
+      id: 'b003',
+      name: 'Jimmy Choo',
+      slug: 'jimmy-choo',
+    },
     price: 7980,
     image: '/images/products/shoes.jpg',
     description: '优雅的高跟凉鞋，采用意大利制造的优质皮革，搭配水晶装饰。',
@@ -90,6 +113,7 @@ export const products: ProductDetail[] = [
       '/images/products/shoes-2.jpg',
       '/images/products/shoes-3.jpg',
     ],
+    videos: [],
     sizes: ['35', '36', '37', '38', '39'],
     colors: [
       { name: '银色', value: '#C0C0C0' },
@@ -109,11 +133,20 @@ export const products: ProductDetail[] = [
       size: '35-39',
       origin: '意大利',
     },
+    category: {
+      id: 'c003',
+      name: '鞋履',
+      slug: 'shoes',
+    },
   },
   {
     id: '4',
     name: '金色贝壳耳环',
-    brand: 'Alessandra Rich',
+    brand: {
+      id: 'b004',
+      name: 'Alessandra Rich',
+      slug: 'alessandra-rich',
+    },
     price: 2980,
     image: '/images/products/earrings.jpg',
     description: '金色贝壳造型耳环，采用镀金黄铜制成，搭配人造珍珠装饰。',
@@ -125,6 +158,7 @@ export const products: ProductDetail[] = [
       '/images/products/earrings-2.jpg',
       '/images/products/earrings-3.jpg',
     ],
+    videos: [],
     sizes: ['均码'],
     colors: [{ name: '金色', value: '#FFD700' }],
     material: '镀金黄铜、人造珍珠',
@@ -141,6 +175,11 @@ export const products: ProductDetail[] = [
       size: '均码',
       origin: '意大利',
     },
+    category: {
+      id: 'c004',
+      name: '配饰',
+      slug: 'accessories',
+    },
   },
 ];
 
@@ -149,7 +188,11 @@ export const mockGucciProducts = [
   {
     id: 'g001',
     name: 'Gucci Diana 小号手提包',
-    brand: 'Gucci',
+    brand: {
+      id: 'b002',
+      name: 'Gucci',
+      slug: 'gucci',
+    },
     price: 19800,
     originalPrice: 22000,
     image: 'https://www.mytheresa.com/media/1094/1238/100/48/P01036967.jpg',
@@ -163,7 +206,11 @@ export const mockGucciProducts = [
   {
     id: 'g002',
     name: 'Gucci Horsebit 1955 肩背包',
-    brand: 'Gucci',
+    brand: {
+      id: 'b002',
+      name: 'Gucci',
+      slug: 'gucci',
+    },
     price: 18500,
     image: '/images/products/gucci-horsebit-bag.jpg',
     isNew: true,
@@ -175,7 +222,11 @@ export const mockGucciProducts = [
   {
     id: 'g003',
     name: 'Gucci GG Marmont 绗缝肩背包',
-    brand: 'Gucci',
+    brand: {
+      id: 'b002',
+      name: 'Gucci',
+      slug: 'gucci',
+    },
     price: 17800,
     originalPrice: 20500,
     image: '/images/products/gucci-marmont-bag.jpg',
@@ -188,7 +239,11 @@ export const mockGucciProducts = [
   {
     id: 'g004',
     name: 'Gucci 印花真丝衬衫',
-    brand: 'Gucci',
+    brand: {
+      id: 'b002',
+      name: 'Gucci',
+      slug: 'gucci',
+    },
     price: 12500,
     image: '/images/products/gucci-silk-shirt.jpg',
     isNew: true,
@@ -204,7 +259,11 @@ export const mockValentinoProducts = [
   {
     id: 'v001',
     name: 'Valentino Garavani Roman Stud 手拿包',
-    brand: 'Valentino',
+    brand: {
+      id: 'b005',
+      name: 'Valentino',
+      slug: 'valentino',
+    },
     price: 15800,
     image: '/images/products/valentino-stud-clutch.jpg',
     isNew: true,
@@ -216,7 +275,11 @@ export const mockValentinoProducts = [
   {
     id: 'v002',
     name: 'Valentino Garavani Rockstud 皮革手环',
-    brand: 'Valentino',
+    brand: {
+      id: 'b005',
+      name: 'Valentino',
+      slug: 'valentino',
+    },
     price: 3200,
     image: '/images/products/valentino-bracelet.jpg',
     isFavorite: false,
@@ -227,7 +290,11 @@ export const mockValentinoProducts = [
   {
     id: 'v003',
     name: 'Valentino Garavani VLOGO 耳环',
-    brand: 'Valentino',
+    brand: {
+      id: 'b005',
+      name: 'Valentino',
+      slug: 'valentino',
+    },
     price: 3500,
     originalPrice: 4200,
     image: '/images/products/valentino-earrings.jpg',
@@ -244,7 +311,11 @@ export const mockPradaProducts = [
   {
     id: 'p001',
     name: 'Prada Re-Edition 2005 再版尼龙手提包',
-    brand: 'Prada',
+    brand: {
+      id: 'b006',
+      name: 'Prada',
+      slug: 'prada',
+    },
     price: 13500,
     image: '/images/products/prada-re-edition-bag.jpg',
     isNew: true,
@@ -256,7 +327,11 @@ export const mockPradaProducts = [
   {
     id: 'p002',
     name: 'Prada Symbole 太阳镜',
-    brand: 'Prada',
+    brand: {
+      id: 'b006',
+      name: 'Prada',
+      slug: 'prada',
+    },
     price: 3800,
     originalPrice: 4500,
     image: '/images/products/prada-sunglasses.jpg',
@@ -270,7 +345,7 @@ export const mockPradaProducts = [
 
 // 合并所有商品到一个数组
 export const mockAllProducts = [
-  ...mockProducts,
+  ...products,
   ...mockGucciProducts,
   ...mockValentinoProducts,
   ...mockPradaProducts,
@@ -285,6 +360,7 @@ export const mockGucciProductDetails = [
       'https://www.mytheresa.com/media/356/402/30/48/P01036967_b1.jpg',
       'https://www.mytheresa.com/media/356/402/30/48/P01036967_d1.jpg',
     ],
+    videos: [],
     image: 'https://www.mytheresa.com/media/1094/1238/100/48/P01036967.jpg',
     description: 'Gucci Go GG帆布S号单肩包',
     details: ['竹节手柄', '可拆卸、可调节肩带', '内部拉链口袋', '内衬麂皮', '磁性按扣封口'],
@@ -306,6 +382,11 @@ export const mockGucciProductDetails = [
       size: '小号',
       origin: '意大利',
     },
+    category: {
+      id: 'c002',
+      name: '手袋',
+      slug: 'bags',
+    },
   },
 ];
 
@@ -317,6 +398,7 @@ export const mockValentinoProductDetails = [
       '/images/products/valentino-stud-clutch-2.jpg',
       '/images/products/valentino-stud-clutch-3.jpg',
     ],
+    videos: [],
     description:
       'Valentino Garavani Roman Stud 手拿包由柔软的绗缝小羊皮制成，点缀大号金色铆钉，彰显品牌标志性的奢华风格。',
     details: ['翻盖设计配以磁性按扣', '内部卡片槽', '可拆卸链条肩带', 'Valentino标志'],
@@ -338,12 +420,17 @@ export const mockValentinoProductDetails = [
       size: '均码',
       origin: '意大利',
     },
+    category: {
+      id: 'c002',
+      name: '手袋',
+      slug: 'bags',
+    },
   },
 ];
 
 // 合并所有商品详情
 export const mockAllProductDetails = [
-  ...Object.values(mockProductDetails),
+  ...products,
   ...mockGucciProductDetails,
   ...mockValentinoProductDetails,
 ];

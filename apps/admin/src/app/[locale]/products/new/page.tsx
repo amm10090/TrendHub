@@ -1,5 +1,7 @@
 "use client";
 
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ChangeEvent, KeyboardEvent, useState } from "react";
@@ -14,9 +16,15 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -32,6 +40,7 @@ import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
 import type { CategoryTreeNode } from "@/lib/services/category.service";
+import { cn } from "@/lib/utils";
 
 import { NewProductClient } from "./new-product-client";
 
@@ -62,6 +71,12 @@ export default function NewProductPage() {
   const [promotionUrl, setPromotionUrl] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [discount, setDiscount] = useState<string>("");
+  const [coupon, setCoupon] = useState<string>("");
+  const [couponDescription, setCouponDescription] = useState<string>("");
+  const [couponExpirationDate, setCouponExpirationDate] = useState<
+    Date | undefined
+  >();
   const [variantRows, setVariantRows] = useState<number[]>([0]);
   const [isActive, setIsActive] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
@@ -176,6 +191,15 @@ export default function NewProductPage() {
         brandId,
         categoryId,
         price: parseFloat(price),
+        originalPrice:
+          originalPrice.trim() === "" ? null : parseFloat(originalPrice),
+        discount: discount.trim() === "" ? null : parseFloat(discount),
+        coupon: coupon.trim() === "" ? null : coupon,
+        couponDescription:
+          couponDescription.trim() === "" ? null : couponDescription,
+        couponExpirationDate: couponExpirationDate
+          ? couponExpirationDate.toISOString()
+          : null,
         status: isActive ? "Active" : "Draft",
         images: [],
         inventory: parseInt(inventory, 10),
@@ -904,6 +928,109 @@ export default function NewProductPage() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("pricingAndCoupons.title")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="originalPrice">
+                  {t("pricingAndCoupons.originalPriceLabel")}
+                </Label>
+                <Input
+                  id="originalPrice"
+                  type="number"
+                  step="0.01"
+                  placeholder={t("pricingAndCoupons.originalPricePlaceholder")}
+                  value={originalPrice}
+                  onChange={(e) => setOriginalPrice(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="discount">
+                  {t("pricingAndCoupons.discountLabel")}
+                </Label>
+                <Input
+                  id="discount"
+                  type="number"
+                  step="0.01"
+                  placeholder={t("pricingAndCoupons.discountPlaceholder")}
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label htmlFor="coupon">
+                  {t("pricingAndCoupons.couponLabel")}
+                </Label>
+                <Input
+                  id="coupon"
+                  type="text"
+                  placeholder={t("pricingAndCoupons.couponPlaceholder")}
+                  value={coupon}
+                  onChange={(e) => setCoupon(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label htmlFor="couponDescription">
+                  {t("pricingAndCoupons.couponDescriptionLabel")}
+                </Label>
+                <Textarea
+                  id="couponDescription"
+                  placeholder={t(
+                    "pricingAndCoupons.couponDescriptionPlaceholder",
+                  )}
+                  value={couponDescription}
+                  onChange={(e) => setCouponDescription(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label htmlFor="couponExpirationDate">
+                  {t("pricingAndCoupons.couponExpirationDateLabel")}
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal mt-1",
+                        !couponExpirationDate && "text-muted-foreground",
+                      )}
+                      id="couponExpirationDate"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {couponExpirationDate ? (
+                        format(couponExpirationDate, "PPP")
+                      ) : (
+                        <span>
+                          {t(
+                            "pricingAndCoupons.couponExpirationDatePlaceholder",
+                          )}
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={couponExpirationDate}
+                      onSelect={setCouponExpirationDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </CardContent>
           </Card>
         </div>

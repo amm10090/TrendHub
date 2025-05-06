@@ -18,17 +18,25 @@ export type Product = {
     name: string;
   };
   price: number | Decimal;
+  originalPrice?: number | Decimal | null;
+  discount?: number | Decimal | null;
   status: string;
   description?: string;
   images?: string[];
+  videos?: string[];
   inventory: number;
+  sku: string;
   source?: string;
   colors: string[];
   sizes: string[];
   material?: string;
   cautions?: string;
   promotionUrl?: string;
+  coupon?: string | null;
+  couponDescription?: string | null;
+  couponExpirationDate?: Date | string | null;
   isDeleted: boolean;
+  isNew?: boolean;
   updatedAt: Date;
   createdAt: Date;
 };
@@ -43,6 +51,10 @@ export interface ProductQueryParams {
   status?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  minPrice?: number;
+  maxPrice?: number;
+  hasCoupon?: boolean;
+  hasDiscount?: boolean;
 }
 
 // 定义创建商品的数据接口
@@ -62,6 +74,11 @@ export interface CreateProductData {
   material?: string;
   cautions?: string;
   promotionUrl?: string;
+  originalPrice?: number | null;
+  discount?: number | null;
+  coupon?: string | null;
+  couponDescription?: string | null;
+  couponExpirationDate?: string | null;
 }
 
 // 定义更新商品的数据接口
@@ -73,13 +90,20 @@ export interface UpdateProductData {
   status?: string;
   description?: string;
   images?: string[];
+  videos?: string[];
   inventory?: number;
+  sku?: string;
   source?: string;
   colors?: string[];
   sizes?: string[];
   material?: string;
   cautions?: string;
   promotionUrl?: string;
+  originalPrice?: number | null;
+  discount?: number | null;
+  coupon?: string | null;
+  couponDescription?: string | null;
+  couponExpirationDate?: string | null;
 }
 
 // 定义分页响应接口

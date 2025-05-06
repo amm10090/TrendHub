@@ -10,7 +10,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const product = await db.product.findUnique({
@@ -28,6 +28,12 @@ export async function GET(
     const productSerializable = {
       ...product,
       price: product.price.toString(),
+      originalPrice: product.originalPrice?.toString() ?? null,
+      discount: product.discount?.toString() ?? null,
+      coupon: product.coupon,
+      couponDescription: product.couponDescription,
+      couponExpirationDate: product.couponExpirationDate?.toISOString() ?? null,
+      updatedAt: product.updatedAt.toISOString(),
     };
 
     return NextResponse.json(productSerializable);
@@ -44,9 +50,11 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } },
 ) {
+  const { id } = await params;
+
   try {
     const data = await request.json();
-    const product = await productService.updateProduct(params.id, data);
+    const product = await productService.updateProduct(id, data);
 
     return NextResponse.json(product);
   } catch (error) {
@@ -66,7 +74,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     // 检查产品是否存在
@@ -104,6 +112,8 @@ const UpdateProductSchema = z.object({
   brandId: z.string().min(1, "品牌不能为空").optional(),
   categoryId: z.string().min(1, "分类不能为空").optional(),
   price: z.number().positive("价格必须是正数").optional(),
+  originalPrice: z.number().positive("原价必须是正数").optional().nullable(),
+  discount: z.number().nonnegative("折扣值不能为负").optional().nullable(),
   status: z.string().min(1, "状态不能为空").optional(),
   description: z.string().optional().nullable(),
   images: z.array(z.string().url("必须是有效的图片URL")).optional(),
@@ -115,6 +125,13 @@ const UpdateProductSchema = z.object({
   cautions: z.string().optional().nullable(),
   promotionUrl: z.string().url("必须是有效的推广URL").optional().nullable(),
   videos: z.array(z.string().url("必须是有效的视频URL")).optional(),
+  coupon: z.string().optional().nullable(),
+  couponDescription: z.string().optional().nullable(),
+  couponExpirationDate: z
+    .string()
+    .datetime({ offset: true })
+    .optional()
+    .nullable(),
   // isDeleted is handled separately by the DELETE endpoint
 });
 
@@ -123,7 +140,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const body = await request.json();
@@ -159,6 +176,16 @@ export async function PATCH(
       dataToUpdate.category = { connect: { id: validatedData.categoryId } };
     if (validatedData.price)
       dataToUpdate.price = new Prisma.Decimal(validatedData.price);
+    if (validatedData.originalPrice !== undefined)
+      dataToUpdate.originalPrice =
+        validatedData.originalPrice === null
+          ? null
+          : new Prisma.Decimal(validatedData.originalPrice);
+    if (validatedData.discount !== undefined)
+      dataToUpdate.discount =
+        validatedData.discount === null
+          ? null
+          : new Prisma.Decimal(validatedData.discount);
     if (validatedData.status) dataToUpdate.status = validatedData.status;
     if (validatedData.description !== undefined)
       dataToUpdate.description = validatedData.description;
@@ -175,6 +202,15 @@ export async function PATCH(
     if (validatedData.promotionUrl !== undefined)
       dataToUpdate.promotionUrl = validatedData.promotionUrl;
     if (validatedData.videos) dataToUpdate.videos = validatedData.videos;
+    if (validatedData.coupon !== undefined)
+      dataToUpdate.coupon = validatedData.coupon;
+    if (validatedData.couponDescription !== undefined)
+      dataToUpdate.couponDescription = validatedData.couponDescription;
+    if (validatedData.couponExpirationDate !== undefined)
+      dataToUpdate.couponExpirationDate =
+        validatedData.couponExpirationDate === null
+          ? null
+          : new Date(validatedData.couponExpirationDate);
 
     const updatedProduct = await db.product.update({
       where: { id },
@@ -184,6 +220,13 @@ export async function PATCH(
     const updatedProductSerializable = {
       ...updatedProduct,
       price: updatedProduct.price.toString(),
+      originalPrice: updatedProduct.originalPrice?.toString() ?? null,
+      discount: updatedProduct.discount?.toString() ?? null,
+      coupon: updatedProduct.coupon,
+      couponDescription: updatedProduct.couponDescription,
+      couponExpirationDate:
+        updatedProduct.couponExpirationDate?.toISOString() ?? null,
+      updatedAt: updatedProduct.updatedAt.toISOString(),
     };
 
     return NextResponse.json(updatedProductSerializable);

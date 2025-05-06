@@ -1,18 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableHead,
-} from "@/components/ui/table";
 import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
@@ -20,11 +13,36 @@ import { useProducts } from "@/hooks/use-products";
 import { CategoryTable } from "./category-table";
 import { ProductsClient } from "./products-client";
 
+// ProductFilters 可能需要从 products-client.tsx 导入，或者在此处定义
+// 为了清晰，我们在此处重新定义，确保与 products-client.tsx 中的一致
+interface ProductFilters {
+  search?: string;
+  categoryId?: string;
+  brandId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  hasDiscount?: boolean;
+  hasCoupon?: boolean;
+  status?:
+    | "active"
+    | "inactive"
+    | "all"
+    | "inStock"
+    | "lowStock"
+    | "outOfStock";
+}
+
 export default function ProductsPage() {
   const t = useTranslations("products");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [selectedTab, setSelectedTab] = useState("products");
+  const [currentFilters, setCurrentFilters] = useState<ProductFilters>({
+    status: "all", // 默认筛选状态为 "all"
+  });
+
+  // 这些hooks和函数虽然可能在新UI中看起来未使用，但它们被ProductsClient.ProductTable内部组件使用
+  // 它们提供了产品数据的加载、删除、更新等核心功能
 
   const {
     products,
@@ -32,23 +50,45 @@ export default function ProductsPage() {
     isLoading,
     error,
     deleteProduct,
-    isDeleting,
     updateProduct,
   } = useProducts({
     page,
     limit,
+    ...currentFilters, // 将 currentFilters 直接展开传递
   });
 
-  // 获取所有品牌和分类
-  const { brands, isLoading: isBrandsLoading } = useBrands();
-  const { categories, isLoading: isCategoriesLoading } = useCategories({
+  // 获取所有品牌和分类，用于表格中的展示和编辑
+  // 这些数据在ProductTable内部使用
+  const { brands } = useBrands();
+  const { categories } = useCategories({
     limit: 999,
   });
 
-  const handlePageChange = (page: number) => {
-    setPage(page);
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
 
+  const handleFiltersChange = useCallback((newFilters: ProductFilters) => {
+    setPage(1); // 当筛选条件改变时，重置到第一页
+    setCurrentFilters(newFilters);
+  }, []);
+
+  // 辅助函数判断是否应用了筛选 (除了默认的 status: 'all')
+  const areFiltersApplied = (filters: ProductFilters): boolean => {
+    // 检查除 status 外是否有任何筛选条件，或者 status 不是 'all'
+    return !!(
+      filters.search ||
+      filters.categoryId ||
+      filters.brandId ||
+      filters.minPrice !== undefined ||
+      filters.maxPrice !== undefined ||
+      filters.hasDiscount ||
+      filters.hasCoupon ||
+      (filters.status && filters.status !== "all")
+    );
+  };
+
+  // 下面的处理函数被ProductTable中的内联函数或子组件使用
   const handleDelete = async (id: string) => {
     try {
       await deleteProduct(id);
@@ -83,64 +123,6 @@ export default function ProductsPage() {
       );
     } catch {
       toast.error(t("operationError"));
-    }
-  };
-
-  const handleUpdateProductName = async (id: string, newName: string) => {
-    try {
-      await updateProduct({
-        id,
-        data: { name: newName },
-      });
-      toast.success(t("updateNameSuccess"));
-    } catch {
-      toast.error(t("updateError"));
-    }
-  };
-
-  const handleUpdateProductPrice = async (id: string, newPrice: string) => {
-    try {
-      const price = parseFloat(newPrice);
-
-      if (isNaN(price) || price < 0) {
-        throw new Error(t("invalidPrice"));
-      }
-      await updateProduct({
-        id,
-        data: { price },
-      });
-      toast.success(t("updatePriceSuccess"));
-    } catch (error) {
-      toast.error(t("updateError"), {
-        description: error instanceof Error ? error.message : t("unknownError"),
-      });
-    }
-  };
-
-  const handleUpdateProductBrand = async (id: string, brandId: string) => {
-    try {
-      await updateProduct({
-        id,
-        data: { brandId },
-      });
-      toast.success(t("updateBrandSuccess"));
-    } catch {
-      toast.error(t("updateError"));
-    }
-  };
-
-  const handleUpdateProductCategory = async (
-    id: string,
-    categoryId: string,
-  ) => {
-    try {
-      await updateProduct({
-        id,
-        data: { categoryId },
-      });
-      toast.success(t("updateCategorySuccess"));
-    } catch {
-      toast.error(t("updateError"));
     }
   };
 
@@ -191,103 +173,89 @@ export default function ProductsPage() {
               </div>
             ) : (
               <>
-                <div className="rounded-md border mt-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("columns.name")}</TableHead>
-                        <TableHead>{t("columns.brand")}</TableHead>
-                        <TableHead>{t("columns.category")}</TableHead>
-                        <TableHead className="text-right">
-                          {t("columns.price")}
-                        </TableHead>
-                        <TableHead className="text-center">
-                          {t("columns.status")}
-                        </TableHead>
-                        <TableHead className="text-right">
-                          {t("columns.actions")}
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {products.map((product) => (
-                        <TableRow key={product.id}>
-                          <TableCell className="font-medium">
-                            <ProductsClient.QuickEdit
-                              value={product.name}
-                              onSave={(value) =>
-                                handleUpdateProductName(product.id, value)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <ProductsClient.QuickSelect
-                              value={product.brand?.id || ""}
-                              items={brands}
-                              onSave={(value) =>
-                                handleUpdateProductBrand(product.id, value)
-                              }
-                              getItemLabel={(brand) => brand.name}
-                              getItemValue={(brand) => brand.id}
-                              placeholder={t("selectBrand")}
-                              isLoading={isBrandsLoading}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <ProductsClient.QuickCategorySelect
-                              categoryId={product.category?.id}
-                              categories={categories}
-                              onSave={(value) =>
-                                handleUpdateProductCategory(product.id, value)
-                              }
-                              isLoading={isCategoriesLoading}
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <ProductsClient.QuickEdit
-                              value={String(product.price)}
-                              onSave={(value) =>
-                                handleUpdateProductPrice(product.id, value)
-                              }
-                              type="number"
-                              formatter={(value) =>
-                                `$${parseFloat(value).toFixed(2)}`
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                product.status === "In Stock"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}
-                            >
-                              {t(
-                                `status.${
-                                  product.status === "In Stock"
-                                    ? "inStock"
-                                    : "lowStock"
-                                }`,
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <ProductsClient.ActionMenu
-                              onDelete={() => handleDelete(product.id)}
-                              onEdit={() => handleEdit(product.id)}
-                              onToggleStatus={() =>
-                                handleToggleStatus(product.id, product.status)
-                              }
-                              isDeleting={isDeleting}
-                              isActive={product.status === "In Stock"}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                <ProductsClient.ProductTable
+                  products={products.map((product) => ({
+                    id: product.id,
+                    name: product.name,
+                    price: Number(product.price),
+                    originalPrice: product.originalPrice
+                      ? Number(product.originalPrice)
+                      : undefined,
+                    discount:
+                      product.originalPrice &&
+                      Number(product.price) < Number(product.originalPrice)
+                        ? Math.round(
+                            ((Number(product.originalPrice) -
+                              Number(product.price)) /
+                              Number(product.originalPrice)) *
+                              100,
+                          )
+                        : undefined,
+                    image:
+                      product.images && product.images.length > 0
+                        ? product.images[0]
+                        : undefined,
+                    sku: product.sku,
+                    inventory: product.inventory
+                      ? Number(product.inventory)
+                      : undefined,
+                    isActive:
+                      product.status === "In Stock" ||
+                      product.status === "Active", // 确保 Active 也算 isActive
+                    hasCoupon: !!product.coupon, // 确保从 product 数据映射
+                    couponCode: product.coupon,
+                    // couponValue: product.couponValue, // 假设 couponValue 在 product 对象中，如果 Prisma schema 里有的话
+                    categoryId: product.category?.id,
+                    categoryPath: product.category?.name,
+                    brandId: product.brand?.id,
+                    brandName: product.brand?.name,
+                  }))}
+                  categories={categories}
+                  brands={brands}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onToggleStatus={(id, isActive) =>
+                    handleToggleStatus(
+                      id,
+                      isActive ? "Out of Stock" : "In Stock",
+                    )
+                  }
+                  activeFilters={currentFilters} // 新增：传递 currentFilters
+                  onFiltersChange={handleFiltersChange} // 新增：传递 handleFiltersChange
+                  onBulkDelete={async (ids) => {
+                    try {
+                      // 实现批量删除
+                      for (const id of ids) {
+                        await deleteProduct(id);
+                      }
+                      toast.success(
+                        t("bulkDeleteSuccess", { count: ids.length }),
+                      );
+                    } catch {
+                      toast.error(t("bulkDeleteError"));
+                    }
+                  }}
+                  onBulkToggleStatus={async (ids, setActive) => {
+                    try {
+                      // 实现批量状态更改
+                      const newStatus = setActive ? "In Stock" : "Out of Stock";
+
+                      for (const id of ids) {
+                        await updateProduct({
+                          id,
+                          data: { status: newStatus },
+                        });
+                      }
+                      toast.success(
+                        setActive
+                          ? t("bulkActivateSuccess", { count: ids.length })
+                          : t("bulkDeactivateSuccess", { count: ids.length }),
+                      );
+                    } catch {
+                      toast.error(t("bulkUpdateError"));
+                    }
+                  }}
+                />
 
                 <div className="mt-4 flex justify-center">
                   <div className="flex items-center gap-2">
@@ -314,6 +282,38 @@ export default function ProductsPage() {
                     </button>
                   </div>
                 </div>
+
+                {/* 空状态处理 */}
+                {products.length === 0 && !isLoading && (
+                  <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-md mt-4">
+                    {areFiltersApplied(currentFilters) ? (
+                      <div className="text-center">
+                        <p className="text-gray-500 text-lg mb-2">
+                          {t("noResultsWithFilters")}
+                        </p>
+                        <Button
+                          variant="link"
+                          onClick={() => handleFiltersChange({ status: "all" })}
+                        >
+                          {t("resetFiltersLink")}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <p className="text-gray-500 text-lg">
+                          {t("noProducts")}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          {t("addProductPrompt")}
+                        </p>
+                        {/* 可以添加一个直接跳转到添加商品页面的链接按钮 */}
+                        <Link href="/products/new" className="mt-2">
+                          <Button>{t("addProduct")}</Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </>

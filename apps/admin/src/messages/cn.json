@@ -212,7 +212,32 @@
     "close": "关闭",
     "confirm": "确认",
     "deleting": "删除中...",
-    "processing": "处理中..."
+    "processing": "处理中...",
+    "search": "搜索",
+    "price": "价格",
+    "columns": {
+      "status": "状态",
+      "brand": "品牌",
+      "category": "分类"
+    },
+    "selectBrand": "选择品牌",
+    "selectCategory": "选择分类",
+    "filter": {
+      "collapse": "收起筛选",
+      "expand": "展开筛选",
+      "minPrice": "最低价格",
+      "maxPrice": "最高价格",
+      "hasDiscount": "有折扣",
+      "hasCoupon": "有优惠券",
+      "inStock": "有库存",
+      "reset": "重置",
+      "apply": "应用"
+    },
+    "status": {
+      "inStock": "有库存",
+      "lowStock": "库存不足",
+      "outOfStock": "缺货"
+    }
   },
   "dashboard": {
     "activeIncrease": "+201 相比上小时",
@@ -355,6 +380,17 @@
       "home": "首页"
     },
     "edit": {
+      "additionalInfo": {
+        "cautionsLabel": "注意事项（可选）",
+        "cautionsPlaceholder": "例如，仅限手洗，远离儿童",
+        "materialLabel": "材料（可选）",
+        "materialPlaceholder": "例如，棉花、聚酯、金属",
+        "promotionUrlLabel": "推广网址（可选）",
+        "promotionUrlPlaceholder": "输入外部推广链接",
+        "sourceLabel": "产品来源（可选）",
+        "sourcePlaceholder": "例如，供应商名称，来源国家",
+        "title": "附加信息"
+      },
       "backToList": "返回商品列表",
       "basicInfo": {
         "cautions": "商品注意事项",
@@ -376,6 +412,13 @@
         "title": "基本信息"
       },
       "cancel": "取消",
+      "colorsAndSizes": {
+        "colorsLabel": "可用颜色",
+        "colorsPlaceholder": "输入颜色（按回车键添加）",
+        "sizesLabel": "可用尺寸",
+        "sizesPlaceholder": "输入尺寸（按回车键添加）",
+        "title": "颜色与尺寸"
+      },
       "errorModal": {
         "confirmBtn": "确定",
         "defaultMessage": "请确保填写了所有必填字段（商品名称、售价、库存、品牌和分类）",
@@ -387,7 +430,25 @@
         "title": "提交失败"
       },
       "fetchError": "获取商品信息失败",
+      "inventory": {
+        "barcodeLabel": "条形码（ISBN、UPC、GTIN等）",
+        "barcodePlaceholder": "输入条形码",
+        "inventoryLabel": "库存数量",
+        "inventoryPlaceholder": "输入库存数量",
+        "skuLabel": "库存单位 (SKU)",
+        "skuPlaceholder": "输入SKU",
+        "title": "库存"
+      },
+      "media": {
+        "imagesLabel": "图像",
+        "title": "媒体",
+        "videosLabel": "视频（可选）"
+      },
       "organization": {
+        "brand": "产品.编辑.组织.品牌",
+        "brandEmpty": "产品.编辑.组织.品牌为空",
+        "brandError": "产品.编辑.组织.品牌错误",
+        "brandPlaceholder": "产品.编辑.组织.品牌占位符",
         "category": "选择商品分类",
         "categoryDescription": "请选择此商品所属的分类，将影响商品在前台的展示位置",
         "categoryLevel1": "一级分类",
@@ -396,6 +457,8 @@
         "categoryLevel2Placeholder": "选择二级分类",
         "categoryLevel3": "三级分类",
         "categoryLevel3Placeholder": "选择三级分类",
+        "tags": "产品标签",
+        "tagsPlaceholder": "标签占位符",
         "title": "产品分类"
       },
       "priceAndInventory": {
@@ -412,30 +475,62 @@
         "skuPlaceholder": "例如：SM-BLK-L",
         "title": "价格与库存"
       },
+      "pricingAndCoupons": {
+        "couponDescriptionLabel": "优惠券描述（可选）",
+        "couponDescriptionPlaceholder": "描述优惠券的优惠内容",
+        "couponExpirationDateLabel": "优惠券到期日期（可选）",
+        "couponExpirationDatePlaceholder": "选择一个到期日期",
+        "couponLabel": "优惠码（可选）",
+        "couponPlaceholder": "输入优惠券代码",
+        "discountLabel": "折扣（可选）",
+        "discountPlaceholder": "输入折扣金额或百分比",
+        "originalPriceLabel": "原始价格（可选）",
+        "originalPricePlaceholder": "输入原价（用于显示）",
+        "priceLabel": "价格",
+        "pricePlaceholder": "输入售价",
+        "title": "定价与优惠券"
+      },
       "productInfo": {
         "description": "商品描述",
         "descriptionHelp": "详细描述商品的特点、用途和优势",
         "descriptionPlaceholder": "请输入商品描述",
         "name": "商品名称",
         "nameDescription": "给你的商品起一个吸引人的名称",
-        "namePlaceholder": "请输入商品名称"
+        "namePlaceholder": "请输入商品名称",
+        "title": "商品信息"
       },
       "productNotFound": "商品不存在",
       "save": "保存修改",
+      "seo": {
+        "title": "搜索引擎优化 (SEO)"
+      },
+      "shipping": {
+        "title": "运输"
+      },
       "status": {
         "active": "激活",
-        "draft": "草稿"
+        "activeLabel": "活动（在商店前台可见）",
+        "draft": "草稿",
+        "featuredLabel": "特色产品",
+        "onSaleLabel": "特卖",
+        "title": "状态"
       },
       "successUpdate": "商品更新成功",
       "title": "编辑商品",
+      "toast": {
+        "createErrorFallback": "创建商品失败，请稍后重试",
+        "createSuccess": "商品创建成功！",
+        "fetchError": "无法获取产品详细信息。",
+        "productNotFound": "产品未找到。",
+        "successUpdate": "产品更新成功。"
+      },
+      "variants": {
+        "title": "变种"
+      },
       "visibility": {
         "featured": "特色商品",
         "featuredDescription": "在首页和特色区域显示",
         "title": "可见性"
-      },
-      "toast": {
-        "createSuccess": "商品创建成功！",
-        "createErrorFallback": "创建商品失败，请稍后重试"
       }
     }
   },
@@ -443,9 +538,17 @@
     "actions": "操作",
     "actionsFor": "{name}的操作",
     "active": "激活",
+    "activate": "激活",
     "addCategory": "添加分类",
     "addProduct": "添加商品",
+    "addProductPrompt": "添加一个新商品以开始",
     "archive": "归档",
+    "brand": "品牌",
+    "bulkActivateSuccess": "已成功激活 {count} 个商品",
+    "bulkDeactivateSuccess": "已成功禁用 {count} 个商品",
+    "bulkDeleteError": "删除某些商品失败",
+    "bulkDeleteSuccess": "已成功删除 {count} 个商品",
+    "bulkUpdateError": "更新某些商品失败",
     "cancel": "取消",
     "category": "分类",
     "categoryManagement": "分类管理",
@@ -454,27 +557,55 @@
       "brand": "品牌",
       "category": "分类",
       "name": "商品名称",
+      "originalPrice": "原价",
+      "originalPricePlaceholder": "未设置",
       "price": "价格",
       "status": "状态"
     },
+    "confirmDelete": "您确定要删除此产品吗？",
+    "currentPrice": "当前价格",
+    "deactivate": "禁用",
     "delete": "删除",
     "deleteError": "删除商品失败",
     "deleteSuccess": "删除商品成功",
     "deleting": "删除中...",
     "description": "产品描述",
     "details": "产品详情",
+    "discount": "折扣",
     "duplicate": "复制",
     "edit": "编辑",
+    "editProduct": "编辑产品",
     "fetchError": "获取商品列表失败",
-    "filter": "筛选",
+    "filterButton": "筛选",
+    "filter": {
+      "apply": "应用筛选",
+      "collapse": "收起高级筛选",
+      "expand": "展开高级筛选",
+      "hasDiscount": "有折扣",
+      "hasCoupon": "有优惠券",
+      "inStock": "有库存",
+      "maxPrice": "最高价格",
+      "minPrice": "最低价格",
+      "reset": "重置筛选"
+    },
+    "hasCoupon": "有优惠券",
     "id": "ID",
     "inactive": "禁用",
+    "inStock": "有库存",
+    "inventory": "库存",
+    "invalidOriginalPrice": "无效的原价值",
     "invalidPrice": "无效的价格",
     "loading": "加载中...",
+    "lowStock": "库存不足",
     "name": "商品名称",
+    "noImage": "无图片",
+    "noInventory": "无库存",
+    "noProducts": "没有找到商品",
     "notSet": "未设置",
     "openMenuFor": "打开{name}的操作菜单",
     "operationError": "操作失败",
+    "originalPrice": "原价",
+    "outOfStock": "缺货",
     "pagination": {
       "items": "项",
       "next": "下一页",
@@ -483,39 +614,56 @@
       "showing": "显示"
     },
     "price": "价格",
-    "product": {
-      "edit": {
-        "cancel": "产品.产品.编辑.取消",
-        "save": "产品.产品.编辑.保存"
-      }
-    },
+    "pricing": "价格信息",
+    "product": "商品",
+    "productDetails": "商品详情",
+    "productImage": "商品图片",
     "productList": "商品列表",
     "productListDescription": "管理所有产品信息",
     "products": {
-      "loading": "产品.产品.加载中",
-      "notSet": "产品.产品.未设置",
-      "unknownError": "产品.产品.未知错误",
-      "updateError": "产品.产品.更新错误",
-      "updateSuccess": "产品.产品.更新成功"
+      "loading": "加载中",
+      "notSet": "未设置",
+      "unknownError": "未知错误",
+      "updateError": "更新失败",
+      "updateSuccess": "更新成功"
     },
     "save": "保存",
-    "search": "搜索",
+    "search": "搜索商品...",
+    "selectedItems": "已选择 {count} 项",
     "selectBrand": "选择品牌",
+    "selectCategory": "选择类别",
+    "selectProduct": "选择商品",
+    "sku": "SKU",
     "status": {
+      "active": "活跃",
+      "inactive": "不活跃",
       "inStock": "有库存",
-      "lowStock": "库存不足"
+      "lowStock": "库存不足",
+      "outOfStock": "缺货"
     },
     "statusActiveSuccess": "商品已启用",
     "statusInactiveSuccess": "商品已禁用",
     "stock": "库存",
     "title": "商品管理",
+    "tooltips": {
+      "discount": "折扣",
+      "originalPrice": "原价",
+      "coupon": "优惠券: {code}",
+      "inventory": "库存: {quantity}件",
+      "brand": "品牌: {name}",
+      "category": "分类: {path}"
+    },
+    "units": "件",
     "unknownError": "未知错误",
     "updateBrandSuccess": "商品品牌已更新",
     "updateCategorySuccess": "商品分类已更新",
     "updateError": "更新失败",
     "updateNameSuccess": "商品名称已更新",
+    "updateOriginalPriceSuccess": "产品原价更新成功",
     "updatePriceSuccess": "商品价格已更新",
-    "updateSuccess": "更新成功"
+    "updateSuccess": "更新成功",
+    "noResultsWithFilters": "没有找到符合当前筛选条件的商品。请尝试调整筛选条件或重置所有筛选。",
+    "resetFiltersLink": "重置所有筛选"
   },
   "settings": {
     "account": "账户设置",

@@ -81,6 +81,8 @@ model Product {
   categoryId   String                          // 关联的分类ID
   category     Category  @relation(fields: [categoryId], references: [id])
   price        Decimal                         // 商品价格
+  originalPrice        Decimal?  @db.Decimal(10, 2) // 添加原价字段
+  discount             Decimal?  @db.Decimal(10, 2) // 添加折扣字段
   status       String                          // 商品状态（如"In Stock"、"Low Stock"等）
   description  String?                         // 商品描述（可选）
   images       String[]                        // 商品图片URL数组
@@ -93,6 +95,9 @@ model Product {
   material     String?                         // 商品材质（可选）
   cautions     String?                         // 商品注意事项（可选）
   promotionUrl String?                         // 商品推广链接（可选）
+  coupon               String?                      // 添加优惠券代码字段
+  couponDescription    String?                      // 添加优惠券描述字段
+  couponExpirationDate DateTime?                    // 添加优惠券到期时间字段
   isDeleted    Boolean   @default(false)       // 软删除标记
   isNew        Boolean   @default(false)       // 是否新品标记
   updatedAt    DateTime  @updatedAt            // 更新时间

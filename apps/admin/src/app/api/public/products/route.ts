@@ -94,9 +94,10 @@ export async function GET(request: NextRequest) {
           select: { name: true, slug: true },
         },
         price: true,
-        images: true, // 获取所有图片，稍后处理第一张
-        discount: true,
         originalPrice: true,
+        discount: true,
+        coupon: true,
+        images: true, // 获取所有图片，稍后处理第一张
         isNew: true,
         sku: true,
         status: true,
@@ -111,7 +112,8 @@ export async function GET(request: NextRequest) {
       name: p.name,
       price: p.price.toString(),
       originalPrice: p.originalPrice?.toString() ?? null,
-      discount: p.discount,
+      discount: p.discount?.toString() ?? null,
+      coupon: p.coupon,
       isNew: p.isNew,
       sku: p.sku,
       status: p.status,

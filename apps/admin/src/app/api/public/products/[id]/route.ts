@@ -33,6 +33,10 @@ export async function GET(
       ...product,
       price: product.price.toString(),
       originalPrice: product.originalPrice?.toString() ?? null,
+      discount: product.discount?.toString() ?? null,
+      coupon: product.coupon,
+      couponDescription: product.couponDescription,
+      couponExpirationDate: product.couponExpirationDate?.toISOString() ?? null,
       brand: {
         // 只选择需要的品牌字段
         id: product.brand.id,
@@ -48,6 +52,7 @@ export async function GET(
         slug: product.category.slug,
         // 不暴露 level, parentId 等内部结构
       },
+      updatedAt: product.updatedAt.toISOString(),
       // videos 字段已包含在 product 中
     };
 

@@ -8,22 +8,95 @@ import { productService } from "@/lib/services/product.service";
 // 获取商品列表 (Admin)
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  // TODO: 添加管理员可能需要的筛选、排序、分页逻辑 (例如: 包含软删除项)
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
   const skip = (page - 1) * limit;
 
+  // 添加筛选参数
+  const search = searchParams.get("search") || "";
+  const status = searchParams.get("status") || "";
+  const categoryId = searchParams.get("categoryId") || "";
+  const brandId = searchParams.get("brandId") || "";
+  const minPrice = searchParams.get("minPrice")
+    ? parseFloat(searchParams.get("minPrice") || "0")
+    : undefined;
+  const maxPrice = searchParams.get("maxPrice")
+    ? parseFloat(searchParams.get("maxPrice") || "0")
+    : undefined;
+  const hasCoupon = searchParams.get("hasCoupon") === "true" ? true : undefined;
+  const hasDiscount =
+    searchParams.get("hasDiscount") === "true" ? true : undefined;
+
   try {
+    // 构建查询条件
+    const whereConditions: Prisma.ProductWhereInput = {
+      // 默认不显示已删除商品
+      isDeleted: false,
+    };
+
+    // 如果有搜索关键词
+    if (search) {
+      whereConditions.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { sku: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    // 按状态筛选
+    if (status && status.toLowerCase() !== "all") {
+      whereConditions.status = status;
+    }
+
+    // 按分类筛选
+    if (categoryId && categoryId !== "_all") {
+      whereConditions.categoryId = categoryId;
+    }
+
+    // 按品牌筛选
+    if (brandId && brandId !== "_all") {
+      whereConditions.brandId = brandId;
+    }
+
+    // 按价格范围筛选
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      whereConditions.price = {};
+      if (minPrice !== undefined) {
+        whereConditions.price.gte = new Prisma.Decimal(minPrice);
+      }
+      if (maxPrice !== undefined) {
+        whereConditions.price.lte = new Prisma.Decimal(maxPrice);
+      }
+    }
+
+    // 只显示有优惠券的商品
+    if (hasCoupon) {
+      whereConditions.coupon = { not: null };
+    }
+
+    // 只显示有折扣的商品（简化版本）
+    if (hasDiscount) {
+      whereConditions.originalPrice = { not: null };
+      // 注意：这里是简化逻辑，实际情况需要在应用层做进一步筛选
+      // 完整逻辑应当是筛选 price < originalPrice 的商品
+    }
+
     const products = await db.product.findMany({
+      where: whereConditions,
       skip: skip,
       take: limit,
-      // include: { brand: true, category: true }, // 根据需要包含关联数据
+      include: {
+        brand: true,
+        category: true,
+      },
       orderBy: {
         createdAt: "desc", // 默认按创建时间降序
       },
     });
 
-    const totalProducts = await db.product.count(); // 获取总数以进行分页
+    const totalProducts = await db.product.count({
+      where: whereConditions,
+    });
 
     return NextResponse.json({
       data: products,
@@ -59,6 +132,18 @@ const CreateProductSchema = z.object({
   cautions: z.string().optional(),
   promotionUrl: z.string().url("必须是有效的推广URL").optional().nullable(),
   videos: z.array(z.string().url("必须是有效的视频URL")).optional().default([]),
+  originalPrice: z.number().positive("原价必须是正数").optional(),
+  discount: z
+    .number()
+    .min(0, "折扣必须是非负数")
+    .max(100, "折扣不能超过100%")
+    .optional(),
+  coupon: z.string().optional(),
+  couponDescription: z.string().optional(),
+  couponExpirationDate: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
 });
 
 // 创建商品
@@ -96,6 +181,15 @@ export async function POST(request: NextRequest) {
       cautions: validatedData.cautions,
       promotionUrl: validatedData.promotionUrl,
       videos: validatedData.videos,
+      originalPrice: validatedData.originalPrice
+        ? new Prisma.Decimal(validatedData.originalPrice)
+        : undefined,
+      discount: validatedData.discount
+        ? new Prisma.Decimal(validatedData.discount)
+        : undefined,
+      coupon: validatedData.coupon,
+      couponDescription: validatedData.couponDescription,
+      couponExpirationDate: validatedData.couponExpirationDate,
     };
 
     const newProduct = await db.product.create({

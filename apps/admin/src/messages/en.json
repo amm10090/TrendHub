@@ -212,7 +212,32 @@
     "close": "Close",
     "confirm": "Confirm",
     "deleting": "Deleting...",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "search": "Search",
+    "price": "Price",
+    "columns": {
+      "status": "Status",
+      "brand": "Brand",
+      "category": "Category"
+    },
+    "selectBrand": "Select Brand",
+    "selectCategory": "Select Category",
+    "filter": {
+      "collapse": "Collapse Filters",
+      "expand": "Expand Filters",
+      "minPrice": "Min Price",
+      "maxPrice": "Max Price",
+      "hasDiscount": "Has Discount",
+      "hasCoupon": "Has Coupon",
+      "inStock": "In Stock",
+      "reset": "Reset",
+      "apply": "Apply"
+    },
+    "status": {
+      "inStock": "In Stock",
+      "lowStock": "Low Stock",
+      "outOfStock": "Out of Stock"
+    }
   },
   "dashboard": {
     "activeIncrease": "+201 since last hour",
@@ -355,6 +380,17 @@
       "home": "Home"
     },
     "edit": {
+      "additionalInfo": {
+        "cautionsLabel": "Cautions (Optional)",
+        "cautionsPlaceholder": "e.g., Hand wash only, Keep away from children",
+        "materialLabel": "Material (Optional)",
+        "materialPlaceholder": "e.g., Cotton, Polyester, Metal",
+        "promotionUrlLabel": "Promotion URL (Optional)",
+        "promotionUrlPlaceholder": "Enter external promotion link",
+        "sourceLabel": "Product Source (Optional)",
+        "sourcePlaceholder": "e.g., Supplier Name, Origin Country",
+        "title": "Additional Information"
+      },
       "backToList": "Back to Product List",
       "basicInfo": {
         "cautions": "Cautions",
@@ -376,18 +412,43 @@
         "title": "Basic Information"
       },
       "cancel": "Cancel",
+      "colorsAndSizes": {
+        "colorsLabel": "Available Colors",
+        "colorsPlaceholder": "Enter color (press Enter to add)",
+        "sizesLabel": "Available Sizes",
+        "sizesPlaceholder": "Enter size (press Enter to add)",
+        "title": "Colors & Sizes"
+      },
       "errorModal": {
-        "confirmBtn": "OK",
-        "defaultMessage": "Please ensure all required fields are filled (product name, price, inventory, brand, and category)",
-        "emptyBrand": "Please select a product brand",
-        "emptyCategory": "Please select a product category",
-        "emptyName": "Product name cannot be empty",
-        "invalidInventory": "Inventory must be greater than or equal to 0",
-        "invalidPrice": "Product price must be greater than 0",
-        "title": "Submission Failed"
+        "confirmBtn": "",
+        "defaultMessage": "Please check the form for errors.",
+        "emptyBrand": "Please select a brand.",
+        "emptyCategory": "Please select a category.",
+        "emptyName": "Product name cannot be empty.",
+        "invalidInventory": "Inventory must be a non-negative number.",
+        "invalidPrice": "Price must be a positive number.",
+        "title": "Validation Error"
       },
       "fetchError": "Failed to fetch product information",
+      "inventory": {
+        "barcodeLabel": "Barcode (ISBN, UPC, GTIN, etc.)",
+        "barcodePlaceholder": "Enter barcode",
+        "inventoryLabel": "Inventory Quantity",
+        "inventoryPlaceholder": "Enter stock quantity",
+        "skuLabel": "SKU (Stock Keeping Unit)",
+        "skuPlaceholder": "Enter SKU",
+        "title": "Inventory"
+      },
+      "media": {
+        "imagesLabel": "Images",
+        "title": "Media",
+        "videosLabel": "Videos (Optional)"
+      },
       "organization": {
+        "brand": "",
+        "brandEmpty": "",
+        "brandError": "",
+        "brandPlaceholder": "",
         "category": "Select Product Category",
         "categoryDescription": "Please select the category for this product, which will affect its display position in the frontend",
         "categoryLevel1": "Level 1 Category",
@@ -396,6 +457,8 @@
         "categoryLevel2Placeholder": "Select Level 2 Category",
         "categoryLevel3": "Level 3 Category",
         "categoryLevel3Placeholder": "Select Level 3 Category",
+        "tags": "",
+        "tagsPlaceholder": "",
         "title": "Product Category"
       },
       "priceAndInventory": {
@@ -412,6 +475,21 @@
         "skuPlaceholder": "e.g., SM-BLK-L",
         "title": "Price & Inventory"
       },
+      "pricingAndCoupons": {
+        "couponDescriptionLabel": "Coupon Description (Optional)",
+        "couponDescriptionPlaceholder": "Describe the coupon offer",
+        "couponExpirationDateLabel": "Coupon Expiration Date (Optional)",
+        "couponExpirationDatePlaceholder": "Pick an expiration date",
+        "couponLabel": "Coupon Code (Optional)",
+        "couponPlaceholder": "Enter coupon code",
+        "discountLabel": "Discount (Optional)",
+        "discountPlaceholder": "Enter discount amount or percentage",
+        "originalPriceLabel": "Original Price (Optional)",
+        "originalPricePlaceholder": "Enter original price (for display)",
+        "priceLabel": "Price",
+        "pricePlaceholder": "Enter selling price",
+        "title": "Pricing & Coupons"
+      },
       "productInfo": {
         "description": "Product Description",
         "descriptionHelp": "Describe the product's features, uses, and benefits in detail",
@@ -422,20 +500,36 @@
       },
       "productNotFound": "Product not found",
       "save": "Save Changes",
+      "seo": {
+        "title": "SEO (Search Engine Optimization)"
+      },
+      "shipping": {
+        "title": "Shipping"
+      },
       "status": {
-        "active": "Active",
-        "draft": "Draft"
+        "active": "",
+        "activeLabel": "Active (Visible on Storefront)",
+        "draft": "",
+        "featuredLabel": "Featured Product",
+        "onSaleLabel": "On Sale",
+        "title": "Status"
       },
       "successUpdate": "Product updated successfully",
       "title": "Edit Product",
+      "toast": {
+        "createErrorFallback": "Failed to create product.",
+        "createSuccess": "Product created successfully.",
+        "fetchError": "Failed to fetch product details.",
+        "productNotFound": "Product not found.",
+        "successUpdate": "Product updated successfully."
+      },
+      "variants": {
+        "title": "Variants"
+      },
       "visibility": {
         "featured": "Featured Product",
         "featuredDescription": "Display on homepage and featured sections",
         "title": "Visibility"
-      },
-      "toast": {
-        "createSuccess": "Product created successfully!",
-        "createErrorFallback": "Failed to create product, please try again later"
       }
     }
   },
@@ -443,9 +537,17 @@
     "actions": "Actions",
     "actionsFor": "Actions for {name}",
     "active": "Active",
+    "activate": "Activate",
     "addCategory": "Add Category",
     "addProduct": "Add Product",
+    "addProductPrompt": "Add a new product to get started",
     "archive": "Archive",
+    "brand": "Brand",
+    "bulkActivateSuccess": "{count} products activated successfully",
+    "bulkDeactivateSuccess": "{count} products deactivated successfully",
+    "bulkDeleteError": "Failed to delete some products",
+    "bulkDeleteSuccess": "{count} products deleted successfully",
+    "bulkUpdateError": "Failed to update some products",
     "cancel": "Cancel",
     "category": "Category",
     "categoryManagement": "Category Management",
@@ -453,28 +555,77 @@
       "actions": "Actions",
       "brand": "Brand",
       "category": "Category",
-      "name": "Name",
+      "name": "Product Name",
+      "originalPrice": "Original Price",
+      "originalPricePlaceholder": "Not Set",
       "price": "Price",
       "status": "Status"
     },
+    "create": "Create Product",
+    "createCategory": "Create Category",
     "delete": "Delete",
-    "deleteError": "Failed to delete product",
+    "deleteConfirm": "Are you sure you want to delete this product?",
+    "deactivate": "Deactivate",
     "deleteSuccess": "Product deleted successfully",
+    "edit": "Edit Product",
+    "filter": {
+      "apply": "Apply Filters",
+      "collapse": "Collapse Advanced Filters",
+      "expand": "Expand Advanced Filters",
+      "hasDiscount": "Has Discount",
+      "hasCoupon": "Has Coupon",
+      "inStock": "In Stock",
+      "maxPrice": "Max Price",
+      "minPrice": "Min Price",
+      "reset": "Reset"
+    },
+    "price": "Price",
+    "inventory": "Inventory",
+    "product": "Product",
+    "productDeleted": "Product has been deleted",
+    "productInformation": "Product Information",
+    "productInvalid": "Invalid product data",
+    "productName": "Product Name",
+    "productActivated": "Product activated",
+    "productDeactivated": "Product deactivated",
+    "selectBrand": "Select Brand",
+    "selectCategory": "Select Category",
+    "search": "Search products...",
+    "selectedItems": "{count} items selected",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "inStock": "In Stock",
+      "lowStock": "Low Stock",
+      "outOfStock": "Out of Stock"
+    },
+    "submit": "Submit",
+    "title": "Product Management",
+    "productList": "Product List",
     "deleting": "Deleting...",
-    "description": "Manage and edit product information, control product display and sales",
-    "details": "Details",
+    "description": "Product Description",
+    "details": "Product Details",
+    "discount": "Discount",
     "duplicate": "Duplicate",
-    "edit": "Edit",
-    "fetchError": "Failed to fetch products",
-    "filter": "Filter",
+    "editProduct": "Edit Product",
+    "filterButton": "Filter",
+    "hasCoupon": "Has Coupon",
     "id": "ID",
     "inactive": "Inactive",
-    "invalidPrice": "Invalid price",
+    "inStock": "In Stock",
+    "invalidOriginalPrice": "Invalid Original Price",
+    "invalidPrice": "Invalid Price",
     "loading": "Loading...",
+    "lowStock": "Low Stock",
     "name": "Product Name",
-    "notSet": "Not set",
+    "noImage": "No Image",
+    "noInventory": "No Inventory",
+    "noProducts": "No products found",
+    "notSet": "Not Set",
     "openMenuFor": "Open menu for {name}",
-    "operationError": "Operation failed",
+    "operationError": "Operation Failed",
+    "originalPrice": "Original Price",
+    "outOfStock": "Out of Stock",
     "pagination": {
       "items": "items",
       "next": "Next",
@@ -482,40 +633,42 @@
       "prev": "Previous",
       "showing": "Showing"
     },
-    "price": "Price",
-    "product": {
-      "edit": {
-        "cancel": "",
-        "save": ""
-      }
-    },
-    "productList": "Product List",
-    "productListDescription": "Manage all product information and status",
+    "pricing": "Pricing Information",
+    "productDetails": "Product Details",
+    "productImage": "Product Image",
+    "productListDescription": "Manage all product information",
     "products": {
-      "loading": "",
-      "notSet": "",
-      "unknownError": "",
-      "updateError": "",
-      "updateSuccess": ""
+      "loading": "Loading",
+      "notSet": "Not Set",
+      "unknownError": "Unknown Error",
+      "updateError": "Update Failed",
+      "updateSuccess": "Update Successful"
     },
     "save": "Save",
-    "search": "Search products...",
-    "selectBrand": "Select brand",
-    "status": {
-      "inStock": "In Stock",
-      "lowStock": "Low Stock"
-    },
-    "statusActiveSuccess": "Activate",
-    "statusInactiveSuccess": "Deactivate",
+    "sku": "SKU",
+    "statusActiveSuccess": "Product activated",
+    "statusInactiveSuccess": "Product deactivated",
     "stock": "Stock",
-    "title": "Products",
-    "unknownError": "Unknown error",
-    "updateBrandSuccess": "Product brand updated",
+    "tooltips": {
+      "discount": "Discount",
+      "originalPrice": "Original Price",
+      "coupon": "Coupon: {code}",
+      "inventory": "Inventory: {quantity} units",
+      "brand": "Brand: {name}",
+      "category": "Category: {path}"
+    },
+    "units": "units",
+    "unknownError": "Unknown Error",
+    "updateBrandSuccess": "Brand updated successfully",
     "updateCategorySuccess": "Category updated successfully",
     "updateError": "Update failed",
-    "updateNameSuccess": "Product name updated",
-    "updatePriceSuccess": "Product price updated",
-    "updateSuccess": "Update successful"
+    "updateNameSuccess": "Name updated successfully",
+    "updateOriginalPriceSuccess": "Original price updated successfully",
+    "updatePriceSuccess": "Price updated successfully",
+    "updateSuccess": "Update successful",
+    "selectProduct": "Select Product",
+    "noResultsWithFilters": "No products found matching your current filters. Try adjusting your filters or resetting all filters.",
+    "resetFiltersLink": "resetting all filters"
   },
   "settings": {
     "account": "Account Settings",

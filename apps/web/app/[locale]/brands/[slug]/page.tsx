@@ -16,7 +16,7 @@ interface BrandPageProps {
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   // 解构 params 避免直接访问其属性
-  const { locale, slug } = await params;
+  const { locale, slug } = params;
   const t = await getTranslations({ locale, namespace: 'brands' });
 
   // 获取品牌信息
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
 export default async function BrandPage({ params }: BrandPageProps) {
   // 解构 params 避免直接访问其属性
-  const { locale, slug } = await params;
+  const { locale, slug } = params;
 
   // 获取品牌信息
   let brand: Brand | null = null;

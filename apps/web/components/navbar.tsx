@@ -33,6 +33,8 @@ export const Navbar = () => {
   const t = useTranslations('nav');
   const router = useRouter();
   const pathname = usePathname();
+  const pathSegments = pathname ? pathname.split('/').filter(Boolean) : [];
+  const locale = pathSegments[0] || '';
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'women' | 'men'>('women');
@@ -92,7 +94,7 @@ export const Navbar = () => {
     },
     {
       name: t('brands'),
-      href: `/${activeCategory}/brands`,
+      href: `${locale ? `/${locale}` : ''}/brands`,
       isBrands: true,
     },
     {

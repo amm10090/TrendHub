@@ -3,11 +3,9 @@ import { getTranslations } from 'next-intl/server';
 
 import BrandsClient from './brands-client';
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+export async function generateMetadata(props: { params: { locale: string } }): Promise<Metadata> {
+  const params = await props.params;
+  const locale = params.locale;
   const t = await getTranslations({ locale, namespace: 'brands' });
 
   return {

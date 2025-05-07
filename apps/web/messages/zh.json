@@ -657,6 +657,8 @@
     "clearFilter": "清除筛选",
     "backToTop": "返回顶部",
     "visitWebsite": "访问官方网站",
+    "tryOtherFilters": "该品牌下没有找到符合筛选条件的产品，请尝试调整或清除所有筛选条件。",
+    "clearFilters": "清除所有筛选条件",
     "errorFetchingProducts": "加载品牌产品时出现问题，请稍后再试。",
     "loading": "加载中",
     "breadcrumb": {

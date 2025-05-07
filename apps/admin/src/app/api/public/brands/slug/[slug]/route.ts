@@ -17,8 +17,10 @@ export async function GET(
   request: Request,
   { params }: { params: RouteParams },
 ) {
+  let slug: string | undefined; // 在 try 块外部声明 slug
   try {
-    const { slug } = params;
+    const awaitedParams = await params; // 等待 params 解析
+    slug = awaitedParams.slug; // 从解析后的参数中获取 slug 并赋值
 
     if (!slug || typeof slug !== "string") {
       return NextResponse.json(
@@ -58,7 +60,7 @@ export async function GET(
   } catch (error) {
     // 记录服务器端错误，但不要将详细错误信息直接暴露给客户端
     console.error(
-      `[API ERROR] Failed to fetch brand by slug '${params?.slug}':`,
+      `[API ERROR] Failed to fetch brand by slug '${slug}':`, // 在 catch 中使用 slug 变量
       error,
     );
     return NextResponse.json(

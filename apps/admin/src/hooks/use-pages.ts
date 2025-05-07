@@ -17,7 +17,7 @@ export type Page = {
   publishedAt: string | null;
 };
 
-type CreatePageData = {
+export type CreatePageData = {
   title: string;
   url: string;
   content?: string;
@@ -25,7 +25,7 @@ type CreatePageData = {
   status: "Published" | "Draft";
 };
 
-type UpdatePageData = Partial<CreatePageData>;
+export type UpdatePageData = Partial<CreatePageData>;
 
 // 重构后的 usePages Hook
 export function usePages() {

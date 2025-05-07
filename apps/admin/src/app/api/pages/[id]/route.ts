@@ -8,9 +8,10 @@ import { db } from "@/lib/db";
 // 获取单个页面
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const params = await paramsPromise; // 等待参数解析
     const page = await db.page.findUnique({
       where: { id: params.id },
     });
@@ -36,9 +37,10 @@ const UpdatePageSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const params = await paramsPromise; // 等待参数解析
     const body = await request.json();
     const validatedData = UpdatePageSchema.parse(body);
 
@@ -100,9 +102,10 @@ export async function PATCH(
 // 删除页面
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const params = await paramsPromise; // 等待参数解析
     // 检查页面是否存在
     const existingPage = await db.page.findUnique({
       where: { id: params.id },

@@ -331,7 +331,9 @@
       "edit": "编辑",
       "publish": "发布",
       "save": "保存更改",
-      "unpublish": "取消发布"
+      "unpublish": "取消发布",
+      "openMenu": "打开菜单",
+      "backToList": "返回列表"
     },
     "addPage": "添加页面",
     "confirmDelete": "确认删除",
@@ -357,14 +359,25 @@
       "fetchError": "获取页面列表失败",
       "toggleStatusError": "切换页面状态失败",
       "updateError": "更新页面失败",
-      "updateSuccess": "页面更新成功"
+      "updateSuccess": "页面更新成功",
+      "createSuccessTitle": "创建成功",
+      "createSuccessDescription": "页面 \"{title}\" 已成功创建。",
+      "createErrorTitle": "创建失败",
+      "createErrorDescription": "创建页面时发生错误: {error}",
+      "createErrorFallback": "创建页面时发生未知错误。",
+      "updateSuccessDescription": "页面 \"{title}\" 已成功更新。",
+      "updateErrorDescription": "更新页面时发生错误: {error}",
+      "updateErrorFallback": "更新页面时发生未知错误。",
+      "invalidPageId": "无效的页面ID",
+      "pageLoadFailed": "页面加载失败，请重试或返回列表。"
     },
     "placeholders": {
-      "content": "输入页面内容",
+      "content": "输入页面内容 (支持富文本)",
       "mainImage": "输入页面主图URL",
       "mainImageHelp": "输入图片的完整URL地址（例如: https://example.com/image.jpg）",
       "title": "输入页面标题",
-      "url": "输入页面URL (例如: /about)"
+      "url": "输入页面URL (例如: /about-us)",
+      "selectStatus": "选择状态"
     },
     "preview": "预览",
     "status": {
@@ -380,7 +393,15 @@
     "validation": {
       "titleRequired": "标题不能为空",
       "urlExists": "此URL已被使用",
-      "urlRequired": "URL不能为空"
+      "urlRequired": "URL不能为空",
+      "urlFormat": "URL格式无效 (只允许小写字母、数字、斜杠和连字符)",
+      "urlStartsWithSlash": "URL必须以 / 开头",
+      "mainImageUrl": "主图URL格式无效"
+    },
+    "metadata": {
+      "adminTitle": "TrendHub 管理后台",
+      "createDescription": "向您的 TrendHub 网站添加一个新页面。",
+      "editDescription": "编辑 TrendHub 网站上的 \"{pageTitle}\" 页面。"
     }
   },
   "product": {
@@ -833,5 +854,61 @@
       "siteNamePlaceholder": "输入网站名称",
       "title": "网站信息"
     }
+  },
+  "tiptapEditor": {
+    "ariaLabels": {
+      "bold": "加粗",
+      "italic": "斜体",
+      "underline": "下划线",
+      "strikethrough": "删除线",
+      "heading1": "标题 1",
+      "heading2": "标题 2",
+      "heading3": "标题 3",
+      "heading4": "标题 4",
+      "heading5": "标题 5",
+      "heading6": "标题 6",
+      "paragraph": "段落",
+      "bulletList": "无序列表",
+      "orderedList": "有序列表",
+      "blockquote": "引用",
+      "codeBlock": "代码块",
+      "setLink": "设置链接",
+      "addImage": "添加图片",
+      "horizontalRule": "水平分割线",
+      "alignLeft": "左对齐",
+      "alignCenter": "居中对齐",
+      "alignRight": "右对齐",
+      "alignJustify": "两端对齐"
+    },
+    "tooltips": {
+      "customColor": "自定义颜色",
+      "setColor": "设置颜色为 {color}",
+      "clearColor": "清除颜色"
+    },
+    "buttons": {
+      "clear": "清除",
+      "apply": "应用",
+      "insert": "插入",
+      "cancel": "取消"
+    },
+    "dialogs": {
+      "link": {
+        "title": "设置链接"
+      },
+      "image": {
+        "title": "插入图片"
+      }
+    },
+    "placeholders": {
+      "tiptapEditor": "开始输入内容...",
+      "linkUrl": "https://example.com",
+      "imageUrl": "https://example.com/image.jpg",
+      "imageAlt": "描述图片内容"
+    },
+    "labels": {
+      "imageUrl": "图片URL",
+      "imageAlt": "替代文本 (可选)"
+    },
+    "characterCountSuffix": " 字"
   }
 }

@@ -7,16 +7,20 @@ import { ProductListResponse, getProducts } from '@/services/product.service';
 
 import BrandDetailClient from './brand-detail-client';
 
-interface BrandPageProps {
-  params: {
-    locale: string;
-    slug: string;
-  };
-}
+// interface BrandPageProps {
+//   params: {
+//     locale: string;
+//     slug: string;
+//   };
+// }
 
-export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params: paramsPromise,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}): Promise<Metadata> {
   // 解构 params 避免直接访问其属性
-  const { locale, slug } = params;
+  const { locale, slug } = await paramsPromise;
   const t = await getTranslations({ locale, namespace: 'brands' });
 
   // 获取品牌信息
@@ -44,9 +48,13 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
   };
 }
 
-export default async function BrandPage({ params }: BrandPageProps) {
+export default async function BrandPage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
   // 解构 params 避免直接访问其属性
-  const { locale, slug } = params;
+  const { locale, slug } = await paramsPromise;
 
   // 获取品牌信息
   let brand: Brand | null = null;

@@ -29,6 +29,7 @@ import {
   Spinner,
   Label,
 } from "@/components/ui";
+import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { Brand } from "@/lib/services/brand.service";
 import { cn } from "@/lib/utils";
 
@@ -548,11 +549,12 @@ export default function BrandsPage() {
 
               <div className="grid gap-2">
                 <Label htmlFor="brand-logo">{t("drawer.logoLabel")}</Label>
-                <Input
-                  id="brand-logo"
-                  name="logo"
+                <ImageUploadField
                   value={newBrand.logo}
-                  onChange={handleInputChange}
+                  onChange={(url) =>
+                    setNewBrand((prev) => ({ ...prev, logo: url || "" }))
+                  }
+                  label=""
                   placeholder={t("drawer.logoPlaceholder")}
                 />
               </div>

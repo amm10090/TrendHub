@@ -158,3 +158,62 @@ model CodeSnippet {
   @@index([type])
   @@index([location])
 }
+
+// Enum for ContentBlockType
+enum ContentBlockType {
+  BANNER
+  INTRODUCTION_SECTION
+  PRODUCT_GRID_HERO
+  TRENDING_SECTION_CONTAINER
+}
+
+// Enum for ContentItemType
+enum ContentItemType {
+  TRENDING_CARD_LARGE
+  TRENDING_CARD_NORMAL
+  TRENDING_CARD_STANDALONE
+  SHINING_CARD
+  TEXT_LINK_BLOCK
+  INTRODUCTION_GUARANTEE_ITEM
+}
+
+// ContentBlock model - For managing diverse content sections
+model ContentBlock {
+  id          String    @id @default(cuid())
+  identifier  String    @unique // e.g., "homepage-banner", "homepage-trending-section"
+  type        ContentBlockType
+  name        String    // Name for admin identification
+  description String?   // Optional description
+  data        Json?     // Stores type-specific data, or metadata for parent blocks
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items       ContentItem[] // Related ContentItems, mainly for TRENDING_SECTION_CONTAINER etc.
+
+  @@index([identifier])
+  @@index([type])
+  @@index([isActive])
+}
+
+// ContentItem model - For sub-elements of complex ContentBlocks
+model ContentItem {
+  id             String    @id @default(cuid())
+  parentId       String    // Link to the parent ContentBlock
+  parentBlock    ContentBlock @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  itemIdentifier String?   @unique // Optional unique key if item needs direct fetching
+  slotKey        String?   // New field to identify the slot this item belongs to in a layout
+  type           ContentItemType
+  name           String    // Name for admin identification
+  data           Json      // Type-specific data (title, imageUrl, href, text, etc.)
+  order          Int       @default(0) // Sort order within the parent
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([parentId])
+  @@index([itemIdentifier])
+  @@index([type])
+  @@index([isActive])
+  @@index([slotKey])
+}

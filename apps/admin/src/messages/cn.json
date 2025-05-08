@@ -237,9 +237,25 @@
     "selectBrand": "选择品牌",
     "selectCategory": "选择分类",
     "status": {
+      "active": "激活",
+      "inactive": "未激活",
       "inStock": "有库存",
       "lowStock": "库存不足",
       "outOfStock": "缺货"
+    },
+    "actions": {
+      "openMenu": "打开菜单",
+      "edit": "编辑",
+      "delete": "删除",
+      "activate": "激活",
+      "deactivate": "停用",
+      "cancel": "取消",
+      "create": "创建",
+      "saveChanges": "保存更改",
+      "backToList": "返回列表"
+    },
+    "errors": {
+      "unknownApiError": "发生未知API错误，请稍后重试或联系管理员。"
     }
   },
   "dashboard": {
@@ -316,7 +332,8 @@
     "shortcutLogout": "⇧⌘Q",
     "shortcutProfile": "⇧⌘P",
     "shortcutSettings": "⌘S",
-    "userMenu": "用户菜单"
+    "userMenu": "用户菜单",
+    "contentManagement": "内容管理"
   },
   "nav": {
     "brands_a_z": "导航.品牌_A_Z",
@@ -910,5 +927,208 @@
       "imageAlt": "替代文本 (可选)"
     },
     "characterCountSuffix": " 字"
+  },
+  "contentManagement": {
+    "title": "内容块管理",
+    "addBlock": "添加内容块",
+    "create": {
+      "title": "创建新内容块",
+      "messages": {
+        "createSuccess": "内容块 \"{name}\" 已成功创建。",
+        "createError": "创建内容块失败: {error}"
+      }
+    },
+    "edit": {
+      "title": "编辑内容块",
+      "messages": {
+        "fetchErrorNotFound": "无法加载内容块数据，可能已被删除。",
+        "fetchErrorGeneric": "加载内容块数据时出错。",
+        "invalidId": "无效的内容块 ID。",
+        "loadFailed": "内容块数据加载失败。",
+        "updateSuccess": "内容块 \"{name}\" 已成功更新。",
+        "updateError": "更新内容块失败: {error}"
+      }
+    },
+    "fields": {
+      "name": "名称",
+      "identifier": "标识符",
+      "type": "类型",
+      "lastUpdated": "最后更新",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "table": {
+      "emptyContent": "暂无内容块。",
+      "fetchError": "获取内容块数据失败。 {error}"
+    },
+    "messages": {
+      "deleteSuccess": "内容块 \"{name}\" 已成功删除。",
+      "deleteError": "删除内容块 \"{name}\" 失败。 {error}",
+      "statusToggleSuccess": "内容块 \"{name}\" 的状态已更新为 {status}。",
+      "statusToggleError": "更新内容块 \"{name}\" 的状态失败。 {error}"
+    },
+    "confirmDelete": {
+      "title": "确认删除",
+      "message": "您确定要删除内容块 \"{name}\" 吗？此操作无法撤销。"
+    },
+    "form": {
+      "basicInfo": "基本信息",
+      "name": "名称",
+      "identifier": "标识符 (唯一键)",
+      "itemIdentifierLabel": "项标识符 (可选, 用于直接代码引用)",
+      "slotKeyLabel": "布局槽位 (用于前端渲染位置)",
+      "selectSlotKeyPlaceholder": "选择此内容项对应的布局槽位...",
+      "type": "内容块类型",
+      "description": "描述",
+      "isActive": "激活状态",
+      "specificData": "特定数据",
+      "contentItems": "内容项",
+      "guaranteeItems": "服务保障项",
+      "item": "项",
+      "itemType": "项类型",
+      "itemIsActive": "项激活状态",
+      "newItem": "新项",
+      "addItem": "添加项",
+      "trendingContainerInfo": "此类型的内容块主要通过下方的 '内容项' 进行管理。",
+      "noSpecificFields": "此类型没有特定的数据字段。",
+      "selectPlaceholderPrefix": "选择 ",
+      "imagePreviewAlt": "{label} 预览",
+      "identifierPlaceholder": "例如: homepage-banner",
+      "validation": {
+        "titleRequired": "标题不能为空",
+        "descriptionRequired": "描述段落不能为空",
+        "invalidImageUrl": "无效的图片URL",
+        "invalidLinkUrl": "无效的链接URL",
+        "iconKeyRequired": "图标键不能为空"
+      },
+      "newItemForSlot": "槽位 {slotKey} 的新项目",
+      "itemName": "内容项名称",
+      "noSpecificFieldsForItemType": "此内容项类型没有特定的数据字段。"
+    },
+    "formFields": {
+      "banner": {
+        "title": "标题",
+        "description": "描述",
+        "imageUrl": "图片 URL",
+        "linkUrl": "链接 URL",
+        "ctaText": "按钮文字"
+      },
+      "introduction": {
+        "title": "区域标题",
+        "descriptionParagraph": "描述段落",
+        "featuresLeft": "左侧特性列表 (每行一个)",
+        "featuresRight": "右侧特性列表 (每行一个)",
+        "bottomText": "底部说明文字"
+      },
+      "productGrid": {
+        "title": "区域标题",
+        "seeAllText": "'查看全部' 按钮文字",
+        "seeAllLink": "'查看全部' 按钮链接"
+      },
+      "trendingCard": {
+        "title": "标题",
+        "description": "描述",
+        "imageUrl": "图片 URL",
+        "href": "链接 URL",
+        "topLabel": "顶部标签",
+        "subtitle": "副标题",
+        "textPosition": "文本位置 (覆盖时)",
+        "textPlacement": "文本布局",
+        "size": "卡片尺寸",
+        "labelText": "标签文字",
+        "labelLinkUrl": "标签链接 URL",
+        "itemTitleText": "项标题文字",
+        "itemTitleLinkUrl": "项标题链接 URL"
+      },
+      "shiningCard": {
+        "title": "标题",
+        "imageUrl": "图片 URL",
+        "linkUrl": "链接 URL"
+      },
+      "textLinkBlock": {
+        "text": "文本",
+        "linkUrl": "链接 URL",
+        "styleHint": "样式提示"
+      },
+      "guaranteeItem": {
+        "iconKey": "图标键",
+        "title": "标题",
+        "description": "描述"
+      }
+    },
+    "blockTypes": {
+      "BANNER": "横幅",
+      "INTRODUCTION_SECTION": "介绍区块",
+      "PRODUCT_GRID_HERO": "产品网格头图",
+      "TRENDING_SECTION_CONTAINER": "热门区块容器"
+    },
+    "itemTypes": {
+      "TRENDING_CARD_LARGE": "大型热门卡片",
+      "TRENDING_CARD_NORMAL": "普通热门卡片",
+      "TRENDING_CARD_STANDALONE": "独立热门卡片",
+      "SHINING_CARD": "闪亮卡片",
+      "TEXT_LINK_BLOCK": "文本链接块",
+      "INTRODUCTION_GUARANTEE_ITEM": "介绍保障项目",
+      "sizes": {
+        "normal": "常规",
+        "large": "大号",
+        "vertical": "垂直",
+        "horizontal": "水平",
+        "small": "小号"
+      },
+      "textPositions": {
+        "bottom": "底部",
+        "center": "居中"
+      },
+      "textPlacements": {
+        "overlay": "覆盖在图片上",
+        "belowImage": "图片下方",
+        "aboveImage": "图片上方",
+        "standalone": "仅图片 (无文字覆盖)"
+      }
+    },
+    "placeholders": {
+      "identifierExample": "例如: homepage-banner",
+      "itemIdentifierPlaceholder": "例如: trending_main_large_left (可选，用于特定前端布局)",
+      "linkUrlExample": "/products/category",
+      "imageUrlExample": "/images/banner-bg.jpg",
+      "seeAllLinkExample": "/products/all",
+      "featuresLeftPlaceholder": "每行一个特性点",
+      "featuresRightPlaceholder": "每行一个特性点",
+      "styleHintPlaceholder": "例如: slot-label, slot-title, hero-button"
+    },
+    "slotKeys": {
+      "trending_main_large_left": "主区域 - 左侧大卡片",
+      "trending_slot_top_right_image": "主区域 - 右上图片",
+      "trending_slot_top_right_text_label": "主区域 - 右上标签文本",
+      "trending_slot_top_right_text_title": "主区域 - 右上标题文本",
+      "trending_slot_bottom_right_image": "主区域 - 右下图片",
+      "trending_main_large_right": "次区域 - 右侧大卡片",
+      "trending_slot_next_top_left_image": "次区域 - 左上图片",
+      "trending_slot_next_text_label": "次区域 - 左侧标签文本",
+      "trending_slot_next_text_title": "次区域 - 左侧标题文本",
+      "trending_slot_next_bottom_left_image": "次区域 - 左下图片",
+      "guarantee_item_1": "保障服务1",
+      "guarantee_item_2": "保障服务2",
+      "guarantee_item_3": "保障服务3"
+    },
+    "hooks": {
+      "fetchListError": "获取内容块列表失败",
+      "fetchSingleError": "获取内容块详情失败",
+      "fetchSingleErrorNotFound": "未找到内容块或已被删除",
+      "createError": "创建内容块失败",
+      "updateError": "更新内容块失败",
+      "deleteError": "删除内容块失败"
+    },
+    "visualEditor": {
+      "previewDescription": "点击下方预览区域中的槽位来编辑或添加内容项。",
+      "editItemTitle": "编辑内容项: {itemName}",
+      "unnamedItem": "未命名项",
+      "slotLabel": "槽位",
+      "editItemDescription": "修改此内容项的详细信息。",
+      "addItemToSlotPlaceholderNamed": "添加内容到 \"{slotName}\"",
+      "noImage": "无图片",
+      "addItemToSlotPlaceholder": "点击添加内容"
+    }
   }
 }

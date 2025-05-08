@@ -12,6 +12,13 @@
       "title": "Actions"
     },
     "addBrand": "Add Brand",
+    "addToWishlist": "",
+    "breadcrumb": {
+      "brands": "",
+      "home": ""
+    },
+    "clearFilter": "",
+    "clearFilters": "",
     "columns": {
       "actions": "Actions",
       "brand": "Brand",
@@ -19,8 +26,35 @@
       "status": "Status",
       "website": "Website"
     },
+    "common": {
+      "hello": ""
+    },
     "createError": "Failed to create brand",
     "createSuccess": "Brand created successfully",
+    "dashboard": {
+      "dashboard": {
+        "title": ""
+      },
+      "recentActivities": "",
+      "recentActivitiesDescription": "",
+      "revenue": "",
+      "salesStats": "",
+      "salesStatsDescription": "",
+      "stats": {
+        "totalOrders": "",
+        "totalRevenue": "",
+        "users": "",
+        "visits": ""
+      },
+      "title": "",
+      "topProducts": "",
+      "topProductsDescription": "",
+      "totalOrders": "",
+      "totalProducts": "",
+      "totalUsers": "",
+      "viewAll": "",
+      "welcome": ""
+    },
     "deleteError": "Failed to delete brand",
     "deleteSuccess": "Brand deleted",
     "drawer": {
@@ -52,8 +86,45 @@
     },
     "error": "Error",
     "fetchError": "Failed to fetch brands",
+    "layout": {
+      "admin": "",
+      "brand": "",
+      "closeMenu": "",
+      "dashboard": "",
+      "lightMode": "",
+      "logout": "",
+      "logs": "",
+      "navigation": "",
+      "notifications": "",
+      "openMenu": "",
+      "pages": "",
+      "products": "",
+      "servers": "",
+      "settings": ""
+    },
+    "loading": "",
+    "noBrands": "",
     "noData": "No brand data available",
     "operationError": "Operation failed",
+    "products": {
+      "addProduct": "",
+      "columns": {
+        "actions": "",
+        "category": "",
+        "name": "",
+        "price": "",
+        "status": "",
+        "stock": ""
+      },
+      "description": "",
+      "details": "",
+      "filter": "",
+      "pagination": {
+        "items": "",
+        "next": "",
+        "showing": ""
+      }
+    },
     "status": {
       "active": "Active",
       "inactive": "Inactive",
@@ -240,6 +311,17 @@
       "inStock": "In Stock",
       "lowStock": "Low Stock",
       "outOfStock": "Out of Stock"
+    },
+    "actions": {
+      "openMenu": "Open Menu",
+      "edit": "Edit",
+      "delete": "Delete",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "cancel": "Cancel",
+      "create": "Create",
+      "saveChanges": "Save Changes",
+      "backToList": "Back to List"
     }
   },
   "dashboard": {
@@ -316,7 +398,8 @@
     "shortcutLogout": "⇧⌘Q",
     "shortcutProfile": "⇧⌘P",
     "shortcutSettings": "⌘S",
-    "userMenu": "User Menu"
+    "userMenu": "User Menu",
+    "contentManagement": "Content Management"
   },
   "nav": {
     "brands_a_z": "",
@@ -325,15 +408,15 @@
   },
   "pages": {
     "actions": {
+      "backToList": "Back to List",
       "cancel": "Cancel",
       "create": "Create",
       "delete": "Delete",
       "edit": "Edit",
+      "openMenu": "Open menu",
       "publish": "Publish",
       "save": "Save Changes",
-      "unpublish": "Unpublish",
-      "openMenu": "Open menu",
-      "backToList": "Back to List"
+      "unpublish": "Unpublish"
     },
     "addPage": "Add Page",
     "confirmDelete": "Confirm Delete",
@@ -352,32 +435,37 @@
     },
     "messages": {
       "createError": "Failed to create page",
+      "createErrorDescription": "Error creating page: {error}",
+      "createErrorFallback": "An unknown error occurred while creating the page.",
+      "createErrorTitle": "Creation Failed",
       "createSuccess": "Page created successfully",
+      "createSuccessDescription": "Page \"{title}\" has been created successfully.",
+      "createSuccessTitle": "Creation Successful",
       "deleteError": "Failed to delete page",
       "deleteSuccess": "Page deleted successfully",
       "fetchDetailError": "Failed to fetch page details",
       "fetchError": "Failed to fetch pages",
+      "invalidPageId": "Invalid Page ID",
+      "pageLoadFailed": "Failed to load page. Please try again or return to list.",
       "toggleStatusError": "Failed to toggle page status",
       "updateError": "Failed to update page",
-      "updateSuccess": "Page updated successfully",
-      "createSuccessTitle": "Creation Successful",
-      "createSuccessDescription": "Page \"{title}\" has been created successfully.",
-      "createErrorTitle": "Creation Failed",
-      "createErrorDescription": "Error creating page: {error}",
-      "createErrorFallback": "An unknown error occurred while creating the page.",
-      "updateSuccessDescription": "Page \"{title}\" has been updated successfully.",
       "updateErrorDescription": "Error updating page: {error}",
       "updateErrorFallback": "An unknown error occurred while updating the page.",
-      "invalidPageId": "Invalid Page ID",
-      "pageLoadFailed": "Failed to load page. Please try again or return to list."
+      "updateSuccess": "Page updated successfully",
+      "updateSuccessDescription": "Page \"{title}\" has been updated successfully."
+    },
+    "metadata": {
+      "adminTitle": "TrendHub Admin Panel",
+      "createDescription": "Add a new page to your TrendHub website.",
+      "editDescription": "Edit the \"{pageTitle}\" page on your TrendHub website."
     },
     "placeholders": {
       "content": "Enter page content (rich text supported)",
       "mainImage": "Enter image URL for page thumbnail",
       "mainImageHelp": "Enter the full URL of the image (e.g., https://example.com/image.jpg)",
+      "selectStatus": "Select status",
       "title": "Enter page title",
-      "url": "Enter page URL (e.g., /about-us)",
-      "selectStatus": "Select status"
+      "url": "Enter page URL (e.g., /about-us)"
     },
     "preview": "Preview",
     "status": {
@@ -391,17 +479,12 @@
     },
     "title": "Website Pages",
     "validation": {
+      "mainImageUrl": "Invalid main image URL",
       "titleRequired": "Title is required",
       "urlExists": "This URL is already in use",
-      "urlRequired": "URL is required",
       "urlFormat": "Invalid URL format (only lowercase letters, numbers, slashes, and hyphens allowed)",
-      "urlStartsWithSlash": "URL must start with a /",
-      "mainImageUrl": "Invalid main image URL"
-    },
-    "metadata": {
-      "adminTitle": "TrendHub Admin Panel",
-      "createDescription": "Add a new page to your TrendHub website.",
-      "editDescription": "Edit the \"{pageTitle}\" page on your TrendHub website."
+      "urlRequired": "URL is required",
+      "urlStartsWithSlash": "URL must start with a /"
     }
   },
   "product": {
@@ -857,58 +940,261 @@
   },
   "tiptapEditor": {
     "ariaLabels": {
+      "addImage": "Add image",
+      "alignCenter": "Align center",
+      "alignJustify": "Align justify",
+      "alignLeft": "Align left",
+      "alignRight": "Align right",
+      "blockquote": "Blockquote",
       "bold": "Bold",
-      "italic": "Italic",
-      "underline": "Underline",
-      "strikethrough": "Strikethrough",
+      "bulletList": "Bullet list",
+      "codeBlock": "Code block",
       "heading1": "Heading 1",
       "heading2": "Heading 2",
       "heading3": "Heading 3",
       "heading4": "Heading 4",
       "heading5": "Heading 5",
       "heading6": "Heading 6",
-      "paragraph": "Paragraph",
-      "bulletList": "Bullet list",
-      "orderedList": "Ordered list",
-      "blockquote": "Blockquote",
-      "codeBlock": "Code block",
-      "setLink": "Set link",
-      "addImage": "Add image",
       "horizontalRule": "Horizontal rule",
-      "alignLeft": "Align left",
-      "alignCenter": "Align center",
-      "alignRight": "Align right",
-      "alignJustify": "Align justify"
-    },
-    "tooltips": {
-      "customColor": "Custom color",
-      "setColor": "Set color to {color}",
-      "clearColor": "Clear color"
+      "italic": "Italic",
+      "orderedList": "Ordered list",
+      "paragraph": "Paragraph",
+      "setLink": "Set link",
+      "strikethrough": "Strikethrough",
+      "underline": "Underline"
     },
     "buttons": {
-      "clear": "Clear",
       "apply": "Apply",
-      "insert": "Insert",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "clear": "Clear",
+      "insert": "Insert"
     },
+    "characterCountSuffix": " characters",
     "dialogs": {
-      "link": {
-        "title": "Set Link"
-      },
       "image": {
         "title": "Insert Image"
+      },
+      "link": {
+        "title": "Set Link"
+      }
+    },
+    "labels": {
+      "imageAlt": "Alternative text (optional)",
+      "imageUrl": "Image URL"
+    },
+    "placeholders": {
+      "imageAlt": "Describe image content",
+      "imageUrl": "https://example.com/image.jpg",
+      "linkUrl": "https://example.com",
+      "tiptapEditor": "Start writing content..."
+    },
+    "tooltips": {
+      "clearColor": "Clear color",
+      "customColor": "Custom color",
+      "setColor": "Set color to {color}"
+    }
+  },
+  "contentManagement": {
+    "title": "Content Block Management",
+    "addBlock": "Add Content Block",
+    "create": {
+      "title": "Create New Content Block",
+      "messages": {
+        "createSuccess": "Content block \"{name}\" has been created successfully.",
+        "createError": "Failed to create content block: {error}"
+      }
+    },
+    "edit": {
+      "title": "Edit Content Block",
+      "messages": {
+        "fetchErrorNotFound": "Failed to load content block data, it may have been deleted.",
+        "fetchErrorGeneric": "Error loading content block data.",
+        "invalidId": "Invalid content block ID.",
+        "loadFailed": "Content block data loading failed.",
+        "updateSuccess": "Content block \"{name}\" has been updated successfully.",
+        "updateError": "Failed to update content block: {error}"
+      }
+    },
+    "fields": {
+      "name": "Name",
+      "identifier": "Identifier",
+      "type": "Type",
+      "lastUpdated": "Last Updated",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "table": {
+      "emptyContent": "No content blocks found.",
+      "fetchError": "Failed to fetch content blocks data. {error}"
+    },
+    "messages": {
+      "deleteSuccess": "Content block \"{name}\" has been deleted successfully.",
+      "deleteError": "Failed to delete content block \"{name}\". {error}",
+      "statusToggleSuccess": "Content block \"{name}\" status has been updated to {status}.",
+      "statusToggleError": "Failed to update content block \"{name}\" status. {error}"
+    },
+    "confirmDelete": {
+      "title": "Confirm Delete",
+      "message": "Are you sure you want to delete content block \"{name}\"? This action cannot be undone."
+    },
+    "form": {
+      "basicInfo": "Basic Information",
+      "name": "Name",
+      "identifier": "Identifier (Unique Key)",
+      "itemIdentifierLabel": "Item Identifier (Optional, for direct code reference)",
+      "slotKeyLabel": "Layout Slot (for frontend rendering position)",
+      "selectSlotKeyPlaceholder": "Select the layout slot for this content item...",
+      "type": "Content Block Type",
+      "description": "Description",
+      "isActive": "Active Status",
+      "specificData": "Specific Data",
+      "contentItems": "Content Items",
+      "guaranteeItems": "Guarantee Items",
+      "item": "Item",
+      "itemType": "Item Type",
+      "itemIsActive": "Item Active Status",
+      "newItem": "New Item",
+      "addItem": "Add Item",
+      "trendingContainerInfo": "This type of content block is primarily managed through 'Content Items' below.",
+      "noSpecificFields": "This type has no specific data fields.",
+      "selectPlaceholderPrefix": "Select ",
+      "imagePreviewAlt": "{label} Preview",
+      "identifierPlaceholder": "e.g., homepage-banner",
+      "validation": {
+        "titleRequired": "Title is required",
+        "descriptionRequired": "Description paragraph is required",
+        "invalidImageUrl": "Invalid image URL",
+        "invalidLinkUrl": "Invalid link URL",
+        "iconKeyRequired": "Icon key is required"
+      },
+      "newItemForSlot": "New item for slot {slotKey}",
+      "itemName": "Content Item Name",
+      "noSpecificFieldsForItemType": "This content item type has no specific data fields."
+    },
+    "formFields": {
+      "banner": {
+        "title": "Title",
+        "description": "Description",
+        "imageUrl": "Image URL",
+        "linkUrl": "Link URL",
+        "ctaText": "Button Text"
+      },
+      "introduction": {
+        "title": "Section Title",
+        "descriptionParagraph": "Description Paragraph",
+        "featuresLeft": "Left Features List (one per line)",
+        "featuresRight": "Right Features List (one per line)",
+        "bottomText": "Bottom Text"
+      },
+      "productGrid": {
+        "title": "Section Title",
+        "seeAllText": "'See All' Button Text",
+        "seeAllLink": "'See All' Button Link"
+      },
+      "trendingCard": {
+        "title": "Title",
+        "description": "Description",
+        "imageUrl": "Image URL",
+        "href": "Link URL",
+        "topLabel": "Top Label",
+        "subtitle": "Subtitle",
+        "textPosition": "Text Position (Overlay)",
+        "textPlacement": "Text Placement",
+        "size": "Card Size",
+        "labelText": "Label Text",
+        "labelLinkUrl": "Label Link URL",
+        "itemTitleText": "Item Title Text",
+        "itemTitleLinkUrl": "Item Title Link URL"
+      },
+      "shiningCard": {
+        "title": "Title",
+        "imageUrl": "Image URL",
+        "linkUrl": "Link URL"
+      },
+      "textLinkBlock": {
+        "text": "Text",
+        "linkUrl": "Link URL",
+        "styleHint": "Style Hint"
+      },
+      "guaranteeItem": {
+        "iconKey": "Icon Key",
+        "title": "Title",
+        "description": "Description"
+      }
+    },
+    "blockTypes": {
+      "BANNER": "Banner",
+      "INTRODUCTION_SECTION": "Introduction Section",
+      "PRODUCT_GRID_HERO": "Product Grid Hero",
+      "TRENDING_SECTION_CONTAINER": "Trending Section Container"
+    },
+    "itemTypes": {
+      "TRENDING_CARD_LARGE": "Trending Card Large",
+      "TRENDING_CARD_NORMAL": "Trending Card Normal",
+      "TRENDING_CARD_STANDALONE": "Trending Card Standalone",
+      "SHINING_CARD": "Shining Card",
+      "TEXT_LINK_BLOCK": "Text Link Block",
+      "INTRODUCTION_GUARANTEE_ITEM": "Introduction Guarantee Item",
+      "sizes": {
+        "normal": "Normal",
+        "large": "Large",
+        "vertical": "Vertical",
+        "horizontal": "Horizontal",
+        "small": "Small"
+      },
+      "textPositions": {
+        "bottom": "Bottom",
+        "center": "Center"
+      },
+      "textPlacements": {
+        "overlay": "Overlay",
+        "belowImage": "Below Image",
+        "aboveImage": "Above Image",
+        "standalone": "Standalone (Image Only)"
       }
     },
     "placeholders": {
-      "tiptapEditor": "Start writing content...",
-      "linkUrl": "https://example.com",
-      "imageUrl": "https://example.com/image.jpg",
-      "imageAlt": "Describe image content"
+      "identifierExample": "e.g., homepage-banner",
+      "itemIdentifierPlaceholder": "e.g., trending_main_large_left (optional, for specific frontend layouts)",
+      "linkUrlExample": "/products/category",
+      "imageUrlExample": "/images/banner-bg.jpg",
+      "seeAllLinkExample": "/products/all",
+      "featuresLeftPlaceholder": "One feature per line",
+      "featuresRightPlaceholder": "One feature per line",
+      "styleHintPlaceholder": "e.g., slot-label, slot-title, hero-button"
     },
-    "labels": {
-      "imageUrl": "Image URL",
-      "imageAlt": "Alternative text (optional)"
+    "slotKeys": {
+      "trending_main_large_left": "Main Area - Large Card Left",
+      "trending_slot_top_right_image": "Main Area - Top Right Image",
+      "trending_slot_top_right_text_label": "Main Area - Top Right Label Text",
+      "trending_slot_top_right_text_title": "Main Area - Top Right Title Text",
+      "trending_slot_bottom_right_image": "Main Area - Bottom Right Image",
+      "trending_main_large_right": "Secondary Area - Large Card Right",
+      "trending_slot_next_top_left_image": "Secondary Area - Top Left Image",
+      "trending_slot_next_text_label": "Secondary Area - Left Label Text",
+      "trending_slot_next_text_title": "Secondary Area - Left Title Text",
+      "trending_slot_next_bottom_left_image": "Secondary Area - Bottom Left Image",
+      "guarantee_item_1": "Guarantee Item 1",
+      "guarantee_item_2": "Guarantee Item 2",
+      "guarantee_item_3": "Guarantee Item 3"
     },
-    "characterCountSuffix": " characters"
+    "hooks": {
+      "fetchListError": "Failed to fetch content block list",
+      "fetchSingleError": "Failed to fetch content block details",
+      "fetchSingleErrorNotFound": "Content block not found or deleted",
+      "createError": "Failed to create content block",
+      "updateError": "Failed to update content block",
+      "deleteError": "Failed to delete content block"
+    },
+    "visualEditor": {
+      "previewDescription": "Click on a slot in the preview area below to edit or add content items.",
+      "editItemTitle": "Edit Content Item: {itemName}",
+      "unnamedItem": "Unnamed Item",
+      "slotLabel": "Slot",
+      "editItemDescription": "Modify the details for this content item.",
+      "addItemToSlotPlaceholderNamed": "Add content to \"{slotName}\"",
+      "noImage": "No Image",
+      "addItemToSlotPlaceholder": "Click to add content"
+    }
   }
 }

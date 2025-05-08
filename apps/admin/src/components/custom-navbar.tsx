@@ -44,6 +44,7 @@ import { NavbarActions } from "./navbar-actions";
 export function CustomNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const t = useTranslations("layout");
   const pathname = usePathname();
@@ -57,6 +58,13 @@ export function CustomNavbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleMobileSearchChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setMobileSearchQuery(event.target.value);
+    // TODO: Implement actual search logic if needed
+  };
 
   const navItems = [
     { href: "/", label: t("dashboard"), active: pathname === "/" },
@@ -74,6 +82,11 @@ export function CustomNavbar() {
       href: "/pages",
       label: t("pages"),
       active: pathname.startsWith("/pages"),
+    },
+    {
+      href: "/content-management",
+      label: t("contentManagement"),
+      active: pathname.startsWith("/content-management"),
     },
     {
       href: "/settings",
@@ -196,6 +209,8 @@ export function CustomNavbar() {
                       type="search"
                       placeholder={t("search")}
                       className="h-9 rounded-full pl-8 pr-3 w-full bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 focus-visible:ring-primary-500"
+                      value={mobileSearchQuery}
+                      onChange={handleMobileSearchChange}
                     />
                     <Search
                       size={16}

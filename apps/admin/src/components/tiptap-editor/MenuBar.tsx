@@ -32,6 +32,7 @@ import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { ImageUploader } from "@/components/image-uploader/ImageUploader";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -55,13 +56,6 @@ const LinkSchema = z.object({
 
 type LinkFormValues = z.infer<typeof LinkSchema>;
 
-const ImageSchema = z.object({
-  src: z.string().url("请输入有效的图片URL"),
-  alt: z.string().optional(),
-});
-
-type ImageFormValues = z.infer<typeof ImageSchema>;
-
 export function MenuBar({ editor }: MenuBarProps) {
   const t = useTranslations("tiptapEditor");
 
@@ -75,18 +69,8 @@ export function MenuBar({ editor }: MenuBarProps) {
     defaultValues: { url: "" },
   });
 
-  const {
-    register: registerImage,
-    handleSubmit: handleImageSubmit,
-    setValue: setImageValue,
-    formState: { errors: imageErrors },
-  } = useForm<ImageFormValues>({
-    resolver: zodResolver(ImageSchema),
-    defaultValues: { src: "", alt: "" },
-  });
-
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
 
   const setLink = useCallback(() => {
     if (!editor) return;
@@ -113,22 +97,18 @@ export function MenuBar({ editor }: MenuBarProps) {
     [editor, setLinkValue],
   );
 
-  const addImage = useCallback(() => {
-    if (!editor) return;
-    setIsImageModalOpen(true);
-  }, [editor]);
-
-  const onImageSubmit = useCallback(
-    (data: ImageFormValues) => {
-      if (!editor) return;
-      if (data.src) {
-        editor.chain().focus().setImage({ src: data.src, alt: data.alt }).run();
+  const handleUploadedImage = useCallback(
+    (imageUrl: string, altText?: string) => {
+      if (editor) {
+        editor
+          .chain()
+          .focus()
+          .setImage({ src: imageUrl, alt: altText || " " })
+          .run();
       }
-      setIsImageModalOpen(false);
-      setImageValue("src", "");
-      setImageValue("alt", "");
+      setIsImageUploadModalOpen(false);
     },
-    [editor, setImageValue],
+    [editor],
   );
 
   if (!editor) {
@@ -323,7 +303,7 @@ export function MenuBar({ editor }: MenuBarProps) {
         type="button"
         size="sm"
         variant="ghost"
-        onClick={addImage}
+        onClick={() => setIsImageUploadModalOpen(true)}
         aria-label={t("ariaLabels.addImage")}
       >
         <ImageIcon className="h-4 w-4" />
@@ -470,52 +450,12 @@ export function MenuBar({ editor }: MenuBarProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Image Modal */}
-      <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dialogs.image.title")}</DialogTitle>
-          </DialogHeader>
-          <form
-            onSubmit={handleImageSubmit(onImageSubmit)}
-            className="space-y-4"
-          >
-            <div>
-              <label htmlFor="imageUrl" className="text-sm font-medium">
-                {t("labels.imageUrl")}
-              </label>
-              <Input
-                id="imageUrl"
-                placeholder={t("placeholders.imageUrl")}
-                {...registerImage("src")}
-              />
-              {imageErrors.src && (
-                <p className="text-red-500 text-xs mt-1">
-                  {imageErrors.src.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="imageAlt" className="text-sm font-medium">
-                {t("labels.imageAlt")}
-              </label>
-              <Input
-                id="imageAlt"
-                placeholder={t("placeholders.imageAlt")}
-                {...registerImage("alt")}
-              />
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
-                  {t("buttons.cancel", { ns: "common" })}
-                </Button>
-              </DialogClose>
-              <Button type="submit">{t("buttons.insert")}</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Image Uploader Modal (New) */}
+      <ImageUploader
+        isOpen={isImageUploadModalOpen}
+        onClose={() => setIsImageUploadModalOpen(false)}
+        onImageUpload={handleUploadedImage}
+      />
 
       {/* TODO: Add more buttons for Table, TaskList, Youtube, Highlight, Subscript, Superscript etc. */}
     </div>

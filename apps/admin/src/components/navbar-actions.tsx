@@ -3,6 +3,7 @@
 import { LogOut, Moon, Search, Settings, Sun, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
+import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Shadcn UI Avatar
 import { Button } from "@/components/ui/button"; // Shadcn UI Button
@@ -29,6 +30,14 @@ import { LanguageSwitcher } from "./language-switcher"; // 已重构的语言切
 export function NavbarActions() {
   const t = useTranslations("layout");
   const { theme, setTheme } = useTheme();
+  const [desktopSearchQuery, setDesktopSearchQuery] = useState("");
+
+  const handleDesktopSearchChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setDesktopSearchQuery(event.target.value);
+    // TODO: Implement actual search logic if needed
+  };
 
   return (
     <div className="ml-auto flex items-center space-x-1 sm:space-x-2">
@@ -37,12 +46,13 @@ export function NavbarActions() {
         <Input
           type="search"
           placeholder={t("search")}
-          className="md:w-[180px] lg:w-[240px] h-9 rounded-full pl-8 pr-3 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 focus-visible:ring-primary-500" // 调整样式
-          // startContent prop 不适用于 Shadcn Input, 使用绝对定位图标
+          className="md:w-[180px] lg:w-[240px] h-9 rounded-full pl-8 pr-3 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 focus-visible:ring-primary-500"
+          value={desktopSearchQuery}
+          onChange={handleDesktopSearchChange}
         />
         <Search
           size={16}
-          className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" // 图标定位
+          className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400"
         />
       </div>
 
@@ -72,18 +82,13 @@ export function NavbarActions() {
       {/* 用户导航 */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="relative h-8 w-8 rounded-full p-0" // 调整按钮样式
-          >
+          <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
             <Avatar className="h-8 w-8 border border-gray-200 dark:border-gray-700">
-              {/* 添加边框 */}
               <AvatarImage
-                src="/placeholder.svg?height=32&width=32" // Shadcn Avatar 使用 src
+                src="/placeholder.svg?height=32&width=32"
                 alt={t("admin")}
               />
               <AvatarFallback className="bg-primary text-primary-foreground">
-                {/* 回退样式 */}
                 {t("admin").charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -117,7 +122,6 @@ export function NavbarActions() {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-100 dark:focus:bg-red-900/50 focus:text-red-700 dark:focus:text-red-300">
-            {/* 危险操作样式 */}
             <LogOut className="mr-2 h-4 w-4" />
             <span>{t("logout")}</span>
             <DropdownMenuShortcut>{t("shortcutLogout")}</DropdownMenuShortcut>

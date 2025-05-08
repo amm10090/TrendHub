@@ -3,6 +3,7 @@ import { Button } from '@heroui/button';
 import { Chip } from '@heroui/chip';
 import { Image } from '@heroui/image';
 import { Heart } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import * as React from 'react';
 import Slider from 'react-slick';
@@ -178,13 +179,55 @@ const products: Product[] = [
   },
 ];
 
+interface ProductGridHeroData {
+  title: string;
+  seeAllText: string;
+  seeAllLink: string;
+}
+
 export function ProductGrid() {
   const [mounted, setMounted] = useState(false);
   const t = useTranslations();
   const { openProductModal } = useProductModal();
+  const [heroData, setHeroData] = useState<ProductGridHeroData | null>(null);
+  const [isLoadingHero, setIsLoadingHero] = useState(true);
+  const [errorHero, setErrorHero] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    const fetchHeroData = async () => {
+      setIsLoadingHero(true);
+      setErrorHero(null);
+      try {
+        const response = await fetch('/api/public/content-blocks?type=PRODUCT_GRID_HERO');
+
+        if (!response.ok) {
+          throw new Error(`API 请求失败: ${response.statusText}`);
+        }
+        const blocks = await response.json();
+        const block = Array.isArray(blocks) && blocks.length > 0 ? blocks[0] : null;
+
+        if (
+          block &&
+          block.data &&
+          typeof block.data.title === 'string' &&
+          typeof block.data.seeAllText === 'string' &&
+          typeof block.data.seeAllLink === 'string'
+        ) {
+          setHeroData(block.data as ProductGridHeroData);
+        } else {
+          setHeroData(null);
+        }
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : '加载数据时发生未知错误';
+
+        setErrorHero(errorMessage);
+      } finally {
+        setIsLoadingHero(false);
+      }
+    };
+
+    fetchHeroData();
   }, []);
 
   const handleProductClick = (product: Product) => {
@@ -245,30 +288,37 @@ export function ProductGrid() {
     ],
   };
 
-  if (!mounted) {
+  const displayTitle = heroData?.title || t('nav.newArrivals');
+  const displaySeeAllText = heroData?.seeAllText || 'SEE ALL';
+  const displaySeeAllLink = heroData?.seeAllLink || '/product/list?tag=new';
+
+  if (!mounted || isLoadingHero) {
     return (
       <section className="w-full bg-bg-secondary-light dark:bg-bg-primary-dark">
         <div className="container py-8 sm:py-12">
-          <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-text-primary-light dark:text-text-primary-dark">
-            {t('nav.newArrivals')}
-          </h2>
-          <div className="animate-pulse">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-xl" />
-              ))}
-            </div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6 sm:mb-8 animate-pulse" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
+              />
+            ))}
           </div>
         </div>
       </section>
     );
   }
 
+  if (errorHero) {
+    return;
+  }
+
   return (
     <section className="w-full bg-bg-secondary-light dark:bg-bg-primary-dark">
       <div className="container py-8 sm:py-12">
         <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-text-primary-light dark:text-text-primary-dark">
-          {t('nav.newArrivals')}
+          {displayTitle}
         </h2>
         <div className="flex flex-col gap-y-12">
           <div className="relative px-0 sm:px-2 md:px-4">
@@ -305,9 +355,7 @@ export function ProductGrid() {
                         className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-xs shadow-xs p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
                         variant="flat"
                         onPress={() => {
-                          // 不再需要调用 stopPropagation
-                          // TODO: 处理收藏功能
-                          return false; // 防止事件冒泡
+                          return false;
                         }}
                       >
                         <Heart className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-text-primary-light dark:text-text-primary-dark" />
@@ -349,86 +397,15 @@ export function ProductGrid() {
                 </div>
               ))}
             </Slider>
-            <style global jsx>{`
-              .product-slider .slick-track {
-                display: flex !important;
-                margin-left: 0;
-                margin-right: 0;
-                gap: 16px;
-              }
-              .product-slider .slick-slide {
-                height: inherit !important;
-              }
-              .product-slider .slick-slide > div {
-                height: 100%;
-              }
-              .product-slider .slick-prev,
-              .product-slider .slick-next {
-                width: 32px;
-                height: 32px;
-                z-index: 20;
-                background: var(--bg-primary-light);
-                color: var(--text-primary-light);
-                border-radius: 50%;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-                backdrop-filter: blur(8px);
-                transition: all 0.2s;
-              }
-              .product-slider .slick-prev:hover,
-              .product-slider .slick-next:hover {
-                background: var(--hover-bg-light);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-              }
-              .product-slider .slick-prev {
-                left: 4px;
-              }
-              .product-slider .slick-next {
-                right: 4px;
-              }
-              @media (min-width: 1024px) {
-                .product-slider .slick-prev {
-                  left: -16px;
-                }
-                .product-slider .slick-next {
-                  right: -16px;
-                }
-              }
-              @media (max-width: 640px) {
-                .product-slider {
-                  margin: 0 -4px;
-                }
-                .product-slider .slick-slide {
-                  padding: 0 4px;
-                }
-                .product-slider .slick-prev {
-                  left: -8px;
-                }
-                .product-slider .slick-next {
-                  right: -8px;
-                }
-              }
-              @media (prefers-color-scheme: dark) {
-                .product-slider .slick-prev,
-                .product-slider .slick-next {
-                  background: var(--bg-tertiary-dark);
-                  color: var(--text-primary-dark);
-                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                }
-                .product-slider .slick-prev:hover,
-                .product-slider .slick-next:hover {
-                  background: var(--hover-bg-dark);
-                  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-                }
-              }
-            `}</style>
           </div>
           <div className="flex justify-center">
             <Button
+              as={Link}
+              href={displaySeeAllLink}
               className="bg-bg-tertiary-dark hover:bg-hover-bg-dark text-text-primary-dark min-w-[120px] text-xs sm:text-sm font-medium tracking-wide shadow-xs hover:shadow-md transition-all duration-300"
               variant="flat"
-              onPress={() => {}}
             >
-              SEE ALL
+              {displaySeeAllText}
             </Button>
           </div>
         </div>

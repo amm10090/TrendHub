@@ -96,7 +96,7 @@ export function ImageUploader({
         reader.readAsDataURL(selectedFile);
       }
     },
-    [validateFile],
+    [validateFile, setFile, setError, setAltText, setPreview],
   );
 
   const handleFileChange = useCallback(

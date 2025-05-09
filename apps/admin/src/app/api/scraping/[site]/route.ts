@@ -11,6 +11,11 @@ import { db } from "@/lib/db";
 function ensureStorageDirectories(): void {
   const adminDir = path.resolve(process.cwd());
   const storageDir = path.join(adminDir, "storage");
+  const requestQueuesDefaultDir = path.join(
+    storageDir,
+    "request_queues",
+    "default",
+  );
 
   // 确保主要存储目录存在
   if (!fs.existsSync(storageDir)) {
@@ -18,17 +23,43 @@ function ensureStorageDirectories(): void {
   }
 
   // 确保必要的子目录存在
-  const subDirs = [
-    "request_queues/default",
+  const subDirsToEnsure = [
     "datasets/default",
     "key_value_stores/default",
+    "request_queues/default",
   ];
 
-  for (const subDir of subDirs) {
+  for (const subDir of subDirsToEnsure) {
     const fullPath = path.join(storageDir, subDir);
 
     if (!fs.existsSync(fullPath)) {
       fs.mkdirSync(fullPath, { recursive: true });
+    }
+  }
+
+  // 在开发模式下，清空旧的请求队列文件以避免无效JSON错误
+  if (process.env.NODE_ENV === "development") {
+    if (fs.existsSync(requestQueuesDefaultDir)) {
+      const files = fs.readdirSync(requestQueuesDefaultDir);
+      let clearedCount = 0;
+
+      for (const file of files) {
+        if (file.endsWith(".json")) {
+          // 通常请求队列文件是json
+          try {
+            fs.unlinkSync(path.join(requestQueuesDefaultDir, file));
+            clearedCount++;
+          } catch {
+            return;
+          }
+        }
+      }
+      if (clearedCount > 0) {
+        return;
+      }
+    } else {
+      // 如果 requestQueuesDefaultDir 自身不存在，则也创建它（虽然上面的循环应该已经处理了）
+      fs.mkdirSync(requestQueuesDefaultDir, { recursive: true });
     }
   }
 
@@ -163,10 +194,10 @@ export async function POST(
   } catch (error) {
     return NextResponse.json(
       {
-        error: `爬虫存储目录创建失败: ${(error as Error).message}`,
+        error: `爬虫存储目录初始化失败: ${(error as Error).message}`,
         detail: {
           cwd: process.cwd(),
-          storageDir: path.join(process.cwd(), "storage"),
+          storageDirAttempted: path.join(process.cwd(), "storage"),
           stack: (error as Error).stack,
         },
       },
@@ -176,19 +207,22 @@ export async function POST(
 
   const resolvedParams = await context.params;
   const site = resolvedParams.site as ECommerceSite;
-  const body = await request.json();
+  let body;
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "无效的JSON请求体" }, { status: 400 });
+  }
   const startUrl = body.startUrl as string | string[];
 
   if (!site || !Object.keys(scrapers).includes(site)) {
-    return NextResponse.json(
-      { error: `Invalid site: ${site}` },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: `无效的站点: ${site}` }, { status: 400 });
   }
 
   if (!startUrl) {
     return NextResponse.json(
-      { error: "startUrl is required in the request body" },
+      { error: "请求体中必须包含 startUrl" },
       { status: 400 },
     );
   }
@@ -197,7 +231,7 @@ export async function POST(
 
   if (!scraperImporter) {
     return NextResponse.json(
-      { error: `No scraper available for site: ${site}` },
+      { error: `没有找到站点 ${site} 的爬虫导入器` },
       { status: 404 },
     );
   }
@@ -205,7 +239,6 @@ export async function POST(
   try {
     const scraperModuleExports = await scraperImporter();
 
-    // 构建一个预期的爬虫函数名，例如 'mytheresaScraper'
     const expectedScraperFunctionName = `${site.toLowerCase()}Scraper`;
 
     const scraperFunction = scraperModuleExports[expectedScraperFunctionName];
@@ -213,7 +246,7 @@ export async function POST(
     if (typeof scraperFunction !== "function") {
       return NextResponse.json(
         {
-          error: `Scraper function ${expectedScraperFunctionName} not found or not a function for site: ${site}`,
+          error: `爬虫函数 ${expectedScraperFunctionName} 未找到或不是一个函数，站点: ${site}`,
           availableExports: Object.keys(scraperModuleExports),
         },
         { status: 500 },
@@ -222,8 +255,10 @@ export async function POST(
 
     const scrapedProducts = await scraperFunction(startUrl);
 
-    if (scrapedProducts && scrapedProducts.length > 0) {
+    if (Array.isArray(scrapedProducts) && scrapedProducts.length > 0) {
       const processingResults = [];
+      let successCount = 0;
+      let errorCount = 0;
 
       for (const productData of scrapedProducts) {
         try {
@@ -243,7 +278,6 @@ export async function POST(
             productData.breadcrumbs,
           );
 
-          // 直接构造符合 Prisma.ProductCreateInput/UpdateInput 的对象
           const productPayload = {
             name: productData.name || "N/A",
             url: productData.url,
@@ -297,15 +331,17 @@ export async function POST(
               url_source: { url: productData.url, source: productData.source },
             },
             create: productPayload,
-            update: productPayload, // Prisma handles this well for upsert
+            update: productPayload,
           });
 
+          successCount++;
           processingResults.push({
             url: productData.url,
             status: "success",
             id: product.id,
           });
         } catch (err: unknown) {
+          errorCount++;
           const error = err as Error;
 
           processingResults.push({
@@ -317,20 +353,27 @@ export async function POST(
         }
       }
 
+      const message = `${successCount} 个产品处理成功 (共 ${scrapedProducts.length} 个)，${errorCount} 个处理失败。`;
+
       return NextResponse.json({
-        message: `${processingResults.filter((r) => r.status === "success").length} of ${scrapedProducts.length} products processed successfully.`,
+        message: message,
         results: processingResults,
       });
     } else {
       return NextResponse.json({
-        message: "No products scraped or to process.",
+        message: "没有抓取到产品或没有产品需要处理。",
       });
     }
   } catch (err: unknown) {
     const error = err as Error;
 
     return NextResponse.json(
-      { error: `Failed to scrape ${site}: ${error.message}` },
+      {
+        error: `执行站点 ${site} 的爬虫失败: ${error.message}`,
+        stack: error.stack,
+        cwd: process.cwd(),
+        storageDirUsed: process.env.CRAWLEE_STORAGE_DIR,
+      },
       { status: 500 },
     );
   }

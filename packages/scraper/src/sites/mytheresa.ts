@@ -17,8 +17,9 @@ export default async function scrapeMytheresa(
   startUrls: string | string[] = [
     "https://www.mytheresa.com/us/en/women/new-arrivals/current-week",
   ],
-) {
+): Promise<Product[]> {
   log.info(`Starting Mytheresa scraper for URLs: ${JSON.stringify(startUrls)}`);
+  const allScrapedProducts: Product[] = []; // <--- 新增：初始化产品数组
 
   // 确保存储目录存在
   const storageDir = path.resolve(process.cwd(), "storage");
@@ -33,6 +34,7 @@ export default async function scrapeMytheresa(
 
   const crawler = new PlaywrightCrawler({
     // 存储配置通过环境变量完成，这里不需要额外配置
+    requestHandlerTimeoutSecs: 60, // 新增：增加请求处理超时时间
 
     async requestHandler({
       request,
@@ -41,6 +43,9 @@ export default async function scrapeMytheresa(
       crawler,
       pushData,
     }) {
+      crawlerLog.info(
+        `[REQUEST_HANDLER_ENTRY] Processing url: ${request.url}, label: ${request.label}`,
+      );
       crawlerLog.info(`Processing ${request.url}... (Label: ${request.label})`);
 
       if (request.label === "DETAIL") {
@@ -290,6 +295,7 @@ export default async function scrapeMytheresa(
           `Product data extracted for ${product.name ?? product.url}, pushing to dataset.`,
         );
         await pushData(product);
+        allScrapedProducts.push(product); // <--- 新增：将产品添加到数组
       } else {
         // LIST page (or initial page)
         crawlerLog.info(`Identified as a LIST page: ${request.url}`);
@@ -314,7 +320,7 @@ export default async function scrapeMytheresa(
 
         while (true) {
           const loadMoreButtonSelector =
-            'div.loadmore__button > a.button--active:has-text("查看更多")';
+            'div.loadmore__button > a.button--active:has-text("Show more")';
           const loadMoreButton = page.locator(loadMoreButtonSelector);
 
           const loadMoreInfoSelector = "div.loadmore__info";
@@ -322,8 +328,10 @@ export default async function scrapeMytheresa(
           let allItemsLoaded = false;
           if (await loadMoreInfoElement.isVisible()) {
             const infoText = (await loadMoreInfoElement.textContent()) || "";
-            // Example: "您已查看了120件商品，总共250件" or "您已查看了60件商品，总共60件"
-            const match = infoText.match(/您已查看了(\d+)件商品，总共(\d+)件/);
+            // Example: "You've viewed 60 out of 810 products" or "You've viewed 60 of 60 products"
+            const match = infoText.match(
+              /You've viewed (\d+) (?:out of|of) (\d+) products/i,
+            );
             if (match) {
               const viewed = parseInt(match[1], 10);
               const total = parseInt(match[2], 10);
@@ -333,6 +341,10 @@ export default async function scrapeMytheresa(
                   `All ${total} items loaded according to loadmore info.`,
                 );
               }
+            } else {
+              crawlerLog.debug(
+                `Load more info text did not match expected pattern: "${infoText}"`,
+              );
             }
           }
 
@@ -397,6 +409,7 @@ export default async function scrapeMytheresa(
             break; // Exit loop on error during load more action
           }
         }
+        crawlerLog.info(`Total "Load More" clicks: ${loadMoreClickedCount}`);
       }
     },
 
@@ -421,12 +434,15 @@ export default async function scrapeMytheresa(
       },
       useChrome: true, // 某些网站对 Firefox 的支持可能不如 Chrome
     },
-    maxRequestsPerCrawl: 50, // 开发时限制请求数量，避免意外的大量请求
+    maxRequestsPerCrawl: 90, // 修改：调整最大请求数量以容纳约80个商品
   });
 
   log.info("Crawler setup complete. Starting crawl...");
   await crawler.run(Array.isArray(startUrls) ? startUrls : [startUrls]);
-  log.info("Mytheresa scraper finished. Data pushed to dataset.");
+  log.info(
+    `Mytheresa scraper finished. Total products collected: ${allScrapedProducts.length}. Data also pushed to Crawlee dataset.`,
+  );
+  return allScrapedProducts; // <--- 新增：返回收集到的产品数组
 }
 
 // Helper function to process product items (used initially and after each load more)

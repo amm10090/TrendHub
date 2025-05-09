@@ -27,11 +27,23 @@ const nextConfig = {
       allowedOrigins: ["localhost:3001"],
     },
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       "@heroui/dom-animation": "@heroui/dom-animation",
     };
+
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: [
+          ...(Array.isArray(config.watchOptions?.ignored)
+            ? config.watchOptions.ignored
+            : []),
+          "**/storage/**",
+        ],
+      };
+    }
 
     if (isServer) {
       if (!config.externals) {

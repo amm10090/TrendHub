@@ -8,13 +8,15 @@
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@repo/scraper/*": ["../../packages/scraper/dist/*"],
+      "@repo/scraper/sites/*": ["../../packages/scraper/dist/sites/*"]
     },
     "plugins": [
       {
@@ -24,5 +26,13 @@
     "target": "ES2024"
   },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "references": [
+    {
+      "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/scraper"
+    }
+  ]
 }

@@ -1,13 +1,14 @@
 # dependencies
 node_modules
 .pnpm-store
+storage
 
 # build
 dist
 build
 .next
 out
-
+TrendHub_Scraper_Integration_Task.md
 # env
 .env
 .env.local

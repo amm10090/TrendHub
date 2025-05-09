@@ -45,9 +45,6 @@ export async function uploadImageToR2(
   contentType: string,
 ): Promise<string> {
   if (!R2_BUCKET_NAME || !R2_PUBLIC_URL) {
-    console.error(
-      "Error: R2_BUCKET_NAME or R2_PUBLIC_URL is not defined in environment variables.",
-    );
     throw new Error(
       "Server configuration error: R2 bucket or public URL not set.",
     );
@@ -73,8 +70,7 @@ export async function uploadImageToR2(
     );
 
     return `${R2_PUBLIC_URL.replace(/\/$/, "")}/${key}`;
-  } catch (error) {
-    console.error("Failed to upload image to R2:", error);
+  } catch {
     throw new Error("Image upload failed.");
   }
 }

@@ -78,23 +78,27 @@ model Brand {
 model Product {
   id           String    @id @default(cuid())  // 唯一标识符，使用CUID生成
   name         String                          // 商品名称
+  url          String?                         // 产品URL，来自爬虫
   brandId      String                          // 关联的品牌ID
   brand        Brand     @relation(fields: [brandId], references: [id])
   categoryId   String                          // 关联的分类ID
   category     Category  @relation(fields: [categoryId], references: [id])
-  price        Decimal                         // 商品价格
-  originalPrice        Decimal?  @db.Decimal(10, 2) // 添加原价字段
+  price        Decimal                         // 商品价格 (对应 currentPrice.amount)
+  currency     String?                         // 商品货币 (对应 currentPrice.currency)
+  originalPrice        Decimal?  @db.Decimal(10, 2) // 添加原价字段 (对应 originalPrice.amount)
+  originalPriceCurrency String?                       // 原价货币 (对应 originalPrice.currency)
   discount             Decimal?  @db.Decimal(10, 2) // 添加折扣字段
   status       String                          // 商品状态（如"In Stock"、"Low Stock"等）
   description  String?                         // 商品描述（可选）
   images       String[]                        // 商品图片URL数组
   videos       String[]  @default([])          // 商品视频URL数组
-  sku          String    @unique               // 商品SKU，确保唯一性
+  sku          String?               // 商品SKU，确保唯一性
   inventory    Int       @default(0)           // 库存数量
-  source       String?                         // 商品来源（可选）
+  source       String                          // 商品来源 (对应 ECommerceSite)
   colors       String[]  @default([])          // 商品颜色数组
   sizes        String[]  @default([])          // 商品尺码数组
   material     String?                         // 商品材质（可选）
+  breadcrumbs  String[]  @default([])          // 面包屑导航
   cautions     String?                         // 商品注意事项（可选）
   promotionUrl String?                         // 商品推广链接（可选）
   coupon               String?                      // 添加优惠券代码字段
@@ -102,6 +106,8 @@ model Product {
   couponExpirationDate DateTime?                    // 添加优惠券到期时间字段
   isDeleted    Boolean   @default(false)       // 软删除标记
   isNew        Boolean   @default(false)       // 是否新品标记
+  scrapedAt    DateTime?                       // 数据抓取时间
+  metadata     Json?                           // 其他元数据
   updatedAt    DateTime  @updatedAt            // 更新时间
   createdAt    DateTime  @default(now())       // 创建时间
 
@@ -112,6 +118,7 @@ model Product {
   @@index([isDeleted])
   @@index([sku])
   @@index([source])
+  @@unique([url, source], name: "url_source") // 添加复合唯一约束
 }
 
 model Page {

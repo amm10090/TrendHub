@@ -1,7 +1,8 @@
 packages:
-  - "apps/*"
-  - "packages/*"
-
+  - apps/*
+  - packages/*
+ignoredBuiltDependencies:
+  - unrs-resolver
 onlyBuiltDependencies:
   - '@heroui/shared-utils'
   - '@prisma/client'
@@ -11,5 +12,6 @@ onlyBuiltDependencies:
   - core-js-pure
   - esbuild
   - prisma
+  - puppeteer
   - sharp
-
+  - unrs-resolver

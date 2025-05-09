@@ -5,7 +5,13 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "packages/scraper/dist/**",
+        "packages/scraper/.crawlee/**"
+      ],
       "env": [
         "SMTP_HOST",
         "SMTP_PORT",
@@ -36,6 +42,14 @@
     },
     "clean": {
       "cache": false
+    },
+    "@repo/types#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "@repo/scraper#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".crawlee/**"]
     }
   },
   "remoteCache": {

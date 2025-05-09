@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: imageUrl }, { status: 200 });
   } catch (error) {
-    console.error("Image upload API error:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred.";
 

@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@heroui/react", "@heroui/dom-animation"],
+  transpilePackages: ["@heroui/react", "@heroui/dom-animation", "@repo/ui"],
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -18,6 +18,7 @@ const nextConfig = {
   turbopack: {
     // 如果有特定设置，放在这里
   },
+  serverExternalPackages: ["playwright", "@crawlee/core"],
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
@@ -26,11 +27,21 @@ const nextConfig = {
       allowedOrigins: ["localhost:3001"],
     },
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      "@heroui/dom-animation": "@heroui/dom-animation/dist/index.js",
+      "@heroui/dom-animation": "@heroui/dom-animation",
     };
+
+    if (isServer) {
+      if (!config.externals) {
+        config.externals = [];
+      }
+      config.externals.push("browserslist");
+      config.externals.push("caniuse-lite");
+      config.externals.push(/^@repo\/scraper(\/.*)?$/);
+    }
+
     return config;
   },
 };

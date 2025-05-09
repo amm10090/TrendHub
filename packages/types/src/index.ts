@@ -1,5 +1,3 @@
-// 类型定义文件 for @repo/types
-
 /**
  * 代码片段注入位置枚举
  */
@@ -36,3 +34,6 @@ export interface CodeSnippet {
 }
 
 // 可以根据需要导出更多共享类型
+
+// 导出产品相关类型
+export * from "./product.js";

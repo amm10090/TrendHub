@@ -1,0 +1,31 @@
+{
+  "name": "@repo/scraper",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Scraper package for TrendHub project.",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": "./dist/main.js",
+  "dependencies": {
+    "crawlee": "^3.13.3",
+    "playwright": "1.52.0",
+    "puppeteer": "^24.8.2",
+    "@repo/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@apify/tsconfig": "^0.1.1",
+    "tsx": "^4.19.4",
+    "typescript": "~5.8.3",
+    "@types/node": "^22.15.16"
+  },
+  "scripts": {
+    "start": "npm run start:dev",
+    "start:prod": "node dist/main.js",
+    "start:dev": "tsx src/main.ts",
+    "build": "tsc --build tsconfig.json",
+    "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+  }
+}

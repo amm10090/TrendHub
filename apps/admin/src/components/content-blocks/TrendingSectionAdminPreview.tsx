@@ -5,9 +5,9 @@
 import { PlusCircle, Edit3 } from "lucide-react";
 import Image from "next/image";
 
-import { ContentItemFormValues } from "./ContentBlockForm";
-
 import { cn } from "@/lib/utils";
+
+import { ContentItemFormValues } from "./ContentBlockForm";
 
 interface TrendingSectionAdminPreviewProps {
   items: ContentItemFormValues[];

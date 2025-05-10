@@ -331,7 +331,7 @@
     "activeNow": "Active Now",
     "addProduct": "Add Product",
     "analytics": "Analytics",
-    "analyticsContent": "dashboard.analyticsContent",
+    "analyticsContent": "AnalyticsContent",
     "dashboard": {
       "title": "Dashboard"
     },
@@ -341,7 +341,7 @@
     "recentSales": "Recent Sales",
     "recentSalesDescription": "You made 265 sales this month.",
     "reports": "Reports",
-    "reportsContent": "dashboard.reportsContent",
+    "reportsContent": "ReportsContent",
     "revenue": "Revenue",
     "revenueIncrease": "+20.1% from last month",
     "sales": "Sales",
@@ -401,7 +401,8 @@
     "shortcutProfile": "⇧⌘P",
     "shortcutSettings": "⌘S",
     "userMenu": "User Menu",
-    "contentManagement": "Content Management"
+    "contentManagement": "Content Management",
+    "scraperManagement": "Scraper Management"
   },
   "nav": {
     "brands_a_z": "",

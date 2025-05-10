@@ -1,7 +1,9 @@
 {
   "actions": {
     "delete": "删除",
-    "details": "详情"
+    "details": "详情",
+    "activate": "激活",
+    "deactivate": "禁用"
   },
   "brands": {
     "actions": {
@@ -333,7 +335,8 @@
     "shortcutProfile": "⇧⌘P",
     "shortcutSettings": "⌘S",
     "userMenu": "用户菜单",
-    "contentManagement": "内容管理"
+    "contentManagement": "内容管理",
+    "scraperManagement": "爬虫管理"
   },
   "nav": {
     "brands_a_z": "导航.品牌_A_Z",
@@ -505,7 +508,8 @@
         "categoryLevel3Placeholder": "选择三级分类",
         "tags": "产品标签",
         "tagsPlaceholder": "标签占位符",
-        "title": "产品分类"
+        "title": "产品分类",
+        "currentFullPathLabel": "当前精确分类路径"
       },
       "priceAndInventory": {
         "barcode": "条形码",
@@ -661,7 +665,8 @@
       "next": "下一页",
       "of": "共",
       "prev": "上一页",
-      "showing": "显示"
+      "showing": "显示",
+      "rowsPerPage": "每页显示"
     },
     "price": "价格",
     "pricing": "价格信息",
@@ -1129,6 +1134,217 @@
       "addItemToSlotPlaceholderNamed": "添加内容到 \"{slotName}\"",
       "noImage": "无图片",
       "addItemToSlotPlaceholder": "点击添加内容"
+    }
+  },
+  "scraperManagement": {
+    "title": "爬虫管理",
+    "definitionsTab": {
+      "title": "任务定义",
+      "addTaskDefinition": "添加任务定义",
+      "loading": "正在加载定义...",
+      "fetchError": "加载任务定义失败: {error}",
+      "noData": "未找到任务定义。",
+      "dataTablePlaceholder": "任务定义数据表将在此处显示。",
+      "addTaskNotImplemented": "添加任务定义功能尚未实现。",
+      "notSet": "未设置",
+      "status": {
+        "enabled": "已启用",
+        "disabled": "已禁用",
+        "COMPLETED": "已完成",
+        "FAILED": "失败",
+        "RUNNING": "运行中",
+        "QUEUED": "队列中",
+        "IDLE": "空闲",
+        "CANCELLED": "已取消",
+        "neverRun": "从未运行",
+        "notScheduled": "未安排",
+        "invalidCron": "无效的计划",
+        "calculating": "计算中...",
+        "invalidDate": "无效日期"
+      },
+      "columns": {
+        "name": "名称",
+        "targetSite": "目标站点",
+        "status": "状态",
+        "cronExpression": "定时表达式 (Cron)",
+        "nextRun": "下次运行",
+        "lastRunStatusTime": "上次运行",
+        "lastRun": "上次运行",
+        "actions": "操作"
+      },
+      "actions": {
+        "openMenu": "打开菜单",
+        "title": "操作",
+        "edit": "编辑",
+        "editClicked": "编辑操作已点击，ID: {id}",
+        "delete": "删除",
+        "deleteConfirmMessage": "您确定要删除任务定义 \"{name}\" 吗？此操作无法撤销。",
+        "runNow": "立即运行",
+        "viewHistory": "查看历史",
+        "viewHistoryClicked": "查看历史操作已点击，ID: {id}"
+      },
+      "messages": {
+        "deleteSuccess": "任务定义 \"{name}\" 已成功删除。",
+        "deleteError": "删除任务定义 \"{name}\" 失败: {error}",
+        "deleteErrorFallback": "无法删除任务定义。",
+        "runSuccess": "任务 \"{name}\" (执行ID: {executionId}) 已成功加入队列。",
+        "runError": "任务 \"{name}\" 加入队列失败: {error}",
+        "runErrorFallback": "无法将任务加入队列。"
+      },
+      "loadingNextPage": "正在加载数据...",
+      "tooltips": {
+        "lastRunError": "错误: {errorMessage}"
+      },
+      "filters": {
+        "filterByNamePlaceholder": "按任务名称筛选...",
+        "selectSitePlaceholder": "所有站点",
+        "selectStatusPlaceholder": "所有状态",
+        "allSites": "所有站点",
+        "allStatuses": "所有状态",
+        "resetFilters": "重置"
+      }
+    },
+    "executionsTab": {
+      "title": "执行历史",
+      "loading": "加载中...",
+      "loadingData": "加载数据中...",
+      "noData": "暂无数据",
+      "fetchError": "获取数据失败: {error}",
+      "invalidDate": "无效日期",
+      "columns": {
+        "taskName": "任务名称",
+        "targetSite": "目标站点",
+        "status": "状态",
+        "triggerType": "触发类型",
+        "startedAt": "开始时间",
+        "completedAt": "完成时间",
+        "duration": "持续时间",
+        "metrics": "指标",
+        "actions": "操作"
+      },
+      "metrics": {
+        "productsScraped": "爬取产品数",
+        "requestsMade": "请求次数",
+        "productsFound": "发现产品数",
+        "productsSaved": "成功保存数"
+      },
+      "filters": {
+        "filterByTaskNamePlaceholder": "按任务名称筛选...",
+        "selectSitePlaceholder": "选择站点",
+        "selectStatusPlaceholder": "选择状态",
+        "allSites": "所有站点",
+        "allStatuses": "所有状态",
+        "resetFilters": "重置筛选"
+      },
+      "actions": {
+        "title": "操作",
+        "viewLogs": "查看日志",
+        "cancel": "取消任务",
+        "openMenu": "打开菜单",
+        "cancelConfirmMessage": "确定要取消任务 \"{taskName}\" 吗？"
+      },
+      "messages": {
+        "cancelError": "取消任务 \"{taskName}\" 失败: {error}",
+        "cancelErrorFallback": "取消任务时发生未知错误。",
+        "cancelSuccess": "已成功取消任务 \"{taskName}\""
+      },
+      "statusMessages": {
+        "running": "运行中...",
+        "queued": "队列中..."
+      },
+      "triggerTypes": {
+        "MANUAL": "手动触发",
+        "SCHEDULED": "定时触发",
+        "API": "API触发",
+        "WEBHOOK": "Webhook触发"
+      },
+      "logsView": {
+        "title": "任务日志：{taskName} (#{executionId})",
+        "titleSimple": "任务日志: {taskName}",
+        "description": "实时任务执行日志",
+        "notImplemented": "日志查看功能即将推出",
+        "comingSoon": "我们正在努力开发这项功能，敬请期待！",
+        "executionInfo": "执行ID: {id}, 状态: {status}",
+        "loadingLogs": "加载日志中...",
+        "noLogsFound": "暂无日志记录。",
+        "filterByLevel": "按级别筛选",
+        "allLevels": "所有级别",
+        "logEntryContext": "上下文数据",
+        "invalidDate": "无效日期",
+        "fetchErrorTitle": "获取日志失败",
+        "fetchErrorGeneric": "加载日志数据时发生未知错误。"
+      }
+    },
+    "definitionForm": {
+      "createModalTitle": "创建新任务定义",
+      "createModalDescription": "填写以下详细信息以添加新的爬虫任务。",
+      "editModalTitle": "编辑任务定义: {name}",
+      "editModalDescription": "修改现有爬虫任务的详细信息。",
+      "fields": {
+        "name": {
+          "label": "任务名称",
+          "placeholder": "为任务输入一个唯一的名称"
+        },
+        "description": {
+          "label": "描述 (可选)",
+          "placeholder": "简要描述此任务"
+        },
+        "targetSite": {
+          "label": "目标站点",
+          "placeholder": "选择目标电商网站"
+        },
+        "startUrls": {
+          "label": "起始URL",
+          "placeholder": "每行输入一个URL",
+          "description": "这些是爬虫将访问的初始URL。"
+        },
+        "cronExpression": {
+          "label": "Cron表达式 (可选)",
+          "placeholder": "例如：0 0 * * * (表示每天午夜)",
+          "description": "如果不需要定时计划，请留空。可使用 crontab.guru 获取帮助。"
+        },
+        "isEnabled": {
+          "label": "启用任务",
+          "description": "如果禁用，任务将不会按计划运行，也无法通过API触发。"
+        },
+        "maxRequests": {
+          "label": "最大请求数 (可选)",
+          "placeholder": "例如：1000"
+        },
+        "maxLoadClicks": {
+          "label": "最大加载更多次数 (可选)",
+          "placeholder": "例如：20"
+        },
+        "maxProducts": {
+          "label": "最大抓取产品数 (可选)",
+          "placeholder": "例如：500"
+        },
+        "defaultInventory": {
+          "label": "默认库存",
+          "placeholder": "例如：99"
+        }
+      },
+      "actions": {
+        "cancel": "取消",
+        "createTask": "创建任务",
+        "saveChanges": "保存更改",
+        "submitting": "提交中..."
+      },
+      "messages": {
+        "createSuccess": "任务定义 \"{name}\" 创建成功。",
+        "updateSuccess": "任务定义 \"{name}\" 更新成功。",
+        "createErrorFallback": "创建任务定义失败，请重试。",
+        "updateErrorFallback": "更新任务定义失败，请重试。",
+        "unknownError": "发生未知错误，请重试。"
+      }
+    },
+    "validation": {
+      "nameRequired": "任务名称是必填项。",
+      "targetSiteRequired": "必须选择目标站点。",
+      "urlInvalid": "一个或多个URL无效。",
+      "startUrlsRequired": "至少需要一个起始URL。",
+      "inventoryNonNegative": "默认库存必须大于或等于0。",
+      "positiveNumber": "如果提供，必须是一个正数。"
     }
   }
 }

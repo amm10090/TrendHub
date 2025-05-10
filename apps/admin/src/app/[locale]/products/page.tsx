@@ -5,6 +5,13 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
@@ -12,6 +19,33 @@ import { useProducts } from "@/hooks/use-products";
 
 import { CategoryTable } from "./category-table";
 import { ProductsClient } from "./products-client";
+
+// 添加本地存储工具函数
+const STORAGE_KEY = "productTableLimit";
+
+const saveToLocalStorage = (key: string, value: unknown) => {
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      return;
+    }
+  }
+};
+
+const getFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
+  if (typeof window !== "undefined") {
+    try {
+      const item = window.localStorage.getItem(key);
+
+      return item ? (JSON.parse(item) as T) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
+  return defaultValue;
+};
 
 // ProductFilters 可能需要从 products-client.tsx 导入，或者在此处定义
 // 为了清晰，我们在此处重新定义，确保与 products-client.tsx 中的一致
@@ -35,7 +69,10 @@ interface ProductFilters {
 export default function ProductsPage() {
   const t = useTranslations("products");
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  // 从localStorage读取初始limit值，默认为10
+  const [limit, setLimit] = useState(() =>
+    getFromLocalStorage<number>(STORAGE_KEY, 10),
+  );
   const [selectedTab, setSelectedTab] = useState("products");
   const [currentFilters, setCurrentFilters] = useState<ProductFilters>({
     status: "all", // 默认筛选状态为 "all"
@@ -66,6 +103,15 @@ export default function ProductsPage() {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  // 更新handleLimitChange函数，保存用户选择到localStorage
+  const handleLimitChange = (newLimit: string) => {
+    const limitValue = Number(newLimit);
+
+    setLimit(limitValue);
+    setPage(1); // 当改变每页数量时，重置到第一页
+    saveToLocalStorage(STORAGE_KEY, limitValue);
   };
 
   const handleFiltersChange = useCallback((newFilters: ProductFilters) => {
@@ -220,8 +266,8 @@ export default function ProductsPage() {
                       isActive ? "Out of Stock" : "In Stock",
                     )
                   }
-                  activeFilters={currentFilters} // 新增：传递 currentFilters
-                  onFiltersChange={handleFiltersChange} // 新增：传递 handleFiltersChange
+                  activeFilters={currentFilters}
+                  onFiltersChange={handleFiltersChange}
                   onBulkDelete={async (ids) => {
                     try {
                       // 实现批量删除
@@ -257,8 +303,30 @@ export default function ProductsPage() {
                   }}
                 />
 
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {t("pagination.rowsPerPage")}:
+                    </span>
+                    <Select
+                      value={limit.toString()}
+                      onValueChange={handleLimitChange}
+                    >
+                      <SelectTrigger className="w-[70px]">
+                        <SelectValue placeholder={limit.toString()} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-center md:self-auto">
                     <button
                       onClick={() => handlePageChange(page > 1 ? page - 1 : 1)}
                       disabled={page <= 1}

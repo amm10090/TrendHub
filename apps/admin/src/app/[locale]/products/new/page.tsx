@@ -207,6 +207,7 @@ export default function NewProductPage() {
         source,
         colors,
         sizes,
+        tags,
         material,
         cautions,
         promotionUrl,

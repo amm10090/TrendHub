@@ -11,7 +11,8 @@ interface RouteParams {
 // 获取单个分类
 export async function GET(_: Request, { params }: RouteParams) {
   try {
-    const category = await categoryService.getCategory(params.id);
+    const resolvedParams = await params;
+    const category = await categoryService.getCategory(resolvedParams.id);
 
     if (!category) {
       return NextResponse.json({ error: "分类不存在" }, { status: 404 });
@@ -27,7 +28,11 @@ export async function GET(_: Request, { params }: RouteParams) {
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const data = await request.json();
-    const category = await categoryService.updateCategory(params.id, data);
+    const resolvedParams = await params;
+    const category = await categoryService.updateCategory(
+      resolvedParams.id,
+      data,
+    );
 
     return NextResponse.json(category);
   } catch {
@@ -38,7 +43,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 // 删除分类
 export async function DELETE(_: Request, { params }: RouteParams) {
   try {
-    await categoryService.deleteCategory(params.id);
+    const resolvedParams = await params;
+
+    await categoryService.deleteCategory(resolvedParams.id);
 
     return NextResponse.json({ success: true });
   } catch {

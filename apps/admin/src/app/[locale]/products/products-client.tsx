@@ -154,6 +154,8 @@ function CascadeCategorySelector({
   const [level1Value, setLevel1Value] = useState<string | null>(null);
   const [level2Value, setLevel2Value] = useState<string | null>(null);
   const [level3Value, setLevel3Value] = useState<string | null>(null);
+  const [displayFullPathString, setDisplayFullPathString] =
+    useState<string>("");
 
   // 生成三级分类
   const level1Categories = useMemo(() => {
@@ -161,49 +163,63 @@ function CascadeCategorySelector({
   }, [categories]);
 
   const level2Categories = useMemo(() => {
+    if (!level1Value) return [];
+
     return categories.filter((c) => c.parentId === level1Value);
   }, [categories, level1Value]);
 
   const level3Categories = useMemo(() => {
+    if (!level2Value) return [];
+
     return categories.filter((c) => c.parentId === level2Value);
   }, [categories, level2Value]);
 
-  // 初始化分类值
+  // 初始化分类值并生成完整路径字符串
   useEffect(() => {
-    if (!value) return;
+    if (!value || categories.length === 0) {
+      setLevel1Value(null);
+      setLevel2Value(null);
+      setLevel3Value(null);
+      setDisplayFullPathString("");
 
-    // 查找当前分类和其父级分类
-    const category = categories.find((c) => c.id === value);
-
-    if (!category) return;
-
-    let parentId1 = null;
-    let parentId2 = null;
-
-    // 设置二级分类值
-    if (category.parentId) {
-      const parentCategory = categories.find((c) => c.id === category.parentId);
-
-      if (parentCategory) {
-        parentId2 = parentCategory.id;
-
-        // 设置一级分类值
-        if (parentCategory.parentId) {
-          parentId1 = parentCategory.parentId;
-          setLevel1Value(parentId1);
-          setLevel2Value(parentId2);
-          setLevel3Value(value);
-        } else {
-          // 如果是二级分类
-          parentId1 = parentCategory.id;
-          setLevel1Value(parentId1);
-          setLevel2Value(value);
-        }
-      }
-    } else {
-      // 如果是一级分类
-      setLevel1Value(value);
+      return;
     }
+
+    const findCategory = (id: string): SimplifiedCategory | undefined =>
+      categories.find((c) => c.id === id);
+
+    const targetCategory = findCategory(value);
+
+    if (!targetCategory) {
+      setLevel1Value(null);
+      setLevel2Value(null);
+      setLevel3Value(null);
+      setDisplayFullPathString("");
+
+      return;
+    }
+
+    const ancestorPath: SimplifiedCategory[] = [];
+    let current: SimplifiedCategory | undefined = targetCategory;
+
+    while (current) {
+      ancestorPath.unshift(current); // Add to the beginning to get Root -> ... -> Target order
+      if (!current.parentId) break;
+      current = findCategory(current.parentId);
+      // 安全措施，防止因数据问题导致的死循环
+      if (ancestorPath.length > 10) {
+        // 假设分类层级不会超过10层
+        break;
+      }
+    }
+
+    setLevel1Value(ancestorPath.length >= 1 ? ancestorPath[0].id : null);
+    setLevel2Value(ancestorPath.length >= 2 ? ancestorPath[1].id : null);
+    setLevel3Value(ancestorPath.length >= 3 ? ancestorPath[2].id : null);
+
+    const fullPath = ancestorPath.map((cat) => cat.name).join(" > ");
+
+    setDisplayFullPathString(fullPath);
   }, [value, categories]);
 
   const handleLevel1Change = (newValue: string) => {
@@ -296,6 +312,14 @@ function CascadeCategorySelector({
               ))}
             </SelectContent>
           </Select>
+        </div>
+      )}
+
+      {/* 显示完整分类路径的元素 */}
+      {displayFullPathString && (
+        <div className="mt-2 text-sm text-gray-600">
+          {t("currentFullPathLabel", { ns: "product.edit.organization" })}:{" "}
+          {displayFullPathString}
         </div>
       )}
     </div>

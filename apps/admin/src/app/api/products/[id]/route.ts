@@ -33,6 +33,7 @@ export async function GET(
       coupon: product.coupon,
       couponDescription: product.couponDescription,
       couponExpirationDate: product.couponExpirationDate?.toISOString() ?? null,
+      tags: product.tags,
       updatedAt: product.updatedAt.toISOString(),
     };
 
@@ -123,6 +124,7 @@ const UpdateProductSchema = z.object({
   sizes: z.array(z.string()).optional(),
   material: z.string().optional().nullable(),
   cautions: z.string().optional().nullable(),
+  tags: z.array(z.string()).optional(),
   promotionUrl: z.string().url("必须是有效的推广URL").optional().nullable(),
   videos: z.array(z.string().url("必须是有效的视频URL")).optional(),
   coupon: z.string().optional().nullable(),
@@ -155,8 +157,11 @@ export async function PATCH(
     }
 
     if (validatedData.sku && validatedData.sku !== existingProduct.sku) {
-      const skuExists = await db.product.findUnique({
-        where: { sku: validatedData.sku },
+      const skuExists = await db.product.findFirst({
+        where: {
+          sku: validatedData.sku,
+          NOT: { id: existingProduct.id },
+        },
       });
 
       if (skuExists) {
@@ -199,6 +204,8 @@ export async function PATCH(
       dataToUpdate.material = validatedData.material;
     if (validatedData.cautions !== undefined)
       dataToUpdate.cautions = validatedData.cautions;
+    if (validatedData.tags !== undefined)
+      dataToUpdate.tags = validatedData.tags;
     if (validatedData.promotionUrl !== undefined)
       dataToUpdate.promotionUrl = validatedData.promotionUrl;
     if (validatedData.videos) dataToUpdate.videos = validatedData.videos;
@@ -226,6 +233,7 @@ export async function PATCH(
       couponDescription: updatedProduct.couponDescription,
       couponExpirationDate:
         updatedProduct.couponExpirationDate?.toISOString() ?? null,
+      tags: updatedProduct.tags,
       updatedAt: updatedProduct.updatedAt.toISOString(),
     };
 

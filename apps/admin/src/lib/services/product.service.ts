@@ -35,6 +35,7 @@ export type Product = {
   coupon?: string | null;
   couponDescription?: string | null;
   couponExpirationDate?: Date | string | null;
+  tags?: string[];
   isDeleted: boolean;
   isNew?: boolean;
   updatedAt: Date;
@@ -68,12 +69,13 @@ export interface CreateProductData {
   images?: string[];
   inventory: number;
   sku: string;
-  source?: string;
+  source: string;
   colors?: string[];
   sizes?: string[];
   material?: string;
   cautions?: string;
   promotionUrl?: string;
+  tags?: string[];
   originalPrice?: number | null;
   discount?: number | null;
   coupon?: string | null;
@@ -99,6 +101,7 @@ export interface UpdateProductData {
   material?: string;
   cautions?: string;
   promotionUrl?: string;
+  tags?: string[];
   originalPrice?: number | null;
   discount?: number | null;
   coupon?: string | null;
@@ -248,7 +251,7 @@ class ProductService {
       }
 
       // 检查SKU是否已存在
-      const existingSku = await this.prisma.product.findUnique({
+      const existingSku = await this.prisma.product.findFirst({
         where: { sku: data.sku },
       });
 
@@ -256,13 +259,44 @@ class ProductService {
         throw new Error(`SKU '${data.sku}' 已存在，请使用其他SKU`);
       }
 
+      const {
+        brandId,
+        categoryId,
+        price,
+        originalPrice,
+        discount,
+        couponExpirationDate,
+        colors,
+        sizes,
+        tags,
+        images,
+        ...restOfData
+      } = data;
+
+      const createInputData: Prisma.ProductCreateInput = {
+        ...restOfData,
+        price: new Decimal(price.toString()),
+        brand: { connect: { id: brandId } },
+        category: { connect: { id: categoryId } },
+        colors: colors || [],
+        sizes: sizes || [],
+        images: images || [],
+        // videos: videos || [], // 如果 CreateProductData 中有 videos
+        tags: tags || [],
+        ...(originalPrice !== undefined &&
+          originalPrice !== null && {
+            originalPrice: new Decimal(originalPrice.toString()),
+          }),
+        ...(discount !== undefined &&
+          discount !== null && { discount: new Decimal(discount.toString()) }),
+        ...(couponExpirationDate !== undefined &&
+          couponExpirationDate !== null && {
+            couponExpirationDate: new Date(couponExpirationDate),
+          }),
+      };
+
       const product = await this.prisma.product.create({
-        data: {
-          ...data,
-          price: new Decimal(data.price.toString()),
-          colors: data.colors || [],
-          sizes: data.sizes || [],
-        },
+        data: createInputData,
         include: {
           category: true,
           brand: true,
@@ -292,12 +326,40 @@ class ProductService {
       throw new Error("Product not found");
     }
 
+    const {
+      brandId,
+      categoryId,
+      price,
+      originalPrice,
+      discount,
+      couponExpirationDate,
+      ...restOfData
+    } = data;
+
+    const updateInputData: Prisma.ProductUpdateInput = {
+      ...restOfData,
+      ...(price !== undefined && { price: new Decimal(price.toString()) }),
+      ...(brandId && { brand: { connect: { id: brandId } } }),
+      ...(categoryId && { category: { connect: { id: categoryId } } }),
+      ...(originalPrice !== undefined &&
+        originalPrice !== null && {
+          originalPrice: new Decimal(originalPrice.toString()),
+        }),
+      ...(discount !== undefined &&
+        discount !== null && { discount: new Decimal(discount.toString()) }),
+      ...(couponExpirationDate !== undefined &&
+        couponExpirationDate !== null && {
+          couponExpirationDate: new Date(couponExpirationDate),
+        }),
+      // 注意：对于数组类型如 colors, sizes, tags, images, videos，如果允许在更新时完全替换或清空，
+      // 它们应该已经包含在 restOfData 中 (如果 UpdateProductData 定义正确)，或者需要像下面这样显式处理：
+      // ...(data.tags !== undefined && { tags: data.tags }),
+      // 当前 UpdateProductData 中的数组字段已经是可选的，所以它们会通过 restOfData 传递 (如果存在于 data 中)
+    };
+
     const updatedProduct = await this.prisma.product.update({
       where: { id },
-      data: {
-        ...data,
-        ...(data.price && { price: new Decimal(data.price.toString()) }),
-      },
+      data: updateInputData,
       include: {
         category: true,
         brand: true,

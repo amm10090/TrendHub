@@ -122,6 +122,7 @@ const CreateProductSchema = z.object({
   categoryId: z.string().min(1, "分类不能为空"),
   price: z.number().positive("价格必须是正数"), // Prisma expects Decimal, but typically receives number from JSON
   status: z.string().min(1, "状态不能为空"),
+  source: z.string().min(1, "来源不能为空"),
   description: z.string().optional(),
   images: z.array(z.string().url("必须是有效的图片URL")).optional().default([]),
   sku: z.string().min(1, "SKU不能为空"),
@@ -130,6 +131,7 @@ const CreateProductSchema = z.object({
   sizes: z.array(z.string()).optional().default([]),
   material: z.string().optional(),
   cautions: z.string().optional(),
+  tags: z.array(z.string()).optional().default([]),
   promotionUrl: z.string().url("必须是有效的推广URL").optional().nullable(),
   videos: z.array(z.string().url("必须是有效的视频URL")).optional().default([]),
   originalPrice: z.number().positive("原价必须是正数").optional(),
@@ -153,7 +155,7 @@ export async function POST(request: NextRequest) {
     const validatedData = CreateProductSchema.parse(body);
 
     // 检查SKU是否已存在
-    const existingProductBySku = await db.product.findUnique({
+    const existingProductBySku = await db.product.findFirst({
       where: { sku: validatedData.sku },
     });
 
@@ -171,6 +173,7 @@ export async function POST(request: NextRequest) {
       category: { connect: { id: validatedData.categoryId } },
       price: new Prisma.Decimal(validatedData.price),
       status: validatedData.status,
+      source: validatedData.source,
       sku: validatedData.sku,
       inventory: validatedData.inventory,
       description: validatedData.description,
@@ -179,6 +182,7 @@ export async function POST(request: NextRequest) {
       sizes: validatedData.sizes,
       material: validatedData.material,
       cautions: validatedData.cautions,
+      tags: validatedData.tags,
       promotionUrl: validatedData.promotionUrl,
       videos: validatedData.videos,
       originalPrice: validatedData.originalPrice

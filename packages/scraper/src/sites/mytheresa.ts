@@ -1,579 +1,906 @@
-// Mytheresa scraper placeholder
-// export async function scrapeMytheresa(url: string) {
-//     console.log(`Scraping Mytheresa: ${url}`);
-//     // TODO: Implement Mytheresa specific scraping logic using Crawlee
-// }
-
-import { PlaywrightCrawler, log, type Request, type Log } from "crawlee";
+// packages/scraper/src/sites/mytheresa.ts
+import {
+  PlaywrightCrawler,
+  Configuration,
+  log as crawleeLog,
+  type Request,
+  type Log,
+  type PlaywrightCrawlingContext,
+  type PlaywrightLaunchContext,
+} from "crawlee";
 import type { Page, Locator } from "playwright";
-import type { Product, ECommerceSite } from "@repo/types";
+import type { Product, ECommerceSite, Price } from "@repo/types";
 import * as path from "path";
 import * as fs from "fs";
+import type { ScraperOptions } from "../main.js";
+import { sendLogToBackend, LocalScraperLogLevel } from "../utils.js";
 
-// 定义产品数据的接口 (临时，后续会移到 packages/types)
+interface MytheresaUserData {
+  executionId?: string;
+  plpData?: Partial<Product>;
+  label?: string;
+}
 
-// Mytheresa scraper
+function ensureDirectoryExists(
+  dirPath: string,
+  logger: Log = crawleeLog,
+): void {
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+      logger.info(`Created directory: ${dirPath}`);
+    }
+  } catch (error) {
+    logger.error(
+      `Error creating directory ${dirPath}: ${(error as Error).message}`,
+    );
+    throw error;
+  }
+}
+
 export default async function scrapeMytheresa(
   startUrls: string | string[] = [
     "https://www.mytheresa.com/us/en/women/new-arrivals/current-week",
   ],
+  options: ScraperOptions = {},
+  executionId?: string,
 ): Promise<Product[]> {
-  log.info(`Starting Mytheresa scraper for URLs: ${JSON.stringify(startUrls)}`);
-  const allScrapedProducts: Product[] = []; // <--- 新增：初始化产品数组
+  const siteName = "Mytheresa";
+  if (executionId) {
+    await sendLogToBackend(
+      executionId,
+      LocalScraperLogLevel.INFO,
+      `${siteName} scraper started.`,
+      {
+        startUrls: Array.isArray(startUrls) ? startUrls : [startUrls],
+        options,
+      },
+    );
+  }
 
-  // 确保存储目录存在
-  const storageDir = path.resolve(process.cwd(), "storage");
-  ensureDirectoryExists(path.join(storageDir, "request_queues", "default"));
-  ensureDirectoryExists(path.join(storageDir, "datasets", "default"));
-  ensureDirectoryExists(path.join(storageDir, "key_value_stores", "default"));
+  const allScrapedProducts: Product[] = [];
+  const maxRequests = options.maxRequests || 90;
+  const maxLoadClicks = options.maxLoadClicks || 10;
+  const maxProducts = options.maxProducts || 1000;
+  let processedDetailPages = 0;
+  let enqueuedDetailPages = 0;
 
-  log.info(`Storage directory set to: ${storageDir}`);
-
-  // 直接指定存储目录，避免使用Configuration
-  process.env.CRAWLEE_STORAGE_DIR = storageDir;
-
-  const crawler = new PlaywrightCrawler({
-    // 存储配置通过环境变量完成，这里不需要额外配置
-    requestHandlerTimeoutSecs: 60, // 新增：增加请求处理超时时间
-
-    async requestHandler({
-      request,
-      page,
-      log: crawlerLog,
-      crawler,
-      pushData,
-    }) {
-      crawlerLog.info(
-        `[REQUEST_HANDLER_ENTRY] Processing url: ${request.url}, label: ${request.label}`,
+  const baseStorageDir = path.resolve(process.cwd(), "scraper_storage_runs");
+  const runSpecificStorageDir = executionId
+    ? path.join(baseStorageDir, siteName, executionId)
+    : path.join(
+        baseStorageDir,
+        siteName,
+        `default_run_${new Date().getTime()}`,
       );
-      crawlerLog.info(`Processing ${request.url}... (Label: ${request.label})`);
 
-      if (request.label === "DETAIL") {
-        crawlerLog.info(
-          `Identified as a DETAIL page via label: ${request.url}`,
+  crawleeLog.info(
+    `Mytheresa: Storage directory for this run set to: ${runSpecificStorageDir}`,
+  );
+
+  ensureDirectoryExists(
+    path.join(runSpecificStorageDir, "request_queues", "default"),
+    crawleeLog,
+  );
+  ensureDirectoryExists(
+    path.join(runSpecificStorageDir, "datasets", "default"),
+    crawleeLog,
+  );
+  ensureDirectoryExists(
+    path.join(runSpecificStorageDir, "key_value_stores", "default"),
+    crawleeLog,
+  );
+  process.env.CRAWLEE_STORAGE_DIR = runSpecificStorageDir;
+
+  const config = new Configuration({
+    storageClientOptions: { storageDir: runSpecificStorageDir },
+  });
+
+  const crawler = new PlaywrightCrawler(
+    {
+      requestHandlerTimeoutSecs: 300,
+      navigationTimeoutSecs: 120,
+      async requestHandler(
+        context: PlaywrightCrawlingContext<MytheresaUserData>,
+      ) {
+        const {
+          request,
+          page,
+          log: localCrawlerLog,
+          crawler,
+          pushData,
+        } = context;
+        const currentExecutionId = request.userData?.executionId;
+        const requestLabel = request.userData?.label || request.label;
+
+        if (currentExecutionId) {
+          await sendLogToBackend(
+            currentExecutionId,
+            LocalScraperLogLevel.INFO,
+            `Processing URL: ${request.url}`,
+            { label: requestLabel },
+          );
+        }
+        localCrawlerLog.info(
+          `Mytheresa: Processing ${request.url}... (Label: ${requestLabel})`,
         );
-        const plpData = (request.userData?.plpData as Partial<Product>) || {}; // Use new Product type
 
-        // Initialize product with the new Product type
-        const product: Product = {
-          source: "Mytheresa" as ECommerceSite,
-          url: request.url,
-          scrapedAt: new Date(),
-          // Initialize fields based on plpData if available, adjusted for new structure
-          name: plpData.name,
-          brand: plpData.brand,
-          // currentPrice: plpData.currentPrice, // plpData might not have Price object structure yet
-          images: plpData.images,
-          sizes: plpData.sizes,
-          // currency is part of Price object now
-          // breadcrumbs will be extracted below
-          // sku, description, originalPrice, color, material will be extracted below
-        };
-
-        // 新增：优先从 URL 提取 SKU
         try {
-          const urlPath = new URL(request.url).pathname; // 获取 URL 的路径部分
-          const pathSegments = urlPath.split("-");
-          if (pathSegments.length > 0) {
-            const lastSegment = pathSegments[pathSegments.length - 1];
-            // 确保整个最后段落都是 p+数字 (例如, "p01031061")
-            const skuMatch = lastSegment.match(/^(p\d+)$/i);
-            if (skuMatch && skuMatch[1]) {
-              product.sku = skuMatch[1].toLowerCase();
-              crawlerLog.info(
-                `SKU extracted from URL '${request.url}': ${product.sku}`,
+          if (requestLabel === "DETAIL") {
+            processedDetailPages++;
+            localCrawlerLog.info(
+              `Mytheresa: Identified as a DETAIL page: ${request.url} (${processedDetailPages}/${maxProducts})`,
+            );
+            const plpData = request.userData?.plpData;
+            const product: Product = {
+              source: "Mytheresa" as ECommerceSite,
+              url: request.url,
+              scrapedAt: new Date(),
+              name: plpData?.name,
+              brand: plpData?.brand,
+              images: plpData?.images,
+              sizes: plpData?.sizes,
+              tags: plpData?.tags,
+              materialDetails: [],
+              metadata: {},
+            };
+
+            try {
+              const urlPath = new URL(request.url).pathname;
+              const pathSegments = urlPath.split("-");
+              if (pathSegments.length > 0) {
+                const lastSegment = pathSegments[pathSegments.length - 1];
+                const skuMatch = lastSegment.match(/^(p\d+)$/i);
+                if (skuMatch && skuMatch[1]) {
+                  product.sku = skuMatch[1].toLowerCase();
+                }
+              }
+            } catch (e) {
+              localCrawlerLog.warning(
+                `Mytheresa: Could not parse SKU from URL ${request.url}: ${(e as Error).message}`,
               );
-            } else {
-              crawlerLog.debug(
-                `SKU pattern not found in URL path's last segment: ${lastSegment} for URL: ${request.url}`,
+            }
+            product.brand =
+              (
+                await page
+                  .locator(".product__area__branding__designer__link")
+                  .textContent()
+              )?.trim() || product.brand;
+            product.name =
+              (
+                await page
+                  .locator(".product__area__branding__name")
+                  .textContent()
+              )?.trim() || product.name;
+
+            // 抓取描述、材质、颜色等详细信息
+            const detailsAccordionContent = page.locator(
+              "div.accordion__item--active div.accordion__body__content",
+            );
+            if (await detailsAccordionContent.isVisible()) {
+              let productDescriptionText: string | undefined;
+
+              // 尝试获取第一个 <p> 标签的内容
+              const mainDescriptionP = detailsAccordionContent
+                .locator("p")
+                .first();
+              if (await mainDescriptionP.isVisible()) {
+                const pText = (await mainDescriptionP.textContent())?.trim();
+                if (pText) {
+                  // 检查 pText 是否非空
+                  productDescriptionText = pText;
+                }
+              }
+
+              // 如果 <p> 标签内容为空，则尝试从 <ul> 中提取内容作为描述
+              if (!productDescriptionText) {
+                const listItems = await detailsAccordionContent
+                  .locator("ul > li")
+                  .allTextContents();
+                // 过滤掉空字符串或不必要的细节，然后拼接
+                const relevantListItems = listItems
+                  .map((item) => item.trim())
+                  .filter(
+                    (item) =>
+                      item.length > 0 &&
+                      !item.toLowerCase().includes("item number:"),
+                  );
+                if (relevantListItems.length > 0) {
+                  productDescriptionText = relevantListItems.join(". "); // 用句号和空格分隔各项
+                }
+              }
+
+              product.description = productDescriptionText; // 最终赋值
+
+              // 提取 materialDetails (无论描述如何提取，这个字段都应填充)
+              const allDetailListItems = await detailsAccordionContent
+                .locator("ul li")
+                .allTextContents();
+              product.materialDetails = allDetailListItems
+                .map((item) => item.trim())
+                .filter((item) => item.length > 0);
+
+              // 从 materialDetails 解析 material 和 color (保持现有逻辑)
+              for (const itemText of product.materialDetails) {
+                if (itemText.toLowerCase().startsWith("material:")) {
+                  product.material = itemText
+                    .substring("material:".length)
+                    .trim();
+                }
+                if (itemText.toLowerCase().startsWith("designer color name:")) {
+                  product.color = itemText
+                    .substring("designer color name:".length)
+                    .trim();
+                } else if (
+                  !product.color &&
+                  itemText.toLowerCase().startsWith("item color:")
+                ) {
+                  product.color = itemText
+                    .substring("item color:".length)
+                    .trim();
+                }
+              }
+            }
+
+            // 抓取面包屑
+            const breadcrumbLinks = await page
+              .locator(
+                "div.breadcrumb div.breadcrumb__item a.breadcrumb__item__link",
+              )
+              .all();
+            const breadcrumbTexts = await Promise.all(
+              breadcrumbLinks.map(async (link) =>
+                (await link.textContent())?.trim(),
+              ),
+            );
+            product.breadcrumbs = breadcrumbTexts.filter(Boolean) as string[];
+
+            // 抓取价格
+            const priceContainer = page.locator("div.productinfo__price");
+            const parsePrice = (
+              priceText: string | null,
+            ): Price | undefined => {
+              if (!priceText) return undefined;
+              const amountMatch = priceText.match(/[\d,]+(?:\.\d+)?/);
+              const amount = amountMatch
+                ? parseFloat(amountMatch[0].replace(/,/g, ""))
+                : undefined;
+              if (amount === undefined) return undefined;
+              // Assuming USD for now, as currency symbol isn't always consistently extractable or present with the value.
+              // Mytheresa URL often indicates region, e.g., /us/en/
+              let currency = "USD"; // Default
+              if (
+                priceText.includes("€") ||
+                request.url.includes("/de/") ||
+                request.url.includes("/fr/") ||
+                request.url.includes("/it/")
+              )
+                currency = "EUR";
+              if (priceText.includes("£") || request.url.includes("/gb/"))
+                currency = "GBP";
+              // Add more currency detections if needed
+              return { amount, currency };
+            };
+
+            const discountPriceEl = priceContainer.locator(
+              "span.pricing__prices__value--discount span.pricing__prices__price",
+            );
+            const originalPriceEl = priceContainer.locator(
+              "span.pricing__prices__value--original span.pricing__prices__price",
+            );
+
+            let currentPriceText: string | null = null;
+            let originalPriceText: string | null = null;
+
+            if (
+              await discountPriceEl
+                .isVisible({ timeout: 5000 })
+                .catch(() => false)
+            ) {
+              currentPriceText = await discountPriceEl.textContent();
+              if (
+                await originalPriceEl
+                  .isVisible({ timeout: 5000 })
+                  .catch(() => false)
+              ) {
+                originalPriceText = await originalPriceEl.textContent();
+              }
+            } else if (
+              await originalPriceEl
+                .isVisible({ timeout: 5000 })
+                .catch(() => false)
+            ) {
+              currentPriceText = await originalPriceEl.textContent();
+              // originalPriceText remains null or could be set equal to currentPriceText if business logic dictates
+            }
+
+            product.currentPrice = parsePrice(currentPriceText);
+            product.originalPrice = parsePrice(originalPriceText);
+            // If originalPrice is same as currentPrice, and there was a discount span, it means the original was actually different.
+            // If no discount span, and originalPriceText was used for current, then actual originalPrice should be null or same.
+            // For simplicity, if originalPriceText is parsed and it's the same as currentPrice, make originalPrice undefined unless a discount was explicitly shown
+            if (
+              product.originalPrice &&
+              product.currentPrice &&
+              product.originalPrice.amount === product.currentPrice.amount &&
+              !(await discountPriceEl
+                .isVisible({ timeout: 1000 })
+                .catch(() => false))
+            ) {
+              product.originalPrice = undefined; // Or set based on explicit business rule
+            }
+
+            // 抓取图片
+            const imageLocators = await page
+              .locator(
+                "div.photocarousel__items div.swiper-slide img.product__gallery__thumbscarousel__image",
+              )
+              .all();
+            if (imageLocators.length > 0) {
+              const imageUrls = await Promise.all(
+                imageLocators.map(async (img) =>
+                  (await img.getAttribute("src"))?.trim(),
+                ),
               );
+              product.images = [
+                ...new Set(imageUrls.filter(Boolean) as string[]),
+              ];
+            }
+            // If no images found on PDP, keep plpData.images (already assigned at product init)
+
+            if (!product.sku) {
+              const skuMissingMsg = `Failed to extract SKU for URL: ${request.url}.`;
+              localCrawlerLog.warning("Mytheresa: " + skuMissingMsg);
+              if (currentExecutionId)
+                await sendLogToBackend(
+                  currentExecutionId,
+                  LocalScraperLogLevel.WARN,
+                  skuMissingMsg,
+                  { url: request.url },
+                );
+            }
+
+            localCrawlerLog.info(
+              `Mytheresa: Product data extracted for ${product.name ?? product.url}, pushing to dataset.`,
+            );
+            await pushData(product);
+            allScrapedProducts.push(product);
+
+            if (processedDetailPages >= maxProducts) {
+              localCrawlerLog.info(
+                `Mytheresa: Reached max products limit (${maxProducts}), stopping crawler.`,
+              );
+              if (currentExecutionId)
+                await sendLogToBackend(
+                  currentExecutionId,
+                  LocalScraperLogLevel.INFO,
+                  `Reached max products limit (${maxProducts}).`,
+                );
+              await crawler.stop();
             }
           } else {
-            crawlerLog.debug(
-              `URL path could not be segmented by '-' or was empty for URL: ${request.url}`,
+            // LIST page
+            localCrawlerLog.info(
+              `Mytheresa: Identified as a LIST page: ${request.url}`,
             );
-          }
-        } catch (e) {
-          crawlerLog.warning(
-            `Could not parse SKU from URL ${request.url}: ${(e as Error).message}`,
-          );
-        }
-
-        // Extract data from PDP
-        try {
-          product.brand =
-            (
-              await page
-                .locator(".product__area__branding__designer__link")
-                .textContent()
-            )?.trim() || product.brand;
-          crawlerLog.debug(
-            `Extracted brand: ${product.brand} for URL: ${request.url}`,
-          );
-          product.name =
-            (
-              await page.locator(".product__area__branding__name").textContent()
-            )?.trim() || product.name;
-          crawlerLog.debug(
-            `Extracted name: ${product.name} for URL: ${request.url}`,
-          );
-
-          const priceText = (
-            await page.locator(".pricing__prices__price").first().textContent()
-          )?.trim();
-          if (priceText) {
-            const priceMatch = priceText.match(/[\d,.]+/);
-            const numericPrice = priceMatch
-              ? parseFloat(priceMatch[0].replace(/,/g, ""))
-              : NaN;
-            let currencySymbol = "USD"; // Default currency
-            if (
-              priceText.includes("€") ||
-              priceText.toLowerCase().includes("eur")
-            )
-              currencySymbol = "EUR";
-            else if (
-              priceText.includes("$") ||
-              priceText.toLowerCase().includes("usd")
-            )
-              currencySymbol = "USD";
-            else if (
-              priceText.includes("£") ||
-              priceText.toLowerCase().includes("gbp")
-            )
-              currencySymbol = "GBP";
-            else if (
-              priceText.includes("¥") ||
-              priceText.toLowerCase().includes("cny")
-            )
-              currencySymbol = "CNY";
-            // Add more currency detection as needed
-
-            if (!isNaN(numericPrice)) {
-              product.currentPrice = {
-                amount: numericPrice,
-                currency: currencySymbol,
-              };
-              crawlerLog.debug(
-                `Extracted currentPrice: ${JSON.stringify(product.currentPrice)} for URL: ${request.url}`,
-              );
-            }
-          }
-          // TODO: Add logic for originalPrice if a selector is identified
-
-          const pdpImagesRaw = await page
-            .locator(
-              "div.swiper-wrapper > div.swiper-slide > img.product__gallery__carousel__image",
-            )
-            .evaluateAll((imgs) =>
-              imgs
-                .map((img) => (img as HTMLImageElement).src)
-                .filter((src) => src),
-            );
-          if (pdpImagesRaw.length > 0) {
-            // Ensure URLs are absolute
-            const absoluteImageUrls = pdpImagesRaw.map((src) =>
-              new URL(src, request.loadedUrl).toString(),
-            );
-            // Deduplicate image URLs
-            product.images = Array.from(new Set(absoluteImageUrls));
-            crawlerLog.debug(
-              `Extracted images count: ${product.images?.length} for URL: ${request.url}`,
-            );
-          }
-
-          const availableSizes: string[] = [];
-          const sizeElements = await page
-            .locator(
-              "div.sizeitem:not(.sizeitem--notavailable) span.sizeitem__label",
-            )
-            .all();
-          for (const el of sizeElements) {
-            const sizeText = (await el.textContent())?.trim();
-            if (sizeText) availableSizes.push(sizeText);
-          }
-          if (availableSizes.length > 0) {
-            product.sizes = availableSizes;
-            crawlerLog.debug(
-              `Extracted sizes: ${JSON.stringify(product.sizes)} for URL: ${request.url}`,
-            );
-          }
-
-          const descriptionParagraph = await page
-            .locator(".accordion__body__content > p")
-            .first()
-            .textContent();
-          product.description = descriptionParagraph?.trim() || "";
-
-          const detailListItems = await page
-            .locator(".accordion__body__content ul li")
-            .all();
-          let additionalDetails = "";
-          for (const li of detailListItems) {
-            const text = (await li.textContent())?.trim();
-            if (text) {
-              if (text.startsWith("材质:")) {
-                product.material = text.replace("材质:", "").trim();
-              } else if (text.startsWith("商品颜色:")) {
-                product.color = text.replace("商品颜色:", "").trim();
-              } else if (text.startsWith("商品编号:")) {
-                // 仅当尚未从URL获取到SKU时，才从文本提取
-                if (!product.sku) {
-                  const skuFromText = text.replace("商品编号:", "").trim();
-                  if (skuFromText) {
-                    // 尝试匹配 p+数字 或仅数字的模式，并统一处理
-                    const textSkuMatch = skuFromText.match(/^(p?)(\d+)$/i);
-                    if (textSkuMatch && textSkuMatch[2]) {
-                      // 如果没有 'p' 前缀，则加上；统一转小写
-                      product.sku =
-                        (textSkuMatch[1]
-                          ? textSkuMatch[1].toLowerCase()
-                          : "p") + textSkuMatch[2];
-                      crawlerLog.info(
-                        `SKU extracted from page text: ${product.sku}`,
-                      );
-                    } else {
-                      // 如果格式不符，也记录一下，但还是存原始提取值（小写）
-                      product.sku = skuFromText.toLowerCase();
-                      crawlerLog.warning(
-                        `SKU from text ('${skuFromText}') did not fully match expected pattern, stored as: ${product.sku} for URL: ${request.url}`,
-                      );
-                    }
-                  } else {
-                    crawlerLog.debug(
-                      `SKU not found in text for '商品编号:' for URL: ${request.url}`,
-                    );
-                  }
-                }
-              } else {
-                additionalDetails += text + "\n";
-              }
-            }
-          }
-          if (additionalDetails) {
-            product.description = (
-              product.description +
-              "\n\nDetails:\n" +
-              additionalDetails
-            ).trim();
-          }
-          crawlerLog.debug(
-            `Final description length: ${product.description?.length} for URL: ${request.url}`,
-          );
-
-          // Extract breadcrumbs
-          const breadcrumbLinks = await page
-            .locator("div.breadcrumb .breadcrumb__item__link")
-            .all();
-          const breadcrumbsText: string[] = []; // Renamed to avoid conflict with product.breadcrumbs
-          for (const link of breadcrumbLinks) {
-            const text = (await link.textContent())?.trim();
-            if (text) {
-              breadcrumbsText.push(text);
-            }
-          }
-          if (breadcrumbsText.length > 0) {
-            product.breadcrumbs = breadcrumbsText;
-          }
-        } catch (e) {
-          crawlerLog.error(
-            `Error extracting PDP data for ${request.url}: ${(e as Error).message}`,
-          );
-        }
-
-        const pageTitle = await page.title();
-        if (!product.name) product.name = pageTitle;
-
-        // Final check for SKU before pushing
-        if (!product.sku) {
-          crawlerLog.warning(
-            `Failed to extract SKU for URL: ${request.url} from both URL and page text.`,
-          );
-        }
-
-        crawlerLog.info(
-          `Product data extracted for ${product.name ?? product.url}, pushing to dataset.`,
-        );
-        await pushData(product);
-        allScrapedProducts.push(product); // <--- 新增：将产品添加到数组
-      } else {
-        // LIST page (or initial page)
-        crawlerLog.info(`Identified as a LIST page: ${request.url}`);
-
-        const productItemSelector = "div.item";
-        // Initial product items extraction at the beginning of LIST page processing
-        const productItems = await page.locator(productItemSelector).all();
-        crawlerLog.info(
-          `Found ${productItems.length} product items initially on ${request.url}`,
-        );
-        await processProductItems(
-          productItems,
-          page,
-          request,
-          crawler,
-          crawlerLog,
-        );
-
-        // New "Load More" pagination logic
-        let loadMoreClickedCount = 0;
-        const maxLoadMoreClicks = 10; // Safeguard against infinite loops
-
-        while (true) {
-          const loadMoreButtonSelector =
-            'div.loadmore__button > a.button--active:has-text("Show more")';
-          const loadMoreButton = page.locator(loadMoreButtonSelector);
-
-          const loadMoreInfoSelector = "div.loadmore__info";
-          const loadMoreInfoElement = page.locator(loadMoreInfoSelector);
-          let allItemsLoaded = false;
-          if (await loadMoreInfoElement.isVisible()) {
-            const infoText = (await loadMoreInfoElement.textContent()) || "";
-            // Example: "You've viewed 60 out of 810 products" or "You've viewed 60 of 60 products"
-            const match = infoText.match(
-              /You've viewed (\d+) (?:out of|of) (\d+) products/i,
-            );
-            if (match) {
-              const viewed = parseInt(match[1], 10);
-              const total = parseInt(match[2], 10);
-              if (viewed >= total) {
-                allItemsLoaded = true;
-                crawlerLog.info(
-                  `All ${total} items loaded according to loadmore info.`,
-                );
-              }
-            } else {
-              crawlerLog.debug(
-                `Load more info text did not match expected pattern: "${infoText}"`,
-              );
-            }
-          }
-
-          if (
-            allItemsLoaded ||
-            !(await loadMoreButton.isVisible()) ||
-            loadMoreClickedCount >= maxLoadMoreClicks
-          ) {
-            if (loadMoreClickedCount >= maxLoadMoreClicks) {
-              crawlerLog.warning("Reached maximum load more clicks.");
-            }
-            crawlerLog.info(
-              "No more items to load or load more button not visible/all items loaded.",
-            );
-            break;
-          }
-
-          try {
-            crawlerLog.info(
-              `Attempting to click "Load More" button. Click count: ${loadMoreClickedCount + 1}`,
-            );
-            await loadMoreButton.click({ timeout: 5000 }); // Added timeout for click
-            loadMoreClickedCount++;
-            crawlerLog.info(
-              '"Load More" button clicked. Waiting for new content to load...',
+            const productItemSelector = "div.item";
+            const productItems = await page.locator(productItemSelector).all();
+            localCrawlerLog.info(
+              `Mytheresa: Found ${productItems.length} product items initially on ${request.url}`,
             );
 
-            // Wait for new content. This is a critical part and might need adjustment.
-            // Option 1: Wait for a specific state like network idle or domcontentloaded
-            // await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
-            // await page.waitForLoadState('networkidle', { timeout: 15000 });
-
-            // Option 2: Simple timeout (less reliable but good for initial testing)
-            await page.waitForTimeout(7000); // Adjust timeout as needed
-
-            // Option 3: Wait for a specific element change, e.g., number of items increases
-            // This would require knowing the item count before and after click.
-
-            crawlerLog.info(
-              "Presumed new content loaded. Re-evaluating product items on the page.",
-            );
-            // Re-extract items from the (potentially updated) page content
-            // Important: Decide how to handle items already processed in this loop before the click.
-            // For now, we get all items again. Crawlee's request queue will deduplicate detail page URLs.
-            const newProductItems = await page
-              .locator(productItemSelector)
-              .all();
-            crawlerLog.info(
-              `Found ${newProductItems.length} product items after "Load More" click on ${request.url}`,
-            );
             await processProductItems(
-              newProductItems,
+              productItems,
               page,
               request,
               crawler,
-              crawlerLog,
+              localCrawlerLog,
+              maxProducts,
+              enqueuedDetailPages,
+              (newCount) => {
+                enqueuedDetailPages = newCount;
+              },
+              currentExecutionId,
             );
-          } catch (error) {
-            crawlerLog.error(
-              `Error clicking or processing after "Load More" button: ${(error as Error).message}`,
-            );
-            break; // Exit loop on error during load more action
+
+            if (enqueuedDetailPages >= maxProducts) {
+              localCrawlerLog.info(
+                `Mytheresa: Reached max products enqueue limit (${maxProducts}), not loading more.`,
+              );
+              if (currentExecutionId)
+                await sendLogToBackend(
+                  currentExecutionId,
+                  LocalScraperLogLevel.INFO,
+                  `Reached max products enqueue limit (${maxProducts}).`,
+                );
+              return;
+            }
+
+            let loadMoreClickedCount = 0;
+            const maxLoadMoreClicksVal = maxLoadClicks;
+
+            const extractViewedCount = (text: string): number | null => {
+              const match = text.match(
+                /You've viewed (\d+) (?:out of|of) (\d+) products/i,
+              );
+              return match && match[1] ? parseInt(match[1], 10) : null;
+            };
+
+            while (true) {
+              const loadMoreButtonSelector =
+                'div.loadmore__button > a.button--active:has-text("Show more")';
+              const loadMoreButton = page.locator(loadMoreButtonSelector);
+              const loadMoreInfoSelector = "div.loadmore__info";
+              const loadMoreInfoElement = page.locator(loadMoreInfoSelector);
+              let allItemsLoaded = false;
+              let currentViewedCountBeforeClick: number | null = null;
+
+              if (await loadMoreInfoElement.isVisible()) {
+                const infoText =
+                  (await loadMoreInfoElement.textContent()) || "";
+                currentViewedCountBeforeClick = extractViewedCount(infoText);
+                const match = infoText.match(
+                  /You've viewed (\d+) (?:out of|of) (\d+) products/i,
+                );
+                if (match) {
+                  const viewed = parseInt(match[1], 10);
+                  const total = parseInt(match[2], 10);
+                  if (viewed >= total) {
+                    allItemsLoaded = true;
+                    localCrawlerLog.info(
+                      `Mytheresa: All ${total} items loaded according to loadmore info.`,
+                    );
+                  }
+                }
+              }
+
+              if (
+                allItemsLoaded ||
+                !(await loadMoreButton.isVisible()) ||
+                !(await loadMoreButton.isEnabled()) ||
+                loadMoreClickedCount >= maxLoadMoreClicksVal ||
+                enqueuedDetailPages >= maxProducts
+              ) {
+                if (
+                  currentExecutionId &&
+                  (loadMoreClickedCount >= maxLoadMoreClicksVal ||
+                    enqueuedDetailPages >= maxProducts)
+                ) {
+                  await sendLogToBackend(
+                    currentExecutionId,
+                    LocalScraperLogLevel.INFO,
+                    "Load more loop terminated due to limits.",
+                    {
+                      loadMoreClickedCount,
+                      enqueuedDetailPages,
+                      maxLoadMoreClicksVal,
+                      maxProducts,
+                    },
+                  );
+                }
+                break;
+              }
+
+              try {
+                localCrawlerLog.info(
+                  `Mytheresa: Attempting to click "Load More". Click count: ${loadMoreClickedCount + 1}.`,
+                );
+                await loadMoreButton.click({ timeout: 20000 });
+                loadMoreClickedCount++;
+
+                const maxWaitTimeForLoadMore = 20000;
+                const pollInterval = 1000;
+                let waitedTime = 0;
+                let newContentLoaded = false;
+
+                while (waitedTime < maxWaitTimeForLoadMore) {
+                  await page.waitForTimeout(pollInterval);
+                  waitedTime += pollInterval;
+                  if (
+                    !(await loadMoreButton.isVisible()) ||
+                    !(await loadMoreButton.isEnabled())
+                  ) {
+                    newContentLoaded = true;
+                    break;
+                  }
+                  if (await loadMoreInfoElement.isVisible()) {
+                    const newInfoText =
+                      (await loadMoreInfoElement.textContent()) || "";
+                    const newViewedCount = extractViewedCount(newInfoText);
+                    if (
+                      newViewedCount !== null &&
+                      currentViewedCountBeforeClick !== null &&
+                      newViewedCount > currentViewedCountBeforeClick
+                    ) {
+                      newContentLoaded = true;
+                      break;
+                    }
+                    const match = newInfoText.match(
+                      /You've viewed (\d+) (?:out of|of) (\d+) products/i,
+                    );
+                    if (
+                      match &&
+                      parseInt(match[1], 10) >= parseInt(match[2], 10)
+                    ) {
+                      allItemsLoaded = true;
+                      newContentLoaded = true;
+                      break;
+                    }
+                  }
+                  if (waitedTime % 5000 === 0)
+                    localCrawlerLog.info(
+                      `Mytheresa: Still waiting for content after ${waitedTime}ms...`,
+                    );
+                }
+                if (!newContentLoaded && !allItemsLoaded)
+                  localCrawlerLog.warning(
+                    `Mytheresa: Load More timeout, proceeding.`,
+                  );
+
+                const newProductItems = await page
+                  .locator(productItemSelector)
+                  .all();
+                await processProductItems(
+                  newProductItems,
+                  page,
+                  request,
+                  crawler,
+                  localCrawlerLog,
+                  maxProducts,
+                  enqueuedDetailPages,
+                  (newCount) => {
+                    enqueuedDetailPages = newCount;
+                  },
+                  currentExecutionId,
+                );
+              } catch (error) {
+                localCrawlerLog.error(
+                  `Mytheresa: Error clicking "Load More": ${(error as Error).message}`,
+                );
+                if (currentExecutionId)
+                  await sendLogToBackend(
+                    currentExecutionId,
+                    LocalScraperLogLevel.ERROR,
+                    `Error clicking "Load More": ${(error as Error).message}`,
+                    { stack: (error as Error).stack },
+                  );
+                break;
+              }
+            }
           }
+        } catch (e: unknown) {
+          const error = e as Error;
+          localCrawlerLog.error(
+            `Mytheresa: Request handler error for ${request.url}: ${error.message}`,
+            { stack: error.stack },
+          );
+          if (currentExecutionId) {
+            await sendLogToBackend(
+              currentExecutionId,
+              LocalScraperLogLevel.ERROR,
+              `Request handler error: ${error.message}`,
+              { url: request.url, stack: error.stack },
+            );
+          }
+          throw e;
         }
-        crawlerLog.info(`Total "Load More" clicks: ${loadMoreClickedCount}`);
-      }
-    },
-
-    // 发生错误时的处理函数
-    failedRequestHandler({ request, log: crawlerLog }) {
-      crawlerLog.error(`Request ${request.url} failed!`);
-    },
-
-    // 预导航钩子，可以在这里设置 cookies, headers 等
-    // async preNavigationHooks(crawlingContext) {
-    // const { page, request, log } = crawlingContext;
-    // log.info(`Running pre-navigation hooks for ${request.url}`);
-    // await page.setExtraHTTPHeaders({ 'User-Agent': 'MyCoolCrawler/1.0' });
-    // },
-
-    // 浏览器启动配置
-    launchContext: {
-      launchOptions: {
-        executablePath:
-          "/root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome", // 指定 Playwright 下载的浏览器路径
-        // headless: false, // 测试时可以打开浏览器查看
       },
-      useChrome: true, // 某些网站对 Firefox 的支持可能不如 Chrome
+      failedRequestHandler: async ({
+        request,
+        log: localLog,
+      }: PlaywrightCrawlingContext<MytheresaUserData>) => {
+        localLog.error(`Mytheresa: Request ${request.url} failed!`);
+        const currentExecutionId = request.userData?.executionId;
+        if (currentExecutionId) {
+          await sendLogToBackend(
+            currentExecutionId,
+            LocalScraperLogLevel.ERROR,
+            `Request failed: ${request.url}`,
+            { error: request.errorMessages?.join("; ") },
+          );
+        }
+      },
+      launchContext: {
+        launchOptions: {
+          executablePath:
+            process.env.CHROME_EXECUTABLE_PATH ||
+            "/root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome",
+        },
+        useChrome: true,
+      } as PlaywrightLaunchContext,
+      maxRequestsPerCrawl: maxRequests,
+      preNavigationHooks: [
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        async (_crawlingContext, _gotoOptions) => {
+          // console.log('Pre-navigation hook for:', _crawlingContext.request.url, 'with executionId:', _crawlingContext.request.userData?.executionId);
+        },
+      ],
     },
-    maxRequestsPerCrawl: 90, // 修改：调整最大请求数量以容纳约80个商品
+    config,
+  );
+
+  crawleeLog.info("Mytheresa: Crawler setup complete. Starting crawl...");
+  const initialRequests = (
+    Array.isArray(startUrls) ? startUrls : [startUrls]
+  ).map((url) => {
+    const label =
+      url.includes("new-arrivals") ||
+      url.includes("products") ||
+      url.includes("clothing") ||
+      url.includes("shoes") ||
+      url.includes("bags") ||
+      url.includes("accessories")
+        ? "LIST"
+        : "DETAIL";
+    return {
+      url,
+      userData: { executionId: executionId, label: label } as MytheresaUserData,
+      label: label,
+    };
   });
 
-  log.info("Crawler setup complete. Starting crawl...");
-  await crawler.run(Array.isArray(startUrls) ? startUrls : [startUrls]);
-  log.info(
-    `Mytheresa scraper finished. Total products collected: ${allScrapedProducts.length}. Data also pushed to Crawlee dataset.`,
+  await crawler.run(initialRequests);
+
+  if (executionId) {
+    await sendLogToBackend(
+      executionId,
+      LocalScraperLogLevel.INFO,
+      `Mytheresa scraper finished. Total products collected: ${allScrapedProducts.length}.`,
+      {
+        processedDetailPages,
+        enqueuedDetailPages,
+      },
+    );
+  }
+  crawleeLog.info(
+    `Mytheresa scraper finished. Total products collected: ${allScrapedProducts.length}.`,
   );
-  return allScrapedProducts; // <--- 新增：返回收集到的产品数组
+  return allScrapedProducts;
 }
 
-// Helper function to process product items (used initially and after each load more)
 async function processProductItems(
-  productItems: Locator[], // Locator[] type might be more precise if Playwright types are available
-  page: Page, // Page type from Playwright
-  request: Request, // Request type from Crawlee
-  crawler: PlaywrightCrawler, // PlaywrightCrawler type
-  crawlerLog: Log, // Log type from Crawlee
+  productItems: Locator[],
+  page: Page,
+  request: Request<MytheresaUserData>,
+  crawler: PlaywrightCrawler,
+  crawlerLog: Log,
+  maxProductsLimit: number,
+  currentEnqueuedCount: number,
+  updateEnqueuedCount: (newCount: number) => void,
+  executionId?: string,
 ) {
+  if (page.isClosed()) {
+    crawlerLog.warning(
+      `Mytheresa: Page for ${request.url} is closed before processing product items. Skipping.`,
+    );
+    if (executionId)
+      await sendLogToBackend(
+        executionId,
+        LocalScraperLogLevel.WARN,
+        `Page closed before processing items for ${request.url}`,
+      );
+    return;
+  }
+
+  let localEnqueuedCount = currentEnqueuedCount;
+  const potentialDetailUrls: { url: string; plpData: Partial<Product> }[] = [];
+
   for (const item of productItems) {
-    // Temporary storage for data extracted from PLP
+    if (localEnqueuedCount >= maxProductsLimit) {
+      if (executionId)
+        await sendLogToBackend(
+          executionId,
+          LocalScraperLogLevel.INFO,
+          `Max product enqueue limit reached in processProductItems (pre-collection).`,
+        );
+      break;
+    }
+
     const plpExtractedData: Partial<Product> = {
       source: "Mytheresa" as ECommerceSite,
-      // url will be set below
-      // name, brand, currentPrice, images, sizes will be extracted from item
+      sizes: [], // Initialize sizes
+      tags: [], // Initialize tags
     };
-
     try {
       const relativeUrl = await item
         .locator("a.item__link")
         .getAttribute("href");
       if (relativeUrl) {
-        plpExtractedData.url = new URL(
-          relativeUrl,
-          request.loadedUrl,
-        ).toString();
-      }
+        const fullUrl = new URL(relativeUrl, request.loadedUrl).toString();
+        plpExtractedData.url = fullUrl;
 
-      plpExtractedData.name =
-        (await item.locator(".item__info__name a").textContent())?.trim() ||
-        undefined;
-      plpExtractedData.brand =
-        (
-          await item.locator(".item__info__header__designer").textContent()
-        )?.trim() || undefined;
-
-      const priceText = (
-        await item.locator(".pricing__prices__price").textContent()
-      )?.trim();
-      if (priceText) {
-        const priceMatch = priceText.match(/[\d,.]+/);
-        const numericPrice = priceMatch
-          ? parseFloat(priceMatch[0].replace(/,/g, ""))
-          : NaN;
-        let currencySymbol = "USD"; // Default
-        if (priceText.includes("€") || priceText.toLowerCase().includes("eur"))
-          currencySymbol = "EUR";
-        else if (
-          priceText.includes("$") ||
-          priceText.toLowerCase().includes("usd")
-        )
-          currencySymbol = "USD";
-        else if (
-          priceText.includes("£") ||
-          priceText.toLowerCase().includes("gbp")
-        )
-          currencySymbol = "GBP";
-        else if (
-          priceText.includes("¥") ||
-          priceText.toLowerCase().includes("cny")
-        )
-          currencySymbol = "CNY";
-
-        if (!isNaN(numericPrice)) {
-          plpExtractedData.currentPrice = {
-            amount: numericPrice,
-            currency: currencySymbol,
-          };
+        // Extract sizes from PLP
+        const sizeLocators = await item.locator("span.item__sizes__size").all();
+        const plpSizes: string[] = [];
+        for (const sizeLocator of sizeLocators) {
+          const sizeText = (await sizeLocator.textContent())?.trim();
+          if (sizeText && sizeText.toLowerCase() !== "available sizes:") {
+            const isNotAvailable = (
+              await sizeLocator.getAttribute("class")
+            )?.includes("item__sizes__size--notavailable");
+            if (!isNotAvailable) {
+              plpSizes.push(sizeText);
+            }
+          }
         }
-      }
+        plpExtractedData.sizes = plpSizes;
 
-      const imgSrc = await item
-        .locator(".item__images__image img")
-        .getAttribute("src");
-      if (imgSrc) {
-        plpExtractedData.images = [
-          new URL(imgSrc, request.loadedUrl).toString(),
-        ];
-      }
-
-      const sizeElements = await item.locator(".item__sizes__size").all();
-      const sizes: string[] = [];
-      for (const sizeElement of sizeElements) {
-        const sizeText = (await sizeElement.textContent())?.trim();
-        if (
-          sizeText &&
-          !sizeText.startsWith("可选尺码:") &&
-          sizeText.length > 0 &&
-          sizeText.length < 10
-        ) {
-          sizes.push(sizeText);
+        // Extract tags from PLP
+        const tagLocators = await item
+          .locator("div.labels__wrapper span.labels__label")
+          .all();
+        const plpTags: string[] = [];
+        for (const tagLocator of tagLocators) {
+          const tagText = (await tagLocator.textContent())?.trim();
+          if (tagText) {
+            plpTags.push(tagText);
+          }
         }
-      }
-      plpExtractedData.sizes = sizes.length > 0 ? sizes : undefined;
+        plpExtractedData.tags = plpTags;
 
-      if (plpExtractedData.url) {
-        crawlerLog.info(
-          `Enqueuing detail page for: ${plpExtractedData.name || plpExtractedData.url} (PLP data: ${JSON.stringify(Object.keys(plpExtractedData))})`,
+        // Extract name and brand from PLP as a fallback or for plpData
+        const brandName = (
+          await item.locator("div.item__info__header__designer").textContent()
+        )?.trim();
+        const productName = (
+          await item.locator("div.item__info__name a").textContent()
+        )?.trim();
+        if (brandName) plpExtractedData.brand = brandName;
+        if (productName) plpExtractedData.name = productName;
+
+        // Potentially extract PLP image for plpData.images if needed, though PDP images are preferred
+        const plpImage = await item
+          .locator("div.item__images__image img")
+          .first()
+          .getAttribute("src");
+        if (plpImage) plpExtractedData.images = [plpImage.trim()];
+
+        potentialDetailUrls.push({ url: fullUrl, plpData: plpExtractedData });
+      } else {
+        crawlerLog.warning(
+          "Mytheresa: Could not extract URL from product item on PLP.",
+          { itemHTMLBrief: (await item.innerHTML()).substring(0, 100) },
         );
+        if (executionId)
+          await sendLogToBackend(
+            executionId,
+            LocalScraperLogLevel.WARN,
+            `Could not extract URL from product item on PLP.`,
+            { itemHTMLBrief: (await item.innerHTML()).substring(0, 100) },
+          );
+      }
+    } catch (e: unknown) {
+      const error = e as Error;
+      crawlerLog.error(
+        `Mytheresa: Error extracting item URL on ${request.url}: ${error.message}`,
+      );
+      if (executionId)
+        await sendLogToBackend(
+          executionId,
+          LocalScraperLogLevel.ERROR,
+          `Error extracting item URL on ${request.url}: ${error.message}`,
+          { stack: error.stack },
+        );
+    }
+  }
+
+  if (potentialDetailUrls.length > 0) {
+    const urlsToCheck = potentialDetailUrls.map((p) => p.url);
+    let existingUrls: string[] = [];
+    try {
+      // API_ENDPOINT should be configured, e.g., from an environment variable or a shared config
+      // For now, hardcoding for testing, replace with proper configuration
+      const BATCH_EXISTS_API_ENDPOINT = process.env.NEXT_PUBLIC_ADMIN_API_URL
+        ? `${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/internal/products/batch-exists`
+        : "http://localhost:3001/api/internal/products/batch-exists";
+
+      if (executionId)
+        await sendLogToBackend(
+          executionId,
+          LocalScraperLogLevel.DEBUG,
+          `Calling batch-exists API for ${urlsToCheck.length} URLs. Endpoint: ${BATCH_EXISTS_API_ENDPOINT}`,
+        );
+
+      const response = await fetch(BATCH_EXISTS_API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urls: urlsToCheck, source: "Mytheresa" }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        existingUrls = data.existingUrls || [];
+        if (executionId)
+          await sendLogToBackend(
+            executionId,
+            LocalScraperLogLevel.DEBUG,
+            `Batch-exists API returned ${existingUrls.length} existing URLs.`,
+          );
+      } else {
+        const errorText = await response.text();
+        crawlerLog.error(
+          `Mytheresa: Batch-exists API call failed. Status: ${response.status}. Body: ${errorText}`,
+        );
+        if (executionId)
+          await sendLogToBackend(
+            executionId,
+            LocalScraperLogLevel.ERROR,
+            `Batch-exists API call failed. Status: ${response.status}`,
+            { responseBody: errorText.substring(0, 500) },
+          );
+        // Fallback: Assume all URLs are new to avoid blocking scraping due to API issues.
+        // Alternatively, could choose to not enqueue any if API fails.
+      }
+    } catch (apiError: unknown) {
+      const error = apiError as Error;
+      crawlerLog.error(
+        `Mytheresa: Error calling batch-exists API: ${error.message}`,
+      );
+      if (executionId)
+        await sendLogToBackend(
+          executionId,
+          LocalScraperLogLevel.ERROR,
+          `Error calling batch-exists API: ${error.message}`,
+          { stack: error.stack },
+        );
+      // Fallback: Assume all URLs are new
+    }
+
+    for (const potentialItem of potentialDetailUrls) {
+      if (localEnqueuedCount >= maxProductsLimit) {
+        if (executionId)
+          await sendLogToBackend(
+            executionId,
+            LocalScraperLogLevel.INFO,
+            `Max product enqueue limit reached in processProductItems (post-API check).`,
+          );
+        break;
+      }
+      if (existingUrls.includes(potentialItem.url)) {
+        if (executionId)
+          await sendLogToBackend(
+            executionId,
+            LocalScraperLogLevel.DEBUG,
+            `Skipping already existing URL: ${potentialItem.url}`,
+          );
+        continue;
+      }
+
+      try {
+        if (executionId)
+          await sendLogToBackend(
+            executionId,
+            LocalScraperLogLevel.DEBUG,
+            `Enqueuing detail page from PLP: ${potentialItem.url}`,
+          );
+        const newUserData: MytheresaUserData = {
+          ...request.userData,
+          plpData: potentialItem.plpData,
+          executionId: executionId,
+          label: "DETAIL",
+        };
         await crawler.addRequests([
           {
-            url: plpExtractedData.url,
+            url: potentialItem.url,
             label: "DETAIL",
-            userData: { plpData: plpExtractedData }, // Pass a subset of Product
+            userData: newUserData,
           },
         ]);
-      } else {
-        crawlerLog.warning("Could not extract URL from product item.", {
-          itemHTML: await item.innerHTML(),
-        });
+        localEnqueuedCount++;
+      } catch (e: unknown) {
+        const error = e as Error;
+        crawlerLog.error(
+          `Mytheresa: Error enqueuing item ${potentialItem.url} on ${request.url}: ${error.message}`,
+        );
+        if (executionId)
+          await sendLogToBackend(
+            executionId,
+            LocalScraperLogLevel.ERROR,
+            `Error enqueuing item ${potentialItem.url} on ${request.url}: ${error.message}`,
+            { stack: error.stack },
+          );
       }
-    } catch (e) {
-      crawlerLog.error(
-        `Error extracting data from a product item on ${request.url}: ${(e as Error).message}`,
-      );
     }
   }
-}
-
-// 辅助函数：确保目录存在
-function ensureDirectoryExists(dirPath: string): void {
-  try {
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-      log.info(`Created directory: ${dirPath}`);
-    }
-  } catch (error) {
-    log.error(
-      `Error creating directory ${dirPath}: ${(error as Error).message}`,
-    );
-    throw error; // 重新抛出错误，以便上层函数能够处理
-  }
+  updateEnqueuedCount(localEnqueuedCount);
 }

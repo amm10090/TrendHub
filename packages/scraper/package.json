@@ -10,16 +10,17 @@
   ],
   "exports": "./dist/main.js",
   "dependencies": {
+    "@repo/types": "workspace:*",
     "crawlee": "^3.13.3",
+    "cuid": "3.0.0",
     "playwright": "1.52.0",
-    "puppeteer": "^24.8.2",
-    "@repo/types": "workspace:*"
+    "puppeteer": "^24.8.2"
   },
   "devDependencies": {
     "@apify/tsconfig": "^0.1.1",
+    "@types/node": "^22.15.16",
     "tsx": "^4.19.4",
-    "typescript": "~5.8.3",
-    "@types/node": "^22.15.16"
+    "typescript": "~5.8.3"
   },
   "scripts": {
     "start": "npm run start:dev",

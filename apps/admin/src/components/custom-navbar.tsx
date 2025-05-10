@@ -93,6 +93,11 @@ export function CustomNavbar() {
       label: t("settings"),
       active: pathname.startsWith("/settings"),
     },
+    {
+      href: "/scraper-management",
+      label: t("scraperManagement"),
+      active: pathname.startsWith("/scraper-management"),
+    },
   ];
 
   return (

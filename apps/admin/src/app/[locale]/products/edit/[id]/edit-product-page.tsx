@@ -139,14 +139,7 @@ export function EditProductPage({ id }: { id: string }) {
         setIsOnSale(product.isOnSale || false);
         setColors(product.colors || []);
         setSizes(product.sizes || []);
-
-        if (product.tags) {
-          setTags(
-            typeof product.tags === "string"
-              ? product.tags.split(",").map((tag) => tag.trim())
-              : product.tags,
-          );
-        }
+        setTags(product.tags || []);
 
         setProductError(null);
       } catch (error) {
@@ -271,6 +264,7 @@ export function EditProductPage({ id }: { id: string }) {
           source,
           colors,
           sizes,
+          tags,
           material,
           cautions,
           promotionUrl,

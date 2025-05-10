@@ -1,7 +1,7 @@
 "use client";
 
 // 导入 Shadcn UI 组件 和 React Hooks - 清理未使用的，保留即将使用的
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, X as Info, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl"; // 添加 next-intl
 import { useCallback, useState } from "react"; // 移除 useEffect
 import { toast } from "sonner";
@@ -24,18 +24,21 @@ import {
   SelectTrigger,
   SelectValue,
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   Spinner,
   Tabs,
   TabsList,
   TabsTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui";
 import { useCategories } from "@/hooks/use-categories";
 import type { Category } from "@/lib/services/category.service";
+import { cn } from "@/lib/utils"; // 确保导入 cn
 
 // 扩展分类表单类型，添加临时字段
 interface CategoryForm {
@@ -260,91 +263,144 @@ export function CategoryTable() {
         !genderFilter && category.level > 1 && parentCategory;
       const statusKey = category.isActive ? "active" : "inactive";
 
+      // 根据层级选择不同的背景色，L1层级背景色更深或不同，子层级背景逐渐变浅或有明显区分
+      let rowBgClass = "hover:bg-gray-50/50"; // 默认hover效果
+
+      if (category.level === 1) {
+        rowBgClass = "bg-slate-50 hover:bg-slate-100/80"; // L1 特殊背景
+      } else if (category.level === 2) {
+        rowBgClass = "bg-sky-50/60 hover:bg-sky-100/70"; // L2 背景
+      } else {
+        rowBgClass = "bg-emerald-50/50 hover:bg-emerald-100/60"; // L3+ 背景
+      }
+
       return (
-        <div key={category.id} className="space-y-2">
-          <div
-            className={`flex items-center justify-between p-2 rounded-lg hover:bg-gray-50/50 transition-colors ${
-              category.level === 1
-                ? "bg-gray-50"
-                : category.level === 2
-                  ? "bg-blue-50/30"
-                  : "bg-green-50/30"
-            }`}
-          >
-            <div className="flex items-center space-x-2 flex-1">
-              {/* 添加展开/收缩图标按钮 */}
-              {hasChildren && (
-                <button
-                  onClick={(e) => handleToggleExpand(category.id, e)}
-                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-gray-500" />
-                  )}
-                </button>
-              )}
-              {/* 如果没有子分类，添加相同宽度的空白以保持对齐 */}
-              {!hasChildren && <div className="w-6" />}
-              <div className="flex items-center gap-2">
-                <span className={`${category.level === 1 ? "font-bold" : ""}`}>
-                  {category.name}
-                </span>
-                {showParentBadge && (
-                  <Badge // 使用 Shadcn Badge
-                    className={`ml-2 ${
-                      parentCategory?.name.includes("女")
-                        ? "bg-pink-100 text-pink-700" // 女士分类样式
-                        : "bg-blue-100 text-blue-700" // 其他分类样式 (例如男士)
-                    }`}
+        <TooltipProvider key={`tp-${category.id}`} delayDuration={300}>
+          <div className="space-y-1 rounded-md overflow-hidden mb-1 last:mb-0">
+            <div
+              className={`flex items-center justify-between p-2.5 rounded-md transition-colors ${rowBgClass}`}
+            >
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                {hasChildren && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={(e) => handleToggleExpand(category.id, e)}
                   >
-                    {parentCategory?.name}
-                  </Badge>
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-gray-500" />
+                    )}
+                  </Button>
                 )}
+                {!hasChildren && <div className="w-7 shrink-0" />}
+
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-x-2">
+                    <span
+                      className={`truncate ${category.level === 1 ? "font-semibold text-base" : "font-medium"}`}
+                      title={category.name}
+                    >
+                      {category.name}
+                    </span>
+                    {showParentBadge && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge
+                            variant="secondary"
+                            className="ml-1 text-xs px-1.5 py-0.5 truncate max-w-[120px] cursor-default shrink-0"
+                          >
+                            {parentCategory?.name}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {tCat("parentCategoryLabel")}:{" "}
+                            {parentCategory?.name}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
               </div>
-              <Badge // 使用 Shadcn Badge
-                className={`cursor-pointer ${
-                  category.isActive
-                    ? "bg-green-100 text-green-700 hover:bg-green-200" // 激活状态样式
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200" // 禁用状态样式
-                }`}
-                onClick={(e) => handleStatusChange(category, e)}
-              >
-                {
-                  isUpdatingStatus
-                    ? tCommon("processing") /* 使用 tCommon */
-                    : tProd(statusKey) /* 使用 tProd */
-                }
-              </Badge>
+
+              <div className="flex items-center space-x-1 shrink-0 ml-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant={category.isActive ? "default" : "outline"}
+                      className={cn(
+                        "cursor-pointer text-xs px-2 py-1",
+                        category.isActive
+                          ? "bg-green-500 hover:bg-green-600 text-white border-green-500 dark:bg-green-600 dark:hover:bg-green-700 dark:text-white dark:border-green-600"
+                          : "border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800",
+                      )}
+                      onClick={(e) => handleStatusChange(category, e)}
+                    >
+                      {isUpdatingStatus ? (
+                        <Spinner className="h-3 w-3 text-current" />
+                      ) : (
+                        tProd(statusKey)
+                      )}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      {category.isActive
+                        ? tActions("deactivate")
+                        : tActions("activate")}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      onClick={(e) => handleCategoryClick(category, e)}
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{tActions("details")}</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteCategory(category.id)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? (
+                        <Spinner className="h-4 w-4" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{tActions("delete")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button // 使用 Shadcn Button
-                variant="ghost" // 使用 ghost 变体
-                size="sm"
-                onClick={(e) => handleCategoryClick(category, e)} // 传递事件对象 e
-              >
-                {tActions("details")} {/* 使用 tActions */}
-              </Button>
-              <Button // 使用 Shadcn Button
-                variant="ghost" // 使用 ghost 变体
-                className="text-destructive hover:text-destructive" // 添加颜色类
-                size="sm"
-                isLoading={isDeleting}
-                onClick={() => handleDeleteCategory(category.id)}
-              >
-                {isDeleting ? tCommon("deleting") : tActions("delete")}{" "}
-                {/* 使用 tCommon/tActions */}
-              </Button>
-            </div>
+            {hasChildren && isExpanded && (
+              <div className="ml-5 pl-5 border-l-2 border-slate-200 space-y-1 pb-1">
+                {children.map((child) => renderCategoryTree(child))}
+              </div>
+            )}
           </div>
-          {/* 只在展开状态且有子分类时显示子分类 */}
-          {hasChildren && isExpanded && (
-            <div className="ml-6 border-l-2 border-gray-200 pl-4 space-y-2">
-              {children.map((child) => renderCategoryTree(child))}
-            </div>
-          )}
-        </div>
+        </TooltipProvider>
       );
     },
     [
@@ -358,8 +414,8 @@ export function CategoryTable() {
       handleDeleteCategory,
       handleStatusChange,
       handleToggleExpand,
+      tCat,
       tProd,
-      tCommon,
       tActions,
     ],
   );
@@ -521,85 +577,151 @@ export function CategoryTable() {
 
       {/* 分类详情抽屉 - 用 Sheet 替换 */}
       <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-        {/* SheetTrigger can be added later if needed */}
-        <SheetContent className="sm:max-w-sm">
+        <SheetContent className="sm:max-w-md p-0">
           {" "}
-          {/* 控制宽度 */}
-          <SheetHeader>
+          {/* 修改 sm:max-w-sm 为 sm:max-w-md 并添加 p-0 */}
+          <SheetHeader className="p-6 pb-4 border-b">
+            {" "}
+            {/* 添加 relative 以便绝对定位关闭按钮 */}
             <SheetTitle>{tCat("detailsTitle")}</SheetTitle>
             {/* <SheetDescription>Optional description</SheetDescription> */}
+            {/* 移除 asChild, 直接将 IconX 作为 SheetClose 的子元素，并自定义样式 */}
           </SheetHeader>
           {/* Sheet Body - 使用 div 模拟 HerouiDrawerBody */}
-          <div className="py-4">
+          <div className="p-6 space-y-6">
+            {" "}
+            {/* 修改 py-4 为 p-6, space-y-4 为 space-y-6 */}
             {selectedCategory && (
-              <div className="space-y-4">
+              <>
+                {/* Section 1: 基本信息 */}
                 <div>
-                  <Label>{tCat("nameLabel")}</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">
                     {selectedCategory.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Slug: {selectedCategory.slug}
                   </p>
-                </div>
-                <div>
-                  <Label>{tCat("slugLabel")}</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {selectedCategory.slug}
-                  </p>
-                </div>
-                <div>
-                  <Label>{tCat("descriptionLabel")}</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {selectedCategory.description || tCat("noDescription")}
-                  </p>
-                </div>
-                <div>
-                  <Label>{tCat("levelLabel")}</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {selectedCategory.level === 1
-                      ? tCat("level1")
-                      : selectedCategory.level === 2
-                        ? tCat("level2")
-                        : tCat("level3")}
-                  </p>
-                </div>
-                <div>
-                  <Label>{tCat("parentCategoryLabel")}</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {allCategories?.find(
-                      (cat) => cat.id === selectedCategory.parentId,
-                    )?.name || "-"}
-                  </p>
-                </div>
-                <div>
-                  <Label>{tCat("childCategoriesLabel")}</Label>
-                  <div className="mt-2 space-y-2">
-                    {getChildCategories(selectedCategory.id).map((child) => (
-                      <div
-                        key={child.id}
-                        className="flex items-center justify-between p-2 bg-muted/50 rounded"
-                      >
-                        <span className="text-sm">{child.name}</span>
+
+                  <div className="text-sm space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      {tCat("descriptionLabel")}
+                    </Label>
+                    <p className="text-foreground">
+                      {selectedCategory.description || tCat("noDescription")}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="text-sm space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        {tCat("levelLabel")}
+                      </Label>
+                      <p className="text-foreground">
+                        {selectedCategory.level === 1
+                          ? tCat("level1")
+                          : selectedCategory.level === 2
+                            ? tCat("level2")
+                            : tCat("level3")}
+                      </p>
+                    </div>
+                    <div className="text-sm space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        {tCommon("columns.status")}
+                      </Label>
+                      <div>
                         <Badge
-                          variant={child.isActive ? "default" : "destructive"}
+                          variant={
+                            selectedCategory.isActive ? "default" : "outline"
+                          }
+                          className={
+                            selectedCategory.isActive
+                              ? "bg-green-100 text-green-700 border-green-200"
+                              : "border-gray-300 text-gray-600"
+                          }
                         >
-                          {child.isActive ? tProd("active") : tProd("inactive")}
+                          {tProd(
+                            selectedCategory.isActive ? "active" : "inactive",
+                          )}
                         </Badge>
                       </div>
-                    ))}
-                    {getChildCategories(selectedCategory.id).length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {tCat("noChildCategories")}
-                      </p>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
+
+                <hr className="my-4" />
+
+                {/* Section 2: 层级关系 */}
+                <div className="space-y-3">
+                  <div className="text-sm space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      {tCat("parentCategoryLabel")}
+                    </Label>
+                    {(() => {
+                      const parent = allCategories?.find(
+                        (cat) => cat.id === selectedCategory.parentId,
+                      );
+
+                      if (parent) {
+                        return (
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-sm font-normal text-primary hover:text-primary/80 block truncate"
+                            // onClick={() => handleNavigateToParent(parent.id)} // handleNavigateToParent 需要实现
+                          >
+                            {parent.name}
+                          </Button>
+                        );
+                      }
+
+                      return <p className="text-foreground">-</p>; // 或 tCat("noParent")
+                    })()}
+                  </div>
+                </div>
+
+                <hr className="my-4" />
+
+                {/* Section 3: 子分类 */}
+                <div className="text-sm space-y-2">
+                  <Label className="text-xs text-muted-foreground block mb-2">
+                    {tCat("childCategoriesLabel")}
+                  </Label>
+                  {(() => {
+                    const children = getChildCategories(selectedCategory.id);
+
+                    if (children.length > 0) {
+                      return children.map((child) => (
+                        <div
+                          key={child.id}
+                          className="flex items-center justify-between p-2 -mx-2 rounded-md hover:bg-accent transition-colors"
+                        >
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-sm font-normal text-foreground hover:text-primary truncate mr-2"
+                            // onClick={() => handleNavigateToChild(child.id)} // handleNavigateToChild 需要实现
+                          >
+                            {child.name}
+                          </Button>
+                          <Badge
+                            variant={child.isActive ? "default" : "outline"}
+                            className={`text-xs ${child.isActive ? "bg-green-100 text-green-700 border-green-200" : "border-gray-300 text-gray-600"}`}
+                          >
+                            {tProd(child.isActive ? "active" : "inactive")}
+                          </Badge>
+                        </div>
+                      ));
+                    }
+
+                    return (
+                      <p className="text-muted-foreground italic">
+                        {tCat("noChildCategories")}
+                      </p>
+                    );
+                  })()}
+                </div>
+              </>
             )}
           </div>
-          <SheetFooter>
-            <SheetClose asChild>
-              <Button variant="outline">{tCommon("close")}</Button>
-            </SheetClose>
-          </SheetFooter>
+          {/* SheetFooter is removed as per plan */}
         </SheetContent>
       </Sheet>
 

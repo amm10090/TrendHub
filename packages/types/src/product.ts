@@ -35,8 +35,11 @@ export interface Product {
 
   // Product Attributes
   color?: string;
+  designerColorName?: string;
   sizes?: string[]; // Available sizes
   material?: string;
+  materialDetails?: string[];
+  tags?: string[]; // 产品标签
 
   // Stock & Availability (Potentially more complex, simple for now)
   // availability?: 'InStock' | 'OutOfStock' | 'PreOrder';

@@ -96,9 +96,12 @@ model Product {
   inventory    Int       @default(0)           // 库存数量
   source       String                          // 商品来源 (对应 ECommerceSite)
   colors       String[]  @default([])          // 商品颜色数组
+  designerColorName String?                    // 新增：设计师颜色名称
   sizes        String[]  @default([])          // 商品尺码数组
   material     String?                         // 商品材质（可选）
+  materialDetails String[] @default([])       // 新增：材质详情列表
   breadcrumbs  String[]  @default([])          // 面包屑导航
+  tags         String[]  @default([])          // 新增：产品标签
   cautions     String?                         // 商品注意事项（可选）
   promotionUrl String?                         // 商品推广链接（可选）
   coupon               String?                      // 添加优惠券代码字段
@@ -223,4 +226,88 @@ model ContentItem {
   @@index([type])
   @@index([isActive])
   @@index([slotKey])
+}
+
+// Enum for Scraper Task Status
+enum ScraperTaskStatus {
+  IDLE      // 任务已定义，等待调度或手动触发
+  QUEUED    // 任务已进入执行队列
+  RUNNING   // 任务正在执行
+  COMPLETED // 任务成功完成
+  FAILED    // 任务执行失败
+  CANCELLED // 任务被取消
+}
+
+// Enum for Scraper Task Trigger Type
+enum ScraperTaskTriggerType {
+  MANUAL    // 手动触发
+  SCHEDULED // 定时调度触发 (node-cron, Vercel cron, etc.)
+  API       // 通过外部API调用触发
+}
+
+// Model for Scraper Task Definition
+model ScraperTaskDefinition {
+  id                 String    @id @default(cuid())
+  name               String    @unique // 任务名称，方便识别
+  description        String?   // 任务描述
+  targetSite         String    // ECommerceSite 枚举的字符串表示，例如 "Mytheresa"
+  startUrls          String[]  // 起始 URL 列表
+  cronExpression     String?   // Cron 表达式，例如 "0 0 * * *" (可选，如果主要通过 API 触发)
+  isEnabled          Boolean   @default(true) // 任务是否启用调度
+  maxRequests        Int?      // 允许的最大请求数 (覆盖爬虫默认)
+  maxLoadClicks      Int?      // 允许的最大"加载更多"点击次数 (覆盖爬虫默认)
+  maxProducts        Int?      // 允许抓取的最大产品数 (覆盖爬虫默认)
+  defaultInventory   Int       @default(99) // 默认库存
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  executions         ScraperTaskExecution[] // 关联的任务执行记录
+
+  @@index([targetSite])
+  @@index([isEnabled])
+}
+
+// Model for Scraper Task Execution
+model ScraperTaskExecution {
+  id                 String    @id @default(cuid())
+  taskDefinitionId   String
+  taskDefinition     ScraperTaskDefinition @relation(fields: [taskDefinitionId], references: [id], onDelete: Cascade)
+  status             ScraperTaskStatus @default(IDLE) // 任务执行状态
+  triggerType        ScraperTaskTriggerType // 触发类型
+  startedAt          DateTime? // 任务开始执行时间
+  completedAt        DateTime? // 任务完成或失败时间
+  metrics            Json?     // 存储执行指标，例如 { "productsScraped": 100, "requestsMade": 200 }
+  errorMessage       String?   @db.Text // 如果失败，存储错误信息
+  errorStack         String?   @db.Text // 如果失败，存储错误堆栈
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  logs               ScraperTaskLog[]    // 关联的日志条目
+
+  @@index([taskDefinitionId])
+  @@index([status])
+  @@index([triggerType])
+}
+
+// Enum for Log Level
+enum ScraperLogLevel {
+  INFO
+  WARN
+  ERROR
+  DEBUG // DEBUG 日志主要保留在文件系统，但模型中包含以备将来扩展
+}
+
+// Model for Scraper Task Logs (for INFO, WARN, ERROR levels)
+model ScraperTaskLog {
+  id            String      @id @default(cuid())
+  executionId   String
+  execution     ScraperTaskExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  level         ScraperLogLevel
+  message       String      @db.Text
+  timestamp     DateTime    @default(now())
+  context       Json?       // 可选的上下文信息，如哪个URL、哪个阶段
+
+  @@index([executionId])
+  @@index([level])
+  @@index([timestamp])
 }

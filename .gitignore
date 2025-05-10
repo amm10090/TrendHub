@@ -174,3 +174,6 @@ jt
 demo
 TrendHub.jsonl
 apps/admin/prisma/migrations
+!apps/admin/src/app/api/admin/scraper-tasks/logs
+SCRAPER_MANAGEMENT_IMPLEMENTATION_PLAN.md
+apps/admin/scraper_storage_runs

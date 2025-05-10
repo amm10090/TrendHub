@@ -138,6 +138,17 @@ const eslintConfig = [
         },
     },
 
+    // 您移动后的覆盖配置 (路径已修正)
+    {
+        files: [
+            "src/lib/services/task-executor.ts",    // 修正路径
+            "src/lib/services/task-queue-manager.ts" // 修正路径
+        ],
+        rules: {
+            "no-console": "off" // 特定文件覆盖
+        }
+    },
+
     // Prettier配置
     eslintConfigPrettier,
 

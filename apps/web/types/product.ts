@@ -3,7 +3,8 @@ export interface Product {
   name: string; //商品名称
   price: number; //价格
   originalPrice?: number; // 原价（用于显示折扣）
-  image: string; //商品图片
+  images: string[]; // 商品图片数组，列表至少需要主图 images[0]
+  description?: string; // 可选的简短描述
   discount?: number; // 折扣百分比
   isNew?: boolean; // 是否为新品
   isFavorite?: boolean; // 是否已收藏 (通常由前端状态管理)
@@ -15,14 +16,60 @@ export interface Product {
   videos?: string[]; // 视频 URL 列表 (如果列表需要)
   brandName?: string;
   brandSlug?: string;
+  brandId?: string; // 添加 brandId
+  brandLogo?: string; // 添加 brandLogo
   categoryName?: string;
   categorySlug?: string;
+  categoryId?: string; // 添加 categoryId
+  inventory?: number; // 添加 inventory
+  material?: string;
+  details?: string[];
+  sizes?: string[];
+  colors?: ProductColor[];
+  specifications?: { material?: string; color?: string; size?: string; origin?: string };
+  adUrl?: string;
+  careInstructions?: string[];
+  relatedProducts?: Product[];
 }
 
-export interface ProductDetail extends Omit<Product, 'brand' | 'category'> {
-  // Omit brand/category strings if using objects below
-  images: string[];
-  description: string;
+export interface ProductDetail
+  extends Pick<
+    Product,
+    | 'id'
+    | 'name'
+    | 'price'
+    | 'originalPrice'
+    | 'images'
+    | 'description'
+    | 'discount'
+    | 'isNew'
+    | 'isFavorite'
+    | 'currency'
+    | 'gender'
+    | 'categories'
+    | 'videos'
+    | 'brandName'
+    | 'brandSlug'
+    | 'brandId'
+    | 'brandLogo'
+    | 'categoryName'
+    | 'categorySlug'
+    | 'categoryId'
+    | 'inventory'
+    | 'sku'
+    | 'status'
+    | 'material'
+    | 'details'
+    | 'sizes'
+    | 'colors'
+    | 'specifications'
+    | 'adUrl'
+    | 'careInstructions'
+    | 'relatedProducts'
+  > {
+  images: string[]; // 确保 images 是必须的数组
+  description: string; // 确保 description 是必须的字符串
+
   specifications?: {
     material?: string;
     color?: string;
@@ -34,11 +81,9 @@ export interface ProductDetail extends Omit<Product, 'brand' | 'category'> {
   colors?: ProductColor[]; // 可选颜色
   material?: string; // 材质
   careInstructions?: string[]; // 保养说明
-  sku: string; // 库存单位 (详情页通常必填)
   availableQuantity: number; // 可用库存
   relatedProducts?: Product[]; // 相关商品
   adUrl?: string; // 广告联盟链接
-  videos: string[]; // 视频 URL 列表 (详情页必填)
   brand: {
     id: string;
     name: string;

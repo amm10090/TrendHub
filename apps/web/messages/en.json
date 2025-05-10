@@ -606,6 +606,28 @@
       }
     }
   },
+  "productGrid": {
+    "defaultTitle": "Featured Products",
+    "seeAllDefaultText": "View All",
+    "defaultDescription": "Check out this amazing product.",
+    "defaultSku": "N/A",
+    "unknownBrand": "Unknown Brand",
+    "unknownCategory": "Unknown Category",
+    "defaultCareInstructions": "Follow product label instructions.",
+    "viewProductDetails": "View details for {productName} by {brandName}",
+    "newArrivalChip": "New Arrival",
+    "newChip": "New",
+    "addToWishlist": "Add to Wishlist",
+    "logWishlist": "Added to wishlist:",
+    "noProducts": "No products to display in this section yet.",
+    "errors": {
+      "configNotFound": "Product grid configuration '{identifier}' not found.",
+      "fetchConfigError": "Failed to fetch product grid configuration: {status}",
+      "wrongConfigType": "Fetched content block is not a configurable product grid. Type: {type}",
+      "unknown": "An unknown error occurred while loading products.",
+      "loadFailed": "Failed to load products"
+    }
+  },
   "track": {
     "click_here": "Click here",
     "now_taking_you_to": "Now taking you to",
@@ -666,7 +688,8 @@
     "shining_examples": {
       "see_all": "SEE ALL",
       "subtitle": "Strike gold with charming accents",
-      "title": "SHINING EXAMPLES"
+      "title": "SHINING EXAMPLES",
+      "no_items": "No items to display in this section yet."
     },
     "title": "Trending"
   }

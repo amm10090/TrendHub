@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get("sort") || "createdAt"; // 默认按创建时间排序
   const order = (searchParams.get("order") || "desc") as "asc" | "desc";
   const searchTerm = searchParams.get("q") || undefined; // 搜索关键词
+  const idsQueryParam = searchParams.get("ids") || undefined; // 新增：获取ids参数
 
   // 验证排序字段
   const sortBy = allowedSortFields.includes(
@@ -40,98 +41,199 @@ export async function GET(request: NextRequest) {
     isDeleted: false,
   };
 
-  if (categoryId) {
-    where.categoryId = categoryId;
-  }
-  if (brandId) {
-    where.brandId = brandId;
-  }
-  if (sale) {
-    // 修正字段比较: 确保 originalPrice 存在且 price < originalPrice
-    // 使用 AND 条件组合确保类型正确
-    where.AND = [
-      ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), // 保留可能已存在的 AND 条件
-      { originalPrice: { not: null } },
-      { price: { lt: db.product.fields.originalPrice } }, // 使用 Prisma.fieldReference 替代 { field: '...' }
-    ];
-  }
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    where.price = {};
-    if (minPrice !== undefined) {
-      where.price.gte = new Prisma.Decimal(minPrice);
+  let productIdsOrder: string[] | undefined = undefined;
+
+  if (idsQueryParam) {
+    const ids = idsQueryParam.split(",").filter((id) => id.trim() !== "");
+    if (ids.length > 0) {
+      where.id = { in: ids };
+      productIdsOrder = ids; // 保存请求的ID顺序
+      // 当按ID列表查询时，通常不应用其他筛选条件，除非特定设计需求
+      // 为简化，如果提供了ids，我们将忽略 categoryId, brandId, sale, minPrice, maxPrice, searchTerm
+      // 同时，分页和排序可能也需要特别处理或禁用
     }
-    if (maxPrice !== undefined) {
-      where.price.lte = new Prisma.Decimal(maxPrice);
+  } else {
+    // 只有在没有ids参数时，才应用其他筛选
+    if (categoryId) where.categoryId = categoryId;
+    if (brandId) where.brandId = brandId;
+    if (sale) {
+      where.AND = [
+        ...(Array.isArray(where.AND)
+          ? where.AND
+          : where.AND
+            ? [where.AND]
+            : []),
+        { originalPrice: { not: null } },
+        { price: { lt: db.product.fields.originalPrice } },
+      ];
     }
-  }
-  if (searchTerm) {
-    where.OR = [
-      { name: { contains: searchTerm, mode: "insensitive" } },
-      { description: { contains: searchTerm, mode: "insensitive" } },
-      { sku: { contains: searchTerm, mode: "insensitive" } },
-    ];
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.price = {};
+      if (minPrice !== undefined)
+        where.price.gte = new Prisma.Decimal(minPrice);
+      if (maxPrice !== undefined)
+        where.price.lte = new Prisma.Decimal(maxPrice);
+    }
+    if (searchTerm) {
+      where.OR = [
+        { name: { contains: searchTerm, mode: "insensitive" } },
+        { description: { contains: searchTerm, mode: "insensitive" } },
+        { sku: { contains: searchTerm, mode: "insensitive" } },
+      ];
+    }
   }
 
   // --- 构建排序条件 ---
-  const orderBy: Prisma.ProductOrderByWithRelationInput = {
-    [sortBy]: order,
-  };
+  const orderBy: Prisma.ProductOrderByWithRelationInput = productIdsOrder
+    ? {}
+    : { [sortBy]: order };
+  // 如果是按ID列表查询，排序应由代码后续处理以匹配输入顺序，或不排序由Prisma默认行为（可能按ID）
+  // 如果不是按ID列表查询，则使用用户指定的排序或默认排序
 
   // --- 执行查询 ---
   try {
-    const products = await db.product.findMany({
+    interface ProductWithSelectedRelations {
+      id: string;
+      name: string;
+      price: Prisma.Decimal;
+      originalPrice: Prisma.Decimal | null;
+      images: string[];
+      description: string | null;
+      discount: Prisma.Decimal | null;
+      isNew: boolean;
+      sku: string | null;
+      status: string;
+      videos: string[];
+      currency: string | null;
+      gender: string | null;
+      breadcrumbs: string[];
+      material: string | null;
+      materialDetails: string[];
+      sizes: string[];
+      colors: string[];
+      metadata: Prisma.JsonValue | null;
+      promotionUrl: string | null;
+      cautions: string | null;
+      inventory: number | null;
+      brand: {
+        id: string;
+        name: string;
+        slug: string;
+        logo: string | null;
+      } | null;
+      category: {
+        id: string;
+        name: string;
+        slug: string;
+      } | null;
+    }
+
+    const productsFromDbRaw = await db.product.findMany({
       where,
-      orderBy,
-      skip,
-      take: limit,
+      orderBy: productIdsOrder ? undefined : orderBy,
+      skip: productIdsOrder ? undefined : skip,
+      take: productIdsOrder ? undefined : limit,
       select: {
         id: true,
         name: true,
-        brand: {
-          select: { name: true, slug: true },
-        },
-        category: {
-          select: { name: true, slug: true },
-        },
         price: true,
         originalPrice: true,
+        images: true,
+        description: true,
         discount: true,
-        coupon: true,
-        images: true, // 获取所有图片，稍后处理第一张
         isNew: true,
         sku: true,
         status: true,
+        videos: true,
+        currency: true,
+        gender: true,
+        breadcrumbs: true,
+        material: true,
+        materialDetails: true,
+        sizes: true,
+        colors: true,
+        metadata: true,
+        promotionUrl: true,
+        cautions: true,
+        inventory: true,
+        brand: {
+          select: { id: true, name: true, slug: true, logo: true },
+        },
+        category: {
+          select: { id: true, name: true, slug: true },
+        },
       },
     });
 
+    const productsFromDb = productsFromDbRaw as ProductWithSelectedRelations[];
+
+    let finalProducts: ProductWithSelectedRelations[] = productsFromDb;
+    if (productIdsOrder && productIdsOrder.length > 0) {
+      const productMap = new Map(productsFromDb.map((p) => [p.id, p]));
+      // filter(Boolean) 用于移除 productMap.get(id) 可能返回的 undefined
+      finalProducts = productIdsOrder
+        .map((id) => productMap.get(id))
+        .filter(Boolean) as ProductWithSelectedRelations[];
+    }
+
     const totalProducts = await db.product.count({ where });
 
-    // 转换 Decimal 为字符串并处理数据结构
-    const productsSerializable = products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price.toString(),
-      originalPrice: p.originalPrice?.toString() ?? null,
-      discount: p.discount?.toString() ?? null,
-      coupon: p.coupon,
-      isNew: p.isNew,
-      sku: p.sku,
-      status: p.status,
-      brandName: p.brand.name, // 现在 brand 应该存在
-      brandSlug: p.brand.slug,
-      categoryName: p.category.name, // 现在 category 应该存在
-      categorySlug: p.category.slug,
-      image: p.images.length > 0 ? p.images[0] : "", // 取第一张图
-    }));
+    const productsSerializable = finalProducts.map(
+      (p: ProductWithSelectedRelations) => {
+        return {
+          id: p.id,
+          name: p.name,
+          price: p.price.toString(),
+          originalPrice: p.originalPrice?.toString() ?? null,
+          images: p.images || [],
+          description: p.description || undefined,
+          discount: p.discount?.toString() ?? null,
+          isNew: p.isNew || false,
+          sku: p.sku || undefined,
+          status: p.status || undefined,
+          videos: p.videos || [],
+          brandName: p.brand?.name,
+          brandSlug: p.brand?.slug,
+          brandId: p.brand?.id,
+          brandLogo: p.brand?.logo || undefined,
+          categoryName: p.category?.name,
+          categorySlug: p.category?.slug,
+          categoryId: p.category?.id,
+          inventory: p.inventory === null ? undefined : p.inventory,
+          currency: p.currency || undefined,
+          gender: p.gender as ("women" | "men" | "unisex") | undefined,
+          categories: p.breadcrumbs || [],
+          material: p.material || undefined,
+          details: p.materialDetails || [],
+          sizes: p.sizes || [],
+          colors:
+            p.colors.map((colorName) => ({
+              name: colorName,
+              value: colorName,
+            })) || [],
+          specifications: (p.metadata as Prisma.JsonObject) || undefined,
+          adUrl: p.promotionUrl || undefined,
+          careInstructions: p.cautions ? [p.cautions] : [],
+        };
+      },
+    );
 
     return NextResponse.json({
       data: productsSerializable,
-      pagination: {
-        page,
-        limit,
-        totalPages: Math.ceil(totalProducts / limit),
-        totalItems: totalProducts,
-      },
+      pagination:
+        productIdsOrder && productIdsOrder.length > 0
+          ? {
+              page: 1,
+              limit: productsSerializable.length,
+              totalPages: 1,
+              totalItems: productsSerializable.length,
+            }
+          : {
+              page,
+              limit,
+              totalPages: Math.ceil(totalProducts / limit),
+              totalItems: totalProducts,
+            },
     });
   } catch (error) {
     // 特别处理字段比较错误 (如果使用 Prisma < 6.x)

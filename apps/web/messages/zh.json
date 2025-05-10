@@ -151,7 +151,8 @@
     "shining_examples": {
       "title": "耀目精选",
       "subtitle": "发现迷人魅力",
-      "see_all": "查看全部"
+      "see_all": "查看全部",
+      "no_items": "此版块暂无内容展示。"
     },
     "items": {
       "valentino": {
@@ -273,6 +274,28 @@
         "title": "邮箱无效",
         "description": "请输入有效的电子邮箱地址以完成订阅。"
       }
+    }
+  },
+  "productGrid": {
+    "defaultTitle": "精选商品",
+    "seeAllDefaultText": "查看全部",
+    "defaultDescription": "查看这款令人惊叹的产品。",
+    "defaultSku": "暂无",
+    "unknownBrand": "未知品牌",
+    "unknownCategory": "未知分类",
+    "defaultCareInstructions": "请遵循产品标签说明。",
+    "viewProductDetails": "查看 {brandName} 的 {productName} 详情",
+    "newArrivalChip": "新品上市",
+    "newChip": "新品",
+    "addToWishlist": "加入收藏夹",
+    "logWishlist": "已加入收藏夹:",
+    "noProducts": "此版块暂无商品展示。",
+    "errors": {
+      "configNotFound": "未能找到产品网格配置 '{identifier}'。",
+      "fetchConfigError": "获取产品网格配置失败: {status}",
+      "wrongConfigType": "获取的内容块不是可配置的产品网格类型。类型为: {type}",
+      "unknown": "加载产品时发生未知错误。",
+      "loadFailed": "加载产品失败"
     }
   },
   "about": {

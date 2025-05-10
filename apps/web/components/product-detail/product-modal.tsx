@@ -43,66 +43,24 @@ import {
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
-/**
- * 产品详情数据结构
- * @interface ProductDetail
- * @property {string} id - 产品唯一标识符
- * @property {string} name - 产品名称
- * @property {string} brand - 品牌名称
- * @property {number} price - 当前价格
- * @property {string} image - 主图片URL
- * @property {string} description - 产品描述
- * @property {number} availableQuantity - 可用库存数量
- * @property {boolean} [isFavorite] - 是否已收藏
- * @property {number} [discount] - 折扣百分比
- * @property {number} [originalPrice] - 原价
- * @property {boolean} [isNew] - 是否新品
- * @property {string[]} [details] - 产品详细信息列表
- * @property {string[]} [images] - 产品图片URL列表
- * @property {string[]} [sizes] - 可选尺码列表
- * @property {Array<{name: string; value: string}>} [colors] - 可选颜色列表
- * @property {string} [material] - 材质信息
- * @property {string[]} [careInstructions] - 保养说明
- * @property {string} [sku] - 商品编号
- * @property {ProductDetail[]} [relatedProducts] - 相关产品列表
- */
-export interface ProductDetail {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  image: string;
-  description: string;
-  availableQuantity: number;
-  isFavorite?: boolean;
-  discount?: number;
-  originalPrice?: number;
-  isNew?: boolean;
-  details?: string[];
-  images?: string[];
-  sizes?: string[];
-  colors?: { name: string; value: string }[];
-  material?: string;
-  careInstructions?: string[];
-  sku?: string;
-  relatedProducts?: ProductDetail[];
-}
+// 从共享类型导入 ProductDetail
+import type { ProductDetail as SharedProductDetailType } from '@/types/product';
 
 /**
  * 产品模态框组件属性
  * @interface ProductModalProps
- * @property {ProductDetail} product - 产品详情数据
+ * @property {SharedProductDetailType} product - 产品详情数据 (使用共享类型)
  * @property {boolean} isOpen - 控制模态框显示状态
  * @property {() => void} onClose - 关闭模态框的回调函数
  * @property {() => void} [onOpenInNewTab] - 可选的新标签页打开回调
  * @property {boolean} [showRedirectButton=true] - 是否显示跳转按钮，默认显示
  */
 interface ProductModalProps {
-  product: ProductDetail;
+  product: SharedProductDetailType; // 使用导入的共享类型
   isOpen: boolean;
   onClose: () => void;
-  onOpenInNewTab?: () => void; // 设为可选
-  showRedirectButton?: boolean; // 是否显示跳转按钮
+  onOpenInNewTab?: () => void;
+  showRedirectButton?: boolean;
 }
 
 export function ProductModal({
@@ -110,18 +68,24 @@ export function ProductModal({
   isOpen,
   onClose,
   onOpenInNewTab,
-  showRedirectButton = true, // 默认显示
+  showRedirectButton = true,
 }: ProductModalProps) {
   const t = useTranslations('product');
   const trackT = useTranslations('track');
   const [isFavorite, setIsFavorite] = useState(product.isFavorite || false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [activeImage, setActiveImage] = useState(product.image);
+  // activeImage 初始化使用 product.images[0] (如果存在)
+  const [activeImage, setActiveImage] = useState(
+    product.images && product.images.length > 0 ? product.images[0] : '/images/placeholder.jpg'
+  );
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // allImages 直接使用 product.images (确保 product.images 总是数组)
   const allImages = useMemo(() => {
-    return product.images ? [product.image, ...product.images] : [product.image];
-  }, [product.image, product.images]);
+    return product.images && product.images.length > 0
+      ? product.images
+      : ['/images/placeholder.jpg'];
+  }, [product.images]);
 
   // 修改图片切换函数，添加过渡动画逻辑
   const nextImage = () => {
@@ -161,7 +125,10 @@ export function ProductModal({
   // 当产品变化时重置图片索引
   useEffect(() => {
     setSelectedImageIndex(0);
-    setActiveImage(product.image);
+    // setActiveImage(product.image); // 改为使用 images[0]
+    setActiveImage(
+      product.images && product.images.length > 0 ? product.images[0] : '/images/placeholder.jpg'
+    );
   }, [product]);
 
   /**
@@ -216,7 +183,10 @@ export function ProductModal({
           <h2 className="text-xl font-medium text-[#001833] dark:text-text-primary-dark">
             {product.name}
           </h2>
-          <p className="text-sm text-[#004A94] dark:text-text-secondary-dark">{product.brand}</p>
+          {/* product.brand 现在是对象，需要访问其 name 属性 */}
+          <p className="text-sm text-[#004A94] dark:text-text-secondary-dark">
+            {product.brand.name}
+          </p>
         </ModalHeader>
         <ModalBody>
           <Card className="border-none shadow-none bg-[#ffffff] dark:bg-bg-primary-dark rounded-b-xl scrollbar-hide">

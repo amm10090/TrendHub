@@ -238,6 +238,7 @@
     "search": "搜索",
     "selectBrand": "选择品牌",
     "selectCategory": "选择分类",
+    "selectProduct": "选择产品",
     "status": {
       "active": "激活",
       "inactive": "未激活",
@@ -258,6 +259,15 @@
     },
     "errors": {
       "unknownApiError": "发生未知API错误，请稍后重试或联系管理员。"
+    },
+    "pagination": {
+      "items": "项",
+      "next": "下一页",
+      "of": "共",
+      "previous": "上一页",
+      "showing": "显示",
+      "rowsPerPage": "每页显示",
+      "pageInfo": "第 {currentPage} 页 / 共 {totalPages} 页"
     }
   },
   "dashboard": {
@@ -664,7 +674,7 @@
       "items": "项",
       "next": "下一页",
       "of": "共",
-      "prev": "上一页",
+      "previous": "上一页",
       "showing": "显示",
       "rowsPerPage": "每页显示"
     },
@@ -1030,6 +1040,21 @@
         "seeAllText": "'查看全部' 按钮文字",
         "seeAllLink": "'查看全部' 按钮链接"
       },
+      "productGridConfigurable": {
+        "title": "网格标题",
+        "seeAllText": "'查看全部'按钮文字",
+        "seeAllLink": "'查看全部'按钮链接",
+        "dataSourceType": "数据源类型",
+        "dataSourceTypes": {
+          "manualSelection": "手动选择产品",
+          "dynamicQuery": "动态查询规则 (稍后实现)"
+        },
+        "maxDisplayItems": "最大显示产品数",
+        "maxDisplayItemsPlaceholder": "例如: 8 (不填则显示所有已选)",
+        "selectedProductsTitle": "已选产品",
+        "selectProductsButton": "选择产品",
+        "manageProductsButton": "管理已选产品"
+      },
       "trendingCard": {
         "title": "标题",
         "description": "描述",
@@ -1059,13 +1084,17 @@
         "iconKey": "图标键",
         "title": "标题",
         "description": "描述"
+      },
+      "productReference": {
+        "productId": "产品ID"
       }
     },
     "blockTypes": {
       "BANNER": "横幅",
       "INTRODUCTION_SECTION": "介绍区块",
       "PRODUCT_GRID_HERO": "产品网格头图",
-      "TRENDING_SECTION_CONTAINER": "热门区块容器"
+      "TRENDING_SECTION_CONTAINER": "热门区块容器",
+      "PRODUCT_GRID_CONFIGURABLE": "可配置产品网格"
     },
     "itemTypes": {
       "TRENDING_CARD_LARGE": "大型热门卡片",
@@ -1124,6 +1153,27 @@
       "createError": "创建内容块失败",
       "updateError": "更新内容块失败",
       "deleteError": "删除内容块失败"
+    },
+    "productSelector": {
+      "title": "选择产品",
+      "addButton": "添加",
+      "removeButton": "移除",
+      "selectedProducts": "已选产品",
+      "selectedProductsTitle": "已选产品",
+      "noProductsSelected": "尚未选择任何产品。",
+      "availableProducts": "可选产品",
+      "searchPlaceholder": "搜索产品...",
+      "noProductsFound": "未找到产品",
+      "loadingProducts": "正在加载产品...",
+      "confirmRemoveTitle": "确认移除",
+      "confirmRemoveMessage": "您确定要从已选列表中移除此产品吗？",
+      "maxSelectionReached": "已达到最大选择数量 ({maxCount}个)",
+      "productCard": {
+        "idLabel": "ID:",
+        "priceLabel": "价格:",
+        "inventoryLabel": "库存:"
+      },
+      "confirmSelectionButton": "确认选择"
     },
     "visualEditor": {
       "previewDescription": "点击下方预览区域中的槽位来编辑或添加内容项。",

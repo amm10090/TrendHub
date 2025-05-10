@@ -107,6 +107,7 @@ model Product {
   coupon               String?                      // 添加优惠券代码字段
   couponDescription    String?                      // 添加优惠券描述字段
   couponExpirationDate DateTime?                    // 添加优惠券到期时间字段
+  gender               String?                      // 新增：性别字段 (例如: "women", "men", "unisex")
   isDeleted    Boolean   @default(false)       // 软删除标记
   isNew        Boolean   @default(false)       // 是否新品标记
   scrapedAt    DateTime?                       // 数据抓取时间
@@ -175,6 +176,7 @@ enum ContentBlockType {
   INTRODUCTION_SECTION
   PRODUCT_GRID_HERO
   TRENDING_SECTION_CONTAINER
+  PRODUCT_GRID_CONFIGURABLE
 }
 
 // Enum for ContentItemType
@@ -185,6 +187,7 @@ enum ContentItemType {
   SHINING_CARD
   TEXT_LINK_BLOCK
   INTRODUCTION_GUARANTEE_ITEM
+  PRODUCT_REFERENCE
 }
 
 // ContentBlock model - For managing diverse content sections

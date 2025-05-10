@@ -309,6 +309,7 @@
     "search": "Search",
     "selectBrand": "Select Brand",
     "selectCategory": "Select Category",
+    "selectProduct": "Select Product(s)",
     "status": {
       "inStock": "In Stock",
       "lowStock": "Low Stock",
@@ -326,6 +327,26 @@
       "create": "Create",
       "saveChanges": "Save Changes",
       "backToList": "Back to List"
+    },
+    "productGrid": {
+      "title": "Section Title",
+      "seeAllText": "'See All' Button Text",
+      "seeAllLink": "'See All' Button Link"
+    },
+    "productGridConfigurable": {
+      "title": "Grid Title",
+      "seeAllText": "'See All' Button Text",
+      "seeAllLink": "'See All' Button Link",
+      "dataSourceType": "Data Source Type",
+      "dataSourceTypes": {
+        "manualSelection": "Manual Product Selection",
+        "dynamicQuery": "Dynamic Query Rule (Coming Soon)"
+      },
+      "maxDisplayItems": "Max Display Items",
+      "maxDisplayItemsPlaceholder": "e.g., 8 (empty for all selected)",
+      "selectedProductsTitle": "Selected Products",
+      "selectProductsButton": "Select Products",
+      "manageProductsButton": "Manage Selected Products"
     }
   },
   "dashboard": {
@@ -1098,6 +1119,21 @@
         "seeAllText": "'See All' Button Text",
         "seeAllLink": "'See All' Button Link"
       },
+      "productGridConfigurable": {
+        "title": "Grid Title",
+        "seeAllText": "'See All' Button Text",
+        "seeAllLink": "'See All' Button Link",
+        "dataSourceType": "Data Source Type",
+        "dataSourceTypes": {
+          "manualSelection": "Manual Product Selection",
+          "dynamicQuery": "Dynamic Query Rule (Coming Soon)"
+        },
+        "maxDisplayItems": "Max Display Items",
+        "maxDisplayItemsPlaceholder": "e.g., 8 (empty for all selected)",
+        "selectedProductsTitle": "Selected Products",
+        "selectProductsButton": "Select Products",
+        "manageProductsButton": "Manage Selected Products"
+      },
       "trendingCard": {
         "title": "Title",
         "description": "Description",
@@ -1127,13 +1163,17 @@
         "iconKey": "Icon Key",
         "title": "Title",
         "description": "Description"
+      },
+      "productReference": {
+        "productId": "Product ID"
       }
     },
     "blockTypes": {
       "BANNER": "Banner",
       "INTRODUCTION_SECTION": "Introduction Section",
       "PRODUCT_GRID_HERO": "Product Grid Hero",
-      "TRENDING_SECTION_CONTAINER": "Trending Section Container"
+      "TRENDING_SECTION_CONTAINER": "Trending Section Container",
+      "PRODUCT_GRID_CONFIGURABLE": "Configurable Product Grid"
     },
     "itemTypes": {
       "TRENDING_CARD_LARGE": "Trending Card Large",
@@ -1165,7 +1205,7 @@
       "itemIdentifierPlaceholder": "e.g., trending_main_large_left (optional, for specific frontend layouts)",
       "linkUrlExample": "/products/category",
       "imageUrlExample": "/images/banner-bg.jpg",
-      "seeAllLinkExample": "/products/all",
+      "seeAllLinkExample": "/all-products",
       "featuresLeftPlaceholder": "One feature per line",
       "featuresRightPlaceholder": "One feature per line",
       "styleHintPlaceholder": "e.g., slot-label, slot-title, hero-button"
@@ -1203,6 +1243,18 @@
       "noImage": "No Image",
       "addItemToSlotPlaceholder": "Click to add content",
       "selectSlot": "Select a slot to manage its content"
+    },
+    "productSelector": {
+      "title": "Select Products",
+      "addButton": "Add",
+      "removeButton": "Remove",
+      "selectedProductsTitle": "Selected Products",
+      "noProductsFound": "No relevant products found.",
+      "noProductsSelected": "No products selected yet.",
+      "confirmSelectionButton": "Confirm Selection",
+      "messages": {
+        "fetchError": "Failed to load product list."
+      }
     },
     "scraperManagement": {
       "title": "Scraper Management",

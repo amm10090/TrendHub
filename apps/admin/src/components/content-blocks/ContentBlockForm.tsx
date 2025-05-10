@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ContentBlockType, ContentItemType } from "@prisma/client"; // 假设 Prisma 类型已正确生成并可用
 import { Loader2, PlusCircle, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, FC, ReactNode, useState } from "react";
+import { useEffect, FC, ReactNode, useState, useMemo } from "react";
 import {
   useFieldArray,
   useForm,
@@ -38,6 +38,10 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
+import {
+  ProductSelectorModal,
+  type ProductAdminSelectItem,
+} from "./ProductSelectorModal";
 import { TrendingSectionAdminPreview } from "./TrendingSectionAdminPreview";
 
 // --- Zod Schemas --- (应与 API 路由中的定义保持一致或从共享位置导入)
@@ -70,6 +74,18 @@ const ProductGridHeroDataSchema = z.object({
   title: z.string().min(1, "Title is required"),
   seeAllText: z.string().optional(),
   seeAllLink: z.string().url("Invalid link URL").or(z.literal("")).optional(),
+});
+
+// 新增：PRODUCT_GRID_CONFIGURABLE 的 data schema
+const ProductGridConfigurableBlockDataSchema = z.object({
+  title: z.string().min(1, "网格标题不能为空"),
+  seeAllText: z.string().optional(),
+  seeAllLink: z.string().url("无效的链接URL").or(z.literal("")).optional(),
+  dataSourceType: z
+    .enum(["MANUAL_SELECTION", "DYNAMIC_QUERY"])
+    .default("MANUAL_SELECTION"),
+  // dynamicQueryConfig: z.any().optional(), // DYNAMIC_QUERY 暂时不实现
+  maxDisplayItems: z.coerce.number().int().positive("必须是正整数").optional(),
 });
 
 // --- Specific Data Schemas for ContentItemType ---
@@ -121,6 +137,12 @@ const IntroductionGuaranteeItemDataSchema = z.object({
   iconKey: z.string().min(1, "Icon key is required"),
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
+});
+
+// 新增：PRODUCT_REFERENCE 的 data schema
+const ProductReferenceItemDataSchema = z.object({
+  productId: z.string().min(1, "产品ID不能为空"),
+  // productName: z.string().optional(), // productName 用于UI展示，不直接存入 data
 });
 
 export const ContentItemFormSchema = z
@@ -197,6 +219,19 @@ export const ContentItemFormSchema = z
         }
         break;
       }
+      // 新增：处理 PRODUCT_REFERENCE 类型
+      case ContentItemType.PRODUCT_REFERENCE: {
+        const productRefResult = ProductReferenceItemDataSchema.safeParse(
+          itemData.data,
+        );
+
+        if (!productRefResult.success) {
+          productRefResult.error.errors.forEach((err) => {
+            ctx.addIssue({ ...err, path: ["data", ...err.path] });
+          });
+        }
+        break;
+      }
       default:
         // Optionally, you could add an issue if the type is unrecognized
         // or if data is present for a type not expecting it.
@@ -268,6 +303,18 @@ export const ContentBlockFormSchema =
           //     path: ["data"],
           //     message: "Trending Section Container should not have specific data properties itself.",
           // });
+        }
+        break;
+      }
+      // 新增：处理 PRODUCT_GRID_CONFIGURABLE 类型
+      case ContentBlockType.PRODUCT_GRID_CONFIGURABLE: {
+        const gridConfigResult =
+          ProductGridConfigurableBlockDataSchema.safeParse(blockData.data);
+
+        if (!gridConfigResult.success) {
+          gridConfigResult.error.errors.forEach((err) => {
+            ctx.addIssue({ ...err, path: ["data", ...err.path] });
+          });
         }
         break;
       }
@@ -418,6 +465,174 @@ const ProductGridHeroFields: FC<{
         placeholder={placeholders("seeAllLinkExample")}
       />
     </>
+  );
+};
+
+// 新增：渲染 PRODUCT_GRID_CONFIGURABLE 特定字段
+const ProductGridConfigurableFields: FC<{
+  control: Control<ContentBlockFormValues>;
+  formMethods: ReturnType<typeof useForm<ContentBlockFormValues>>; // 传递整个 form 对象以便访问 setValue 等
+}> = ({ control, formMethods }) => {
+  const t = useTranslations(
+    "contentManagement.formFields.productGridConfigurable",
+  );
+  const placeholders = useTranslations("contentManagement.placeholders");
+
+  const [isProductSelectorOpen, setIsProductSelectorOpen] = useState(false);
+
+  const watchedFormItems = formMethods.watch("items");
+  const currentBlockItems = useMemo(
+    () => watchedFormItems || [],
+    [watchedFormItems],
+  );
+  // 从 ContentItemFormValues 转换为 ProductAdminSelectItem (用于初始化模态框)
+  const initialModalProducts: ProductAdminSelectItem[] = useMemo(() => {
+    return currentBlockItems
+      .filter(
+        (item) =>
+          item.type === ContentItemType.PRODUCT_REFERENCE &&
+          item.data?.productId,
+      )
+      .map((item) => ({
+        id: item.data.productId as string,
+        name: item.name || "Unknown Product", // ContentItem 的 name 作为产品名
+        sku: "N/A", // SKU 和其他详细信息需要额外获取，或在ContentItem.data中也存储一些
+        images: [], // 图片也需要额外获取或存储
+        price: "0.00", // 价格也需要额外获取或存储
+        // 为了在选择器中正确显示，理想情况下 ContentItem.data 应包含更多产品信息
+        // 或者 ProductSelectorModal 在初始化时根据ID列表批量获取产品详情
+      }))
+      .sort((a, b) => {
+        const orderA =
+          currentBlockItems.find((item) => item.data?.productId === a.id)
+            ?.order || 0;
+        const orderB =
+          currentBlockItems.find((item) => item.data?.productId === b.id)
+            ?.order || 0;
+
+        return orderA - orderB;
+      });
+  }, [currentBlockItems]);
+
+  const handleOpenProductSelector = () => {
+    setIsProductSelectorOpen(true);
+  };
+
+  const handleProductSelection = (
+    selectedModalProducts: ProductAdminSelectItem[],
+  ) => {
+    const newItems: ContentItemFormValues[] = selectedModalProducts.map(
+      (product, index) => ({
+        type: ContentItemType.PRODUCT_REFERENCE,
+        name: product.name, // 使用从选择器返回的产品名
+        data: { productId: product.id },
+        order: index, // 根据选择器返回的顺序（已包含拖拽排序后的顺序）
+        isActive: true,
+        itemIdentifier:
+          currentBlockItems.find((ci) => ci.data?.productId === product.id)
+            ?.itemIdentifier || `prod_ref_${product.id}_${Date.now()}`,
+        slotKey: currentBlockItems.find(
+          (ci) => ci.data?.productId === product.id,
+        )?.slotKey, // 保留原slotKey，如果适用
+      }),
+    );
+
+    formMethods.setValue("items", newItems, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setIsProductSelectorOpen(false);
+  };
+
+  const productReferenceItemsFromForm = currentBlockItems.filter(
+    (item) => item.type === ContentItemType.PRODUCT_REFERENCE,
+  );
+
+  return (
+    <div className="space-y-4">
+      <FormField
+        name="data.title"
+        label={t("title")}
+        control={control}
+        component={Input}
+      />
+      <FormField
+        name="data.seeAllText"
+        label={t("seeAllText")}
+        control={control}
+        component={Input}
+        placeholder={placeholders("seeAllLinkExample")}
+      />
+      <FormField
+        name="data.seeAllLink"
+        label={t("seeAllLink")}
+        control={control}
+        component={Input}
+        placeholder={placeholders("seeAllLinkExample")}
+      />
+      <FormField
+        name="data.dataSourceType"
+        label={t("dataSourceType")}
+        control={control}
+        component={Select}
+        options={[
+          {
+            value: "MANUAL_SELECTION",
+            label: t("dataSourceTypes.manualSelection"),
+          },
+          // {
+          //   value: "DYNAMIC_QUERY",
+          //   label: t("dataSourceTypes.dynamicQuery"),
+          // }, // DYNAMIC_QUERY 暂时禁用
+        ]}
+      />
+      <FormField
+        name="data.maxDisplayItems"
+        label={t("maxDisplayItems")}
+        control={control}
+        component={Input} // 可以考虑使用 Input type="number"
+        placeholder={t("maxDisplayItemsPlaceholder")}
+      />
+
+      {formMethods.watch("data.dataSourceType") === "MANUAL_SELECTION" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("selectedProductsTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {productReferenceItemsFromForm.length > 0 && (
+              <ul className="list-disc pl-5 mb-4 space-y-1">
+                {productReferenceItemsFromForm.map((item, index) => (
+                  <li
+                    key={item.itemIdentifier || `item-${index}`}
+                    className="text-sm"
+                  >
+                    {item.name} (ID: {item.data?.productId})
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleOpenProductSelector}
+            >
+              {productReferenceItemsFromForm.length > 0
+                ? t("manageProductsButton")
+                : t("selectProductsButton")}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ProductSelectorModal 定义 (暂时占位) */}
+      <ProductSelectorModal
+        isOpen={isProductSelectorOpen}
+        onClose={() => setIsProductSelectorOpen(false)}
+        initialSelectedProducts={initialModalProducts} // 传递转换后的已选产品
+        onConfirmSelection={handleProductSelection}
+      />
+    </div>
   );
 };
 
@@ -624,6 +839,13 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
       case ContentBlockType.TRENDING_SECTION_CONTAINER:
         return (
           <p className="text-sm text-gray-500">{t("trendingContainerInfo")}</p>
+        );
+      case ContentBlockType.PRODUCT_GRID_CONFIGURABLE:
+        return (
+          <ProductGridConfigurableFields
+            control={form.control}
+            formMethods={form}
+          />
         );
       default:
         return <p className="text-sm text-gray-500">{t("noSpecificFields")}</p>;
@@ -944,6 +1166,38 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
         </>
       );
     }
+    if (itemType === ContentItemType.PRODUCT_REFERENCE) {
+      // 对于 PRODUCT_REFERENCE，可能不需要在抽屉中显示特定的 data 字段
+      // 因为主要信息是 productId，已经在 ProductSelectorModal 中管理
+      // 如果需要在抽屉中显示产品名或图片等预览信息，可以在这里添加只读字段
+      // 但通常 productId 是隐藏的，在 data 中
+      const productId = form.getValues(`items.${itemIndex}.data.productId`);
+      const productName = form.getValues(`items.${itemIndex}.name`); // 产品名称在 item.name 中
+
+      return (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            已选产品:
+          </p>
+          <p className="text-sm text-gray-900 dark:text-gray-100">
+            {productName || "未命名产品"} (ID: {productId || "未设置"})
+          </p>
+          <Button
+            variant="link"
+            size="sm"
+            type="button"
+            onClick={() => {
+              // 此处逻辑需要重新考虑，直接在抽屉中编辑已选产品ID可能不是最佳UX
+              // 通常会通过再次打开ProductSelectorModal来修改选择
+              // alert("请通过产品选择器修改已选产品。");
+              // 为了简单起见，我们暂时允许在抽屉修改名称，但 productId 应通过选择器修改
+            }}
+          >
+            通过产品选择器修改
+          </Button>
+        </div>
+      );
+    }
 
     return <p>{t("form.noSpecificFieldsForItemType")}</p>;
   };
@@ -957,6 +1211,9 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
           t={t}
         />
       );
+    }
+    if (selectedType === ContentBlockType.PRODUCT_GRID_CONFIGURABLE) {
+      return null;
     }
     if (selectedType !== ContentBlockType.INTRODUCTION_SECTION) {
       return null;
@@ -1328,7 +1585,11 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
 
                           try {
                             // 清理URL字段 - 如果为空则设为空字符串
-                            if (currentItem.data) {
+                            if (
+                              currentItem.data &&
+                              typeof currentItem.data === "object"
+                            ) {
+                              // 确保 currentItem.data 是对象
                               const dataFields = [
                                 "imageUrl",
                                 "href",

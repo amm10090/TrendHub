@@ -11,7 +11,7 @@ interface BannerData {
   description: string;
   imageUrl: string;
   linkUrl: string;
-  ctaText: string;
+  ctaText?: string;
 }
 
 export function Banner() {
@@ -44,17 +44,17 @@ export function Banner() {
             typeof block.data.description === 'string' &&
             typeof block.data.imageUrl === 'string' &&
             typeof block.data.linkUrl === 'string' &&
-            typeof block.data.ctaText === 'string'
+            (block.data.ctaText === undefined || typeof block.data.ctaText === 'string')
           ) {
             setBannerData(block.data as BannerData);
           } else {
-            // 如果 data 结构不符合预期，也视为错误或数据不完整
-            // throw new Error('从 API 获取的 Banner 数据格式不正确');
+            // 如果核心数据结构不符合预期
+            // console.error('从 API 获取的 Banner 核心数据格式不正确', block.data); // 调试日志
             setBannerData(null); // 明确设为 null，以便后续使用后备数据
           }
         } else {
           // 如果没有找到激活的 BANNER 或数据为空
-          // throw new Error('未找到激活的 Banner 内容块或数据为空');
+          // console.error('未找到激活的 Banner 内容块或数据为空'); // 调试日志
           setBannerData(null); // 明确设为 null
         }
       } catch (err: unknown) {
@@ -76,7 +76,7 @@ export function Banner() {
     description: bannerData?.description || t('description'),
     imageUrl: bannerData?.imageUrl || '/images/banner-bg.jpg', // 后备图片
     linkUrl: bannerData?.linkUrl || '/women/brands/gucci', // 后备链接
-    ctaText: bannerData?.ctaText || t('cta'),
+    ctaText: 'View Details Go!', // <-- Temporary hardcoded default value
   };
 
   // 可以添加加载和错误状态的 UI 反馈

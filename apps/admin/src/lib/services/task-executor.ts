@@ -20,8 +20,6 @@ import { Product as ScrapedProductType, ECommerceSite } from "@repo/types"; // R
 
 import { db } from "@/lib/db";
 
-// 简单的日志记录器
-
 const logger = {
   info: (message: string, context?: Record<string, unknown> | undefined) =>
     console.log(`[TaskExecutor INFO] ${message}`, context || ""),

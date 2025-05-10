@@ -42,7 +42,10 @@ export function ProductDetail({ product }: ProductDetailProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
           {/* 商品图片 */}
           <div>
-            <ProductImages images={product.images || [product.image]} productName={product.name} />
+            <ProductImages
+              images={product.images || [product.images[0]]}
+              productName={product.name}
+            />
           </div>
 
           {/* 商品信息和购买选项 */}

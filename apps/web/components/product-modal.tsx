@@ -116,7 +116,7 @@ export function ProductModal({
                       img: 'w-full h-full object-cover object-center transition-transform duration-500 rounded-xl',
                       zoomedWrapper: 'transition-all duration-500',
                     }}
-                    src={product.image || '/images/products/placeholder.jpg'}
+                    src={product.images?.[0] || '/images/products/placeholder.jpg'}
                   />
                 </div>
 

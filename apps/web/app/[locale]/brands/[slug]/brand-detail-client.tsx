@@ -20,14 +20,15 @@ import { Filters } from '../../product/list/components/Filters';
 interface ModalExpectedProductDetail {
   id: string;
   name: string;
-  brand: string;
+  brand: AppProductDetailType['brand'];
   price: number;
-  image: string;
+  images: string[];
   description: string;
   availableQuantity: number;
   isFavorite?: boolean;
   discount?: number;
   originalPrice?: number;
+  category: AppProductDetailType['category'];
 }
 
 interface BrandDetailClientProps {
@@ -189,11 +190,12 @@ export default function BrandDetailClient({
         const modalData: ModalExpectedProductDetail = {
           id: productDetail.id,
           name: productDetail.name,
-          brand: productDetail.brand.name,
+          brand: productDetail.brand,
           price: Number(productDetail.price),
-          image: productDetail.image || '/images/products/placeholder.jpg',
+          images: productDetail.images || [],
           description: productDetail.description || '',
           availableQuantity: productDetail.availableQuantity,
+          category: productDetail.category,
           isFavorite: productDetail.isFavorite,
           discount: productDetail.discount,
           originalPrice: productDetail.originalPrice
@@ -297,7 +299,7 @@ export default function BrandDetailClient({
                         <div className="relative overflow-hidden">
                           <div className="relative w-full aspect-square overflow-hidden">
                             <Image
-                              src={product.image || '/images/products/placeholder.jpg'}
+                              src={product.images?.[0] || '/images/products/placeholder.jpg'}
                               alt={product.name}
                               width={500}
                               height={500}

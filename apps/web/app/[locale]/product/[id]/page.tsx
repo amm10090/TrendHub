@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: PropsForMetadata): Promise<Me
       description: product.description.substring(0, 160),
       images: [
         {
-          url: product.image || '/images/products/placeholder.jpg',
+          url: product.images?.[0] || '/images/products/placeholder.jpg',
           width: 800,
           height: 600,
         },

@@ -125,7 +125,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                           wrapper: 'aspect-square overflow-hidden',
                           img: 'w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105 dark:opacity-90 dark:group-hover:opacity-100',
                         }}
-                        src={product.image}
+                        src={product.images?.[0]}
                       />
                     </div>
                   </Link>

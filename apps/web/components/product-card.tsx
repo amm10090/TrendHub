@@ -38,9 +38,9 @@ export function ProductCard({ product, locale }: ProductCardProps) {
     >
       {/* 产品图片 */}
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-bg-tertiary-light dark:bg-bg-tertiary-dark">
-        {product.image ? (
+        {product.images ? (
           <Image
-            src={product.image}
+            src={product.images[0]}
             alt={product.name}
             fill
             className="object-cover"

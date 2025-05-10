@@ -2,7 +2,9 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-import { ProductDetail, ProductModal } from '../components/product-detail/product-modal';
+import { type ProductDetail } from '@/types/product';
+
+import { ProductModal } from '../components/product-detail/product-modal';
 
 interface ProductModalContextType {
   openProductModal: (product: ProductDetail) => void;

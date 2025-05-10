@@ -38,14 +38,15 @@ interface ProductListQueryParams {
 interface ModalExpectedProductDetail {
   id: string;
   name: string;
-  brand: string;
-  price: number;
-  image: string;
+  brand: AppProductDetailType['brand'];
+  price: AppProductDetailType['price'];
+  images: string[];
   description: string;
   availableQuantity: number;
   isFavorite?: boolean;
   discount?: number;
-  originalPrice?: number;
+  originalPrice?: AppProductDetailType['originalPrice'];
+  category: AppProductDetailType['category'];
 }
 
 const ProductListPage: NextPage = () => {
@@ -168,16 +169,15 @@ const ProductListPage: NextPage = () => {
         const modalData: ModalExpectedProductDetail = {
           id: productDetail.id,
           name: productDetail.name,
-          brand: productDetail.brand.name,
-          price: Number(productDetail.price),
-          image: productDetail.image || '/images/products/placeholder.jpg',
+          brand: productDetail.brand,
+          price: productDetail.price,
+          images: productDetail.images || [],
           description: productDetail.description || '',
           availableQuantity: productDetail.availableQuantity,
+          category: productDetail.category,
           isFavorite: productDetail.isFavorite,
           discount: productDetail.discount,
-          originalPrice: productDetail.originalPrice
-            ? Number(productDetail.originalPrice)
-            : undefined,
+          originalPrice: productDetail.originalPrice,
         };
 
         openProductModal(modalData);
@@ -258,7 +258,7 @@ const ProductListPage: NextPage = () => {
                     <div className="relative overflow-hidden">
                       <div className="relative w-full aspect-square overflow-hidden">
                         <Image
-                          src={product.image || '/images/products/placeholder.jpg'}
+                          src={product.images?.[0] || '/images/products/placeholder.jpg'}
                           alt={product.name}
                           width={500}
                           height={500}

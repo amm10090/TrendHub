@@ -149,6 +149,118 @@ cd ../.. # 返回项目根目录
 在大多数情况下，`playwright install --with-deps chromium` 应该足够。但如果仍然遇到与系统库相关的错误，您可能需要根据服务器的操作系统手动安装一些常见的依赖项。例如，在基于 Debian/Ubuntu 的系统上，可能需要的库包括 `libnss3`, `libatk1.0-0`, `libatk-bridge2.0-0`, `libcups2`, `libdrm2`, `libgbm1`, `libasound2`, `libpangocairo-1.0-0`, `libxshmfence1` 等。
 在尝试手动安装前，请务必先检查 Playwright 的官方文档以获取最新的依赖列表和特定于您的操作系统的说明。
 
+### 5.2.2. 数据库配置与初始化 (使用 Prisma)
+
+正确的数据库配置和初始化对于 TrendHub 后台 (`apps/admin`) 的运行至关重要。
+
+**1. 安装与基本配置 PostgreSQL：**
+
+这部分提供了在基于 Debian/Ubuntu 的 Linux 服务器上安装和基本配置 PostgreSQL 的通用指南。对于其他操作系统或特定版本，请参考官方 PostgreSQL 文档。
+
+- **更新软件包列表并安装 PostgreSQL：**
+
+  ```bash
+  sudo apt update
+  sudo apt install postgresql postgresql-contrib
+  ```
+
+  安装完成后，PostgreSQL 服务通常会自动启动。
+
+- **验证 PostgreSQL 服务状态 (可选)：**
+
+  ```bash
+  sudo systemctl status postgresql
+  ```
+
+- **访问 PostgreSQL Shell (`psql`)：**
+  PostgreSQL 会创建一个名为 `postgres` 的默认 Linux 系统用户，该用户也是 PostgreSQL 的超级用户。
+
+  ```bash
+  sudo -i -u postgres  # 切换到 postgres 系统用户
+  psql                 # 打开 psql 交互式终端
+  ```
+
+- **创建数据库用户：**
+  在 `psql` 终端中，为您的 TrendHub 应用创建一个专用的数据库用户。**请务必将 `'your_strong_password'` 替换为一个强密码。**
+
+  ```sql
+  CREATE USER trendhub_user WITH PASSWORD 'xP!RfxewB1qltR7k';
+  ```
+
+- **创建数据库：**
+  创建一个新的数据库，并指定其所有者为上一步创建的 `trendhub_user`。
+
+  ```sql
+  CREATE DATABASE trendhub_db OWNER trendhub_user;
+  ```
+
+- **(可选) 授予权限：**
+  通常，将数据库的 `OWNER` 设置为应用用户已经足够。如果需要更明确的权限授予，可以执行：
+
+  ```sql
+  GRANT ALL PRIVILEGES ON DATABASE trendhub_db TO trendhub_user;
+  ```
+
+- **退出 `psql` 和 `postgres` 用户：**
+  在 `psql` 中输入 `\q` (或 `exit`)，然后按 Enter。
+  在 `postgres`用户的 shell 中输入 `exit`，然后按 Enter 返回到您之前的用户。
+
+- **配置远程连接 (按需并谨慎操作)：**
+  默认情况下，PostgreSQL 可能只允许来自本地主机的连接。如果您的应用程序和数据库在不同的服务器上，您需要配置 PostgreSQL 以允许远程连接。这通常涉及编辑两个文件：
+
+  1.  `postgresql.conf`: 修改 `listen_addresses` 指令。例如，设置为 `listen_addresses = '*'` 以监听所有 IP 地址 (请谨慎使用，并结合防火墙规则)。
+  2.  `pg_hba.conf`: 添加或修改条目以允许您的应用服务器 IP 地址通过指定的方法（例如 `md5` 或 `scram-sha-256` 进行密码验证）连接到数据库和用户。
+
+  **安全警告：** 将数据库端口直接暴露到公共互联网存在重大安全风险。强烈建议将数据库服务器与应用服务器置于同一私有网络中，并使用防火墙严格限制对 PostgreSQL 端口 (默认为 5432) 的访问。如果必须进行远程连接，请确保使用 SSL/TLS 加密连接，并配置非常强的密码和严格的防火墙规则。
+
+  修改这些配置文件后，通常需要重启 PostgreSQL 服务才能使更改生效：`sudo systemctl restart postgresql`。
+
+**2. 设置 `DATABASE_URL` 环境变量：**
+
+Prisma 通过 `DATABASE_URL` 环境变量连接到您的数据库。其标准格式如下：
+
+```
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+```
+
+请将 `USER`, `PASSWORD`, `HOST`, `PORT`, 和 `DATABASE` 替换为您的实际 PostgreSQL凭据和数据库名称。
+
+您可以在以下位置设置此环境变量：- **项目根目录的 `.env` 文件**: (例如 `TrendHub/.env`) Next.js (`apps/admin`) 会自动加载此文件。这是推荐的方式之一。- **应用目录的 `.env` 文件**: (例如 `apps/admin/.env`) - **PM2 `ecosystem.config.js` 文件**: 如果您使用此文件管理应用，可以在其中为 `@trend-hub/admin` 应用指定 `env`。- **操作系统级别**: 例如，在 `~/.bashrc` 或 `/etc/environment` 中。PM2 进程通常会继承这些变量。
+
+**重要**: 请勿将包含敏感数据库凭据的 `.env` 文件直接提交到版本控制系统 (Git)。应使用项目中的 `.env.example` 文件作为模板，并在服务器上创建实际的 `.env` 文件，确保该文件被 `.gitignore` 排除。
+
+**3. 初始化数据库 Schema / 应用迁移：**
+
+根据您的部署场景选择合适的 Prisma 命令。这些命令通常应在项目根目录执行，并通过 `--filter` 指向 `apps/admin` 包（其中包含 Prisma schema）。
+
+- **首次部署 (数据库为空或首次创建表结构)：**
+  使用 `prisma db push` 命令。它会使您的数据库模式与 `apps/admin/prisma/schema.prisma` 文件同步。
+
+  ```bash
+  pnpm --filter=@trend-hub/admin exec prisma db push
+  ```
+
+  _注意：`db push` 非常适合快速原型制作和初始 schema 设置。对于生产环境中的后续 schema 演变，迁移是更安全、更可控的方法。_
+
+- **后续部署 (应用已创建的迁移)：**
+  如果您在开发过程中对 `schema.prisma` 进行了更改，并使用 `pnpm --filter=@trend-hub/admin exec prisma migrate dev --name your-migration-name` 创建了迁移文件，那么在部署时，您需要应用这些待处理的迁移：
+  ```bash
+  pnpm --filter=@trend-hub/admin exec prisma migrate deploy
+  ```
+  此命令会执行所有尚未在数据库中应用的迁移。
+
+**4. 数据填充 (Seeding - 可选)：**
+
+如果您的项目包含用于填充初始数据（例如，默认设置、管理员账户、基础分类等）的 seed 脚本 (通常位于 `apps/admin/prisma/seed.ts`)，您可以在数据库 schema 设置或迁移完成后运行它。
+
+您的 `apps/admin/package.json` 文件中包含一个 `db:seed` 脚本。您可以通过以下命令运行它：
+
+```bash
+pnpm --filter=@trend-hub/admin run db:seed
+```
+
+**警告**: 在生产环境中执行数据填充脚本时要格外小心。确保脚本是幂等的（即多次运行结果相同且无副作用），或者它有逻辑来防止重复创建或覆盖现有重要数据。
+
 ### 5.3. 运行应用
 
 1.  **启动命令**:

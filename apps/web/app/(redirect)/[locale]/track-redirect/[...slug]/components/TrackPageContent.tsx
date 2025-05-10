@@ -189,7 +189,7 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
                 alt={product.name}
                 className="w-full h-full object-cover"
                 height={48}
-                src={product.image || '/images/products/placeholder.jpg'}
+                src={product.images?.[0] || '/images/products/placeholder.jpg'}
                 width={48}
               />
             </div>

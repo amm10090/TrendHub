@@ -503,7 +503,7 @@ pnpm --filter=@trend-hub/admin run db:seed
     使用 Turborepo 构建所有相关的应用程序包。
 
     ```bash
-    pnpm build
+    pnpm turbo run build
     # 或者更具体地：
     # pnpm --filter=front-end build
     # pnpm --filter=@trend-hub/admin build

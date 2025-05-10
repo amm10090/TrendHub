@@ -575,9 +575,9 @@ export function ScraperTaskDefinitionsTab() {
     onSortingChange: setSorting,
   });
 
-  if (process.env.NODE_ENV === "development") {
-    return;
-  }
+  // if (process.env.NODE_ENV === "development") {
+  // return;
+  // }
 
   if (isLoading && !data) return <div className="p-4">{t("loading")}</div>;
   if (error)

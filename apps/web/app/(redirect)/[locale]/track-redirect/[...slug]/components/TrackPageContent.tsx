@@ -195,7 +195,7 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-gray-900 dark:text-white text-xs truncate">
-                {product.brand}
+                {product.brand.name}
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 ¥{product.price.toLocaleString()}

@@ -5,10 +5,10 @@ import { ProductDetail } from '@/components/product-detail';
 import { type ProductDetail as ProductDetailType } from '@/types/product';
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
     locale: string;
-  };
+  }>;
 }
 
 async function getProductData(id: string): Promise<ProductDetailType | null> {
@@ -32,16 +32,14 @@ async function getProductData(id: string): Promise<ProductDetailType | null> {
   }
 }
 
-type Props = {
-  params: { id: string; locale: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+type PropsForMetadata = {
+  params: Promise<{ id: string; locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export async function generateMetadata(
-  { params }: Props
-  // parent: ResolvingMetadata // 移除未使用的 parent 参数
-): Promise<Metadata> {
-  const product = await getProductData(params.id);
+export async function generateMetadata({ params }: PropsForMetadata): Promise<Metadata> {
+  const awaitedParams = await params;
+  const product = await getProductData(awaitedParams.id);
 
   if (!product) {
     return {
@@ -63,7 +61,7 @@ export async function generateMetadata(
         },
       ],
       url: `/product/${product.id}`,
-      type: 'website', // 修正: 使用有效的 Open Graph 类型，例如 'website'
+      type: 'website',
     },
   };
 }
@@ -73,7 +71,8 @@ export async function generateMetadata(
  * 使用服务器组件渲染商品详情
  */
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProductData(params.id);
+  const awaitedParams = await params;
+  const product = await getProductData(awaitedParams.id);
 
   if (!product) {
     notFound();

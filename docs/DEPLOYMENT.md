@@ -91,9 +91,9 @@ Vercel 是 Next.js 项目的首选部署平台，提供无缝的集成和优化�
       ```
     - 或分别构建特定应用 (例如 `apps/web` 和 `apps/admin`):
       `bash
-    pnpm --filter=front-end build
-    pnpm --filter=@trend-hub/admin build
-    `
+pnpm --filter=front-end build
+pnpm --filter=@trend-hub/admin build
+`
       构建完成后，每个应用 (例如 `apps/web/.next`, `apps/admin/.next`) 的目录下会生成 `.next` 文件夹，其中包含生产环境的构建产物。
 
 ### 5.2. 配置服务器环境
@@ -120,8 +120,8 @@ Vercel 是 Next.js 项目的首选部署平台，提供无缝的集成和优化�
       ```
     - 启动 `apps/admin` (假设其 `package.json` 中的 `name` 是 `@trend-hub/admin`):
       `bash
-    pnpm --filter=@trend-hub/admin start
-    `
+pnpm --filter=@trend-hub/admin start
+`
       Next.js 应用默认在 `3000` 端口运行。如果同时运行多个应用，您需要在启动命令中指定不同端口，例如: `pnpm --filter=front-end start -- -p 3001`。
 
 2.  **进程管理器 (推荐)**: 使用进程管理器如 PM2 来确保您的 Next.js 应用在后台持续运行、自动重启并在服务器重启后恢复。
@@ -131,13 +131,13 @@ Vercel 是 Next.js 项目的首选部署平台，提供无缝的集成和优化�
 
       ```bash
       # 启动 web 应用
-      pm2 start pnpm --name "trendhub-web" --interpreter bash -- run "start:web" # 假设 package.json 中有 start:web 脚本
+      pm2 start pnpm --name "front-end" -- run "start:web" -- --port 3000 # 假设 package.json 中有 start:web 脚本
       # 或者直接
-      # pm2 start pnpm --name "trendhub-web" --interpreter bash -- --filter=front-end start -- --port 3001
+      # pm2 start pnpm --name "front-end" --filter=front-end start -- --port 3000
 
       # 启动 admin 应用
-      pm2 start pnpm --name "trendhub-admin" --interpreter bash -- run "start:admin" # 假设 package.json 中有 start:admin 脚本
-      # pm2 start pnpm --name "trendhub-admin" --interpreter bash -- --filter=@trend-hub/admin start -- --port 3002
+      pm2 start pnpm --name "@trend-hub/admin" -- run "start:admin" -- --port 3001 # 假设 package.json 中有 start:admin 脚本
+      # pm2 start pnpm --name "@trend-hub/admin" --filter=@trend-hub/admin start -- --port 3001
       ```
 
     - 确保 PM2 配置为在系统启动时自动启动: `pm2 startup`

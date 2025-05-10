@@ -1,16 +1,17 @@
 {
-  "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": ["pnpm-lock.yaml", "tsconfig.json", "**/.env.*local"],
   "globalEnv": ["TURBO_REMOTE_CACHE_SIGNATURE_KEY"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**",
-        "packages/scraper/dist/**",
-        "packages/scraper/.crawlee/**"
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!README.md",
+        "!CHANGELOG.md"
       ],
       "env": [
         "SMTP_HOST",
@@ -24,7 +25,20 @@
       ]
     },
     "lint": {
-      "outputs": []
+      "outputs": [],
+      "inputs": [
+        "src/**",
+        "app/**",
+        "pages/**",
+        "components/**",
+        "lib/**",
+        "*.{js,cjs,mjs,ts,tsx,jsx}",
+        "package.json",
+        "tsconfig.json",
+        "!dist/**",
+        "!.next/**",
+        "!**/*.md"
+      ]
     },
     "dev": {
       "cache": false,
@@ -38,18 +52,42 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": [],
+      "inputs": [
+        "src/**",
+        "app/**",
+        "test/**",
+        "__tests__/**",
+        "*.test.*",
+        "*.spec.*",
+        "package.json",
+        "tsconfig.json",
+        "!dist/**",
+        "!.next/**"
+      ]
     },
     "clean": {
       "cache": false
     },
     "@repo/types#build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "inputs": [
+        "src/**",
+        "package.json",
+        "tsconfig.json",
+        "../../pnpm-lock.yaml"
+      ]
     },
     "@repo/scraper#build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".crawlee/**"]
+      "outputs": ["dist/**", ".crawlee/**"],
+      "inputs": [
+        "src/**",
+        "package.json",
+        "tsconfig.json",
+        "../../pnpm-lock.yaml"
+      ]
     }
   },
   "remoteCache": {

@@ -91,6 +91,7 @@ export const IntroductionSection: React.FC = () => {
     }
     // 如果 API 数据不是有效字符串，则使用后备翻译
     const fallbackString = t(fallbackKey);
+
     if (typeof fallbackString === 'string') {
       // 对后备翻译字符串执行相同处理
       return fallbackString
@@ -99,6 +100,7 @@ export const IntroductionSection: React.FC = () => {
         .filter(Boolean);
     }
     // 如果连后备翻译都不是字符串，返回空数组
+
     return [];
   };
 

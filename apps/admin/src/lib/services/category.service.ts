@@ -12,6 +12,7 @@ export type Category = {
   parentId?: string;
   image?: string;
   isActive: boolean;
+  showInNavbar?: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -53,6 +54,7 @@ export interface UpdateCategoryData {
   parentId?: string;
   image?: string;
   isActive?: boolean;
+  showInNavbar?: boolean;
 }
 
 // 定义分页响应接口
@@ -373,12 +375,14 @@ class CategoryService {
   // 获取分类树结构
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
     const categories = await this.prisma.category.findMany({
-      where: { isActive: true },
+      where: { isActive: true }, // 通常导航栏只显示激活的分类
       orderBy: [{ level: "asc" }, { name: "asc" }],
+      // select 语句可以确保只选择需要的字段，包括新的 showInNavbar
+      // 如果不写 select，默认会返回所有字段，包括 showInNavbar
     });
 
     const buildTree = (
-      items: Category[],
+      items: Category[], // items 现在会包含 showInNavbar
       parentId: string | null = null,
       level: number = 1,
     ): CategoryTreeNode[] => {
@@ -455,6 +459,7 @@ class CategoryService {
       }
     }
 
+    // 更新分类
     return this.prisma.category.update({
       where: { id },
       data,

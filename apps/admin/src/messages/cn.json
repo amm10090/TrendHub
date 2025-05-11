@@ -92,20 +92,24 @@
     "namePlaceholder": "输入分类名称",
     "noChildCategories": "无子分类",
     "noDescription": "暂无描述",
+    "noParentCategory": "无父分类",
     "parentCategoryLabel": "父分类",
-    "parentGenderLabel": "所属性别分类",
-    "parentGenderPlaceholder": "选择所属性别",
-    "parentProductTypeLabel": "所属商品大类",
-    "parentProductTypePlaceholder": "选择所属商品大类",
+    "parentGenderLabel": "所属性别分类 (一级)",
+    "parentGenderPlaceholder": "选择所属一级分类",
+    "parentProductTypeLabel": "所属商品大类 (二级)",
+    "parentProductTypePlaceholder": "选择所属二级分类",
     "slugLabel": "Slug",
     "slugPlaceholder": "输入分类 Slug (例如: clothing-men)",
     "statusUpdateErrorDesc": "更新分类状态时出错。",
     "statusUpdateErrorTitle": "状态更新失败",
     "statusUpdateSuccessDesc": "分类 {name} 的状态已更新为 {status}。",
     "statusUpdateSuccessTitle": "状态更新成功",
+    "showInNavbarLabel": "在导航栏显示",
+    "showInNavbarTooltip": "控制此二级分类是否在网站主导航栏中展示",
+    "showInNavbarUpdateSuccessDesc": "分类 “{name}” 的导航栏显示状态已更新为 “{status}”。",
     "validation": {
       "nameRequiredDesc": "分类名称不能为空。",
-      "nameRequiredTitle": "需要名称",
+      "nameRequiredTitle": "名称不能为空",
       "parentRequiredDesc": "二级或三级分类必须选择父分类。",
       "parentRequiredTitle": "需要父分类",
       "slugRequiredDesc": "分类 Slug 不能为空。",
@@ -215,10 +219,13 @@
     "all": "全部",
     "cancel": "取消",
     "close": "关闭",
+    "id": "ID",
     "columns": {
       "brand": "品牌",
       "category": "分类",
-      "status": "状态"
+      "status": "状态",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
     },
     "confirm": "确认",
     "deleting": "删除中...",
@@ -252,6 +259,7 @@
       "delete": "删除",
       "activate": "激活",
       "deactivate": "停用",
+      "details": "详情",
       "cancel": "取消",
       "create": "创建",
       "saveChanges": "保存更改",
@@ -265,9 +273,14 @@
       "next": "下一页",
       "of": "共",
       "previous": "上一页",
+      "prev": "上一页",
       "showing": "显示",
       "rowsPerPage": "每页显示",
       "pageInfo": "第 {currentPage} 页 / 共 {totalPages} 页"
+    },
+    "auditing": {
+      "createdAt": "创建时间",
+      "updatedAt": "更新时间"
     }
   },
   "dashboard": {
@@ -275,7 +288,7 @@
     "activeNow": "当前活跃",
     "addProduct": "添加产品",
     "analytics": "分析",
-    "analyticsContent": "仪表盘.分析内容",
+    "analyticsContent": "仪表板.分析内容",
     "dashboard": {
       "title": "仪表盘"
     },
@@ -675,6 +688,7 @@
       "next": "下一页",
       "of": "共",
       "previous": "上一页",
+      "prev": "上一页",
       "showing": "显示",
       "rowsPerPage": "每页显示"
     },
@@ -814,7 +828,10 @@
     },
     "databaseDescription": "配置数据库连接和备份选项",
     "description": "管理系统设置和配置",
-    "general": "常规设置",
+    "general": {
+      "title": "通用设置",
+      "description": "管理网站的基本配置信息。"
+    },
     "generalDescription": "配置系统的基本参数",
     "manage": "管理设置",
     "messages": {

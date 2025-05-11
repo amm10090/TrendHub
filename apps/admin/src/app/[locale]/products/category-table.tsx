@@ -1,7 +1,7 @@
 "use client";
 
 // 导入 Shadcn UI 组件 和 React Hooks - 清理未使用的，保留即将使用的
-import { ChevronDown, ChevronRight, X as Info, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Info, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl"; // 添加 next-intl
 import { useCallback, useState } from "react"; // 移除 useEffect
 import { toast } from "sonner";
@@ -27,6 +27,8 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetFooter,
+  SheetClose,
   Spinner,
   Tabs,
   TabsList,
@@ -35,6 +37,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  Switch,
 } from "@/components/ui";
 import { useCategories } from "@/hooks/use-categories";
 import type { Category } from "@/lib/services/category.service";
@@ -94,6 +97,8 @@ export function CategoryTable() {
     createCategory,
     deleteCategory,
     updateCategoryStatus,
+    updateCategory,
+    mutateCategories,
   } = useCategories({
     page,
     limit,
@@ -583,145 +588,202 @@ export function CategoryTable() {
           <SheetHeader className="p-6 pb-4 border-b">
             {" "}
             {/* 添加 relative 以便绝对定位关闭按钮 */}
-            <SheetTitle>{tCat("detailsTitle")}</SheetTitle>
+            <SheetTitle>
+              {selectedCategory
+                ? `${tCat("detailsTitle")}: ${selectedCategory.name}`
+                : tCat("detailsTitle")}
+            </SheetTitle>
             {/* <SheetDescription>Optional description</SheetDescription> */}
             {/* 移除 asChild, 直接将 IconX 作为 SheetClose 的子元素，并自定义样式 */}
           </SheetHeader>
           {/* Sheet Body - 使用 div 模拟 HerouiDrawerBody */}
-          <div className="p-6 space-y-6">
-            {" "}
-            {/* 修改 py-4 为 p-6, space-y-4 为 space-y-6 */}
-            {selectedCategory && (
-              <>
-                {/* Section 1: 基本信息 */}
+          {selectedCategory && (
+            <div className="p-6 space-y-4 text-sm">
+              <div>
+                <Label className="font-semibold">{tCommon("id")}:</Label>
+                <p className="text-muted-foreground">{selectedCategory.id}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">{tCat("nameLabel")}:</Label>
+                <p className="text-muted-foreground">{selectedCategory.name}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">{tCat("slugLabel")}:</Label>
+                <p className="text-muted-foreground">{selectedCategory.slug}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">
+                  {tCat("descriptionLabel")}:
+                </Label>
+                <p className="text-muted-foreground">
+                  {selectedCategory.description || tCat("noDescription")}
+                </p>
+              </div>
+              <div>
+                <Label className="font-semibold">{tCat("levelLabel")}:</Label>
+                <p className="text-muted-foreground">
+                  {selectedCategory.level === 1
+                    ? tCat("level1")
+                    : selectedCategory.level === 2
+                      ? tCat("level2")
+                      : tCat("level3")}
+                </p>
+              </div>
+              <div>
+                <Label className="font-semibold">
+                  {tCommon("columns.status")}:
+                </Label>
                 <div>
-                  <h3 className="text-lg font-semibold mb-1 text-foreground">
-                    {selectedCategory.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Slug: {selectedCategory.slug}
-                  </p>
+                  <Badge
+                    variant={selectedCategory.isActive ? "default" : "outline"}
+                    className={cn(
+                      selectedCategory.isActive
+                        ? "bg-green-500 hover:bg-green-600 text-white border-green-500 dark:bg-green-600 dark:hover:bg-green-700 dark:text-white dark:border-green-600"
+                        : "border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800",
+                    )}
+                  >
+                    {tProd(selectedCategory.isActive ? "active" : "inactive")}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <Label className="font-semibold">
+                  {tCommon("auditing.createdAt", { ns: "common" })}:
+                </Label>
+                <p className="text-muted-foreground">
+                  {new Date(selectedCategory.createdAt).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <Label className="font-semibold">
+                  {tCommon("auditing.updatedAt", { ns: "common" })}:
+                </Label>
+                <p className="text-muted-foreground">
+                  {new Date(selectedCategory.updatedAt).toLocaleString()}
+                </p>
+              </div>
 
-                  <div className="text-sm space-y-1">
-                    <Label className="text-xs text-muted-foreground">
-                      {tCat("descriptionLabel")}
-                    </Label>
-                    <p className="text-foreground">
-                      {selectedCategory.description || tCat("noDescription")}
+              <hr className="my-4" />
+
+              <div>
+                <Label className="font-semibold">
+                  {tCat("parentCategoryLabel")}:
+                </Label>
+                {(() => {
+                  const parent = allCategories?.find(
+                    (cat) => cat.id === selectedCategory.parentId,
+                  );
+
+                  return (
+                    <p className="text-muted-foreground">
+                      {parent ? parent.name : tCat("noParentCategory")}
                     </p>
-                  </div>
+                  );
+                })()}
+              </div>
 
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <div className="text-sm space-y-1">
-                      <Label className="text-xs text-muted-foreground">
-                        {tCat("levelLabel")}
-                      </Label>
-                      <p className="text-foreground">
-                        {selectedCategory.level === 1
-                          ? tCat("level1")
-                          : selectedCategory.level === 2
-                            ? tCat("level2")
-                            : tCat("level3")}
-                      </p>
-                    </div>
-                    <div className="text-sm space-y-1">
-                      <Label className="text-xs text-muted-foreground">
-                        {tCommon("columns.status")}
-                      </Label>
-                      <div>
-                        <Badge
-                          variant={
-                            selectedCategory.isActive ? "default" : "outline"
-                          }
-                          className={
-                            selectedCategory.isActive
-                              ? "bg-green-100 text-green-700 border-green-200"
-                              : "border-gray-300 text-gray-600"
-                          }
-                        >
-                          {tProd(
-                            selectedCategory.isActive ? "active" : "inactive",
-                          )}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div>
+                <Label className="font-semibold">
+                  {tCat("childCategoriesLabel")}:
+                </Label>
+                {(() => {
+                  const children =
+                    allCategories?.filter(
+                      (cat) => cat.parentId === selectedCategory.id,
+                    ) || [];
 
-                <hr className="my-4" />
-
-                {/* Section 2: 层级关系 */}
-                <div className="space-y-3">
-                  <div className="text-sm space-y-1">
-                    <Label className="text-xs text-muted-foreground">
-                      {tCat("parentCategoryLabel")}
-                    </Label>
-                    {(() => {
-                      const parent = allCategories?.find(
-                        (cat) => cat.id === selectedCategory.parentId,
-                      );
-
-                      if (parent) {
-                        return (
-                          <Button
-                            variant="link"
-                            className="p-0 h-auto text-sm font-normal text-primary hover:text-primary/80 block truncate"
-                            // onClick={() => handleNavigateToParent(parent.id)} // handleNavigateToParent 需要实现
-                          >
-                            {parent.name}
-                          </Button>
-                        );
-                      }
-
-                      return <p className="text-foreground">-</p>; // 或 tCat("noParent")
-                    })()}
-                  </div>
-                </div>
-
-                <hr className="my-4" />
-
-                {/* Section 3: 子分类 */}
-                <div className="text-sm space-y-2">
-                  <Label className="text-xs text-muted-foreground block mb-2">
-                    {tCat("childCategoriesLabel")}
-                  </Label>
-                  {(() => {
-                    const children = getChildCategories(selectedCategory.id);
-
-                    if (children.length > 0) {
-                      return children.map((child) => (
-                        <div
-                          key={child.id}
-                          className="flex items-center justify-between p-2 -mx-2 rounded-md hover:bg-accent transition-colors"
-                        >
-                          <Button
-                            variant="link"
-                            className="p-0 h-auto text-sm font-normal text-foreground hover:text-primary truncate mr-2"
-                            // onClick={() => handleNavigateToChild(child.id)} // handleNavigateToChild 需要实现
-                          >
-                            {child.name}
-                          </Button>
-                          <Badge
-                            variant={child.isActive ? "default" : "outline"}
-                            className={`text-xs ${child.isActive ? "bg-green-100 text-green-700 border-green-200" : "border-gray-300 text-gray-600"}`}
-                          >
-                            {tProd(child.isActive ? "active" : "inactive")}
-                          </Badge>
-                        </div>
-                      ));
-                    }
-
+                  if (children.length > 0) {
                     return (
-                      <p className="text-muted-foreground italic">
-                        {tCat("noChildCategories")}
-                      </p>
+                      <ul className="list-disc list-inside pl-4 space-y-1 text-muted-foreground">
+                        {children.map((child) => (
+                          <li key={child.id}>{child.name}</li>
+                        ))}
+                      </ul>
                     );
-                  })()}
+                  }
+
+                  return (
+                    <p className="text-muted-foreground">
+                      {tCat("noChildCategories")}
+                    </p>
+                  );
+                })()}
+              </div>
+
+              {/* 新增：导航栏显示开关 (仅对二级分类) */}
+              {selectedCategory.level === 2 && (
+                <div className="space-y-1 pt-2">
+                  <div className="flex items-center space-x-2">
+                    <Label
+                      htmlFor="show-in-navbar-switch"
+                      className="font-semibold"
+                    >
+                      {tCat("showInNavbarLabel")}
+                    </Label>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="max-w-xs">
+                            {tCat("showInNavbarTooltip")}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Switch
+                    id="show-in-navbar-switch"
+                    checked={selectedCategory.showInNavbar || false}
+                    onCheckedChange={async (isChecked) => {
+                      if (selectedCategory && updateCategory) {
+                        // 确保 updateCategory 存在
+                        try {
+                          await updateCategory(selectedCategory.id, {
+                            showInNavbar: isChecked,
+                          });
+                          toast.success(tCat("statusUpdateSuccessTitle"), {
+                            description: tCat("showInNavbarUpdateSuccessDesc", {
+                              name: selectedCategory.name,
+                              status: isChecked
+                                ? tCommon("enabled")
+                                : tCommon("disabled"),
+                            }),
+                            duration: 3000,
+                          });
+                          setSelectedCategory((prev) =>
+                            prev ? { ...prev, showInNavbar: isChecked } : null,
+                          );
+                          await mutateCategories(); // 刷新列表数据
+                        } catch (error) {
+                          const errorMessage =
+                            error instanceof Error
+                              ? error.message
+                              : tCat("updateErrorDesc");
+
+                          toast.error(tCat("statusUpdateErrorTitle"), {
+                            description: errorMessage,
+                            duration: 5000,
+                          });
+                          // 如果更新失败，将开关状态重置回原来的状态
+                          setSelectedCategory((prev) =>
+                            prev ? { ...prev, showInNavbar: !isChecked } : null,
+                          );
+                        }
+                      }
+                    }}
+                  />
                 </div>
-              </>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           {/* SheetFooter is removed as per plan */}
+          <SheetFooter className="p-6 mt-auto border-t">
+            <SheetClose asChild>
+              <Button variant="outline">{tCommon("close")}</Button>
+            </SheetClose>
+          </SheetFooter>
         </SheetContent>
       </Sheet>
 

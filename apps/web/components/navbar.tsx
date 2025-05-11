@@ -9,7 +9,7 @@ import { Tabs, Tab } from '@heroui/react';
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -29,6 +29,16 @@ interface MenuItem {
   isBrands?: boolean;
 }
 
+// Define a type for the fetched category tree nodes (simplified for navbar needs)
+interface NavCategoryNode {
+  id: string;
+  name: string;
+  slug: string; // Needed for constructing hrefs
+  level: number;
+  showInNavbar?: boolean;
+  children: NavCategoryNode[];
+}
+
 export const Navbar = () => {
   const t = useTranslations('nav');
   const router = useRouter();
@@ -43,65 +53,92 @@ export const Navbar = () => {
     items: SubMenuItem[];
   } | null>(null);
 
-  const getSubItems = (category: string): SubMenuItem[] => {
-    const items: SubMenuItem[] = [];
-    const categoryKey = `${category}_categories`;
+  // State for dynamic navigation items
+  const [dynamicNavItems, setDynamicNavItems] = useState<MenuItem[]>([]);
+  const [isLoadingNav, setIsLoadingNav] = useState(true);
 
-    // Add "All" category first
-    items.push({
-      name: t(`${categoryKey}.all`),
-      href: `/${activeCategory}/${category}`,
-    });
+  useEffect(() => {
+    const fetchNavData = async () => {
+      setIsLoadingNav(true);
+      try {
+        const response = await fetch('/api/categories/tree');
 
-    // Add other subcategories
-    Object.keys(t.raw(categoryKey)).forEach((key) => {
-      if (key !== 'all') {
-        items.push({
-          name: t(`${categoryKey}.${key}`),
-          href: `/${activeCategory}/${category}/${key}`,
-        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch navigation data');
+        }
+
+        const rawNavData: NavCategoryNode[] = await response.json();
+
+        const processedNavItems: MenuItem[] = [];
+
+        // L1 categories (e.g., Women, Men) become top-level tabs/links like current 'Women' / 'Men' links
+        // These are handled by the separate <Link href="/women"> and <Link href="/men"> above the main navbar in the current layout.
+        // The main navigation items will be the L2 categories under the *currently selected* L1 (gender) category.
+        // So, we need to find the L1 node that matches the current `activeCategory` (derived from path or state)
+        // For simplicity in this step, let's assume `activeCategory` correctly reflects the current gender context (e.g., 'women' or 'men').
+        // The API returns all L1s, so we filter for the one that matches `activeCategory` for its children.
+
+        // First, identify what the actual L1 slug is based on `activeCategory` state
+        // This part needs careful thought if `activeCategory` (women/men) doesn't directly map to L1 slugs from DB
+        // For now, let's assume a direct mapping or that `activeCategory` is set based on fetched L1 slugs.
+        // The current `activeCategory` state is 'women' or 'men'. We need to find the L1 node that corresponds to this.
+        // Let's refine the logic: the top bar (Women/Men links) sets `activeCategory`.
+        // The main nav bar items should then be children of this `activeCategory`.
+
+        const currentL1Node = rawNavData.find(
+          (node) => node.level === 1 && node.slug.toLowerCase() === activeCategory.toLowerCase()
+        );
+
+        if (currentL1Node) {
+          currentL1Node.children
+            .filter((l2Node) => l2Node.level === 2 && l2Node.showInNavbar)
+            .forEach((l2Node) => {
+              processedNavItems.push({
+                name: l2Node.name,
+                href: `/${locale}/${currentL1Node.slug}/${l2Node.slug}`.replace(/\/\//g, '/'),
+                items: l2Node.children // L3 items, if any, and if they are also marked with showInNavbar
+                  .filter((l3Node) => l3Node.level === 3 && l3Node.showInNavbar)
+                  .map((l3Node) => ({
+                    name: l3Node.name,
+                    href: `/${locale}/${currentL1Node.slug}/${l2Node.slug}/${l3Node.slug}`.replace(
+                      /\/\//g,
+                      '/'
+                    ),
+                  })),
+              });
+            });
+        }
+
+        // Add static items like Brands and Guides
+        const staticItems: MenuItem[] = [
+          {
+            name: t('brands'),
+            href: `${locale ? `/${locale}` : ''}/brands`.replace(/\/\//g, '/'),
+            isBrands: true,
+          },
+          {
+            name: t('guides'),
+            href: `${locale ? `/${locale}` : ''}/guides`.replace(/\/\//g, '/'),
+          },
+        ];
+
+        setDynamicNavItems([...processedNavItems, ...staticItems]);
+      } catch {
+        setDynamicNavItems([
+          {
+            name: t('brands'),
+            href: `${locale ? `/${locale}` : ''}/brands`.replace(/\/\//g, '/'),
+            isBrands: true,
+          },
+          { name: t('guides'), href: `${locale ? `/${locale}` : ''}/guides`.replace(/\/\//g, '/') },
+        ]);
+      } finally {
+        setIsLoadingNav(false);
       }
-    });
+    };
 
-    return items;
-  };
-
-  const navigationItems: MenuItem[] = [
-    {
-      name: t('clothing'),
-      href: `/${activeCategory}/clothing`,
-      items: getSubItems('clothing'),
-    },
-    {
-      name: t('shoes'),
-      href: `/${activeCategory}/shoes`,
-      items: getSubItems('shoes'),
-    },
-    {
-      name: t('accessories'),
-      href: `/${activeCategory}/accessories`,
-      items: getSubItems('accessories'),
-    },
-    {
-      name: t('bags'),
-      href: `/${activeCategory}/bags`,
-      items: getSubItems('bags'),
-    },
-    {
-      name: t('jewelry'),
-      href: `/${activeCategory}/jewelry`,
-      items: getSubItems('jewelry'),
-    },
-    {
-      name: t('brands'),
-      href: `${locale ? `/${locale}` : ''}/brands`,
-      isBrands: true,
-    },
-    {
-      name: t('guides'),
-      href: '/guides',
-    },
-  ];
+    fetchNavData();
+  }, [locale, t, activeCategory]); // Add activeCategory to dependency array
 
   const handleItemClick = (item: MenuItem, e: React.MouseEvent<Element>) => {
     e.preventDefault();
@@ -212,51 +249,58 @@ export const Navbar = () => {
         </NavbarContent>
 
         <NavbarContent className="hidden sm:flex gap-8" justify="center">
-          {navigationItems.map((item) => (
-            <NavbarItem key={item.href} className="group relative">
-              <Link
-                className="text-sm text-text-primary-light dark:text-text-primary-dark py-2 hover:opacity-70 transition-opacity"
-                href={item.href}
-                role="button"
-                tabIndex={0}
-                onClick={(e) => handleItemClick(item, e)}
-                onKeyDown={(e) => handleItemKeyDown(item, e)}
-              >
-                {item.name}
-              </Link>
-              {item.isBrands ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">
-                  <NavbarBrands
-                    category={activeCategory}
-                    locale={pathname?.split('/')[1] || 'en'}
-                    onItemClick={handleBrandMenuItemClick}
-                  />
-                </div>
-              ) : item.items ? (
-                <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">
-                  <div className="w-full">
-                    <div className="container mx-auto px-4 py-8">
-                      <div className="grid grid-cols-4 gap-8">
-                        {item.items.map((subItem) => (
-                          <Link
-                            key={subItem.href}
-                            className="block py-3 px-4 border-b border-border-primary-light dark:border-border-primary-dark text-text-secondary-light dark:text-text-secondary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors text-base"
-                            href={subItem.href}
-                            role="button"
-                            tabIndex={0}
-                            onClick={(e) => handleSubItemClick(subItem, e)}
-                            onKeyDown={(e) => handleSubItemKeyDown(subItem, e)}
-                          >
-                            {subItem.name}
-                          </Link>
-                        ))}
+          {isLoadingNav ? (
+            <NavbarItem>
+              {/* Placeholder for loading state, e.g., a spinner */}
+              <span>Loading nav...</span>
+            </NavbarItem>
+          ) : (
+            dynamicNavItems.map((item) => (
+              <NavbarItem key={item.href} className="group relative">
+                <Link
+                  className="text-sm text-text-primary-light dark:text-text-primary-dark py-2 hover:opacity-70 transition-opacity"
+                  href={item.href}
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => handleItemClick(item, e)}
+                  onKeyDown={(e) => handleItemKeyDown(item, e)}
+                >
+                  {item.name}
+                </Link>
+                {item.isBrands ? (
+                  <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">
+                    <NavbarBrands
+                      category={activeCategory}
+                      locale={pathname?.split('/')[1] || 'en'}
+                      onItemClick={handleBrandMenuItemClick}
+                    />
+                  </div>
+                ) : item.items ? (
+                  <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">
+                    <div className="w-full">
+                      <div className="container mx-auto px-4 py-8">
+                        <div className="grid grid-cols-4 gap-8">
+                          {item.items.map((subItem) => (
+                            <Link
+                              key={subItem.href}
+                              className="block py-3 px-4 border-b border-border-primary-light dark:border-border-primary-dark text-text-secondary-light dark:text-text-secondary-dark hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors text-base"
+                              href={subItem.href}
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => handleSubItemClick(subItem, e)}
+                              onKeyDown={(e) => handleSubItemKeyDown(subItem, e)}
+                            >
+                              {subItem.name}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : null}
-            </NavbarItem>
-          ))}
+                ) : null}
+              </NavbarItem>
+            ))
+          )}
         </NavbarContent>
 
         <NavbarContent justify="end">
@@ -391,7 +435,7 @@ export const Navbar = () => {
                     </div>
                   </div>
                 ) : (
-                  navigationItems.map((item) => (
+                  dynamicNavItems.map((item) => (
                     <div
                       key={item.href}
                       className="block py-3 px-4 border-b border-border-primary-light dark:border-border-primary-dark text-base hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark transition-colors cursor-pointer text-text-primary-light dark:text-text-primary-dark"

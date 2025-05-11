@@ -103,6 +103,14 @@
   "brands": {
     "backToBrands": "Back to Brands",
     "backToTop": "",
+    "title": "Brands Directory",
+    "loading": "Loading...",
+    "new": "New",
+    "addToWishlist": "Add to Wishlist",
+    "breadcrumb": {
+      "home": "Home",
+      "brands": "Brands"
+    },
     "descriptions": {
       "alessandra_rich": "Alessandra Rich is a brand founded by the Italian designer of the same name, known for elegant, feminine designs with a vintage-inspired aesthetic.",
       "burberry": "Burberry is a British luxury fashion house established in 1856, known for its iconic check pattern and exceptional craftsmanship.",
@@ -113,6 +121,8 @@
     "noProducts": "No products available for this brand",
     "products": "Products",
     "seo": {
+      "title": "Brands Directory - TrendHub",
+      "description": "Browse all brands on TrendHub and discover your favorite fashion brands.",
       "brandDescription": "Shop {brand} latest collections at TrendHub. Explore luxury fashion, accessories, and more with worldwide shipping.",
       "brandTitle": "{brand} - Official Store | TrendHub",
       "notFound": "Brand Not Found",

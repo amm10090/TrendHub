@@ -47,6 +47,7 @@ model Category {
   children    Category[] @relation("SubCategories")
   image       String?                          // 分类图片URL（可选）
   isActive    Boolean    @default(true)        // 分类是否激活
+  showInNavbar Boolean   @default(false)       // 新增：控制是否在导航栏显示
   products    Product[]                        // 与该分类关联的商品
   createdAt   DateTime   @default(now())       // 创建时间
   updatedAt   DateTime   @updatedAt            // 更新时间
@@ -54,6 +55,7 @@ model Category {
   @@index([parentId])
   @@index([level])
   @@index([isActive])
+  @@index([showInNavbar]) // 新增：为 showInNavbar 添加索引
 }
 
 // Brand模型 - 用于存储品牌信息

@@ -36,6 +36,7 @@ export type Product = {
   couponDescription?: string | null;
   couponExpirationDate?: Date | string | null;
   tags?: string[];
+  gender?: "women" | "men" | "unisex" | string | null;
   isDeleted: boolean;
   isNew?: boolean;
   updatedAt: Date;
@@ -81,6 +82,7 @@ export interface CreateProductData {
   coupon?: string | null;
   couponDescription?: string | null;
   couponExpirationDate?: string | null;
+  gender?: "women" | "men" | "unisex" | null;
 }
 
 // 定义更新商品的数据接口
@@ -107,6 +109,7 @@ export interface UpdateProductData {
   coupon?: string | null;
   couponDescription?: string | null;
   couponExpirationDate?: string | null;
+  gender?: "women" | "men" | "unisex" | null;
 }
 
 // 定义分页响应接口
@@ -270,6 +273,7 @@ class ProductService {
         sizes,
         tags,
         images,
+        gender,
         ...restOfData
       } = data;
 
@@ -283,6 +287,7 @@ class ProductService {
         images: images || [],
         // videos: videos || [], // 如果 CreateProductData 中有 videos
         tags: tags || [],
+        gender: gender,
         ...(originalPrice !== undefined &&
           originalPrice !== null && {
             originalPrice: new Decimal(originalPrice.toString()),
@@ -333,6 +338,7 @@ class ProductService {
       originalPrice,
       discount,
       couponExpirationDate,
+      gender,
       ...restOfData
     } = data;
 
@@ -341,6 +347,7 @@ class ProductService {
       ...(price !== undefined && { price: new Decimal(price.toString()) }),
       ...(brandId && { brand: { connect: { id: brandId } } }),
       ...(categoryId && { category: { connect: { id: categoryId } } }),
+      ...(gender !== undefined && { gender: gender }),
       ...(originalPrice !== undefined &&
         originalPrice !== null && {
           originalPrice: new Decimal(originalPrice.toString()),
@@ -372,6 +379,7 @@ class ProductService {
         typeof updatedProduct.price === "object"
           ? parseFloat(updatedProduct.price.toString())
           : updatedProduct.price,
+      gender: updatedProduct.gender as Product["gender"],
     };
   }
 

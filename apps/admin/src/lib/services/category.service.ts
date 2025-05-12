@@ -43,6 +43,7 @@ export interface CreateCategoryData {
   parentId?: string;
   image?: string;
   isActive?: boolean;
+  showInNavbar?: boolean;
 }
 
 // 定义更新分类的数据接口
@@ -375,28 +376,42 @@ class CategoryService {
   // 获取分类树结构
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
     const categories = await this.prisma.category.findMany({
-      where: { isActive: true }, // 通常导航栏只显示激活的分类
+      where: { isActive: true }, // 首先只获取所有激活的分类，具体的显示逻辑在 buildTree 中细化
       orderBy: [{ level: "asc" }, { name: "asc" }],
-      // select 语句可以确保只选择需要的字段，包括新的 showInNavbar
-      // 如果不写 select，默认会返回所有字段，包括 showInNavbar
     });
 
     const buildTree = (
-      items: Category[], // items 现在会包含 showInNavbar
+      items: Category[],
       parentId: string | null = null,
       level: number = 1,
     ): CategoryTreeNode[] => {
       return items
-        .filter(
-          (item) =>
-            item.parentId === parentId && item.level === level && item.isActive,
-        )
+        .filter((item) => {
+          // 对 L1 层级的特殊处理：只要求 isActive
+          if (level === 1) {
+            return (
+              item.parentId === parentId &&
+              item.level === level &&
+              item.isActive
+            );
+          }
+
+          // 对 L2 及更深层级：要求 isActive 和 showInNavbar
+          return (
+            item.parentId === parentId &&
+            item.level === level &&
+            item.isActive &&
+            item.showInNavbar === true
+          );
+        })
         .map((item) => ({
           ...item,
-          children: buildTree(items, item.id, level + 1),
+          // 递归构建子树时，子节点遵循其自身的 showInNavbar 和 isActive 状态 (由下一层 buildTree 过滤)
+          children: buildTree(categories, item.id, level + 1),
         }));
     };
 
+    // 初始调用以构建整个树，从L1开始
     return buildTree(categories);
   }
 
@@ -428,6 +443,12 @@ class CategoryService {
       ...data,
       isActive: data.isActive ?? true,
       parentId: data.level === 1 ? null : data.parentId, // 一级分类的parentId必须为null
+      showInNavbar:
+        data.showInNavbar === undefined
+          ? data.level === 2
+            ? false
+            : undefined
+          : data.showInNavbar, // 根据层级和传入值设置
     };
 
     return this.prisma.category.create({

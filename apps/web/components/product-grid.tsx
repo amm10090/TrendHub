@@ -9,7 +9,6 @@ import { useEffect, useState } from 'react';
 import * as React from 'react';
 import Slider from 'react-slick';
 
-import { getProductsByIds } from '@/services/product.service';
 import type {
   Product as ProductTypeFromAppTypes,
   ProductDetail as ProductModalDetailType,
@@ -19,33 +18,6 @@ import { useProductModal } from '../contexts/product-modal-context';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-
-interface ProductGridConfigurableData {
-  title: string;
-  seeAllText?: string;
-  seeAllLink?: string;
-  dataSourceType?: 'MANUAL_SELECTION' | 'DYNAMIC_QUERY';
-  maxDisplayItems?: number;
-}
-
-interface ProductReferenceItemData {
-  productId: string;
-}
-
-interface ContentBlockItem {
-  id: string;
-  data: ProductReferenceItemData;
-  order: number;
-  name?: string;
-}
-
-interface ConfiguredProductGridContentBlock {
-  id: string;
-  identifier: string;
-  type: string;
-  data: ProductGridConfigurableData;
-  items: ContentBlockItem[];
-}
 
 interface SlickArrowProps {
   onClick?: () => void;
@@ -102,74 +74,41 @@ const SlickPrevArrow: React.FC<SlickArrowProps> = (props) => {
   );
 };
 
-export function ProductGrid() {
+interface ProductGridProps {
+  gender?: 'women' | 'men';
+}
+
+export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
   const [mounted, setMounted] = useState(false);
   const t = useTranslations();
   const { openProductModal } = useProductModal();
-  const [gridConfig, setGridConfig] = useState<ConfiguredProductGridContentBlock | null>(null);
   const [productsToDisplay, setProductsToDisplay] = useState<ProductTypeFromAppTypes[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    const fetchProductGridData = async () => {
+    const fetchProducts = async () => {
       setIsLoading(true);
       setError(null);
+      let apiUrl = '/api/public/products?limit=12';
+
+      if (gender) {
+        apiUrl += `&gender=${gender}`;
+      } else {
+        // 默认使用women分类
+        apiUrl += `&gender=women`;
+      }
+
       try {
-        const responseBlock = await fetch(
-          '/api/public/content-blocks?type=PRODUCT_GRID_CONFIGURABLE&single=true'
-        );
+        const response = await fetch(apiUrl);
 
-        if (!responseBlock.ok) {
-          if (responseBlock.status === 404) {
-            throw new Error(
-              t('productGrid.errors.configTypeNotFound', { type: 'PRODUCT_GRID_CONFIGURABLE' })
-            );
-          }
-          throw new Error(
-            t('productGrid.errors.fetchConfigError', { status: responseBlock.statusText })
-          );
+        if (!response.ok) {
+          throw new Error(t('productGrid.errors.fetchProductsError'));
         }
-        const blockConfig = (await responseBlock.json()) as ConfiguredProductGridContentBlock;
+        const result = await response.json();
 
-        if (blockConfig && blockConfig.type !== 'PRODUCT_GRID_CONFIGURABLE') {
-          throw new Error(t('productGrid.errors.wrongConfigType', { type: blockConfig.type }));
-        }
-        setGridConfig(blockConfig);
-
-        if (
-          blockConfig &&
-          blockConfig.data?.dataSourceType === 'MANUAL_SELECTION' &&
-          blockConfig.items &&
-          blockConfig.items.length > 0
-        ) {
-          const productIds = blockConfig.items
-            .sort((a, b) => a.order - b.order)
-            .map((item) => item.data.productId);
-
-          if (productIds.length > 0) {
-            const fetchedProducts = await getProductsByIds(
-              productIds,
-              blockConfig.data?.maxDisplayItems
-            );
-
-            setProductsToDisplay(fetchedProducts);
-          } else {
-            setProductsToDisplay([]);
-          }
-        } else if (blockConfig && blockConfig.data?.dataSourceType === 'DYNAMIC_QUERY') {
-          setProductsToDisplay([]);
-        } else {
-          setProductsToDisplay([]);
-          if (
-            blockConfig &&
-            (!blockConfig.items || blockConfig.items.length === 0) &&
-            blockConfig.data?.dataSourceType === 'MANUAL_SELECTION'
-          ) {
-            setError(t('productGrid.errors.noItemsConfigured'));
-          }
-        }
+        setProductsToDisplay(result.data || []);
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : t('productGrid.errors.unknown');
 
@@ -180,8 +119,8 @@ export function ProductGrid() {
       }
     };
 
-    fetchProductGridData();
-  }, [t]);
+    fetchProducts();
+  }, [t, gender]);
 
   const handleProductClick = (product: ProductTypeFromAppTypes) => {
     if (!mounted) return;
@@ -286,9 +225,11 @@ export function ProductGrid() {
     ],
   };
 
-  const displayTitle = gridConfig?.data?.title || t('productGrid.defaultTitle');
-  const displaySeeAllText = gridConfig?.data?.seeAllText || t('productGrid.seeAllDefaultText');
-  const displaySeeAllLink = gridConfig?.data?.seeAllLink || '/product/list?tag=new';
+  const displayTitle = gender
+    ? t(`productGrid.title_${gender}`, { defaultValue: t('productGrid.defaultTitle') })
+    : t('productGrid.defaultTitle');
+  const displaySeeAllText = t('productGrid.seeAllDefaultText');
+  const displaySeeAllLink = gender ? `/product/list?gender=${gender}` : '/product/list?tag=new';
 
   if (!mounted || (isLoading && !productsToDisplay.length)) {
     return (
@@ -331,10 +272,6 @@ export function ProductGrid() {
         </div>
       </section>
     );
-  }
-
-  if (productsToDisplay.length === 0) {
-    return null;
   }
 
   return (
@@ -434,7 +371,7 @@ export function ProductGrid() {
               </Slider>
             )}
           </div>
-          {gridConfig?.data?.seeAllLink && productsToDisplay.length > 0 && (
+          {productsToDisplay.length > 0 && (
             <div className="flex justify-center">
               <Button
                 as={Link}
@@ -450,4 +387,4 @@ export function ProductGrid() {
       </div>
     </section>
   );
-}
+};

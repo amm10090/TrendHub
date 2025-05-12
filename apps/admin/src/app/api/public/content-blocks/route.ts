@@ -10,8 +10,26 @@ export async function GET(request: NextRequest) {
   const identifier = searchParams.get("identifier");
   const typeParam = searchParams.get("type");
   const singleParam = searchParams.get("single");
+  const categorySlug = searchParams.get("categorySlug"); // 新增: 一级分类的slug参数
 
   try {
+    // 如果提供了 categorySlug，先查找对应的分类
+    let targetCategoryId: string | undefined;
+    if (categorySlug) {
+      const category = await db.category.findFirst({
+        where: {
+          slug: categorySlug,
+          level: 1,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+
+      if (category) {
+        targetCategoryId = category.id;
+      }
+    }
+
     if (identifier) {
       // 按 identifier 查询单个 ContentBlock
       const contentBlock = await db.contentBlock.findFirst({
@@ -43,6 +61,11 @@ export async function GET(request: NextRequest) {
         type: typeParam as ContentBlockType,
         isActive: true,
       };
+
+      // 如果有一级分类ID，添加到查询条件
+      if (targetCategoryId) {
+        baseWhereCondition.targetPrimaryCategoryId = targetCategoryId;
+      }
 
       const includeItemsArgs = {
         items: {

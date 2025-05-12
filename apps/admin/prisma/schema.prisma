@@ -1,178 +1,248 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-// 数据库模式定义文件 - 定义了TrendHub后台系统的数据模型和数据库连接配置
-// 本文件定义了网站设置功能所需的数据结构，用于存储和管理可配置的网站参数
-
-// Prisma配置部分 - 指定使用的客户端生成器
-// 这将生成TypeScript类型安全的数据库客户端
 generator client {
   provider = "prisma-client-js"
 }
 
-// 数据库连接配置 - 指定使用PostgreSQL数据库
-// 连接URL从环境变量中读取，确保安全性和环境隔离
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// SiteSetting模型 - 用于存储网站配置的键值对
-// 采用分类存储方式，便于管理不同类型的设置（如general、seo、appearance等）
 model SiteSetting {
-  id        String   @id @default(cuid()) // 唯一标识符，使用CUID生成
-  key       String   @unique              // 设置键名，如"siteName"，确保唯一性
-  value     String                        // 设置值，存储为字符串（可以是序列化的JSON）
-  category  String                        // 设置类别，如"general"、"seo"等，用于分组显示
-  updatedAt DateTime @updatedAt           // 更新时间，由Prisma自动维护
-  createdAt DateTime @default(now())      // 创建时间，默认为记录创建时的时间
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  category  String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 
-  // 在category字段上创建索引，优化按类别查询性能
-  // 这对于按类别获取设置（如获取所有SEO设置）很重要
   @@index([category])
 }
 
-// Category模型 - 用于存储商品分类信息
 model Category {
-  id          String     @id @default(cuid())  // 唯一标识符
-  name        String                           // 分类名称
-  slug        String     @unique               // URL友好的唯一标识符
-  description String?                          // 分类描述（可选）
-  level       Int                              // 分类层级 (1=一级分类，2=二级分类，3=三级分类)
-  parentId    String?                          // 父级分类ID（可选，用于构建分类层级）
-  parent      Category?  @relation("SubCategories", fields: [parentId], references: [id])
-  children    Category[] @relation("SubCategories")
-  image       String?                          // 分类图片URL（可选）
-  isActive    Boolean    @default(true)        // 分类是否激活
-  showInNavbar Boolean   @default(false)       // 新增：控制是否在导航栏显示
-  products    Product[]                        // 与该分类关联的商品
-  createdAt   DateTime   @default(now())       // 创建时间
-  updatedAt   DateTime   @updatedAt            // 更新时间
+  id                    String         @id @default(cuid())
+  name                  String
+  slug                  String         @unique
+  description           String?
+  level                 Int
+  parentId              String?
+  image                 String?
+  isActive              Boolean        @default(true)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  showInNavbar          Boolean        @default(false)
+  parent                Category?      @relation("SubCategories", fields: [parentId], references: [id])
+  children              Category[]     @relation("SubCategories")
+  targetedContentBlocks ContentBlock[] @relation("ContentBlockTargetCategory")
+  products              Product[]
 
   @@index([parentId])
   @@index([level])
   @@index([isActive])
-  @@index([showInNavbar]) // 新增：为 showInNavbar 添加索引
+  @@index([showInNavbar])
 }
 
-// Brand模型 - 用于存储品牌信息
 model Brand {
-  id          String    @id @default(cuid())  // 唯一标识符
-  name        String    @unique               // 品牌名称
-  slug        String    @unique               // URL友好的唯一标识符
-  description String?                         // 品牌描述（可选）
-  logo        String?                         // 品牌LOGO URL（可选）
-  website     String?                         // 品牌官网URL（可选）
-  isActive    Boolean   @default(true)        // 品牌是否激活
-  popularity  Boolean   @default(false)       // 是否热门品牌
-  products    Product[]                       // 与该品牌关联的商品
-  createdAt   DateTime  @default(now())       // 创建时间
-  updatedAt   DateTime  @updatedAt            // 更新时间
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  logo        String?
+  website     String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  popularity  Boolean   @default(false)
+  products    Product[]
 
   @@index([isActive])
   @@index([popularity])
 }
 
-// Product模型 - 更新以关联Category和Brand
 model Product {
-  id           String    @id @default(cuid())  // 唯一标识符，使用CUID生成
-  name         String                          // 商品名称
-  url          String?                         // 产品URL，来自爬虫
-  brandId      String                          // 关联的品牌ID
-  brand        Brand     @relation(fields: [brandId], references: [id])
-  categoryId   String                          // 关联的分类ID
-  category     Category  @relation(fields: [categoryId], references: [id])
-  price        Decimal                         // 商品价格 (对应 currentPrice.amount)
-  currency     String?                         // 商品货币 (对应 currentPrice.currency)
-  originalPrice        Decimal?  @db.Decimal(10, 2) // 添加原价字段 (对应 originalPrice.amount)
-  originalPriceCurrency String?                       // 原价货币 (对应 originalPrice.currency)
-  discount             Decimal?  @db.Decimal(10, 2) // 添加折扣字段
-  status       String                          // 商品状态（如"In Stock"、"Low Stock"等）
-  description  String?                         // 商品描述（可选）
-  images       String[]                        // 商品图片URL数组
-  videos       String[]  @default([])          // 商品视频URL数组
-  sku          String?               // 商品SKU，确保唯一性
-  inventory    Int       @default(0)           // 库存数量
-  source       String                          // 商品来源 (对应 ECommerceSite)
-  colors       String[]  @default([])          // 商品颜色数组
-  designerColorName String?                    // 新增：设计师颜色名称
-  sizes        String[]  @default([])          // 商品尺码数组
-  material     String?                         // 商品材质（可选）
-  materialDetails String[] @default([])       // 新增：材质详情列表
-  breadcrumbs  String[]  @default([])          // 面包屑导航
-  tags         String[]  @default([])          // 新增：产品标签
-  cautions     String?                         // 商品注意事项（可选）
-  promotionUrl String?                         // 商品推广链接（可选）
-  coupon               String?                      // 添加优惠券代码字段
-  couponDescription    String?                      // 添加优惠券描述字段
-  couponExpirationDate DateTime?                    // 添加优惠券到期时间字段
-  gender               String?                      // 新增：性别字段 (例如: "women", "men", "unisex")
-  isDeleted    Boolean   @default(false)       // 软删除标记
-  isNew        Boolean   @default(false)       // 是否新品标记
-  scrapedAt    DateTime?                       // 数据抓取时间
-  metadata     Json?                           // 其他元数据
-  updatedAt    DateTime  @updatedAt            // 更新时间
-  createdAt    DateTime  @default(now())       // 创建时间
+  id                    String    @id @default(cuid())
+  name                  String
+  price                 Decimal
+  status                String
+  description           String?
+  images                String[]
+  sku                   String?
+  inventory             Int       @default(0)
+  isDeleted             Boolean   @default(false)
+  updatedAt             DateTime  @updatedAt
+  createdAt             DateTime  @default(now())
+  cautions              String?
+  colors                String[]  @default([])
+  material              String?
+  sizes                 String[]  @default([])
+  source                String
+  promotionUrl          String?
+  brandId               String
+  categoryId            String
+  videos                String[]  @default([])
+  discount              Decimal?  @db.Decimal(10, 2)
+  isNew                 Boolean   @default(false)
+  originalPrice         Decimal?  @db.Decimal(10, 2)
+  coupon                String?
+  couponDescription     String?
+  couponExpirationDate  DateTime?
+  breadcrumbs           String[]  @default([])
+  currency              String?
+  metadata              Json?
+  originalPriceCurrency String?
+  scrapedAt             DateTime?
+  url                   String?
+  designerColorName     String?
+  materialDetails       String[]  @default([])
+  tags                  String[]  @default([])
+  gender                String?
+  brand                 Brand     @relation(fields: [brandId], references: [id])
+  category              Category  @relation(fields: [categoryId], references: [id])
 
-  // 创建索引以优化查询性能
+  @@unique([url, source], name: "url_source")
   @@index([categoryId])
   @@index([brandId])
   @@index([status])
   @@index([isDeleted])
   @@index([sku])
   @@index([source])
-  @@unique([url, source], name: "url_source") // 添加复合唯一约束
 }
 
 model Page {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  url         String   @unique
-  content     String?  @db.Text
-  mainImage   String?                        // 页面主图字段（可选）
-  status      String   @default("Draft") // "Published" 或 "Draft"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  url         String    @unique
+  content     String?
+  status      String    @default("Draft")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   publishedAt DateTime?
+  mainImage   String?
 }
 
-// Enum for Code Snippet Type
-enum SnippetType {
-  JS  // JavaScript
-  CSS // Cascading Style Sheets
-}
-
-// Enum for Code Snippet Injection Location
-enum SnippetLocation {
-  HEAD       // Inside the <head> tag
-  BODY_START // Immediately after the opening <body> tag
-  BODY_END   // Immediately before the closing </body> tag
-}
-
-// CodeSnippet model - For storing custom code snippets
 model CodeSnippet {
-  id          String          @id @default(cuid())    // Unique identifier
-  name        String                                // Snippet name for identification
-  description String?                               // Optional description
-  code        String          @db.Text              // The actual code snippet
-  type        SnippetType                           // Type of snippet (JS or CSS)
-  location    SnippetLocation                       // Where to inject the snippet
-  paths       String[]        @default([])          // Array of URL path patterns where the snippet should be active
-  priority    Int             @default(10)          // Execution/injection priority (lower numbers run first)
-  isActive    Boolean         @default(false)       // Whether the snippet is active
-  createdAt   DateTime        @default(now())       // Creation timestamp
-  updatedAt   DateTime        @updatedAt            // Last update timestamp
+  id          String          @id @default(cuid())
+  name        String
+  code        String
+  isActive    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  description String?
+  paths       String[]        @default([])
+  priority    Int             @default(10)
+  type        SnippetType
+  location    SnippetLocation
 
-  // Add indices for potentially queried fields
   @@index([isActive])
   @@index([type])
   @@index([location])
 }
 
-// Enum for ContentBlockType
+model ContentBlock {
+  id                      String           @id @default(cuid())
+  identifier              String           @unique
+  isActive                Boolean          @default(true)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  data                    Json?
+  description             String?
+  name                    String
+  type                    ContentBlockType
+  targetPrimaryCategoryId String?
+  targetPrimaryCategory   Category?        @relation("ContentBlockTargetCategory", fields: [targetPrimaryCategoryId], references: [id])
+  items                   ContentItem[]
+
+  @@index([identifier])
+  @@index([type])
+  @@index([isActive])
+  @@index([targetPrimaryCategoryId])
+}
+
+model ContentItem {
+  id             String          @id @default(cuid())
+  parentId       String
+  itemIdentifier String?         @unique
+  type           ContentItemType
+  name           String
+  data           Json
+  order          Int             @default(0)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  slotKey        String?
+  parentBlock    ContentBlock    @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@index([parentId])
+  @@index([itemIdentifier])
+  @@index([type])
+  @@index([isActive])
+  @@index([slotKey])
+}
+
+model ScraperTaskDefinition {
+  id               String                 @id @default(cuid())
+  name             String                 @unique
+  description      String?
+  targetSite       String
+  startUrls        String[]
+  cronExpression   String?
+  isEnabled        Boolean                @default(true)
+  maxRequests      Int?
+  maxLoadClicks    Int?
+  maxProducts      Int?
+  defaultInventory Int                    @default(99)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  executions       ScraperTaskExecution[]
+
+  @@index([targetSite])
+  @@index([isEnabled])
+}
+
+model ScraperTaskExecution {
+  id               String                 @id @default(cuid())
+  taskDefinitionId String
+  status           ScraperTaskStatus      @default(IDLE)
+  triggerType      ScraperTaskTriggerType
+  startedAt        DateTime?
+  completedAt      DateTime?
+  metrics          Json?
+  errorMessage     String?
+  errorStack       String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  taskDefinition   ScraperTaskDefinition  @relation(fields: [taskDefinitionId], references: [id], onDelete: Cascade)
+  logs             ScraperTaskLog[]
+
+  @@index([taskDefinitionId])
+  @@index([status])
+  @@index([triggerType])
+}
+
+model ScraperTaskLog {
+  id          String               @id @default(cuid())
+  executionId String
+  level       ScraperLogLevel
+  message     String
+  timestamp   DateTime             @default(now())
+  context     Json?
+  execution   ScraperTaskExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@index([executionId])
+  @@index([level])
+  @@index([timestamp])
+}
+
+enum SnippetType {
+  JS
+  CSS
+}
+
+enum SnippetLocation {
+  HEAD
+  BODY_START
+  BODY_END
+}
+
 enum ContentBlockType {
   BANNER
   INTRODUCTION_SECTION
@@ -181,7 +251,6 @@ enum ContentBlockType {
   PRODUCT_GRID_CONFIGURABLE
 }
 
-// Enum for ContentItemType
 enum ContentItemType {
   TRENDING_CARD_LARGE
   TRENDING_CARD_NORMAL
@@ -192,127 +261,24 @@ enum ContentItemType {
   PRODUCT_REFERENCE
 }
 
-// ContentBlock model - For managing diverse content sections
-model ContentBlock {
-  id          String    @id @default(cuid())
-  identifier  String    @unique // e.g., "homepage-banner", "homepage-trending-section"
-  type        ContentBlockType
-  name        String    // Name for admin identification
-  description String?   // Optional description
-  data        Json?     // Stores type-specific data, or metadata for parent blocks
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  items       ContentItem[] // Related ContentItems, mainly for TRENDING_SECTION_CONTAINER etc.
-
-  @@index([identifier])
-  @@index([type])
-  @@index([isActive])
-}
-
-// ContentItem model - For sub-elements of complex ContentBlocks
-model ContentItem {
-  id             String    @id @default(cuid())
-  parentId       String    // Link to the parent ContentBlock
-  parentBlock    ContentBlock @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  itemIdentifier String?   @unique // Optional unique key if item needs direct fetching
-  slotKey        String?   // New field to identify the slot this item belongs to in a layout
-  type           ContentItemType
-  name           String    // Name for admin identification
-  data           Json      // Type-specific data (title, imageUrl, href, text, etc.)
-  order          Int       @default(0) // Sort order within the parent
-  isActive       Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  @@index([parentId])
-  @@index([itemIdentifier])
-  @@index([type])
-  @@index([isActive])
-  @@index([slotKey])
-}
-
-// Enum for Scraper Task Status
 enum ScraperTaskStatus {
-  IDLE      // 任务已定义，等待调度或手动触发
-  QUEUED    // 任务已进入执行队列
-  RUNNING   // 任务正在执行
-  COMPLETED // 任务成功完成
-  FAILED    // 任务执行失败
-  CANCELLED // 任务被取消
+  IDLE
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
 }
 
-// Enum for Scraper Task Trigger Type
 enum ScraperTaskTriggerType {
-  MANUAL    // 手动触发
-  SCHEDULED // 定时调度触发 (node-cron, Vercel cron, etc.)
-  API       // 通过外部API调用触发
+  MANUAL
+  SCHEDULED
+  API
 }
 
-// Model for Scraper Task Definition
-model ScraperTaskDefinition {
-  id                 String    @id @default(cuid())
-  name               String    @unique // 任务名称，方便识别
-  description        String?   // 任务描述
-  targetSite         String    // ECommerceSite 枚举的字符串表示，例如 "Mytheresa"
-  startUrls          String[]  // 起始 URL 列表
-  cronExpression     String?   // Cron 表达式，例如 "0 0 * * *" (可选，如果主要通过 API 触发)
-  isEnabled          Boolean   @default(true) // 任务是否启用调度
-  maxRequests        Int?      // 允许的最大请求数 (覆盖爬虫默认)
-  maxLoadClicks      Int?      // 允许的最大"加载更多"点击次数 (覆盖爬虫默认)
-  maxProducts        Int?      // 允许抓取的最大产品数 (覆盖爬虫默认)
-  defaultInventory   Int       @default(99) // 默认库存
-
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  executions         ScraperTaskExecution[] // 关联的任务执行记录
-
-  @@index([targetSite])
-  @@index([isEnabled])
-}
-
-// Model for Scraper Task Execution
-model ScraperTaskExecution {
-  id                 String    @id @default(cuid())
-  taskDefinitionId   String
-  taskDefinition     ScraperTaskDefinition @relation(fields: [taskDefinitionId], references: [id], onDelete: Cascade)
-  status             ScraperTaskStatus @default(IDLE) // 任务执行状态
-  triggerType        ScraperTaskTriggerType // 触发类型
-  startedAt          DateTime? // 任务开始执行时间
-  completedAt        DateTime? // 任务完成或失败时间
-  metrics            Json?     // 存储执行指标，例如 { "productsScraped": 100, "requestsMade": 200 }
-  errorMessage       String?   @db.Text // 如果失败，存储错误信息
-  errorStack         String?   @db.Text // 如果失败，存储错误堆栈
-
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  logs               ScraperTaskLog[]    // 关联的日志条目
-
-  @@index([taskDefinitionId])
-  @@index([status])
-  @@index([triggerType])
-}
-
-// Enum for Log Level
 enum ScraperLogLevel {
   INFO
   WARN
   ERROR
-  DEBUG // DEBUG 日志主要保留在文件系统，但模型中包含以备将来扩展
-}
-
-// Model for Scraper Task Logs (for INFO, WARN, ERROR levels)
-model ScraperTaskLog {
-  id            String      @id @default(cuid())
-  executionId   String
-  execution     ScraperTaskExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
-  level         ScraperLogLevel
-  message       String      @db.Text
-  timestamp     DateTime    @default(now())
-  context       Json?       // 可选的上下文信息，如哪个URL、哪个阶段
-
-  @@index([executionId])
-  @@index([level])
-  @@index([timestamp])
+  DEBUG
 }

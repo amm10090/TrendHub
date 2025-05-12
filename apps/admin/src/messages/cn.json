@@ -106,7 +106,7 @@
     "statusUpdateSuccessTitle": "状态更新成功",
     "showInNavbarLabel": "在导航栏显示",
     "showInNavbarTooltip": "控制此二级分类是否在网站主导航栏中展示",
-    "showInNavbarUpdateSuccessDesc": "分类 “{name}” 的导航栏显示状态已更新为 “{status}”。",
+    "showInNavbarUpdateSuccessDesc": "分类 \"{name}\" 的导航栏显示状态已更新为 \"{status}\"。",
     "validation": {
       "nameRequiredDesc": "分类名称不能为空。",
       "nameRequiredTitle": "名称不能为空",
@@ -137,7 +137,7 @@
     },
     "createSnippet": "创建新代码片段",
     "createSnippetDescription": "添加一个新的自定义代码片段到您的网站。",
-    "deleteConfirmationMessage": "您确定要删除代码片段 \\\"{name}\\\" 吗？此操作无法撤销，代码将从您的网站移除。",
+    "deleteConfirmationMessage": "您确定要删除代码片段 \"{name}\" 吗？此操作无法撤销，代码将从您的网站移除。",
     "deleteConfirmationTitle": "确认删除代码片段？",
     "description": "添加、编辑和管理注入到网站前端的自定义 JS 或 CSS 代码。",
     "editSnippet": "编辑代码片段",
@@ -240,6 +240,7 @@
       "minPrice": "最低价格",
       "reset": "重置"
     },
+    "notApplicable": "不适用",
     "price": "价格",
     "processing": "处理中...",
     "search": "搜索",
@@ -517,11 +518,11 @@
         "videosLabel": "视频（可选）"
       },
       "organization": {
-        "brand": "产品.编辑.组织.品牌",
-        "brandEmpty": "产品.编辑.组织.品牌为空",
-        "brandError": "产品.编辑.组织.品牌错误",
-        "brandPlaceholder": "产品.编辑.组织.品牌占位符",
-        "category": "选择商品分类",
+        "brand": "商品品牌",
+        "brandEmpty": "暂无品牌可选",
+        "brandError": "加载品牌失败",
+        "brandPlaceholder": "请选择商品品牌",
+        "category": "商品分类",
         "categoryDescription": "请选择此商品所属的分类，将影响商品在前台的展示位置",
         "categoryLevel1": "一级分类",
         "categoryLevel1Placeholder": "选择一级分类",
@@ -529,10 +530,12 @@
         "categoryLevel2Placeholder": "选择二级分类",
         "categoryLevel3": "三级分类",
         "categoryLevel3Placeholder": "选择三级分类",
-        "tags": "产品标签",
-        "tagsPlaceholder": "标签占位符",
-        "title": "产品分类",
-        "currentFullPathLabel": "当前精确分类路径"
+        "tags": "商品标签",
+        "tagsPlaceholder": "输入标签并按回车添加",
+        "title": "商品组织",
+        "currentFullPathLabel": "当前精确分类路径",
+        "genderLabel": "性别",
+        "genderPlaceholder": "选择性别"
       },
       "priceAndInventory": {
         "barcode": "条形码",
@@ -987,7 +990,8 @@
       "type": "类型",
       "lastUpdated": "最后更新",
       "status": "状态",
-      "actions": "操作"
+      "actions": "操作",
+      "targetPrimaryCategory": "目标一级分类"
     },
     "table": {
       "emptyContent": "暂无内容块。",
@@ -1035,7 +1039,15 @@
       },
       "newItemForSlot": "槽位 {slotKey} 的新项目",
       "itemName": "内容项名称",
-      "noSpecificFieldsForItemType": "此内容项类型没有特定的数据字段。"
+      "noSpecificFieldsForItemType": "此内容项类型没有特定的数据字段。",
+      "genderPrefixSuggestionLabel": "性别前缀建议",
+      "genderPrefixNone": "无 (通用)",
+      "genderPrefixWomen": "女性 (women-)",
+      "genderPrefixMen": "男性 (men-)",
+      "applyPrefixButton": "应用前缀到标识符",
+      "targetPrimaryCategoryLabel": "目标一级分类 (可选)",
+      "selectOptionalPlaceholder": "选择{fieldName} (可选)",
+      "selectOptionalNone": "无 (不选择{fieldName})"
     },
     "formFields": {
       "banner": {
@@ -1170,6 +1182,9 @@
       "createError": "创建内容块失败",
       "updateError": "更新内容块失败",
       "deleteError": "删除内容块失败"
+    },
+    "errors": {
+      "fetchPrimaryCategoriesFailed": "获取一级分类列表失败"
     },
     "productSelector": {
       "title": "选择产品",

@@ -42,7 +42,11 @@ const getIcon = (key: string): React.ReactNode => {
   return iconMap[key] || iconMap['default'];
 };
 
-export const IntroductionSection: React.FC = () => {
+interface IntroductionSectionProps {
+  gender?: 'women' | 'men';
+}
+
+export const IntroductionSection: React.FC<IntroductionSectionProps> = ({ gender }) => {
   const t = useTranslations('introduction');
   const [isExpanded, setIsExpanded] = useState(false);
   const [contentData, setContentData] = useState<IntroductionContentBlock | null>(null);
@@ -54,18 +58,28 @@ export const IntroductionSection: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/public/content-blocks?type=INTRODUCTION_SECTION');
+        let apiUrl = '/api/public/content-blocks?type=INTRODUCTION_SECTION&single=true';
+
+        if (gender) {
+          apiUrl = `/api/public/content-blocks?categorySlug=${gender}&type=INTRODUCTION_SECTION&single=true`;
+        } else {
+          // 默认使用women分类
+          apiUrl = `/api/public/content-blocks?categorySlug=women&type=INTRODUCTION_SECTION&single=true`;
+        }
+
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
-          throw new Error(`API 请求失败: ${response.statusText}`);
-        }
-        const blocks = await response.json();
-        const block = Array.isArray(blocks) && blocks.length > 0 ? blocks[0] : null;
-
-        if (block && block.data && Array.isArray(block.items)) {
-          setContentData(block as IntroductionContentBlock);
+          if (response.status === 404) {
+            setContentData(null); // 未找到特定内容块，不视为错误，允许前端优雅处理
+            // setError(null); // 确保之前的错误被清除
+          } else {
+            throw new Error(`API 请求失败: ${response.statusText}`);
+          }
         } else {
-          setContentData(null);
+          const data = await response.json();
+
+          setContentData(data as IntroductionContentBlock);
         }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : '加载数据时发生未知错误';
@@ -77,7 +91,7 @@ export const IntroductionSection: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [gender]);
 
   // 辅助函数，确保 features 总是数组
   const getFeaturesArray = (featureString: unknown, fallbackKey: string): string[] => {

@@ -146,6 +146,7 @@ const CreateProductSchema = z.object({
     .string()
     .optional()
     .transform((val) => (val ? new Date(val) : undefined)),
+  gender: z.enum(["women", "men", "unisex"]).nullable().optional(),
 });
 
 // 创建商品
@@ -194,6 +195,7 @@ export async function POST(request: NextRequest) {
       coupon: validatedData.coupon,
       couponDescription: validatedData.couponDescription,
       couponExpirationDate: validatedData.couponExpirationDate,
+      gender: validatedData.gender,
     };
 
     const newProduct = await db.product.create({

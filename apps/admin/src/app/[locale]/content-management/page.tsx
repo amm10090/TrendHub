@@ -51,6 +51,12 @@ export interface ContentBlockAdminUI {
   isActive: boolean;
   updatedAt: string;
   items?: object[]; // 使用 object[] 替代 any[]
+  targetPrimaryCategory?: {
+    // 新增
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
 }
 
 interface SortDescriptor {
@@ -152,6 +158,11 @@ export default function ContentManagementPage() {
         name: t("fields.identifier"),
         uid: "identifier" as keyof ContentBlockAdminUI,
         sortable: true,
+      },
+      {
+        name: t("fields.targetPrimaryCategory"),
+        uid: "targetPrimaryCategory" as keyof ContentBlockAdminUI,
+        sortable: false,
       },
       {
         name: t("fields.type"),
@@ -295,6 +306,8 @@ export default function ContentManagementPage() {
               )}
             </Button>
           );
+        case "targetPrimaryCategory":
+          return block.targetPrimaryCategory?.name || commonT("notApplicable");
         case "updatedAt":
           return new Date(block.updatedAt).toLocaleString();
         case "type":

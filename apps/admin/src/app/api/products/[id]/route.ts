@@ -134,6 +134,7 @@ const UpdateProductSchema = z.object({
     .datetime({ offset: true })
     .optional()
     .nullable(),
+  gender: z.enum(["women", "men", "unisex"]).nullable().optional(),
   // isDeleted is handled separately by the DELETE endpoint
 });
 
@@ -194,6 +195,8 @@ export async function PATCH(
     if (validatedData.status) dataToUpdate.status = validatedData.status;
     if (validatedData.description !== undefined)
       dataToUpdate.description = validatedData.description;
+    if (validatedData.gender !== undefined)
+      dataToUpdate.gender = validatedData.gender;
     if (validatedData.images) dataToUpdate.images = validatedData.images;
     if (validatedData.sku) dataToUpdate.sku = validatedData.sku;
     if (validatedData.inventory !== undefined)

@@ -85,6 +85,7 @@ export default function NewProductPage() {
   const [colorInput, setColorInput] = useState("");
   const [sizes, setSizes] = useState<string[]>([]);
   const [sizeInput, setSizeInput] = useState("");
+  const [gender, setGender] = useState<"women" | "men" | "unisex" | null>(null);
 
   const handleTagInput = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -211,6 +212,7 @@ export default function NewProductPage() {
         material,
         cautions,
         promotionUrl,
+        gender,
       });
 
       toast.success(t("toast.createSuccess"));
@@ -835,6 +837,44 @@ export default function NewProductPage() {
                   onChange={handleTagInputChange}
                   onKeyDown={handleTagInput}
                 />
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="product-gender">
+                  {t("organization.genderLabel")}
+                </Label>
+                <Select
+                  value={gender || "__NONE__"}
+                  onValueChange={(value) =>
+                    setGender(
+                      value === "__NONE__"
+                        ? null
+                        : (value as "women" | "men" | "unisex" | null),
+                    )
+                  }
+                >
+                  <SelectTrigger id="product-gender" className="w-full mt-1">
+                    <SelectValue
+                      placeholder={t("organization.genderPlaceholder")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="__NONE__">
+                        {t("genderOptions.none")}
+                      </SelectItem>
+                      <SelectItem value="women">
+                        {t("genderOptions.women")}
+                      </SelectItem>
+                      <SelectItem value="men">
+                        {t("genderOptions.men")}
+                      </SelectItem>
+                      <SelectItem value="unisex">
+                        {t("genderOptions.unisex")}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>

@@ -84,6 +84,7 @@ export function EditProductPage({ id }: { id: string }) {
   const [colorInput, setColorInput] = useState("");
   const [sizes, setSizes] = useState<string[]>([]);
   const [sizeInput, setSizeInput] = useState("");
+  const [gender, setGender] = useState<"women" | "men" | "unisex" | null>(null);
   const [couponExpirationDate, setCouponExpirationDate] = useState<
     Date | undefined
   >();
@@ -140,6 +141,9 @@ export function EditProductPage({ id }: { id: string }) {
         setColors(product.colors || []);
         setSizes(product.sizes || []);
         setTags(product.tags || []);
+        setGender(
+          (product.gender as "women" | "men" | "unisex" | null) || null,
+        );
 
         setProductError(null);
       } catch (error) {
@@ -268,6 +272,7 @@ export function EditProductPage({ id }: { id: string }) {
           material,
           cautions,
           promotionUrl,
+          gender,
         },
       });
 
@@ -693,6 +698,47 @@ export function EditProductPage({ id }: { id: string }) {
                   onChange={handleTagInputChange}
                   onKeyDown={handleTagInput}
                 />
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="product-gender-edit">
+                  {t("organization.genderLabel")}
+                </Label>
+                <Select
+                  value={gender || "__NONE__"}
+                  onValueChange={(value) =>
+                    setGender(
+                      value === "__NONE__"
+                        ? null
+                        : (value as "women" | "men" | "unisex" | null),
+                    )
+                  }
+                >
+                  <SelectTrigger
+                    id="product-gender-edit"
+                    className="w-full mt-1"
+                  >
+                    <SelectValue
+                      placeholder={t("organization.genderPlaceholder")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="__NONE__">
+                        {t("genderOptions.none")}
+                      </SelectItem>
+                      <SelectItem value="women">
+                        {t("genderOptions.women")}
+                      </SelectItem>
+                      <SelectItem value="men">
+                        {t("genderOptions.men")}
+                      </SelectItem>
+                      <SelectItem value="unisex">
+                        {t("genderOptions.unisex")}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>

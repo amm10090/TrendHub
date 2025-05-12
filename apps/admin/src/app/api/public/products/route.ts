@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
   const order = (searchParams.get("order") || "desc") as "asc" | "desc";
   const searchTerm = searchParams.get("q") || undefined; // 搜索关键词
   const idsQueryParam = searchParams.get("ids") || undefined; // 新增：获取ids参数
+  const gender = searchParams.get("gender") || undefined; // 新增：获取 gender 参数
 
   // 验证排序字段
   const sortBy = allowedSortFields.includes(
@@ -56,6 +57,12 @@ export async function GET(request: NextRequest) {
     // 只有在没有ids参数时，才应用其他筛选
     if (categoryId) where.categoryId = categoryId;
     if (brandId) where.brandId = brandId;
+    if (
+      gender &&
+      (gender === "women" || gender === "men" || gender === "unisex")
+    ) {
+      where.gender = gender;
+    }
     if (sale) {
       where.AND = [
         ...(Array.isArray(where.AND)

@@ -13,10 +13,10 @@ function inferGenderFromUrl(url: string): string | null {
   const urlLower = url.toLowerCase();
 
   if (urlLower.includes("/women/") || urlLower.includes("/woman/"))
-    return "Women";
-  if (urlLower.includes("/men/") || urlLower.includes("/man/")) return "Men";
+    return "women";
+  if (urlLower.includes("/men/") || urlLower.includes("/man/")) return "men";
   if (urlLower.includes("/kids/") || urlLower.includes("/children/"))
-    return "Kids";
+    return null; // 根据用户要求，儿童类别不再映射为 unisex，而是返回 null
 
   return null;
 }
@@ -249,6 +249,11 @@ async function getOrCreateCategoryId(
     currentLevel++;
   }
 
+  // After creating/finding the deepest category based on breadcrumbs,
+  // we can try to infer gender from its top-level parent if not already determined.
+  // This part is more for a fallback if productData.gender and URL inference fail.
+  // However, the primary gender determination should happen before this function typically.
+  // For this example, we are returning the categoryId. Gender logic is separate.
   return currentParentId as string;
 }
 
@@ -358,36 +363,90 @@ export async function POST(
             productData.brand || "Unknown Brand",
           );
 
-          // 新增：处理面包屑，确保包含性别分类
+          // --- Gender Determination Logic --- START ---
+          let determinedGender: string | null = null;
+
+          // 1. Prioritize gender from scraper data if valid
+          // Ensure productData is treated as having an optional gender field from @repo/types
+          const currentProductData = productData as ScrapedProductType; // Cast to full Product type from @repo/types
+
+          if (
+            currentProductData.gender &&
+            typeof currentProductData.gender === "string"
+          ) {
+            const genderLower = currentProductData.gender.toLowerCase();
+
+            if (["women", "men", "unisex"].includes(genderLower)) {
+              determinedGender = genderLower;
+            }
+          }
+
+          // 2. Fallback to URL inference if not set by scraper
+          if (!determinedGender) {
+            determinedGender = inferGenderFromUrl(productData.url);
+          }
+          // --- Gender Determination Logic --- END ---
+
+          // Process breadcrumbs (this existing logic can remain,
+          // but gender from breadcrumbs is now a lower priority for direct gender field)
           let processedBreadcrumbs = [...(productData.breadcrumbs || [])];
-
-          // 获取品牌名，用于传递给 getOrCreateCategoryId
           const brandNameForCategoryFiltering = productData.brand;
-
-          // 定义已知的性别分类关键词
-          const genderCategories = [
-            "Women",
-            "Woman",
-            "Men",
-            "Man",
-            "Kids",
-            "Children",
+          const genderKeywords = [
+            "women",
+            "woman",
+            "men",
+            "man",
+            "kids",
+            "children",
           ];
 
-          // 检查面包屑是否已包含性别分类
-          const hasGenderCategory = processedBreadcrumbs.some((crumb) =>
-            genderCategories.some(
-              (gender) => crumb.toLowerCase() === gender.toLowerCase(),
+          if (
+            brandNameForCategoryFiltering &&
+            brandNameForCategoryFiltering.trim() !== ""
+          ) {
+            const lowerCaseBrandName = brandNameForCategoryFiltering
+              .trim()
+              .toLowerCase();
+
+            processedBreadcrumbs = processedBreadcrumbs.filter(
+              (crumb) => crumb.toLowerCase() !== lowerCaseBrandName,
+            );
+          }
+
+          const hasGenderInBreadcrumbs = processedBreadcrumbs.some((crumb) =>
+            genderKeywords.some((genderKey) =>
+              crumb.toLowerCase().includes(genderKey.toLowerCase()),
             ),
           );
 
-          // 如果面包屑不包含性别分类，尝试从URL推断
-          if (!hasGenderCategory) {
-            const inferredGender = inferGenderFromUrl(productData.url);
+          if (
+            !hasGenderInBreadcrumbs &&
+            determinedGender &&
+            (determinedGender === "women" || determinedGender === "men")
+          ) {
+            // If URL inference gave us a clear gender, prepend it to breadcrumbs if not already present
+            // This helps in category creation if breadcrumbs themselves lack gender info.
+            // Capitalize first letter for consistency in breadcrumbs, e.g., "Women"
+            const genderCrumb =
+              determinedGender.charAt(0).toUpperCase() +
+              determinedGender.slice(1);
 
-            if (inferredGender) {
-              // 将推断的性别添加为面包屑的第一个元素
-              processedBreadcrumbs = [inferredGender, ...processedBreadcrumbs];
+            processedBreadcrumbs = [genderCrumb, ...processedBreadcrumbs];
+          } else if (
+            !hasGenderInBreadcrumbs &&
+            inferGenderFromUrl(productData.url)
+          ) {
+            // Fallback if determinedGender wasn't set by scraper but URL implies it
+            const inferredGenderFromUrlForBreadcrumb = inferGenderFromUrl(
+              productData.url,
+            );
+
+            if (inferredGenderFromUrlForBreadcrumb) {
+              const genderCrumb =
+                inferredGenderFromUrlForBreadcrumb.charAt(0).toUpperCase() +
+                inferredGenderFromUrlForBreadcrumb.slice(1);
+
+              processedBreadcrumbs = [genderCrumb, ...processedBreadcrumbs];
             }
           }
 
@@ -396,7 +455,7 @@ export async function POST(
             brandNameForCategoryFiltering,
           );
 
-          const productPayload = {
+          const productPayload: Prisma.ProductCreateInput = {
             name: productData.name || "N/A",
             url: productData.url,
             source: productData.source,
@@ -423,7 +482,7 @@ export async function POST(
             sizes: productData.sizes || [],
             material: productData.material || null,
             materialDetails: productData.materialDetails || [],
-            breadcrumbs: productData.breadcrumbs || [],
+            breadcrumbs: productData.breadcrumbs || [], // Store original breadcrumbs
             tags: productData.tags || [],
             scrapedAt: productData.scrapedAt
               ? new Date(productData.scrapedAt)
@@ -439,6 +498,7 @@ export async function POST(
               productData.tags?.some(
                 (tag) => tag.toLowerCase() === "new arrival",
               ) || false,
+            gender: determinedGender, // Assign the determined gender
             brand: { connect: { id: brandId } },
             category: { connect: { id: categoryId } },
             promotionUrl: null,

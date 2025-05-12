@@ -51,6 +51,7 @@ interface CategoryForm {
   level: number;
   parentId: string;
   tempGenderId?: string;
+  showInNavbar?: boolean; // 添加 showInNavbar
 }
 
 export function CategoryTable() {
@@ -127,6 +128,7 @@ export function CategoryTable() {
     description: "",
     level: 1,
     parentId: "",
+    showInNavbar: false, // 初始化
   });
 
   // 处理分类点击，打开抽屉展示详细信息
@@ -474,7 +476,8 @@ export function CategoryTable() {
       }
 
       // 创建时只传递需要的字段
-      const { name, slug, description, level, parentId } = newCategory;
+      const { name, slug, description, level, parentId, showInNavbar } =
+        newCategory;
 
       const result = await createCategory({
         name,
@@ -482,6 +485,7 @@ export function CategoryTable() {
         description,
         level: Number(level),
         ...(level > 1 ? { parentId } : {}),
+        ...(level === 2 && showInNavbar !== undefined ? { showInNavbar } : {}), // 仅当是二级分类且有明确值时传递
       });
 
       if (result) {
@@ -503,6 +507,7 @@ export function CategoryTable() {
           description: "",
           level: 1,
           parentId: "",
+          showInNavbar: false, // 重置时也包含
         });
       }
     } catch (error) {
@@ -983,6 +988,39 @@ export function CategoryTable() {
                   // label 移除
                 />
               </div>
+
+              {/* 新增：仅在创建二级分类时显示 Show in Navbar 开关 */}
+              {newCategory.level === 2 && (
+                <div className="grid gap-2 mt-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="category-showInNavbar"
+                      checked={newCategory.showInNavbar || false}
+                      onCheckedChange={(checked) =>
+                        setNewCategory({
+                          ...newCategory,
+                          showInNavbar: checked,
+                        })
+                      }
+                    />
+                    <Label htmlFor="category-showInNavbar">
+                      {tCat("showInNavbarLabel")}
+                    </Label>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="max-w-xs">
+                            {tCat("showInNavbarTooltip")}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

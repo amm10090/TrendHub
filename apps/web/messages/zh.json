@@ -138,12 +138,26 @@
     "clear": "清除",
     "filters": {
       "title": "导航.过滤器.标题"
-    }
+    },
+    "errors": {
+      "fetchBrandsError": "获取热门品牌失败",
+      "unknownError": "发生未知错误",
+      "fetchNavError": "获取导航数据失败",
+      "unknownNavError": "处理导航数据时发生未知错误"
+    },
+    "loadingBrands": "加载热门品牌中...",
+    "noPopularBrands": "暂无热门品牌"
   },
   "banner": {
     "title": "Gucci新季系列",
     "description": "探索 Gucci 2024 春夏系列，感受意式奢华与现代时尚的完美融合",
     "cta": "立即探索"
+  },
+  "genderPage": {
+    "womenTitle": "女士时尚",
+    "menTitle": "男士潮流",
+    "genericTitle": "探索我们的系列",
+    "showingContentFor": "正在显示 {gender} 的内容"
   },
   "trending": {
     "title": "流行趋势",
@@ -198,6 +212,14 @@
       "balmain": "巴尔曼",
       "alessandra": "亚历山德拉·里奇",
       "jacquemus": "杰克穆斯"
+    },
+    "errors": {
+      "loadFailedTitle": "获取内容失败",
+      "loadFailedMessage": "请稍后重试或联系管理员。"
+    },
+    "noContent": "没有可显示的趋势内容。",
+    "card": {
+      "loadingTitle": "标题加载中..."
     }
   },
   "footer": {
@@ -278,6 +300,8 @@
   },
   "productGrid": {
     "defaultTitle": "精选商品",
+    "title_women": "女士精选",
+    "title_men": "男士精选",
     "seeAllDefaultText": "查看全部",
     "defaultDescription": "查看这款令人惊叹的产品。",
     "defaultSku": "暂无",

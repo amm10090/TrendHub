@@ -12,6 +12,7 @@ import {
   Control,
   FieldValues,
 } from "react-hook-form";
+import { toast } from "sonner"; // 新增：导入 toast
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,9 @@ import {
 import { TrendingSectionAdminPreview } from "./TrendingSectionAdminPreview";
 
 // --- Zod Schemas --- (应与 API 路由中的定义保持一致或从共享位置导入)
+// 定义新的特殊值常量
+const GENDER_PREFIX_NONE_VALUE = "__NONE__";
+
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 
 type Literal = z.infer<typeof literalSchema>;
@@ -253,6 +257,19 @@ export const BaseContentBlockFormObjectSchema = z.object({
   description: z.string().optional().nullable(),
   data: z.any().optional().nullable(),
   isActive: z.boolean().default(true),
+  targetPrimaryCategoryId: z
+    .string()
+    .cuid({ message: "无效的一级分类ID" })
+    .optional()
+    .nullable(),
+  targetPrimaryCategory: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      slug: z.string(),
+    })
+    .optional()
+    .nullable(),
   items: z.array(ContentItemFormSchema).optional(),
 });
 
@@ -328,9 +345,19 @@ export const ContentBlockFormSchema =
 
 export type ContentBlockFormValues = z.infer<typeof ContentBlockFormSchema>;
 
+const FORM_SELECT_NULL_VALUE = "__FORM_SELECT_NULL_VALUE__"; // Unique string to represent null selection
+
 // --- Component Props ---
 interface ContentBlockFormProps {
-  initialData?: ContentBlockFormValues | null; // 用于编辑模式
+  initialData?:
+    | (ContentBlockFormValues & {
+        targetPrimaryCategory?: {
+          id?: string;
+          name?: string;
+          slug?: string;
+        } | null;
+      })
+    | null;
   onSubmit: (data: ContentBlockFormValues) => Promise<void>;
   isLoading: boolean;
   isEditMode: boolean;
@@ -668,20 +695,60 @@ const FormField: React.FC<FormFieldProps> = ({
         render={({ field, fieldState: { error } }) => (
           <>
             {Component === Select ? (
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <SelectTrigger id={name}>
-                  <SelectValue
-                    placeholder={`${tForm("selectPlaceholderPrefix")} ${label}`}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {options?.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              (() => {
+                // field.value from react-hook-form can be string (ID) or null for some fields.
+                // Radix Select's value prop expects a string.
+                // If field.value is null, we map it to FORM_SELECT_NULL_VALUE for Radix Select's value,
+                // so that the "None" option (which has FORM_SELECT_NULL_VALUE as its value) is displayed as selected.
+                // If field.value is an actual ID string, Radix Select's value will be that ID string.
+                // If field.value is undefined or an empty string not matching FORM_SELECT_NULL_VALUE,
+                // Radix Select will show the placeholder (if its value doesn't match any item).
+                const valueForRadixSelect =
+                  field.value === null
+                    ? FORM_SELECT_NULL_VALUE
+                    : typeof field.value === "string" && field.value !== "" // Ensure it's a non-empty string or our null marker
+                      ? field.value
+                      : field.value === undefined
+                        ? ""
+                        : field.value; // Pass "" for undefined to show placeholder, or original if already ""
+
+                return (
+                  <Select
+                    onValueChange={(selectedValueFromRadix: string) => {
+                      if (selectedValueFromRadix === FORM_SELECT_NULL_VALUE) {
+                        field.onChange(null); // Update react-hook-form with null
+                      } else if (
+                        selectedValueFromRadix === "" &&
+                        field.value !== null
+                      ) {
+                        // This case might occur if a placeholder-like state is achieved
+                        // via an empty string value from Radix when no item is truly selected
+                        // but the field was not previously null.
+                        // Depending on desired behavior, might set to null or keep as is.
+                        // For now, assume Radix gives actual item values or FORM_SELECT_NULL_VALUE.
+                        // If it can give "", and "" means "clear", then map to null.
+                        field.onChange(null);
+                      } else {
+                        field.onChange(selectedValueFromRadix); // Update react-hook-form with the selected ID
+                      }
+                    }}
+                    value={valueForRadixSelect}
+                  >
+                    <SelectTrigger id={name}>
+                      <SelectValue
+                        placeholder={`${tForm("selectPlaceholderPrefix")} ${label}`}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options?.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                );
+              })()
             ) : Component === Switch ? (
               <Switch
                 id={name}
@@ -732,6 +799,43 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
   const [editingSlotKey, setEditingSlotKey] = useState<string | null>(null);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState<boolean>(false);
+  const [selectedGenderPrefixValue, setSelectedGenderPrefixValue] = useState<
+    typeof GENDER_PREFIX_NONE_VALUE | "women-" | "men-"
+  >(GENDER_PREFIX_NONE_VALUE);
+  const [primaryCategories, setPrimaryCategories] = useState<
+    { id: string; name: string }[]
+  >([]);
+
+  // 恢复获取一级分类的 useEffect
+  useEffect(() => {
+    const fetchPrimaryCategories = async () => {
+      try {
+        const response = await fetch(
+          "/api/categories?level=1&limit=999&isActive=true",
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch primary categories");
+        }
+        const result = await response.json(); // result 是 API 返回的整个对象
+        // API 返回的是 { items: Category[] } 结构，所以从 result.items 获取数组
+        const categories = Array.isArray(result.items) ? result.items : [];
+
+        if (Array.isArray(categories)) {
+          setPrimaryCategories(
+            categories.map((cat: { id: string; name: string }) => ({
+              id: cat.id,
+              name: cat.name,
+            })),
+          );
+        }
+      } catch {
+        toast.error(t("errors.fetchPrimaryCategoriesFailed"));
+      }
+    };
+
+    fetchPrimaryCategories();
+  }, [t]); // 添加 t 到依赖数组，因为 toast 中使用了它
 
   const form = useForm<ContentBlockFormValues>({
     resolver: zodResolver(ContentBlockFormSchema),
@@ -742,6 +846,7 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
       description: "",
       data: {},
       isActive: true,
+      targetPrimaryCategoryId: null,
       items: [],
     },
   });
@@ -758,6 +863,13 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
   useEffect(() => {
     if (initialData) {
       form.reset(initialData);
+      if (initialData.identifier?.startsWith("women-")) {
+        setSelectedGenderPrefixValue("women-");
+      } else if (initialData.identifier?.startsWith("men-")) {
+        setSelectedGenderPrefixValue("men-");
+      } else {
+        setSelectedGenderPrefixValue(GENDER_PREFIX_NONE_VALUE);
+      }
     } else {
       form.reset({
         identifier: "",
@@ -766,10 +878,45 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
         description: "",
         data: {},
         isActive: true,
+        targetPrimaryCategoryId: null,
         items: [],
       });
+      setSelectedGenderPrefixValue(GENDER_PREFIX_NONE_VALUE);
     }
   }, [initialData, form]);
+
+  // 编辑模式下，当 initialData 或 primaryCategories 改变时，尝试设置 targetPrimaryCategoryId 的初始值
+  useEffect(() => {
+    if (
+      isEditMode &&
+      initialData?.targetPrimaryCategoryId &&
+      primaryCategories.length > 0
+    ) {
+      const selectedCategory = primaryCategories.find(
+        (cat) => cat.id === initialData.targetPrimaryCategoryId,
+      );
+
+      if (
+        selectedCategory &&
+        form.getValues("targetPrimaryCategoryId") !== selectedCategory.id
+      ) {
+        form.setValue("targetPrimaryCategoryId", selectedCategory.id, {
+          shouldValidate: true,
+          shouldDirty: !form.formState.isSubmitted,
+        });
+      }
+    } else if (
+      isEditMode &&
+      initialData &&
+      initialData.targetPrimaryCategoryId === null &&
+      form.getValues("targetPrimaryCategoryId") !== null
+    ) {
+      form.setValue("targetPrimaryCategoryId", null, {
+        shouldValidate: true,
+        shouldDirty: !form.formState.isSubmitted,
+      });
+    }
+  }, [initialData, primaryCategories, isEditMode, form]);
 
   const handleFormSubmit = form.handleSubmit(
     async (data) => {
@@ -827,6 +974,21 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
       }
     },
   );
+
+  const handleApplyPrefix = () => {
+    const currentIdentifier = form.getValues("identifier") || "";
+    const baseIdentifier = currentIdentifier.replace(/^(women-|men-)/, "");
+    const prefixToApply =
+      selectedGenderPrefixValue === GENDER_PREFIX_NONE_VALUE
+        ? ""
+        : selectedGenderPrefixValue;
+    const newIdentifier = prefixToApply + baseIdentifier;
+
+    form.setValue("identifier", newIdentifier, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
 
   const renderDynamicDataFields = () => {
     switch (selectedType) {
@@ -1356,12 +1518,81 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
             control={form.control}
             component={Input}
           />
+          <div className="space-y-2">
+            <Label htmlFor="identifier-prefix-select">
+              {t("form.genderPrefixSuggestionLabel")}
+            </Label>
+            <div className="flex items-center gap-2">
+              <Select
+                value={selectedGenderPrefixValue}
+                onValueChange={(value) => {
+                  if (value === "") {
+                    setSelectedGenderPrefixValue(GENDER_PREFIX_NONE_VALUE);
+                  } else {
+                    setSelectedGenderPrefixValue(
+                      value as
+                        | typeof GENDER_PREFIX_NONE_VALUE
+                        | "women-"
+                        | "men-",
+                    );
+                  }
+                }}
+              >
+                <SelectTrigger
+                  id="identifier-prefix-select"
+                  className="w-[200px]"
+                >
+                  <SelectValue placeholder={t("form.genderPrefixNone")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={GENDER_PREFIX_NONE_VALUE}>
+                    {t("form.genderPrefixNone")}
+                  </SelectItem>
+                  <SelectItem value="women-">
+                    {t("form.genderPrefixWomen")}
+                  </SelectItem>
+                  <SelectItem value="men-">
+                    {t("form.genderPrefixMen")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleApplyPrefix}
+              >
+                {t("form.applyPrefixButton")}
+              </Button>
+            </div>
+          </div>
           <FormField
             name="identifier"
             label={t("form.identifier")}
             control={form.control}
             component={Input}
             placeholder={placeholders("identifierExample")}
+          />
+          <FormField
+            name="targetPrimaryCategoryId"
+            label={t("form.targetPrimaryCategoryLabel")}
+            control={form.control}
+            component={Select}
+            options={[
+              {
+                value: FORM_SELECT_NULL_VALUE,
+                label: t("form.selectOptionalNone", {
+                  fieldName: t("form.targetPrimaryCategoryLabel"),
+                }),
+              },
+              ...primaryCategories.map((cat) => ({
+                value: cat.id,
+                label: cat.name,
+              })),
+            ]}
+            placeholder={t("form.selectOptionalPlaceholder", {
+              fieldName: t("form.targetPrimaryCategoryLabel"),
+            })}
           />
           <FormField
             name="type"

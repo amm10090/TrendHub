@@ -4,18 +4,25 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
-import { Brand, getPopularBrands } from '@/services/brand.service';
+// Define a type for the public brand data
+interface PublicBrand {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: string;
+  popularity: boolean; //虽然我们只获取热门的，但API会返回这个字段
+}
 
 interface NavbarBrandsProps {
-  category: 'women' | 'men';
   locale: string;
   onItemClick: (href: string) => void;
 }
 
-export function NavbarBrands({ category, locale, onItemClick }: NavbarBrandsProps) {
+export function NavbarBrands({ locale, onItemClick }: NavbarBrandsProps) {
   const t = useTranslations('nav');
-  const [popularBrands, setPopularBrands] = useState<Brand[]>([]);
+  const [popularBrands, setPopularBrands] = useState<PublicBrand[]>([]); // Updated type
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // Added error state
 
   // 字母表导航项
   const alphabet = [
@@ -34,10 +41,32 @@ export function NavbarBrands({ category, locale, onItemClick }: NavbarBrandsProp
     const fetchBrands = async () => {
       try {
         setIsLoading(true);
-        const brands = await getPopularBrands(14); // 获取14个热门品牌
+        setError(null); // Reset error before new fetch
+        // const brands = await getPopularBrands(14); // 获取14个热门品牌 - Removed old service call
 
-        setPopularBrands(brands);
-      } catch {
+        const response = await fetch(`/api/public/brands?popularity=true&limit=14`);
+
+        if (!response.ok) {
+          // Try to parse error from API, or use a default
+          let errorMessage = t('errors.fetchBrandsError'); // Default error
+
+          try {
+            const errorData = await response.json();
+
+            if (errorData && errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch {
+            // Parsing errorData failed, use default message
+          }
+          throw new Error(errorMessage);
+        }
+        const data = await response.json();
+
+        setPopularBrands(data.items || []); // API returns { items: Brand[] }
+      } catch (err) {
+        // Updated error handling
+        setError(err instanceof Error ? err.message : t('errors.unknownError'));
         setPopularBrands([]);
       } finally {
         setIsLoading(false);
@@ -45,11 +74,11 @@ export function NavbarBrands({ category, locale, onItemClick }: NavbarBrandsProp
     };
 
     fetchBrands();
-  }, [category]);
+  }, [locale, t]); // Removed category from dependency array
 
   // 将品牌分为两列显示
-  const firstRowBrands = popularBrands.slice(0, 10);
-  const secondRowBrands = popularBrands.slice(10);
+  const firstRowBrands = popularBrands.slice(0, Math.ceil(popularBrands.length / 2)); // 更均匀地分配
+  const secondRowBrands = popularBrands.slice(Math.ceil(popularBrands.length / 2)); // 更均匀地分配
 
   // 处理品牌点击
   const handleBrandClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -93,6 +122,12 @@ export function NavbarBrands({ category, locale, onItemClick }: NavbarBrandsProp
                     />
                   ))}
                 </div>
+              </div>
+            ) : error ? ( // Added error display
+              <div className="text-red-500 text-center py-4">{error}</div>
+            ) : popularBrands.length === 0 ? ( // Handle no brands found
+              <div className="text-center py-4 text-text-secondary-light dark:text-text-secondary-dark">
+                {t('noPopularBrands')}
               </div>
             ) : (
               // 品牌列表

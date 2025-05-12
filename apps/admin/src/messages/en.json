@@ -592,11 +592,11 @@
         "videosLabel": "Videos (Optional)"
       },
       "organization": {
-        "brand": "",
-        "brandEmpty": "",
-        "brandError": "",
-        "brandPlaceholder": "",
-        "category": "Select Product Category",
+        "brand": "Product Brand",
+        "brandEmpty": "No brands available",
+        "brandError": "Failed to load brands",
+        "brandPlaceholder": "Select product brand",
+        "category": "Product Category",
         "categoryDescription": "Please select the category for this product, which will affect its display position in the frontend",
         "categoryLevel1": "Level 1 Category",
         "categoryLevel1Placeholder": "Select Level 1 Category",
@@ -604,10 +604,12 @@
         "categoryLevel2Placeholder": "Select Level 2 Category",
         "categoryLevel3": "Level 3 Category",
         "categoryLevel3Placeholder": "Select Level 3 Category",
-        "tags": "",
-        "tagsPlaceholder": "",
-        "title": "Product Category",
-        "currentFullPathLabel": "Current Full Category Path"
+        "tags": "Product Tags",
+        "tagsPlaceholder": "Enter tags and press Enter to add",
+        "title": "Product Organization",
+        "currentFullPathLabel": "Current Full Category Path",
+        "genderLabel": "Gender",
+        "genderPlaceholder": "Select Gender"
       },
       "priceAndInventory": {
         "barcode": "Barcode",
@@ -645,7 +647,7 @@
         "name": "Product Name",
         "nameDescription": "Give your product an attractive name",
         "namePlaceholder": "Enter product name",
-        "title": ""
+        "title": "Product Information"
       },
       "productNotFound": "Product not found",
       "save": "Save Changes",
@@ -1106,7 +1108,15 @@
       },
       "newItemForSlot": "New item for slot {slotKey}",
       "itemName": "Content Item Name",
-      "noSpecificFieldsForItemType": "This content item type has no specific data fields."
+      "noSpecificFieldsForItemType": "This content item type has no specific data fields.",
+      "genderPrefixSuggestionLabel": "Gender Prefix Suggestion",
+      "genderPrefixNone": "None (Common)",
+      "genderPrefixWomen": "Women (women-)",
+      "genderPrefixMen": "Men (men-)",
+      "applyPrefixButton": "Apply Prefix to Identifier",
+      "targetPrimaryCategoryLabel": "Target Primary Category (Optional)",
+      "selectOptionalPlaceholder": "Select {fieldName} (Optional)",
+      "selectOptionalNone": "None (No {fieldName})"
     },
     "formFields": {
       "banner": {
@@ -1242,6 +1252,9 @@
       "updateError": "Failed to update content block",
       "deleteError": "Failed to delete content block"
     },
+    "errors": {
+      "fetchPrimaryCategoriesFailed": "Failed to fetch primary categories"
+    },
     "visualEditor": {
       "previewDescription": "Click on a slot in the preview area below to edit or add content items.",
       "editItemTitle": "Edit Content Item: {itemName}",
@@ -1257,224 +1270,17 @@
       "title": "Select Products",
       "addButton": "Add",
       "removeButton": "Remove",
+      "selectedProducts": "Selected Products",
       "selectedProductsTitle": "Selected Products",
-      "noProductsFound": "No relevant products found.",
       "noProductsSelected": "No products selected yet.",
-      "confirmSelectionButton": "Confirm Selection",
-      "messages": {
-        "fetchError": "Failed to load product list."
-      }
-    },
-    "scraperManagement": {
-      "title": "Scraper Management",
-      "definitionsTab": {
-        "title": "Task Definitions",
-        "addTaskDefinition": "Add Task Definition",
-        "loading": "Loading definitions...",
-        "fetchError": "Failed to load task definitions: {error}",
-        "noData": "No task definitions found.",
-        "dataTablePlaceholder": "Data table for task definitions will be shown here.",
-        "addTaskNotImplemented": "Add task definition functionality is not yet implemented.",
-        "notSet": "Not Set",
-        "status": {
-          "enabled": "Enabled",
-          "disabled": "Disabled",
-          "COMPLETED": "Completed",
-          "FAILED": "Failed",
-          "RUNNING": "Running",
-          "QUEUED": "Queued",
-          "IDLE": "Idle",
-          "CANCELLED": "Cancelled",
-          "neverRun": "Never Run",
-          "notScheduled": "Not Scheduled",
-          "invalidCron": "Invalid Schedule",
-          "calculating": "Calculating...",
-          "invalidDate": "Invalid Date"
-        },
-        "columns": {
-          "name": "Name",
-          "targetSite": "Target Site",
-          "status": "Status",
-          "cronExpression": "Schedule (Cron)",
-          "nextRun": "Next Run",
-          "lastRunStatusTime": "Last Run",
-          "lastRun": "Last Run",
-          "actions": "Actions"
-        },
-        "actions": {
-          "openMenu": "Open menu",
-          "title": "Actions",
-          "edit": "Edit",
-          "editClicked": "Edit action clicked for ID: {id}",
-          "delete": "Delete",
-          "deleteConfirmMessage": "Are you sure you want to delete task definition \"{name}\"? This action cannot be undone.",
-          "runNow": "Run Now",
-          "viewHistory": "View History",
-          "viewHistoryClicked": "View history action clicked for ID: {id}"
-        },
-        "messages": {
-          "deleteSuccess": "Task definition \"{name}\" deleted successfully.",
-          "deleteError": "Failed to delete task definition \"{name}\": {error}",
-          "deleteErrorFallback": "Could not delete task definition.",
-          "runSuccess": "Task \"{name}\" (Execution ID: {executionId}) has been successfully queued.",
-          "runError": "Failed to queue task \"{name}\": {error}",
-          "runErrorFallback": "Could not queue task.",
-          "loadingNextPage": "Loading more data...",
-          "tooltips": {
-            "lastRunError": "Error: {errorMessage}"
-          }
-        },
-        "filters": {
-          "filterByNamePlaceholder": "Filter by task name...",
-          "selectSitePlaceholder": "All Sites",
-          "selectStatusPlaceholder": "All Statuses",
-          "allSites": "All Sites",
-          "allStatuses": "All Statuses",
-          "resetFilters": "Reset Filters"
-        }
-      },
-      "executionsTab": {
-        "title": "Execution History",
-        "loading": "Loading...",
-        "loadingData": "Loading data...",
-        "noData": "No data available",
-        "fetchError": "Failed to fetch data: {error}",
-        "invalidDate": "Invalid Date",
-        "columns": {
-          "taskName": "Task Name",
-          "targetSite": "Target Site",
-          "status": "Status",
-          "triggerType": "Trigger Type",
-          "startedAt": "Started At",
-          "completedAt": "Completed At",
-          "duration": "Duration",
-          "metrics": "Metrics",
-          "actions": "Actions"
-        },
-        "metrics": {
-          "productsScraped": "Products Scraped",
-          "requestsMade": "Requests Made",
-          "productsFound": "Products Found",
-          "productsSaved": "Products Saved Successfully"
-        },
-        "filters": {
-          "filterByTaskNamePlaceholder": "Filter by task name...",
-          "selectSitePlaceholder": "Select site",
-          "selectStatusPlaceholder": "Select status",
-          "allSites": "All Sites",
-          "allStatuses": "All Statuses",
-          "resetFilters": "Reset Filters"
-        },
-        "actions": {
-          "title": "Actions",
-          "viewLogs": "View Logs",
-          "cancel": "Cancel Task",
-          "openMenu": "Open Menu",
-          "cancelConfirmMessage": "Are you sure you want to cancel task \"{taskName}\"?"
-        },
-        "messages": {
-          "cancelSuccess": "Successfully cancelled task \"{taskName}\"",
-          "cancelError": "Failed to cancel task \"{taskName}\": {error}",
-          "cancelErrorFallback": "An unknown error occurred while cancelling the task."
-        },
-        "statusMessages": {
-          "running": "Running...",
-          "queued": "Queued..."
-        },
-        "triggerTypes": {
-          "MANUAL": "Manual",
-          "SCHEDULED": "Scheduled",
-          "API": "API",
-          "WEBHOOK": "Webhook"
-        },
-        "logsView": {
-          "title": "Task Logs: {taskName} (#{executionId})",
-          "titleSimple": "Task Logs: {taskName}",
-          "description": "Real-time task execution logs",
-          "notImplemented": "Log Viewer Coming Soon",
-          "comingSoon": "We're working hard to bring you this feature. Stay tuned!",
-          "executionInfo": "Execution ID: {id}, Status: {status}",
-          "loadingLogs": "Loading logs...",
-          "noLogsFound": "No log entries found.",
-          "filterByLevel": "Filter by level",
-          "allLevels": "All Levels",
-          "logEntryContext": "Context Data",
-          "invalidDate": "Invalid Date",
-          "fetchErrorTitle": "Failed to Fetch Logs",
-          "fetchErrorGeneric": "An unknown error occurred while loading log data."
-        }
-      },
-      "definitionForm": {
-        "createModalTitle": "Create New Task Definition",
-        "createModalDescription": "Fill in the details below to add a new scraper task.",
-        "editModalTitle": "Edit Task Definition: {name}",
-        "editModalDescription": "Modify the details of your existing scraper task.",
-        "fields": {
-          "name": {
-            "label": "Task Name",
-            "placeholder": "Enter a unique name for the task"
-          },
-          "description": {
-            "label": "Description (Optional)",
-            "placeholder": "Briefly describe this task"
-          },
-          "targetSite": {
-            "label": "Target Site",
-            "placeholder": "Select the e-commerce site"
-          },
-          "startUrls": {
-            "label": "Start URLs",
-            "placeholder": "Enter one URL per line",
-            "description": "These are the initial URLs the scraper will visit."
-          },
-          "cronExpression": {
-            "label": "Cron Expression (Optional)",
-            "placeholder": "e.g., 0 0 * * * (for daily at midnight)",
-            "description": "Leave empty if a schedule is not needed. Use crontab.guru for help."
-          },
-          "isEnabled": {
-            "label": "Enable Task",
-            "description": "If disabled, the task won't run on schedule or be triggerable via API."
-          },
-          "maxRequests": {
-            "label": "Max Requests (Optional)",
-            "placeholder": "e.g., 1000"
-          },
-          "maxLoadClicks": {
-            "label": "Max 'Load More' Clicks (Optional)",
-            "placeholder": "e.g., 20"
-          },
-          "maxProducts": {
-            "label": "Max Products to Scrape (Optional)",
-            "placeholder": "e.g., 500"
-          },
-          "defaultInventory": {
-            "label": "Default Inventory",
-            "placeholder": "e.g., 99"
-          }
-        },
-        "actions": {
-          "cancel": "Cancel",
-          "createTask": "Create Task",
-          "saveChanges": "Save Changes",
-          "submitting": "Submitting..."
-        },
-        "messages": {
-          "createSuccess": "Task definition \"{name}\" created successfully.",
-          "updateSuccess": "Task definition \"{name}\" updated successfully.",
-          "createErrorFallback": "Failed to create task definition. Please try again.",
-          "updateErrorFallback": "Failed to update task definition. Please try again.",
-          "unknownError": "An unexpected error occurred. Please try again."
-        }
-      },
-      "validation": {
-        "nameRequired": "Task name is required.",
-        "targetSiteRequired": "Target site must be selected.",
-        "urlInvalid": "One or more URLs are invalid.",
-        "startUrlsRequired": "At least one start URL is required.",
-        "inventoryNonNegative": "Default inventory must be 0 or greater.",
-        "positiveNumber": "Must be a positive number if provided."
-      }
+      "availableProducts": "Available Products",
+      "searchPlaceholder": "Search products...",
+      "noProductsFound": "No products found.",
+      "loadingProducts": "Loading products...",
+      "confirmRemoveTitle": "Confirm Removal",
+      "confirmRemoveMessage": "Are you sure you want to remove this product from the selected list?",
+      "maxSelectionReached": "Maximum selection limit reached ({maxCount} items).",
+      "confirmSelectionButton": "Confirm Selection"
     }
   },
   "scraperManagement": {

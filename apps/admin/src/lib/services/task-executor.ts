@@ -313,6 +313,7 @@ export class TaskExecutor {
             ) || false,
           brand: { connect: { id: brandId } },
           category: { connect: { id: categoryId } },
+          gender: productData.gender,
         };
 
         if (productPayload.sku === "") productPayload.sku = null;

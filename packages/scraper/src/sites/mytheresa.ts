@@ -19,6 +19,7 @@ interface MytheresaUserData {
   executionId?: string;
   plpData?: Partial<Product>;
   label?: string;
+  batchGender?: "women" | "men" | "unisex" | string | null; // For carrying over determined gender
 }
 
 function ensureDirectoryExists(
@@ -38,6 +39,14 @@ function ensureDirectoryExists(
   }
 }
 
+// Helper function to infer gender from URL, specific to Mytheresa's URL structure
+function inferGenderFromMytheresaUrl(url: string): "women" | "men" | null {
+  const urlLower = url.toLowerCase();
+  if (urlLower.includes("/women/")) return "women";
+  if (urlLower.includes("/men/")) return "men";
+  return null;
+}
+
 export default async function scrapeMytheresa(
   startUrls: string | string[] = [
     "https://www.mytheresa.com/us/en/women/new-arrivals/current-week",
@@ -46,6 +55,13 @@ export default async function scrapeMytheresa(
   executionId?: string,
 ): Promise<Product[]> {
   const siteName = "Mytheresa";
+
+  // Determine batchGender based on the first startUrl
+  const firstStartUrl = Array.isArray(startUrls) ? startUrls[0] : startUrls;
+  const batchGender = firstStartUrl
+    ? inferGenderFromMytheresaUrl(firstStartUrl)
+    : null;
+
   if (executionId) {
     await sendLogToBackend(
       executionId,
@@ -54,6 +70,7 @@ export default async function scrapeMytheresa(
       {
         startUrls: Array.isArray(startUrls) ? startUrls : [startUrls],
         options,
+        inferredBatchGender: batchGender,
       },
     );
   }
@@ -112,6 +129,7 @@ export default async function scrapeMytheresa(
         } = context;
         const currentExecutionId = request.userData?.executionId;
         const requestLabel = request.userData?.label || request.label;
+        const currentBatchGender = request.userData?.batchGender; // Get gender from request
 
         if (currentExecutionId) {
           await sendLogToBackend(
@@ -141,6 +159,7 @@ export default async function scrapeMytheresa(
               images: plpData?.images,
               sizes: plpData?.sizes,
               tags: plpData?.tags,
+              gender: currentBatchGender || plpData?.gender, // Use gender from request, fallback to PLP if any
               materialDetails: [],
               metadata: {},
             };
@@ -632,9 +651,14 @@ export default async function scrapeMytheresa(
       url.includes("accessories")
         ? "LIST"
         : "DETAIL";
+    // Pass batchGender in userData for each request
     return {
       url,
-      userData: { executionId: executionId, label: label } as MytheresaUserData,
+      userData: {
+        executionId: executionId,
+        label: label,
+        batchGender: batchGender,
+      } as MytheresaUserData,
       label: label,
     };
   });
@@ -685,6 +709,8 @@ async function processProductItems(
   let localEnqueuedCount = currentEnqueuedCount;
   const potentialDetailUrls: { url: string; plpData: Partial<Product> }[] = [];
 
+  const currentRequestBatchGender = request.userData?.batchGender; // Get gender from current request context
+
   for (const item of productItems) {
     if (localEnqueuedCount >= maxProductsLimit) {
       if (executionId)
@@ -700,6 +726,7 @@ async function processProductItems(
       source: "Mytheresa" as ECommerceSite,
       sizes: [], // Initialize sizes
       tags: [], // Initialize tags
+      gender: currentRequestBatchGender, // Assign gender from current request context
     };
     try {
       const relativeUrl = await item
@@ -876,8 +903,8 @@ async function processProductItems(
         const newUserData: MytheresaUserData = {
           ...request.userData,
           plpData: potentialItem.plpData,
-          executionId: executionId,
           label: "DETAIL",
+          batchGender: currentRequestBatchGender,
         };
         await crawler.addRequests([
           {

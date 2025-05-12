@@ -240,6 +240,12 @@
     "shipping": "Shipping",
     "wechat": "WeChat Mini Program"
   },
+  "genderPage": {
+    "womenTitle": "Women's Fashion",
+    "menTitle": "Men's Fashion",
+    "genericTitle": "Discover Our Collections",
+    "showingContentFor": "Showing content for: {gender}"
+  },
   "introduction": {
     "bottom_text": "Shop with us and discover why Mytheresa is your final destination for online shopping for women.",
     "description": "Mytheresa is the most-trusted source for finding the finest selection of luxurious womenswear. Our expert buying team travels the globe with a simple mission: to bring international fashion's finest directly to your doorstep. With our runway-fresh new arrivals every week, an easy-to-navigate platform and a mobile app to shop on-the-go, we ensure a boutique-like feeling for a unique shopping experience.",
@@ -264,26 +270,78 @@
     "title": "A luxury shopping experience"
   },
   "nav": {
+    "women": "Women",
+    "men": "Men",
+    "clothing": "Clothing",
+    "shoes": "Shoes",
+    "bags": "Bags",
     "accessories": "Accessories",
+    "jewelry": "Jewelry",
+    "brands": "Brands",
+    "guides": "Guides",
+    "popular_brands": "Popular Brands",
+    "brands_loading": "Loading...",
+    "brands_a_z": "Brands A-Z",
+    "viewAllCategories": "View All Categories",
+    "view_all_brands": "View All Brands",
+    "category": "Category",
+    "viewAllClothing": "View All Clothing",
+    "viewAll": "View All",
+    "all": "All",
+    "newArrivals": "New Arrivals",
+    "onSale": "On Sale",
+    "trending": "Trending",
+    "black": "Black",
+    "white": "White",
+    "red": "Red",
+    "blue": "Blue",
+    "green": "Green",
+    "casual": "Casual",
+    "formal": "Formal",
+    "sporty": "Sporty",
+    "vintage": "Vintage",
+    "clear_categories": "Clear Categories",
+    "apply_filters": "Apply Filters",
+    "clothing_categories": {
+      "all": "All Clothing",
+      "beachwear": "Beachwear & Swimwear",
+      "coats": "Coats",
+      "dresses": "Dresses",
+      "hosiery": "Hosiery",
+      "jackets": "Jackets",
+      "jeans": "Jeans",
+      "jumpsuits": "Jumpsuits",
+      "knitwear": "Knitwear",
+      "lingerie": "Lingerie",
+      "nightwear": "Nightwear",
+      "pants": "Pants",
+      "shorts": "Shorts",
+      "skirts": "Skirts",
+      "suits": "Suits",
+      "activewear": "Activewear",
+      "tops": "Tops"
+    },
+    "shoes_categories": {
+      "all": "All Shoes",
+      "boots": "Boots",
+      "flats": "Flats",
+      "heels": "Heels",
+      "sneakers": "Sneakers"
+    },
     "accessories_categories": {
       "all": "All Accessories",
       "belts": "Belts",
+      "phoneCases": "Phone Cases",
       "faceMasks": "Face Masks",
       "gloves": "Gloves",
       "hairAccessories": "Headbands & Hair Accessories",
       "hats": "Hats",
-      "phoneCases": "Phone Cases",
       "scarves": "Scarves & Mufflers",
       "sunglasses": "Sunglasses",
       "umbrellas": "Umbrellas",
       "wallets": "Wallets & Cardholders",
       "watches": "Watches"
     },
-    "account": "Account",
-    "all": "nav.all",
-    "apply_filters": "Apply Filters",
-    "back": "Back",
-    "bags": "Bags",
     "bags_categories": {
       "all": "All Bags",
       "backpacks": "Backpacks",
@@ -303,51 +361,6 @@
       "topHandleBags": "Top-Handle Bags",
       "toteBags": "Tote Bags"
     },
-    "black": "Black",
-    "blue": "Blue",
-    "brands": "Brands",
-    "brands_a_z": "Brands A-Z",
-    "brands_categories": {
-      "affordable": "Affordable Luxury",
-      "all": "All Brands",
-      "contemporary": "Contemporary",
-      "designers": "Designer Brands",
-      "luxury": "Luxury",
-      "popular": "Popular Brands",
-      "sustainable": "Sustainable"
-    },
-    "cart": "Cart",
-    "casual": "Casual",
-    "category": "Category",
-    "clear": "Clear",
-    "clear_categories": "Clear Categories",
-    "clothing": "Clothing",
-    "clothing_categories": {
-      "activewear": "Activewear",
-      "all": "All Clothing",
-      "beachwear": "Beachwear & Swimwear",
-      "coats": "Coats",
-      "dresses": "Dresses",
-      "hosiery": "Hosiery",
-      "jackets": "Jackets",
-      "jeans": "Jeans",
-      "jumpsuits": "Jumpsuits",
-      "knitwear": "Knitwear",
-      "lingerie": "Lingerie",
-      "nightwear": "Nightwear",
-      "pants": "Pants",
-      "shorts": "Shorts",
-      "skirts": "Skirts",
-      "suits": "Suits",
-      "tops": "Tops"
-    },
-    "filters": {
-      "title": "nav.filters.title"
-    },
-    "formal": "Formal",
-    "green": "Green",
-    "guides": "Guides",
-    "jewelry": "Jewelry",
     "jewelry_categories": {
       "all": "All Jewelry",
       "bracelets": "Bracelets",
@@ -356,10 +369,15 @@
       "necklaces": "Necklaces",
       "rings": "Rings"
     },
-    "men": "Men",
-    "menu": "Menu",
-    "newArrivals": "New Arrivals",
-    "onSale": "On Sale",
+    "brands_categories": {
+      "all": "All Brands",
+      "contemporary": "Contemporary",
+      "designers": "Designer Brands",
+      "luxury": "Luxury",
+      "popular": "Popular Brands",
+      "sustainable": "Sustainable",
+      "affordable": "Affordable Luxury"
+    },
     "popular_brand_names": {
       "balenciaga": "Balenciaga",
       "bottega_veneta": "Bottega Veneta",
@@ -376,32 +394,29 @@
       "valentino": "Valentino",
       "zara": "Zara"
     },
-    "popular_brands": "Popular Brands",
-    "red": "Red",
     "search": {
-      "clear": "nav.search.clear",
-      "close": "Close search",
+      "placeholder": "Search for items and brands",
       "label": "Search",
-      "placeholder": "Search for items and brands"
+      "close": "Close search",
+      "clear": "nav.search.clear"
     },
-    "shoes": "Shoes",
-    "shoes_categories": {
-      "all": "All Shoes",
-      "boots": "Boots",
-      "flats": "Flats",
-      "heels": "Heels",
-      "sneakers": "Sneakers"
-    },
-    "sporty": "Sporty",
-    "trending": "Trending",
-    "viewAll": "View All",
-    "viewAllCategories": "View All Categories",
-    "viewAllClothing": "View All Clothing",
-    "view_all_brands": "View All Brands",
-    "vintage": "Vintage",
-    "white": "White",
+    "account": "Account",
     "wishlist": "Wishlist",
-    "women": "Women"
+    "cart": "Cart",
+    "menu": "Menu",
+    "back": "Back",
+    "clear": "Clear",
+    "filters": {
+      "title": "nav.filters.title"
+    },
+    "errors": {
+      "fetchBrandsError": "Failed to fetch popular brands",
+      "unknownError": "An unknown error occurred",
+      "fetchNavError": "Failed to fetch navigation data",
+      "unknownNavError": "An unknown error occurred while processing navigation data"
+    },
+    "loadingBrands": "Loading popular brands...",
+    "noPopularBrands": "No popular brands available at the moment."
   },
   "privacy": {
     "last_updated": "Last Updated: February 8, 2024",
@@ -618,6 +633,8 @@
   },
   "productGrid": {
     "defaultTitle": "Featured Products",
+    "title_women": "Women's Picks",
+    "title_men": "Men's Picks",
     "seeAllDefaultText": "View All",
     "defaultDescription": "Check out this amazing product.",
     "defaultSku": "N/A",
@@ -649,7 +666,14 @@
     "taking_too_long": "Taking too long?"
   },
   "trending": {
+    "title": "Trending Now",
     "discover_more": "Discover More",
+    "shining_examples": {
+      "title": "SHINING EXAMPLES",
+      "subtitle": "Strike gold with charming accents",
+      "see_all": "SEE ALL",
+      "no_items": "No items to display in this section yet."
+    },
     "items": {
       "bags": {
         "description": "Explore our collection of designer bags",
@@ -695,12 +719,13 @@
       "jacquemus": "Jacquemus",
       "valentino": "Valentino Garavani"
     },
-    "shining_examples": {
-      "see_all": "SEE ALL",
-      "subtitle": "Strike gold with charming accents",
-      "title": "SHINING EXAMPLES",
-      "no_items": "No items to display in this section yet."
+    "errors": {
+      "loadFailedTitle": "Failed to load content",
+      "loadFailedMessage": "Please try again later or contact support."
     },
-    "title": "Trending"
+    "noContent": "No trending content to display at the moment.",
+    "card": {
+      "loadingTitle": "Loading title..."
+    }
   }
 }

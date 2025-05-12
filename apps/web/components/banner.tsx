@@ -12,74 +12,81 @@ interface BannerData {
   imageUrl: string;
   linkUrl: string;
   ctaText?: string;
+  data?: {
+    title?: string;
+    description?: string;
+    imageUrl?: string;
+    linkUrl?: string;
+    ctaText?: string;
+  };
 }
 
-export function Banner() {
+interface BannerProps {
+  gender?: 'women' | 'men'; // Added gender prop
+}
+
+export const Banner: React.FC<BannerProps> = ({ gender }) => {
   const t = useTranslations('banner');
   const [bannerData, setBannerData] = useState<BannerData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchBannerData = async () => {
       setIsLoading(true);
       setError(null);
+      let apiUrl = '/api/public/content-blocks?type=BANNER&single=true';
+
+      if (gender) {
+        // 使用分类slug查询，而不是拼接identifier
+        apiUrl = `/api/public/content-blocks?categorySlug=${gender}&type=BANNER&single=true`;
+      } else {
+        // 默认使用women分类
+        apiUrl = `/api/public/content-blocks?categorySlug=women&type=BANNER&single=true`;
+      }
+
       try {
-        // 修改 API 调用：从按 identifier 获取改为按 type 获取
-        const response = await fetch('/api/public/content-blocks?type=BANNER');
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
-          throw new Error(`API 请求失败: ${response.status} ${response.statusText}`); // 保持 statusText
+          throw new Error('Failed to fetch banner data');
         }
-        // API 按 type 查询会返回一个数组
-        const blocks = await response.json();
+        const data = await response.json();
 
-        // 我们期望只有一个激活的 BANNER，所以取数组的第一个元素
-        // 如果没有激活的 BANNER，blocks 会是空数组
-        const block = Array.isArray(blocks) && blocks.length > 0 ? blocks[0] : null;
+        // 添加调试输出
 
-        if (block && block.data && typeof block.data === 'object') {
-          if (
-            typeof block.data.title === 'string' &&
-            typeof block.data.description === 'string' &&
-            typeof block.data.imageUrl === 'string' &&
-            typeof block.data.linkUrl === 'string' &&
-            (block.data.ctaText === undefined || typeof block.data.ctaText === 'string')
-          ) {
-            setBannerData(block.data as BannerData);
-          } else {
-            // 如果核心数据结构不符合预期
-            // console.error('从 API 获取的 Banner 核心数据格式不正确', block.data); // 调试日志
-            setBannerData(null); // 明确设为 null，以便后续使用后备数据
-          }
-        } else {
-          // 如果没有找到激活的 BANNER 或数据为空
-          // console.error('未找到激活的 Banner 内容块或数据为空'); // 调试日志
-          setBannerData(null); // 明确设为 null
-        }
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : '加载数据时发生未知错误';
-
-        setError(errorMessage);
-        // 出错时可以使用 t 函数的静态文本作为后备
+        setBannerData(data as BannerData); // Assuming API returns the banner object directly
+      } catch {
+        setBannerData(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, []); // 空依赖数组确保只在挂载时运行一次
+    fetchBannerData();
+  }, [gender]); // Add gender to dependency array
+
+  // 转换API响应中的数据
+  // ContentBlock可能直接包含data字段或在data子对象中包含这些字段
+  const apiData = {
+    title: bannerData?.title || bannerData?.data?.title,
+    description: bannerData?.description || bannerData?.data?.description,
+    imageUrl: bannerData?.imageUrl || bannerData?.data?.imageUrl,
+    linkUrl: bannerData?.linkUrl || bannerData?.data?.linkUrl,
+    ctaText: bannerData?.ctaText || bannerData?.data?.ctaText,
+  };
+
+  // 调试输出转换后的数据
 
   // 优先使用从 API 获取的数据，如果失败或正在加载，则使用 t 函数的翻译或显示加载/错误状态
   const displayData = {
-    title: bannerData?.title || t('title'),
-    description: bannerData?.description || t('description'),
-    imageUrl: bannerData?.imageUrl || '/images/banner-bg.jpg', // 后备图片
-    linkUrl: bannerData?.linkUrl || '/women/brands/gucci', // 后备链接
-    ctaText: 'View Details Go!', // <-- Temporary hardcoded default value
+    title: apiData.title || t('title'),
+    description: apiData.description || t('description'),
+    imageUrl: apiData.imageUrl || '/images/banner-bg.jpg', // 后备图片
+    linkUrl: apiData.linkUrl || '/women/brands/gucci', // 后备链接
+    ctaText: apiData.ctaText || t('cta'), // 注意：这里改用'cta'而不是'ctaText'来匹配翻译文件
   };
 
-  // 可以添加加载和错误状态的 UI 反馈
   if (isLoading) {
     return (
       <div className="w-full">
@@ -163,4 +170,4 @@ export function Banner() {
       </div>
     </div>
   );
-}
+};

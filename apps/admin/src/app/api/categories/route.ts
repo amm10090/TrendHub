@@ -52,6 +52,7 @@ export async function POST(request: Request) {
     if (!data.level || data.level < 1 || data.level > 3) {
       return NextResponse.json({ error: "分类层级无效" }, { status: 400 });
     }
+    // showInNavbar 是可选的布尔值，无需特定验证，除非有更复杂规则
 
     const category = await categoryService.createCategory(data);
 

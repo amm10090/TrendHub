@@ -58,13 +58,43 @@ export const Navbar = () => {
   const [isLoadingNav, setIsLoadingNav] = useState(true);
 
   useEffect(() => {
+    // 从 pathname 更新 activeCategory
+    if (pathname) {
+      if (pathname.startsWith(`/${locale}/women`)) {
+        setActiveCategory('women');
+      } else if (pathname.startsWith(`/${locale}/men`)) {
+        setActiveCategory('men');
+      } else if (pathname.startsWith('/women')) {
+        // Fallback for when locale might not be in path yet or for root paths
+        setActiveCategory('women');
+      } else if (pathname.startsWith('/men')) {
+        setActiveCategory('men');
+      }
+      // 如果路径不是以 /women 或 /men 开头，可以考虑保留当前的 activeCategory，或者设置一个默认值
+      // 例如，如果当前在 /brands 页面，activeCategory 应该是什么？目前它会保持上次的值。
+      // 对于首页 `/`，它会根据初始状态（'women'）或之前的状态决定。这部分行为可以根据产品需求调整。
+    }
+  }, [pathname, locale]); // 添加 locale 到依赖项，因为路径中包含 locale
+
+  useEffect(() => {
     const fetchNavData = async () => {
       setIsLoadingNav(true);
       try {
-        const response = await fetch('/api/categories/tree');
+        const response = await fetch('/api/public/categories/tree');
 
         if (!response.ok) {
-          throw new Error('Failed to fetch navigation data');
+          let errorMessage = t('errors.fetchNavError');
+
+          try {
+            const errorData = await response.json();
+
+            if (errorData && errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch {
+            // 解析错误信息失败，使用默认的
+          }
+          throw new Error(errorMessage);
         }
 
         const rawNavData: NavCategoryNode[] = await response.json();
@@ -138,7 +168,7 @@ export const Navbar = () => {
     };
 
     fetchNavData();
-  }, [locale, t, activeCategory]); // Add activeCategory to dependency array
+  }, [locale, t, activeCategory]);
 
   const handleItemClick = (item: MenuItem, e: React.MouseEvent<Element>) => {
     e.preventDefault();
@@ -207,18 +237,18 @@ export const Navbar = () => {
             <Link
               className={cn(
                 "text-sm font-medium text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-300 uppercase tracking-wider relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-text-primary-light dark:after:bg-text-primary-dark after:transition-all after:duration-300 hover:after:w-full",
-                pathname?.startsWith('/women') && 'after:w-full'
+                pathname?.startsWith(`/${locale}/women`) && 'after:w-full'
               )}
-              href="/women"
+              href={`/${locale}/women`}
             >
               {t('women')}
             </Link>
             <Link
               className={cn(
                 "text-sm font-medium text-text-primary-light dark:text-text-primary-dark hover:opacity-70 transition-all duration-300 uppercase tracking-wider relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-text-primary-light dark:after:bg-text-primary-dark after:transition-all after:duration-300 hover:after:w-full",
-                pathname?.startsWith('/men') && 'after:w-full'
+                pathname?.startsWith(`/${locale}/men`) && 'after:w-full'
               )}
-              href="/men"
+              href={`/${locale}/men`}
             >
               {t('men')}
             </Link>
@@ -270,7 +300,6 @@ export const Navbar = () => {
                 {item.isBrands ? (
                   <div className="fixed left-0 right-0 top-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 bg-bg-secondary-light dark:bg-bg-secondary-dark shadow-xs border-b border-border-primary-light dark:border-border-primary-dark">
                     <NavbarBrands
-                      category={activeCategory}
                       locale={pathname?.split('/')[1] || 'en'}
                       onItemClick={handleBrandMenuItemClick}
                     />

@@ -369,7 +369,12 @@ interface TrendingSectionContentBlock {
   items: ContentItemFromAPI[]; // 存储所有卡片和文本链接
 }
 
-export const TrendingSection: React.FC = () => {
+interface TrendingSectionProps {
+  gender?: 'women' | 'men'; // Added gender prop
+  // ... other existing props
+}
+
+export const TrendingSection: React.FC<TrendingSectionProps> = ({ gender }) => {
   const t = useTranslations('trending');
   const [contentBlock, setContentBlock] = useState<TrendingSectionContentBlock | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -380,30 +385,45 @@ export const TrendingSection: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/public/content-blocks?type=TRENDING_SECTION_CONTAINER');
+        let apiUrl = '/api/public/content-blocks?type=TRENDING_SECTION_CONTAINER&single=true';
+
+        if (gender) {
+          apiUrl = `/api/public/content-blocks?categorySlug=${gender}&type=TRENDING_SECTION_CONTAINER&single=true`;
+        } else {
+          // 默认使用women分类
+          apiUrl = `/api/public/content-blocks?categorySlug=women&type=TRENDING_SECTION_CONTAINER&single=true`;
+        }
+
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
-          throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
-        }
-        const blocks = await response.json();
-        const block = Array.isArray(blocks) && blocks.length > 0 ? blocks[0] : null;
-
-        if (block && block.data && Array.isArray(block.items)) {
-          setContentBlock(block as TrendingSectionContentBlock);
+          if (response.status === 404) {
+            setContentBlock(null);
+            setError(null);
+          } else {
+            throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
+          }
         } else {
-          setContentBlock(null);
+          const block = await response.json();
+
+          if (block && block.data && Array.isArray(block.items)) {
+            setContentBlock(block as TrendingSectionContentBlock);
+          } else {
+            setContentBlock(null);
+          }
         }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : '加载数据时发生未知错误';
 
         setError(errorMessage);
+        setContentBlock(null);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [gender, t]);
 
   const getItemDataBySlotKey = (slotKeyValue: string): ContentItemDataFromAPI | null => {
     const item = contentBlock?.items.find((i) => i.slotKey === slotKeyValue);

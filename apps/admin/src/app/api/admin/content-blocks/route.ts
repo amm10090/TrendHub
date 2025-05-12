@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         items: true, // 同时获取关联的 items
+        targetPrimaryCategory: { select: { id: true, name: true, slug: true } }, // 新增
       },
     });
 
@@ -64,6 +65,11 @@ const ContentBlockCreateSchema = z.object({
   description: z.string().optional().nullable(),
   data: z.any().optional().nullable(), // 或者使用更精确的 jsonSchema 定义（如果已在某处定义）
   isActive: z.boolean().default(true),
+  targetPrimaryCategoryId: z
+    .string()
+    .cuid({ message: "无效的一级分类ID" })
+    .optional()
+    .nullable(), // 新增
   items: z.array(ApiContentItemSchema).optional(), // 使用更新后的 ApiContentItemSchema
 });
 
@@ -108,15 +114,15 @@ export async function POST(request: NextRequest) {
 
     if (blockData.isActive) {
       newContentBlock = await db.$transaction(async (tx) => {
-        await tx.contentBlock.updateMany({
-          where: {
-            type: blockTypeForDb,
-            isActive: true,
-          },
-          data: {
-            isActive: false,
-          },
-        });
+        // await tx.contentBlock.updateMany({
+        //   where: {
+        //     type: blockTypeForDb,
+        //     isActive: true,
+        //   },
+        //   data: {
+        //     isActive: false,
+        //   },
+        // });
 
         return tx.contentBlock.create({
           data: {
@@ -126,6 +132,7 @@ export async function POST(request: NextRequest) {
             description: blockData.description,
             data: blockData.data as Prisma.InputJsonValue | undefined,
             isActive: blockData.isActive,
+            targetPrimaryCategoryId: blockData.targetPrimaryCategoryId, // 新增
             items: blockData.items
               ? {
                   create: blockData.items.map(mapItemCreateData),
@@ -146,6 +153,7 @@ export async function POST(request: NextRequest) {
           description: blockData.description,
           data: blockData.data as Prisma.InputJsonValue | undefined,
           isActive: blockData.isActive,
+          targetPrimaryCategoryId: blockData.targetPrimaryCategoryId, // 新增
           items: blockData.items
             ? {
                 create: blockData.items.map(mapItemCreateData),

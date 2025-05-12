@@ -40,6 +40,7 @@ export interface Product {
   material?: string;
   materialDetails?: string[];
   tags?: string[]; // 产品标签
+  gender?: "women" | "men" | string | null; // 新增 gender 字段
 
   // Stock & Availability (Potentially more complex, simple for now)
   // availability?: 'InStock' | 'OutOfStock' | 'PreOrder';

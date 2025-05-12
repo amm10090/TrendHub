@@ -29,6 +29,11 @@ const ContentBlockUpdateSchema = z.object({
   description: z.string().optional().nullable(),
   data: z.any().optional().nullable(),
   isActive: z.boolean().optional(),
+  targetPrimaryCategoryId: z
+    .string()
+    .cuid({ message: "无效的一级分类ID" })
+    .optional()
+    .nullable(),
   items: z.array(ServerContentItemSchema).optional(), // 使用服务端定义的 Schema
 });
 
@@ -46,6 +51,7 @@ export async function GET(
         items: {
           orderBy: { order: "asc" },
         },
+        targetPrimaryCategory: { select: { id: true, name: true, slug: true } },
       },
     });
 
@@ -123,16 +129,16 @@ export async function PATCH(
 
     if (updateData.isActive === true && blockTypeForDb) {
       updatedContentBlock = await db.$transaction(async (tx) => {
-        await tx.contentBlock.updateMany({
-          where: {
-            type: blockTypeForDb,
-            id: { not: id },
-            isActive: true,
-          },
-          data: {
-            isActive: false,
-          },
-        });
+        // await tx.contentBlock.updateMany({
+        //   where: {
+        //     type: blockTypeForDb,
+        //     id: { not: id },
+        //     isActive: true,
+        //   },
+        //   data: {
+        //     isActive: false,
+        //   },
+        // });
 
         const { items, ...blockFieldsToUpdate } = updateData;
 
@@ -141,6 +147,8 @@ export async function PATCH(
           data: {
             ...blockFieldsToUpdate,
             type: blockFieldsToUpdate.type as ContentBlockType | undefined,
+            targetPrimaryCategoryId:
+              blockFieldsToUpdate.targetPrimaryCategoryId,
             data: blockFieldsToUpdate.data as
               | Prisma.InputJsonValue
               | undefined
@@ -165,6 +173,7 @@ export async function PATCH(
         data: {
           ...blockFieldsToUpdate,
           type: blockFieldsToUpdate.type as ContentBlockType | undefined,
+          targetPrimaryCategoryId: blockFieldsToUpdate.targetPrimaryCategoryId,
           data: blockFieldsToUpdate.data as
             | Prisma.InputJsonValue
             | undefined

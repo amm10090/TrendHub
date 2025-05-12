@@ -213,6 +213,10 @@
     "type": {
       "css": "CSS",
       "js": "JS"
+    },
+    "errors": {
+      "fetchBrandStatsFailed": "获取品牌产品统计失败",
+      "fetchCategoryStatsFailed": "获取分类产品统计失败"
     }
   },
   "common": {
@@ -322,7 +326,55 @@
     "totalRevenue": "总收入",
     "totalUsers": "用户总数",
     "viewAll": "查看全部",
-    "welcome": "欢迎回来"
+    "welcome": "欢迎回来",
+    "dataNotAvailable": "数据不可用",
+    "totalBrands": "品牌总数",
+    "totalCategories": "分类总数",
+    "totalContentBlocks": "内容块总数",
+    "recentProducts": "最近添加的产品",
+    "recentProductsDescription": "查看最新加入数据库的产品",
+    "noRecentProducts": "暂无最近添加的产品",
+    "analyticsTab": {
+      "title": "分析",
+      "description": "数据洞察与统计图表",
+      "productsPerBrand": "各品牌产品数量",
+      "productsPerCategory": "各分类产品数量",
+      "recentScraperActivity": "最近爬虫活动",
+      "scraperTaskName": "任务名称",
+      "scraperStatus": "状态",
+      "scraperStartedAt": "开始时间",
+      "scraperDuration": "持续时间",
+      "scraperTrigger": "触发方式",
+      "loadingData": "加载图表数据中...",
+      "dataNotAvailable": "数据不可用或待实现",
+      "viewLogs": "查看日志",
+      "charts": {
+        "brandProductCountNote": "完整的产品数量统计图表需要后端 API 支持才能显示准确数据。当前仅展示品牌列表。",
+        "categoryProductCountNote": "完整的分类产品数量统计图表需要后端 API 支持才能显示准确数据。当前仅展示一级分类列表。"
+      },
+      "errors": {
+        "fetchBrandStatsFailed": "获取品牌产品统计失败",
+        "fetchCategoryStatsFailed": "获取分类产品统计失败"
+      }
+    },
+    "reportsTab": {
+      "title": "报表",
+      "description": "生成和下载数据报告",
+      "generateProductReport": "生成产品列表报告 (CSV)",
+      "generateBrandReport": "生成品牌列表报告 (CSV)",
+      "generateCategoryReport": "生成分类列表报告 (CSV)",
+      "comingSoon": "即将推出",
+      "generatingReport": "正在生成报告...",
+      "downloadFailed": "下载报告失败",
+      "productReportName": "产品列表报告",
+      "brandReportName": "品牌列表报告",
+      "categoryReportName": "分类列表报告",
+      "parentNameNotAvailable": "父分类名不可用",
+      "errors": {
+        "fetchReportDataFailed": "获取报表数据失败: {error}",
+        "genericReportError": "生成报表时发生未知错误"
+      }
+    }
   },
   "disclaimer": {
     "last_updated": "最后更新",

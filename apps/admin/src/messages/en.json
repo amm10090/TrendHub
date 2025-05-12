@@ -294,7 +294,9 @@
     "columns": {
       "brand": "Brand",
       "category": "Category",
-      "status": "Status"
+      "status": "Status",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
     },
     "confirm": "Confirm",
     "deleting": "Deleting...",
@@ -309,6 +311,7 @@
       "minPrice": "Min Price",
       "reset": "Reset"
     },
+    "notApplicable": "N/A",
     "price": "Price",
     "processing": "Processing...",
     "search": "Search",
@@ -328,10 +331,24 @@
       "delete": "Delete",
       "activate": "Activate",
       "deactivate": "Deactivate",
+      "details": "Details",
       "cancel": "Cancel",
       "create": "Create",
       "saveChanges": "Save Changes",
       "backToList": "Back to List"
+    },
+    "errors": {
+      "unknownApiError": "An unknown API error occurred. Please try again later or contact support."
+    },
+    "pagination": {
+      "items": "items",
+      "next": "Next",
+      "of": "of",
+      "previous": "Previous",
+      "prev": "Prev",
+      "showing": "Showing",
+      "rowsPerPage": "Rows per page",
+      "pageInfo": "Page {currentPage} of {totalPages}"
     },
     "productGrid": {
       "title": "Section Title",
@@ -396,7 +413,56 @@
     "totalRevenue": "Total Revenue",
     "totalUsers": "Total Users",
     "viewAll": "View All",
-    "welcome": "Welcome back, check the latest website statistics and data"
+    "welcome": "Welcome back, check the latest website statistics and data",
+    "dataNotAvailable": "Data unavailable",
+    "noRecentSales": "No recent sales data",
+    "totalBrands": "Total Brands",
+    "totalCategories": "Total Categories",
+    "totalContentBlocks": "Total Content Blocks",
+    "recentProducts": "Recent Products",
+    "recentProductsDescription": "View the latest products added to the database",
+    "noRecentProducts": "No recent products added",
+    "analyticsTab": {
+      "title": "Analytics",
+      "description": "Data insights and statistical charts",
+      "productsPerBrand": "Products per Brand",
+      "productsPerCategory": "Products per Category",
+      "recentScraperActivity": "Recent Scraper Activity",
+      "scraperTaskName": "Task Name",
+      "scraperStatus": "Status",
+      "scraperStartedAt": "Started At",
+      "scraperDuration": "Duration",
+      "scraperTrigger": "Trigger",
+      "loadingData": "Loading chart data...",
+      "dataNotAvailable": "Data unavailable or pending implementation",
+      "viewLogs": "View Logs",
+      "charts": {
+        "brandProductCountNote": "Full product count statistics for brands require backend API support for accurate data. Currently displaying brand list only.",
+        "categoryProductCountNote": "Full product count statistics for categories require backend API support for accurate data. Currently displaying L1 category list only."
+      },
+      "errors": {
+        "fetchBrandStatsFailed": "Failed to fetch brand product statistics",
+        "fetchCategoryStatsFailed": "Failed to fetch category product statistics"
+      }
+    },
+    "reportsTab": {
+      "title": "Reports",
+      "description": "Generate and download data reports",
+      "generateProductReport": "Generate Product List Report (CSV)",
+      "generateBrandReport": "Generate Brand List Report (CSV)",
+      "generateCategoryReport": "Generate Category List Report (CSV)",
+      "comingSoon": "Coming Soon",
+      "generatingReport": "Generating report...",
+      "downloadFailed": "Failed to download report",
+      "productReportName": "Product List Report",
+      "brandReportName": "Brand List Report",
+      "categoryReportName": "Category List Report",
+      "parentNameNotAvailable": "Parent Name Unavailable",
+      "errors": {
+        "fetchReportDataFailed": "Failed to fetch report data: {error}",
+        "genericReportError": "An unknown error occurred while generating the report"
+      }
+    }
   },
   "disclaimer": {
     "last_updated": "",

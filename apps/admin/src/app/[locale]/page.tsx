@@ -1,16 +1,157 @@
 "use client";
 
-import { Card, CardBody, CardHeader } from "@heroui/react";
-import { Tabs, Tab } from "@heroui/react";
+import {
+  CubeIcon,
+  TagIcon,
+  FolderIcon,
+  DocumentTextIcon,
+} from "@heroicons/react/24/outline"; // Example icons
+import { Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
 import { CustomNavbar } from "@/components/custom-navbar";
-import { Overview } from "@/components/overview";
-import { RecentSales } from "@/components/recent-sales";
+// import { Overview } from "@/components/overview"; // Commented out as per plan
+import { DashboardAnalytics } from "@/components/dashboard-analytics"; // Import new component
+import { DashboardReports } from "@/components/dashboard-reports"; // Import new component
+import { RecentProducts } from "@/components/recent-products"; // Updated component name
 import { Link } from "@/i18n";
+import type { Product } from "@/lib/services/product.service"; // For recentProducts state
+
+// Interface for API stats (adjust based on actual API response)
+interface ProductStats {
+  total: number;
+  // other stats if available
+}
+
+interface CountResponse {
+  total?: number; // For brands, categories
+  meta?: {
+    // For content blocks
+    total: number;
+  };
+  pagination?: {
+    // Keep just in case, but seems unused based on screenshots
+    totalItems?: number;
+  };
+  // Other fields might exist
+}
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
+
+  const [productCount, setProductCount] = useState<number | string>(
+    t("dataNotAvailable"),
+  );
+  const [brandCount, setBrandCount] = useState<number | string>(
+    t("dataNotAvailable"),
+  );
+  const [categoryCount, setCategoryCount] = useState<number | string>(
+    t("dataNotAvailable"),
+  );
+  const [contentBlockCount, setContentBlockCount] = useState<number | string>(
+    t("dataNotAvailable"),
+  );
+  const [recentProducts, setRecentProducts] = useState<Product[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [
+          productStatsRes,
+          brandsRes,
+          categoriesRes,
+          contentBlocksRes,
+          recentProductsRes,
+        ] = await Promise.all([
+          fetch("/api/products/stats"),
+          fetch("/api/brands?limit=1"), // TODO: Optimize count fetching
+          fetch("/api/categories?limit=1"), // TODO: Optimize count fetching
+          fetch("/api/admin/content-blocks?limit=1"), // TODO: Optimize count fetching
+          fetch("/api/products?limit=5&sortBy=createdAt&sortOrder=desc"),
+        ]);
+
+        // Product Count
+        if (productStatsRes.ok) {
+          const productStatsData: ProductStats = await productStatsRes.json();
+
+          setProductCount(productStatsData.total);
+        } else {
+          setProductCount(t("dataNotAvailable"));
+        }
+
+        // Brand Count
+        if (brandsRes.ok) {
+          const brandsData: CountResponse = await brandsRes.json();
+
+          setBrandCount(brandsData.total ?? t("dataNotAvailable"));
+        } else {
+          setBrandCount(t("dataNotAvailable"));
+        }
+
+        // Category Count
+        if (categoriesRes.ok) {
+          const categoriesData: CountResponse = await categoriesRes.json();
+
+          setCategoryCount(categoriesData.total ?? t("dataNotAvailable"));
+        } else {
+          setCategoryCount(t("dataNotAvailable"));
+        }
+
+        // Content Block Count
+        if (contentBlocksRes.ok) {
+          const contentBlocksData: CountResponse =
+            await contentBlocksRes.json();
+
+          setContentBlockCount(
+            contentBlocksData.meta?.total ?? t("dataNotAvailable"),
+          );
+        } else {
+          setContentBlockCount(t("dataNotAvailable"));
+        }
+
+        // Recent Products
+        if (recentProductsRes.ok) {
+          const recentProductsData: { data: Product[] } =
+            await recentProductsRes.json();
+
+          setRecentProducts(recentProductsData.data);
+        } else {
+          setRecentProducts(null);
+        }
+      } catch (e) {
+        const fetchError = e as Error;
+
+        setError(fetchError.message || "Failed to load dashboard data");
+        setProductCount(t("dataNotAvailable"));
+        setBrandCount(t("dataNotAvailable"));
+        setCategoryCount(t("dataNotAvailable"));
+        setContentBlockCount(t("dataNotAvailable"));
+        setRecentProducts(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [t]); // Added t to dependency array as it's used in error/default states
+
+  const renderStatValue = (value: number | string) => {
+    if (isLoading) {
+      return (
+        <div className="h-7 w-1/2 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
+      );
+    }
+    if (typeof value === "number") {
+      return value.toLocaleString();
+    }
+
+    return value;
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -26,6 +167,14 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
+        {error && (
+          <div
+            className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
+            role="alert"
+          >
+            <span className="font-medium">Error:</span> {error}
+          </div>
+        )}
         <Tabs defaultSelectedKey="overview" className="space-y-4">
           <Tab key="overview" title={t("overview")}>
             <div className="space-y-4 mt-4">
@@ -33,104 +182,58 @@ export default function DashboardPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div className="text-sm font-medium">
-                      {t("totalRevenue")}
+                      {t("totalProducts")}
                     </div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
+                    <CubeIcon className="h-5 w-5 text-muted-foreground" />
                   </CardHeader>
                   <CardBody>
-                    <div className="text-2xl font-bold">$45,231.89</div>
-                    <p className="text-xs text-muted-foreground">
-                      {t("revenueIncrease")}
-                    </p>
+                    <div className="text-2xl font-bold">
+                      {renderStatValue(productCount)}
+                    </div>
                   </CardBody>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div className="text-sm font-medium">
-                      {t("subscriptions")}
+                      {t("totalBrands")}
                     </div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
+                    <TagIcon className="h-5 w-5 text-muted-foreground" />
                   </CardHeader>
                   <CardBody>
-                    <div className="text-2xl font-bold">+2350</div>
-                    <p className="text-xs text-muted-foreground">
-                      {t("subscriptionIncrease")}
-                    </p>
+                    <div className="text-2xl font-bold">
+                      {renderStatValue(brandCount)}
+                    </div>
                   </CardBody>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div className="text-sm font-medium">{t("sales")}</div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <rect width="20" height="14" x="2" y="5" rx="2" />
-                      <path d="M2 10h20" />
-                    </svg>
+                    <div className="text-sm font-medium">
+                      {t("totalCategories")}
+                    </div>
+                    <FolderIcon className="h-5 w-5 text-muted-foreground" />
                   </CardHeader>
                   <CardBody>
-                    <div className="text-2xl font-bold">+12,234</div>
-                    <p className="text-xs text-muted-foreground">
-                      {t("salesIncrease")}
-                    </p>
+                    <div className="text-2xl font-bold">
+                      {renderStatValue(categoryCount)}
+                    </div>
                   </CardBody>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div className="text-sm font-medium">{t("activeNow")}</div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
+                    <div className="text-sm font-medium">
+                      {t("totalContentBlocks")}
+                    </div>
+                    <DocumentTextIcon className="h-5 w-5 text-muted-foreground" />
                   </CardHeader>
                   <CardBody>
-                    <div className="text-2xl font-bold">+573</div>
-                    <p className="text-xs text-muted-foreground">
-                      {t("activeIncrease")}
-                    </p>
+                    <div className="text-2xl font-bold">
+                      {renderStatValue(contentBlockCount)}
+                    </div>
                   </CardBody>
                 </Card>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                {/* TODO: Implement a relevant chart for Overview section
                 <Card className="col-span-4">
                   <CardHeader>
                     <div className="text-lg font-semibold">{t("overview")}</div>
@@ -139,30 +242,36 @@ export default function DashboardPage() {
                     <Overview />
                   </CardBody>
                 </Card>
-                <Card className="col-span-3">
+                */}
+                <Card className="col-span-full lg:col-span-3">
+                  {" "}
+                  {/* Adjusted to full width on smaller, 3/7 on large */}
                   <CardHeader>
                     <div className="text-lg font-semibold">
-                      {t("recentSales")}
+                      {t("recentProducts")}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {t("recentSalesDescription")}
+                      {t("recentProductsDescription")}
                     </div>
                   </CardHeader>
                   <CardBody>
-                    <RecentSales />
+                    <RecentProducts
+                      products={recentProducts}
+                      isLoading={isLoading}
+                    />
                   </CardBody>
                 </Card>
               </div>
             </div>
           </Tab>
-          <Tab key="analytics" title={t("analytics")}>
+          <Tab key="analytics" title={t("analyticsTab.title")}>
             <div className="mt-4">
-              <p>{t("analyticsContent")}</p>
+              <DashboardAnalytics />
             </div>
           </Tab>
-          <Tab key="reports" title={t("reports")}>
+          <Tab key="reports" title={t("reportsTab.title")}>
             <div className="mt-4">
-              <p>{t("reportsContent")}</p>
+              <DashboardReports />
             </div>
           </Tab>
         </Tabs>

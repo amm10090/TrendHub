@@ -10,6 +10,7 @@ export type Category = {
   description?: string;
   level: number;
   parentId?: string;
+  parentName?: string;
   image?: string;
   isActive: boolean;
   showInNavbar?: boolean;
@@ -20,6 +21,7 @@ export type Category = {
 // 定义分类树节点类型
 export interface CategoryTreeNode extends Category {
   children: CategoryTreeNode[];
+  parentName?: string;
 }
 
 // 定义查询参数接口
@@ -101,109 +103,121 @@ class CategoryService {
       ...(isActive !== undefined && { isActive }),
     };
 
-    // 获取符合条件的所有分类
-    const allCategories = await this.prisma.category.findMany({
+    const allDbCategories = await this.prisma.category.findMany({
       where,
       orderBy: [{ level: "asc" }, { name: "asc" }],
     });
 
-    // 如果有parentId，筛选出指定父分类及其相关分类
-    let filteredCategories = allCategories;
+    const parentIdToNameMap = new Map<string, string>();
+
+    allDbCategories.forEach((cat) => {
+      if (cat.id && cat.name) {
+        parentIdToNameMap.set(cat.id, cat.name);
+      }
+    });
+
+    // Helper to add parentName consistently
+    const addParentNameToCategory = (
+      dbCat: (typeof allDbCategories)[0],
+    ): Category => ({
+      ...dbCat,
+      createdAt: new Date(dbCat.createdAt), // Ensure Date type
+      updatedAt: new Date(dbCat.updatedAt), // Ensure Date type
+      parentName: dbCat.parentId
+        ? parentIdToNameMap.get(dbCat.parentId)
+        : undefined,
+    });
+
+    let processedCategories: Category[] = [];
 
     if (parentId) {
+      const parentCategoryFromDb = allDbCategories.find(
+        (cat) => cat.id === parentId,
+      );
+
       if (getAllRelated) {
-        // 过滤出直接子分类和孙子分类
-        const childCategories = allCategories.filter(
+        const childDbCategories = allDbCategories.filter(
           (cat) => cat.parentId === parentId,
         );
-        const childIds = childCategories.map((cat) => cat.id);
-        const grandChildCategories = allCategories.filter((cat) =>
+        const childIds = childDbCategories.map((cat) => cat.id);
+        const grandChildDbCategories = allDbCategories.filter((cat) =>
           childIds.includes(cat.parentId || ""),
         );
 
-        // 合并结果集（包括父分类、子分类和孙子分类）
-        const parentCategory = allCategories.find((cat) => cat.id === parentId);
-
-        filteredCategories = [
-          ...(parentCategory ? [parentCategory] : []),
-          ...childCategories,
-          ...grandChildCategories,
-        ];
+        if (parentCategoryFromDb) {
+          processedCategories.push(
+            addParentNameToCategory(parentCategoryFromDb),
+          );
+        }
+        processedCategories.push(
+          ...childDbCategories.map(addParentNameToCategory),
+        );
+        processedCategories.push(
+          ...grandChildDbCategories.map(addParentNameToCategory),
+        );
       } else {
-        // 只筛选指定父分类的直接子分类
-        filteredCategories = allCategories.filter(
+        const directChildDbCategories = allDbCategories.filter(
           (cat) => cat.parentId === parentId,
         );
-        // 如果需要包含父分类本身
-        const parentCategory = allCategories.find((cat) => cat.id === parentId);
 
-        if (parentCategory) {
-          filteredCategories = [parentCategory, ...filteredCategories];
+        if (parentCategoryFromDb) {
+          processedCategories.push(
+            addParentNameToCategory(parentCategoryFromDb),
+          );
         }
+        processedCategories.push(
+          ...directChildDbCategories.map(addParentNameToCategory),
+        );
       }
+    } else {
+      processedCategories = allDbCategories.map(addParentNameToCategory);
     }
 
-    // 如果需要使用分类家族分页
     if (familyPaging) {
-      // 按分类家族进行分组和排序
-      const treeOrderedCategories = this.organizeTreeOrder(filteredCategories);
-
-      // 按分类家族为单位进行分页
+      const treeOrderedCategories = this.organizeTreeOrder(processedCategories);
       const categoryFamilies = this.splitCategoriesByFamily(
         treeOrderedCategories,
       );
       const totalFamilies = categoryFamilies.length;
-
-      // 计算要显示哪些分类家族
-      const familiesPerPage = Math.max(1, Math.floor(limit / 10)); // 假设每个分类家族平均有10个项目
+      const familiesPerPage = Math.max(1, Math.floor(limit / 10));
       const startFamilyIndex = (page - 1) * familiesPerPage;
       const endFamilyIndex = Math.min(
         startFamilyIndex + familiesPerPage,
         totalFamilies,
       );
-
-      // 合并选中的分类家族
-      const paginatedItems: Category[] = [];
-
-      for (let i = startFamilyIndex; i < endFamilyIndex; i++) {
-        paginatedItems.push(...categoryFamilies[i]);
-      }
+      const paginatedFamilyItems = categoryFamilies
+        .slice(startFamilyIndex, endFamilyIndex)
+        .flat();
 
       return {
-        items: paginatedItems,
-        total: treeOrderedCategories.length,
+        items: paginatedFamilyItems, // These items already include parentName
+        total: treeOrderedCategories.length, // Total items in all relevant families
         page,
-        limit,
+        limit, // This 'limit' is the requested item limit, not family limit
         totalPages: Math.ceil(totalFamilies / familiesPerPage),
       };
     }
 
-    // 使用传统分页方式
-    // 先按层级和名称排序
-    filteredCategories.sort((a, b) => {
-      if (a.level !== b.level) {
-        return a.level - b.level;
-      }
+    // Traditional pagination
+    processedCategories.sort((a, b) => {
+      if (a.level !== b.level) return a.level - b.level;
 
       return a.name.localeCompare(b.name);
     });
 
-    // 计算分页
     const startIndex = (page - 1) * limit;
-    const paginatedItems = filteredCategories.slice(
+    const paginatedItems = processedCategories.slice(
       startIndex,
       startIndex + limit,
     );
-
-    // 对结果进行排序，尝试让同一分类树的项目靠近
     const sortedItems = this.sortCategoriesForDisplay(paginatedItems);
 
     return {
-      items: sortedItems,
-      total: filteredCategories.length,
+      items: sortedItems, // These items already include parentName
+      total: processedCategories.length,
       page,
       limit,
-      totalPages: Math.ceil(filteredCategories.length / limit),
+      totalPages: Math.ceil(processedCategories.length / limit),
     };
   }
 
@@ -375,19 +389,24 @@ class CategoryService {
 
   // 获取分类树结构
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
-    const categories = await this.prisma.category.findMany({
-      where: { isActive: true }, // 首先只获取所有激活的分类，具体的显示逻辑在 buildTree 中细化
+    const categoriesFromDb = await this.prisma.category.findMany({
+      where: { isActive: true },
       orderBy: [{ level: "asc" }, { name: "asc" }],
+      // No need to include parent here, parentName will be mapped
     });
 
+    // const categoryMap = new Map(categoriesFromDb.map(cat => [cat.id, cat])); // Unused, remove
+    const parentIdToNameMap = new Map(
+      categoriesFromDb.map((cat) => [cat.id, cat.name]),
+    );
+
     const buildTree = (
-      items: Category[],
+      items: typeof categoriesFromDb, // Use the type from Prisma fetch
       parentId: string | null = null,
       level: number = 1,
     ): CategoryTreeNode[] => {
       return items
         .filter((item) => {
-          // 对 L1 层级的特殊处理：只要求 isActive
           if (level === 1) {
             return (
               item.parentId === parentId &&
@@ -396,7 +415,6 @@ class CategoryService {
             );
           }
 
-          // 对 L2 及更深层级：要求 isActive 和 showInNavbar
           return (
             item.parentId === parentId &&
             item.level === level &&
@@ -404,22 +422,39 @@ class CategoryService {
             item.showInNavbar === true
           );
         })
-        .map((item) => ({
-          ...item,
-          // 递归构建子树时，子节点遵循其自身的 showInNavbar 和 isActive 状态 (由下一层 buildTree 过滤)
-          children: buildTree(categories, item.id, level + 1),
-        }));
+        .map((item) => {
+          const parentName = item.parentId
+            ? parentIdToNameMap.get(item.parentId)
+            : undefined;
+
+          return {
+            ...item,
+            createdAt: new Date(item.createdAt), // Ensure Date type
+            updatedAt: new Date(item.updatedAt), // Ensure Date type
+            parentName,
+            children: buildTree(items, item.id, level + 1),
+          };
+        });
     };
 
-    // 初始调用以构建整个树，从L1开始
-    return buildTree(categories);
+    return buildTree(categoriesFromDb);
   }
 
   // 获取单个分类
   async getCategory(id: string): Promise<Category | null> {
-    return this.prisma.category.findUnique({
+    const category = await this.prisma.category.findUnique({
       where: { id },
+      include: { parent: { select: { name: true } } },
     });
+
+    if (!category) return null;
+
+    return {
+      ...category,
+      createdAt: new Date(category.createdAt), // Ensure Date type
+      updatedAt: new Date(category.updatedAt), // Ensure Date type
+      parentName: category.parent?.name,
+    };
   }
 
   // 创建分类

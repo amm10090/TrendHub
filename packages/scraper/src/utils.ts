@@ -97,3 +97,95 @@ export async function sendLogToBackend(
     );
   }
 }
+
+/**
+ * 清理价格字符串，提取数字
+ * @param priceStr 价格字符串 (如 "$123.45", "€99,99" 等)
+ * @returns 价格数值
+ */
+export function cleanPrice(priceStr: string): number {
+  if (!priceStr) return 0;
+
+  // 移除所有非数字、小数点和逗号的字符
+  const cleanedStr = priceStr.replace(/[^0-9.,]/g, "");
+
+  // 处理不同数字格式 (如 "1,234.56" 或 "1.234,56")
+  let normalizedStr = cleanedStr;
+
+  // 如果包含逗号和点，确定哪个是小数分隔符
+  if (cleanedStr.includes(",") && cleanedStr.includes(".")) {
+    const lastCommaIndex = cleanedStr.lastIndexOf(",");
+    const lastDotIndex = cleanedStr.lastIndexOf(".");
+
+    if (lastCommaIndex > lastDotIndex) {
+      // 逗号是小数分隔符 (如 "1.234,56")
+      normalizedStr = cleanedStr.replace(/\./g, "").replace(",", ".");
+    } else {
+      // 点是小数分隔符 (如 "1,234.56")
+      normalizedStr = cleanedStr.replace(/,/g, "");
+    }
+  } else if (cleanedStr.includes(",")) {
+    // 只有逗号，假设是小数分隔符
+    normalizedStr = cleanedStr.replace(",", ".");
+  }
+
+  // 解析为数字
+  const price = parseFloat(normalizedStr);
+  return isNaN(price) ? 0 : price;
+}
+
+/**
+ * 从字符串中提取数字
+ * @param str 包含数字的字符串
+ * @returns 提取的数字
+ */
+export function extractNumberFromString(str: string): number {
+  if (!str) return 0;
+
+  const match = str.match(/\d+(\.\d+)?/);
+  if (match) {
+    return parseFloat(match[0]);
+  }
+  return 0;
+}
+
+/**
+ * 生成唯一ID
+ * @returns 唯一ID字符串
+ */
+export function generateUniqueId(): string {
+  return `cettire_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+}
+
+/**
+ * 获取 Chrome 可执行文件路径
+ * @returns Chrome 可执行文件路径
+ */
+export function getExecutablePath(): string | undefined {
+  return process.env.CHROME_EXECUTABLE_PATH || undefined;
+}
+
+/**
+ * 等待指定时间
+ * @param ms 等待毫秒数
+ * @returns Promise
+ */
+export function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * 记录信息日志
+ * @param message 日志消息
+ */
+export function logInfo(message: string): void {
+  console.log(`[INFO] ${message}`);
+}
+
+/**
+ * 记录错误日志
+ * @param message 错误消息
+ */
+export function logError(message: string): void {
+  console.error(`[ERROR] ${message}`);
+}

@@ -7,32 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// 站点配置信息
 model SiteSetting {
+  /// 唯一标识符
   id        String   @id @default(cuid())
+  /// 配置键名
   key       String   @unique
+  /// 配置键值
   value     String
+  /// 配置分类
   category  String
+  /// 更新时间
   updatedAt DateTime @updatedAt
+  /// 创建时间
   createdAt DateTime @default(now())
 
   @@index([category])
 }
 
+/// 商品分类信息
 model Category {
+  /// 唯一标识符
   id                    String         @id @default(cuid())
+  /// 分类名称
   name                  String
+  /// 分类的唯一访问路径片段
   slug                  String         @unique
+  /// 分类描述
   description           String?
+  /// 分类层级
   level                 Int
+  /// 父分类ID
   parentId              String?
+  /// 分类图片URL
   image                 String?
+  /// 是否激活
   isActive              Boolean        @default(true)
+  /// 创建时间
   createdAt             DateTime       @default(now())
+  /// 更新时间
   updatedAt             DateTime       @updatedAt
+  /// 是否在导航栏显示
   showInNavbar          Boolean        @default(false)
+  /// 父分类关联
   parent                Category?      @relation("SubCategories", fields: [parentId], references: [id])
+  /// 子分类列表关联
   children              Category[]     @relation("SubCategories")
+  /// 作为目标分类的内容区块列表
   targetedContentBlocks ContentBlock[] @relation("ContentBlockTargetCategory")
+  /// 该分类下的商品列表
   products              Product[]
 
   @@index([parentId])
@@ -41,61 +64,112 @@ model Category {
   @@index([showInNavbar])
 }
 
+/// 品牌信息
 model Brand {
+  /// 唯一标识符
   id          String    @id @default(cuid())
+  /// 品牌名称
   name        String    @unique
+  /// 品牌的唯一访问路径片段
   slug        String    @unique
+  /// 品牌描述
   description String?
+  /// 品牌Logo图片URL
   logo        String?
+  /// 品牌官方网站URL
   website     String?
+  /// 是否激活
   isActive    Boolean   @default(true)
+  /// 创建时间
   createdAt   DateTime  @default(now())
+  /// 更新时间
   updatedAt   DateTime  @updatedAt
+  /// 是否为热门品牌
   popularity  Boolean   @default(false)
+  /// 该品牌下的商品列表
   products    Product[]
 
   @@index([isActive])
   @@index([popularity])
 }
 
+/// 商品信息
 model Product {
+  /// 唯一标识符
   id                    String    @id @default(cuid())
+  /// 商品名称
   name                  String
+  /// 商品价格
   price                 Decimal
+  /// 商品状态 (例如：在售, 下架)
   status                String
+  /// 商品描述
   description           String?
+  /// 商品图片URL列表
   images                String[]
+  /// 商品库存单位 (Stock Keeping Unit)
   sku                   String?
+  /// 库存数量
   inventory             Int       @default(0)
+  /// 是否已删除
   isDeleted             Boolean   @default(false)
+  /// 更新时间
   updatedAt             DateTime  @updatedAt
+  /// 创建时间
   createdAt             DateTime  @default(now())
+  /// 注意事项
   cautions              String?
+  /// 商品颜色列表
   colors                String[]  @default([])
+  /// 商品材质
   material              String?
+  /// 商品尺码列表
   sizes                 String[]  @default([])
+  /// 商品数据来源
   source                String
+  /// 推广链接
   promotionUrl          String?
+  /// 所属品牌ID
   brandId               String
+  /// 所属分类ID
   categoryId            String
+  /// 商品视频URL列表
   videos                String[]  @default([])
+  /// 折扣金额或百分比
   discount              Decimal?  @db.Decimal(10, 2)
+  /// 是否为新品
   isNew                 Boolean   @default(false)
+  /// 商品原价
   originalPrice         Decimal?  @db.Decimal(10, 2)
+  /// 优惠券代码
   coupon                String?
+  /// 优惠券描述
   couponDescription     String?
+  /// 优惠券过期日期
   couponExpirationDate  DateTime?
+  /// 面包屑导航路径
   breadcrumbs           String[]  @default([])
+  /// 货币单位 (例如：USD, CNY)
   currency              String?
+  /// 其他元数据 (JSON格式)
   metadata              Json?
+  /// 原价货币单位
   originalPriceCurrency String?
+  /// 数据抓取时间
   scrapedAt             DateTime?
+  /// 商品原始URL
   url                   String?
+  /// 设计师颜色名称
   designerColorName     String?
+  /// 材质详情列表
   materialDetails       String[]  @default([])
+  /// 商品标签列表
   tags                  String[]  @default([])
+  /// 适用性别 (例如：男, 女, 通用)
   gender                String?
+  /// 所属品牌关联
   brand                 Brand     @relation(fields: [brandId], references: [id])
+  /// 所属分类关联
   category              Category  @relation(fields: [categoryId], references: [id])
 
   @@unique([url, source], name: "url_source")
@@ -107,29 +181,51 @@ model Product {
   @@index([source])
 }
 
+/// 页面信息 (例如：关于我们、联系我们等自定义页面)
 model Page {
+  /// 唯一标识符
   id          String    @id @default(cuid())
+  /// 页面标题
   title       String
+  /// 页面访问URL (唯一)
   url         String    @unique
+  /// 页面内容 (HTML或Markdown)
   content     String?
+  /// 页面状态 (例如：Draft草稿, Published已发布)
   status      String    @default("Draft")
+  /// 创建时间
   createdAt   DateTime  @default(now())
+  /// 更新时间
   updatedAt   DateTime  @updatedAt
+  /// 发布时间
   publishedAt DateTime?
+  /// 页面主图URL
   mainImage   String?
 }
 
+/// 代码片段 (用于在特定页面位置插入自定义JS或CSS)
 model CodeSnippet {
+  /// 唯一标识符
   id          String          @id @default(cuid())
+  /// 代码片段名称
   name        String
+  /// 实际代码内容
   code        String
+  /// 是否激活
   isActive    Boolean         @default(false)
+  /// 创建时间
   createdAt   DateTime        @default(now())
+  /// 更新时间
   updatedAt   DateTime        @updatedAt
+  /// 代码片段描述
   description String?
+  /// 生效的页面路径列表 (为空则全局生效)
   paths       String[]        @default([])
+  /// 执行优先级 (数字越小优先级越高)
   priority    Int             @default(10)
+  /// 代码片段类型 (JS, CSS)
   type        SnippetType
+  /// 插入位置 (HEAD, BODY_START, BODY_END)
   location    SnippetLocation
 
   @@index([isActive])
@@ -137,18 +233,31 @@ model CodeSnippet {
   @@index([location])
 }
 
+/// 内容区块 (用于动态管理页面上的内容模块)
 model ContentBlock {
+  /// 唯一标识符
   id                      String           @id @default(cuid())
+  /// 区块的唯一标识符 (用于代码中引用)
   identifier              String           @unique
+  /// 是否激活
   isActive                Boolean          @default(true)
+  /// 创建时间
   createdAt               DateTime         @default(now())
+  /// 更新时间
   updatedAt               DateTime         @updatedAt
+  /// 区块自身的配置数据 (JSON格式)
   data                    Json?
+  /// 区块描述
   description             String?
+  /// 区块名称 (管理后台显示用)
   name                    String
+  /// 内容区块类型
   type                    ContentBlockType
+  /// 关联的主要目标分类ID
   targetPrimaryCategoryId String?
+  /// 关联的主要目标分类
   targetPrimaryCategory   Category?        @relation("ContentBlockTargetCategory", fields: [targetPrimaryCategoryId], references: [id])
+  /// 区块内的内容项列表
   items                   ContentItem[]
 
   @@index([identifier])
@@ -157,18 +266,31 @@ model ContentBlock {
   @@index([targetPrimaryCategoryId])
 }
 
+/// 内容区块中的具体内容项
 model ContentItem {
+  /// 唯一标识符
   id             String          @id @default(cuid())
+  /// 所属内容区块ID
   parentId       String
+  /// 内容项唯一标识符 (可选, 用于特定引用)
   itemIdentifier String?         @unique
+  /// 内容项类型
   type           ContentItemType
+  /// 内容项名称 (管理后台显示用)
   name           String
+  /// 内容项具体数据 (JSON格式, 结构取决于类型)
   data           Json
+  /// 显示顺序
   order          Int             @default(0)
+  /// 是否激活
   isActive       Boolean         @default(true)
+  /// 创建时间
   createdAt      DateTime        @default(now())
+  /// 更新时间
   updatedAt      DateTime        @updatedAt
+  /// 在父区块模板中的插槽键名
   slotKey        String?
+  /// 所属内容区块关联
   parentBlock    ContentBlock    @relation(fields: [parentId], references: [id], onDelete: Cascade)
 
   @@index([parentId])
@@ -178,39 +300,68 @@ model ContentItem {
   @@index([slotKey])
 }
 
+/// 爬虫任务定义
 model ScraperTaskDefinition {
+  /// 唯一标识符
   id               String                 @id @default(cuid())
+  /// 任务名称 (唯一)
   name             String                 @unique
+  /// 任务描述
   description      String?
+  /// 目标站点标识
   targetSite       String
+  /// 起始URL列表
   startUrls        String[]
+  /// CRON表达式 (用于定时执行)
   cronExpression   String?
+  /// 是否启用
   isEnabled        Boolean                @default(true)
+  /// 最大请求数限制
   maxRequests      Int?
+  /// 页面加载后最大点击次数 (用于模拟交互)
   maxLoadClicks    Int?
+  /// 最大抓取商品数限制
   maxProducts      Int?
+  /// 默认库存数量
   defaultInventory Int                    @default(99)
+  /// 创建时间
   createdAt        DateTime               @default(now())
+  /// 更新时间
   updatedAt        DateTime               @updatedAt
+  /// 该任务的执行记录列表
   executions       ScraperTaskExecution[]
 
   @@index([targetSite])
   @@index([isEnabled])
 }
 
+/// 爬虫任务执行记录
 model ScraperTaskExecution {
+  /// 唯一标识符
   id               String                 @id @default(cuid())
+  /// 关联的任务定义ID
   taskDefinitionId String
+  /// 执行状态
   status           ScraperTaskStatus      @default(IDLE)
+  /// 触发类型 (手动, 定时, API)
   triggerType      ScraperTaskTriggerType
+  /// 开始时间
   startedAt        DateTime?
+  /// 完成时间
   completedAt      DateTime?
+  /// 执行指标 (JSON格式, 例如：抓取数量, 耗时)
   metrics          Json?
+  /// 错误信息 (如果执行失败)
   errorMessage     String?
+  /// 错误堆栈信息
   errorStack       String?
+  /// 创建时间
   createdAt        DateTime               @default(now())
+  /// 更新时间
   updatedAt        DateTime               @updatedAt
+  /// 关联的任务定义
   taskDefinition   ScraperTaskDefinition  @relation(fields: [taskDefinitionId], references: [id], onDelete: Cascade)
+  /// 该次执行的日志记录列表
   logs             ScraperTaskLog[]
 
   @@index([taskDefinitionId])
@@ -218,13 +369,21 @@ model ScraperTaskExecution {
   @@index([triggerType])
 }
 
+/// 爬虫任务执行日志
 model ScraperTaskLog {
+  /// 唯一标识符
   id          String               @id @default(cuid())
+  /// 关联的执行记录ID
   executionId String
+  /// 日志级别 (INFO, WARN, ERROR, DEBUG)
   level       ScraperLogLevel
+  /// 日志消息
   message     String
+  /// 日志时间戳
   timestamp   DateTime             @default(now())
+  /// 上下文信息 (JSON格式)
   context     Json?
+  /// 关联的执行记录
   execution   ScraperTaskExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
 
   @@index([executionId])
@@ -232,53 +391,90 @@ model ScraperTaskLog {
   @@index([timestamp])
 }
 
+/// 代码片段类型
 enum SnippetType {
+  /// JavaScript 代码
   JS
+  /// CSS 样式代码
   CSS
 }
 
+/// 代码片段在HTML中的插入位置
 enum SnippetLocation {
+  /// 插入到 <head> 标签内
   HEAD
+  /// 插入到 <body> 标签开始之后
   BODY_START
+  /// 插入到 <body> 标签结束之前
   BODY_END
 }
 
+/// 内容区块的类型
 enum ContentBlockType {
+  /// 横幅广告或推广图
   BANNER
+  /// 介绍性区块
   INTRODUCTION_SECTION
+  /// 商品网格英雄区 (通常较大, 突出展示)
   PRODUCT_GRID_HERO
+  /// 趋势区块容器 (包含多个趋势卡片)
   TRENDING_SECTION_CONTAINER
+  /// 可配置的商品网格
   PRODUCT_GRID_CONFIGURABLE
 }
 
+/// 内容区块中具体项的类型
 enum ContentItemType {
+  /// 大号趋势卡片
   TRENDING_CARD_LARGE
+  /// 普通趋势卡片
   TRENDING_CARD_NORMAL
+  /// 独立趋势卡片
   TRENDING_CARD_STANDALONE
+  /// 闪亮/特别推荐卡片
   SHINING_CARD
+  /// 文本链接块
   TEXT_LINK_BLOCK
+  /// 介绍性区块中的保障/承诺项
   INTRODUCTION_GUARANTEE_ITEM
+  /// 商品引用 (直接展示商品信息)
   PRODUCT_REFERENCE
 }
 
+/// 爬虫任务执行状态
 enum ScraperTaskStatus {
+  /// 空闲状态
   IDLE
+  /// 已加入队列等待执行
   QUEUED
+  /// 正在执行
   RUNNING
+  /// 执行完成
   COMPLETED
+  /// 执行失败
   FAILED
+  /// 已取消
   CANCELLED
 }
 
+/// 爬虫任务触发类型
 enum ScraperTaskTriggerType {
+  /// 手动触发
   MANUAL
+  /// 定时调度触发
   SCHEDULED
+  /// 通过API接口触发
   API
 }
 
+/// 爬虫日志级别
 enum ScraperLogLevel {
+  /// 信息
   INFO
+  /// 警告
   WARN
+  /// 错误
   ERROR
+  /// 调试信息
   DEBUG
 }

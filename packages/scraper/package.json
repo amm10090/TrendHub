@@ -27,6 +27,7 @@
     "start:prod": "node dist/main.js",
     "start:dev": "tsx src/main.ts",
     "build": "tsc --build tsconfig.json",
-    "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+    "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1",
+    "test:cettire": "tsx src/test-cettire.ts"
   }
 }

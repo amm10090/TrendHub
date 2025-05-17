@@ -87,10 +87,10 @@ export function DashboardReports() {
       link.click();
       document.body.removeChild(link);
       toast.success(t("reportGeneratedSuccess"));
-    } catch (err) {
+    } catch {
       // Capture error for logging or specific handling
       toast.error(t("downloadFailed"));
-      console.error("CSV Download/Parse Error:", err); // Log the actual error
+      // console.error("CSV Download/Parse Error:", _err); // Log the actual error
     }
   };
 

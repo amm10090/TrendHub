@@ -18,6 +18,7 @@ const CreateScraperTaskDefinitionSchema = z.object({
   maxLoadClicks: z.number().int().positive().optional(),
   maxProducts: z.number().int().positive().optional(),
   defaultInventory: z.number().int().nonnegative().default(99),
+  isDebugModeEnabled: z.boolean().optional().default(false),
 });
 
 export async function POST(request: NextRequest) {
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
       maxLoadClicks,
       maxProducts,
       defaultInventory,
+      isDebugModeEnabled,
     } = validationResult.data;
 
     // TODO: Check if a task with the same name already exists (if name should be unique)
@@ -73,6 +75,7 @@ export async function POST(request: NextRequest) {
         maxLoadClicks,
         maxProducts,
         defaultInventory,
+        isDebugModeEnabled,
       },
     });
 

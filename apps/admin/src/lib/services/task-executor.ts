@@ -1,5 +1,6 @@
 // apps/admin/src/lib/services/task-executor.ts
 
+import * as fs from "fs";
 import * as path from "path";
 
 import {
@@ -57,6 +58,10 @@ export class TaskExecutor {
     level: ScraperLogLevel,
     message: string,
     context?: Record<string, unknown>,
+    taskDefForLogging?: {
+      isDebugModeEnabled?: boolean | null;
+      targetSite?: string | null;
+    },
   ): Promise<void> {
     try {
       await db.scraperTaskLog.create({
@@ -66,7 +71,7 @@ export class TaskExecutor {
           message,
           context: context
             ? (context as Prisma.InputJsonValue)
-            : Prisma.JsonNull, // Correctly cast context
+            : Prisma.JsonNull,
           timestamp: new Date(),
         },
       });
@@ -75,10 +80,55 @@ export class TaskExecutor {
         `Failed to save log to DB for execution ${executionId}: ${message}`,
         error as Record<string, unknown>,
       );
-
       console.error(
         `[DB LOG FAIL] EXEC_ID: ${executionId} [${level}] ${message}`,
         context || "",
+      );
+    }
+
+    if (taskDefForLogging?.isDebugModeEnabled && taskDefForLogging.targetSite) {
+      await this.appendToFileLog(
+        executionId,
+        taskDefForLogging.targetSite,
+        level,
+        message,
+        context,
+      );
+    }
+  }
+
+  private async appendToFileLog(
+    executionId: string,
+    targetSite: string,
+    level: ScraperLogLevel,
+    message: string,
+    context?: Record<string, unknown>,
+  ): Promise<void> {
+    try {
+      const baseStorageDir =
+        process.env.CRAWLEE_STORAGE_DIR ||
+        path.resolve(process.cwd(), "storage");
+      const siteLogDir = path.join(
+        baseStorageDir,
+        "scraper_storage_runs",
+        targetSite,
+        executionId,
+      );
+
+      if (!fs.existsSync(siteLogDir)) {
+        fs.mkdirSync(siteLogDir, { recursive: true });
+      }
+
+      const logFilePath = path.join(siteLogDir, "debug.log");
+      const timestamp = new Date().toISOString();
+      const contextString = context ? JSON.stringify(context) : "";
+      const logMessage = `[${timestamp}] [${level}] ${message}${contextString ? ` ${contextString}` : ""}\n`;
+
+      fs.appendFileSync(logFilePath, logMessage, { encoding: "utf8" });
+    } catch (fileError) {
+      console.error(
+        `[TaskExecutor FileLog FAIL] Failed to write log to file for execution ${executionId}: ${(fileError as Error).message}`,
+        fileError,
       );
     }
   }
@@ -219,6 +269,10 @@ export class TaskExecutor {
     products: ScrapedProductType[],
     sourceSite: ECommerceSite,
     defaultInventory: number,
+    taskDefForLogging: {
+      isDebugModeEnabled?: boolean | null;
+      targetSite?: string | null;
+    },
   ): Promise<{ savedCount: number; errorCount: number; errors: string[] }> {
     let savedCount = 0;
     let errorCount = 0;
@@ -230,9 +284,15 @@ export class TaskExecutor {
           const errorMsg = `Skipped product due to missing URL or source. URL: ${productData.url || "N/A"}`;
 
           errors.push(errorMsg);
-          await this.log(executionId, ScraperLogLevel.WARN, errorMsg, {
-            productData: productData as unknown as Record<string, unknown>,
-          });
+          await this.log(
+            executionId,
+            ScraperLogLevel.WARN,
+            errorMsg,
+            {
+              productData: productData as unknown as Record<string, unknown>,
+            },
+            taskDefForLogging,
+          );
           errorCount++;
           continue;
         }
@@ -332,10 +392,16 @@ export class TaskExecutor {
         const errorMsg = `Error saving product (URL: ${productData.url}): ${error.message}`;
 
         errors.push(errorMsg);
-        await this.log(executionId, ScraperLogLevel.ERROR, errorMsg, {
-          stack: error.stack,
-          productData: productData as unknown as Record<string, unknown>,
-        });
+        await this.log(
+          executionId,
+          ScraperLogLevel.ERROR,
+          errorMsg,
+          {
+            stack: error.stack,
+            productData: productData as unknown as Record<string, unknown>,
+          },
+          taskDefForLogging,
+        );
       }
     }
 
@@ -366,6 +432,14 @@ export class TaskExecutor {
           executionId,
           ScraperLogLevel.ERROR,
           `Execution record ${executionId} not found, cannot run.`,
+          undefined,
+          executionRecord
+            ? {
+                isDebugModeEnabled:
+                  executionRecord.taskDefinition.isDebugModeEnabled,
+                targetSite: executionRecord.taskDefinition.targetSite,
+              }
+            : undefined,
         );
         throw new Error(`Execution record ${executionId} not found.`);
       }
@@ -373,9 +447,21 @@ export class TaskExecutor {
         executionId,
         ScraperLogLevel.INFO,
         "Task execution status updated to RUNNING.",
+        undefined,
+        executionRecord
+          ? {
+              isDebugModeEnabled:
+                executionRecord.taskDefinition.isDebugModeEnabled,
+              targetSite: executionRecord.taskDefinition.targetSite,
+            }
+          : undefined,
       );
 
       const { taskDefinition } = executionRecord;
+      const logInfoForTask = {
+        isDebugModeEnabled: taskDefinition.isDebugModeEnabled,
+        targetSite: taskDefinition.targetSite,
+      };
 
       const scraperOptions: ScraperOptions = {
         maxRequests: taskDefinition.maxRequests ?? undefined,
@@ -415,6 +501,7 @@ export class TaskExecutor {
             maxProducts: scraperOptions.maxProducts,
           },
         },
+        logInfoForTask,
       );
 
       const scrapedData = await scraperFn(
@@ -428,6 +515,8 @@ export class TaskExecutor {
         executionId,
         ScraperLogLevel.INFO,
         `Scraper finished. Found ${productsToSave.length} products potentially.`,
+        undefined,
+        logInfoForTask,
       );
 
       const saveResults = await this.saveScrapedProducts(
@@ -435,6 +524,7 @@ export class TaskExecutor {
         productsToSave,
         taskDefinition.targetSite as ECommerceSite,
         taskDefinition.defaultInventory,
+        logInfoForTask,
       );
 
       const metrics = {
@@ -460,9 +550,9 @@ export class TaskExecutor {
         ScraperLogLevel.INFO,
         "Task execution COMPLETED successfully.",
         { metrics },
+        logInfoForTask,
       );
     } catch (error: unknown) {
-      // Changed to unknown
       const typedError = error as Error; // Type assertion
       const errorMessage =
         typedError.message || "Unknown error during task execution.";
@@ -489,6 +579,13 @@ export class TaskExecutor {
         ScraperLogLevel.ERROR,
         `Task execution FAILED: ${errorMessage}`,
         { stackBrief: errorStack?.substring(0, 500) },
+        executionRecord
+          ? {
+              isDebugModeEnabled:
+                executionRecord.taskDefinition.isDebugModeEnabled,
+              targetSite: executionRecord.taskDefinition.targetSite,
+            }
+          : undefined,
       );
     }
   }

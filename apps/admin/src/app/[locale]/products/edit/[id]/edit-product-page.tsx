@@ -45,6 +45,14 @@ import { cn } from "@/lib/utils";
 
 import { EditProductClient } from "./edit-product-client";
 
+// 简化的分类对象接口，用于扁平化的分类树
+interface SimplifiedCategory {
+  id: string;
+  name: string;
+  level: number;
+  parentId?: string;
+}
+
 export function EditProductPage({ id }: { id: string }) {
   const t = useTranslations("product.edit");
   const router = useRouter();
@@ -286,24 +294,35 @@ export function EditProductPage({ id }: { id: string }) {
     }
   };
 
-  const flattenCategoryTree = (node: CategoryTreeNode) => {
-    const result = [
-      {
-        id: node.id,
-        name: node.name,
-        level: node.level,
-        parentId: node.parentId,
-      },
-    ];
+  function flattenCategoryTree(node: CategoryTreeNode): SimplifiedCategory[] {
+    // 创建结果数组
+    const result: SimplifiedCategory[] = [];
 
+    // 添加当前节点到结果数组
+    result.push({
+      id: node.id,
+      name: node.name,
+      level: node.level,
+      parentId: node.parentId,
+    });
+
+    // 递归处理子节点
     if (node.children && node.children.length > 0) {
-      node.children.forEach((child) => {
-        result.push(...flattenCategoryTree(child));
-      });
+      for (const child of node.children) {
+        // 确保每个子节点都有正确的 parentId
+        if (!child.parentId) {
+          child.parentId = node.id;
+        }
+
+        // 递归处理子节点并将结果添加到结果数组
+        const childCategories = flattenCategoryTree(child);
+
+        result.push(...childCategories);
+      }
     }
 
     return result;
-  };
+  }
 
   if (isLoadingProduct) {
     return (
@@ -663,10 +682,52 @@ export function EditProductPage({ id }: { id: string }) {
               <ProductsClient.CascadeCategorySelector
                 categories={
                   Array.isArray(categoryTree)
-                    ? categoryTree.flatMap((node) => flattenCategoryTree(node))
+                    ? (() => {
+                        // 扁平化分类树
+                        const flattenedCategories = categoryTree.flatMap(
+                          (node) => flattenCategoryTree(node),
+                        );
+
+                        // console.log(`扁平化后共有 ${flattenedCategories.length} 个分类节点`);
+
+                        // 验证分类的完整性
+                        // let level1Count = 0;
+                        // let level2Count = 0;
+                        // let level3Count = 0;
+                        // let missingParentCount = 0;
+
+                        flattenedCategories.forEach((cat) => {
+                          // 统计各个层级的分类数量
+                          // if (cat.level === 1 || !cat.parentId) {
+                          //   level1Count++;
+                          // } else if (cat.level === 2) {
+                          //   level2Count++;
+                          // } else if (cat.level === 3) {
+                          //   level3Count++;
+                          // }
+
+                          // 验证分类的父子关系
+                          if (cat.parentId) {
+                            const parentExists = flattenedCategories.some(
+                              (parent) => parent.id === cat.parentId,
+                            );
+
+                            if (!parentExists) {
+                              // console.warn(`警告: 分类 ${cat.name}(${cat.id}) 的父分类 ID ${cat.parentId} 不存在于扁平化数组中`);
+                              // missingParentCount++;
+                            }
+                          }
+                        });
+
+                        // console.log(`分类层级统计: 一级(${level1Count})个, 二级(${level2Count})个, 三级(${level3Count})个, 缺少父级(${missingParentCount})个`);
+
+                        return flattenedCategories;
+                      })()
                     : []
                 }
-                onCategoryChange={(id) => setCategoryId(id)}
+                onCategoryChange={(id) => {
+                  setCategoryId(id);
+                }}
                 value={categoryId}
               />
 

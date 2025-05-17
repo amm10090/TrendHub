@@ -574,8 +574,8 @@
         "brandEmpty": "暂无品牌可选",
         "brandError": "加载品牌失败",
         "brandPlaceholder": "请选择商品品牌",
-        "category": "商品分类",
-        "categoryDescription": "请选择此商品所属的分类，将影响商品在前台的展示位置",
+        "category": "产品分类",
+        "categoryDescription": "选择适合该产品的分类",
         "categoryLevel1": "一级分类",
         "categoryLevel1Placeholder": "选择一级分类",
         "categoryLevel2": "二级分类",
@@ -585,9 +585,11 @@
         "tags": "商品标签",
         "tagsPlaceholder": "输入标签并按回车添加",
         "title": "商品组织",
-        "currentFullPathLabel": "当前精确分类路径",
+        "currentFullPathLabel": "当前完整分类路径",
         "genderLabel": "性别",
-        "genderPlaceholder": "选择性别"
+        "genderPlaceholder": "选择性别",
+        "noCategoriesAvailable": "无可用分类",
+        "noSubcategoriesAvailable": "无可用子分类"
       },
       "priceAndInventory": {
         "barcode": "条形码",
@@ -659,6 +661,12 @@
         "featured": "特色商品",
         "featuredDescription": "在首页和特色区域显示",
         "title": "可见性"
+      },
+      "genderOptions": {
+        "none": "无",
+        "women": "女装",
+        "men": "男装",
+        "unisex": "中性"
       }
     }
   },
@@ -1417,37 +1425,33 @@
       "fields": {
         "name": {
           "label": "任务名称",
-          "placeholder": "为任务输入一个唯一的名称"
+          "placeholder": "例如：抓取Cettire新品"
         },
         "description": {
           "label": "描述 (可选)",
-          "placeholder": "简要描述此任务"
+          "placeholder": "输入任务的详细描述"
         },
         "targetSite": {
           "label": "目标站点",
-          "placeholder": "选择目标电商网站"
+          "placeholder": "选择一个目标电商站点"
         },
         "startUrls": {
-          "label": "起始URL",
-          "placeholder": "每行输入一个URL",
-          "description": "这些是爬虫将访问的初始URL。"
+          "label": "起始URL列表",
+          "placeholder": "每行一个URL",
+          "description": "爬虫将从这些URL开始抓取。每行输入一个URL。"
         },
         "cronExpression": {
-          "label": "Cron表达式 (可选)",
-          "placeholder": "例如：0 0 * * * (表示每天午夜)",
-          "description": "如果不需要定时计划，请留空。可使用 crontab.guru 获取帮助。"
-        },
-        "isEnabled": {
-          "label": "启用任务",
-          "description": "如果禁用，任务将不会按计划运行，也无法通过API触发。"
+          "label": "CRON表达式 (可选)",
+          "placeholder": "例如: 0 0 * * * (表示每天午夜)",
+          "description": "如果设置，任务将按此CRON表达式定时执行。留空则不启用定时。"
         },
         "maxRequests": {
           "label": "最大请求数 (可选)",
           "placeholder": "例如：1000"
         },
         "maxLoadClicks": {
-          "label": "最大加载更多次数 (可选)",
-          "placeholder": "例如：20"
+          "label": "最大加载点击次数 (可选)",
+          "placeholder": "例如：10"
         },
         "maxProducts": {
           "label": "最大抓取产品数 (可选)",
@@ -1456,6 +1460,14 @@
         "defaultInventory": {
           "label": "默认库存",
           "placeholder": "例如：99"
+        },
+        "isEnabled": {
+          "label": "启用任务",
+          "description": "如果禁用，任务将不会按计划执行，也无法通过API触发。"
+        },
+        "debugModeEnabled": {
+          "label": "启用调试开发模式",
+          "description": "如果启用，任务执行日志将额外保存到本地文件系统中，用于开发和调试。"
         }
       },
       "actions": {

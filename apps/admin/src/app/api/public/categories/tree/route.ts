@@ -7,7 +7,7 @@ import { categoryService } from "@/lib/services/category.service";
 // 该树只包含 isActive: true 和 showInNavbar: true 的分类及其子分类
 export async function GET() {
   try {
-    const categoryTree = await categoryService.getCategoryTree();
+    const categoryTree = await categoryService.getPublicCategoryTree();
     return NextResponse.json(categoryTree);
   } catch (error) {
     // 考虑记录更详细的错误日志

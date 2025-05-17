@@ -389,71 +389,130 @@ export async function POST(
 
           // Process breadcrumbs (this existing logic can remain,
           // but gender from breadcrumbs is now a lower priority for direct gender field)
-          let processedBreadcrumbs = [...(productData.breadcrumbs || [])];
+          let breadcrumbsForCategoryCreation = productData.breadcrumbs || [];
           const brandNameForCategoryFiltering = productData.brand;
-          const genderKeywords = [
-            "women",
-            "woman",
-            "men",
-            "man",
-            "kids",
-            "children",
-          ];
 
-          if (
-            brandNameForCategoryFiltering &&
-            brandNameForCategoryFiltering.trim() !== ""
-          ) {
-            const lowerCaseBrandName = brandNameForCategoryFiltering
-              .trim()
-              .toLowerCase();
+          // 声明和初始化最终使用的 categoryId 变量
+          let finalCategoryId: string;
 
-            processedBreadcrumbs = processedBreadcrumbs.filter(
-              (crumb) => crumb.toLowerCase() !== lowerCaseBrandName,
-            );
-          }
+          // --- Cettire Specific Breadcrumb Processing --- START ---
+          if (site === "Cettire") {
+            const originalCettireBreadcrumbs = productData.breadcrumbs || [];
 
-          const hasGenderInBreadcrumbs = processedBreadcrumbs.some((crumb) =>
-            genderKeywords.some((genderKey) =>
-              crumb.toLowerCase().includes(genderKey.toLowerCase()),
-            ),
-          );
+            // 确保始终以性别作为一级分类
+            let genderCategory: string | null = null;
 
-          if (
-            !hasGenderInBreadcrumbs &&
-            determinedGender &&
-            (determinedGender === "women" || determinedGender === "men")
-          ) {
-            // If URL inference gave us a clear gender, prepend it to breadcrumbs if not already present
-            // This helps in category creation if breadcrumbs themselves lack gender info.
-            // Capitalize first letter for consistency in breadcrumbs, e.g., "Women"
-            const genderCrumb =
-              determinedGender.charAt(0).toUpperCase() +
-              determinedGender.slice(1);
+            // 1. 首先尝试从已确定的 gender 字段获取性别作为一级分类
+            if (
+              determinedGender &&
+              ["men", "women", "unisex"].includes(
+                determinedGender.toLowerCase(),
+              )
+            ) {
+              genderCategory = determinedGender.toLowerCase();
+            }
+            // 2. 其次，检查第一个面包屑是否为性别
+            else if (
+              originalCettireBreadcrumbs.length > 0 &&
+              ["men", "women", "unisex"].includes(
+                originalCettireBreadcrumbs[0].toLowerCase(),
+              )
+            ) {
+              genderCategory = originalCettireBreadcrumbs[0].toLowerCase();
+            }
+            // 3. 如果还未确定，将默认为 unisex
+            else {
+              genderCategory = "unisex";
+            }
 
-            processedBreadcrumbs = [genderCrumb, ...processedBreadcrumbs];
-          } else if (
-            !hasGenderInBreadcrumbs &&
-            inferGenderFromUrl(productData.url)
-          ) {
-            // Fallback if determinedGender wasn't set by scraper but URL implies it
-            const inferredGenderFromUrlForBreadcrumb = inferGenderFromUrl(
-              productData.url,
-            );
+            // 统一性别首字母大写
+            const formattedGender =
+              genderCategory.charAt(0).toUpperCase() + genderCategory.slice(1);
 
-            if (inferredGenderFromUrlForBreadcrumb) {
-              const genderCrumb =
-                inferredGenderFromUrlForBreadcrumb.charAt(0).toUpperCase() +
-                inferredGenderFromUrlForBreadcrumb.slice(1);
+            if (originalCettireBreadcrumbs.length > 0) {
+              // 首先获取或创建性别一级分类（作为一级分类）
+              const genderBreadcrumbs = [formattedGender];
+              const genderCategoryId = await getOrCreateCategoryId(
+                genderBreadcrumbs,
+                brandNameForCategoryFiltering,
+              );
 
-              processedBreadcrumbs = [genderCrumb, ...processedBreadcrumbs];
+              // 过滤掉面包屑中的性别项和品牌项（通常是第二项）
+              let actualCategoryBreadcrumbs: string[] = [];
+
+              if (originalCettireBreadcrumbs.length > 2) {
+                // 跳过第一项（性别）和第二项（品牌）
+                actualCategoryBreadcrumbs = originalCettireBreadcrumbs.slice(2);
+              }
+
+              if (actualCategoryBreadcrumbs.length > 0) {
+                // 如果有剩余分类，构建完整的面包屑路径
+                const fullBreadcrumbs = [
+                  formattedGender,
+                  ...actualCategoryBreadcrumbs,
+                ];
+
+                // 使用完整路径创建分类结构并获取最终分类ID
+                finalCategoryId = await getOrCreateCategoryId(
+                  fullBreadcrumbs,
+                  brandNameForCategoryFiltering,
+                );
+              } else {
+                // 如果只有性别，直接使用性别分类ID
+                finalCategoryId = genderCategoryId;
+              }
+            } else {
+              // 如果没有面包屑，至少确保有一个性别分类
+              const genderBreadcrumbs = [formattedGender];
+
+              finalCategoryId = await getOrCreateCategoryId(
+                genderBreadcrumbs,
+                brandNameForCategoryFiltering,
+              );
+            }
+
+            // 不再需要使用 breadcrumbsForCategoryCreation 变量
+            breadcrumbsForCategoryCreation = []; // 清空，因为我们已经手动处理了分类创建
+          } else {
+            // 其他站点的分类处理逻辑保持不变
+            // 过滤掉品牌名称，避免将品牌处理为分类
+            if (brandNameForCategoryFiltering) {
+              breadcrumbsForCategoryCreation =
+                breadcrumbsForCategoryCreation.filter(
+                  (item) =>
+                    item.toLowerCase() !==
+                    brandNameForCategoryFiltering.toLowerCase(),
+                );
+            }
+
+            // 处理面包屑创建分类
+            if (breadcrumbsForCategoryCreation.length > 0) {
+              // 使用处理过的面包屑创建分类并获取最终分类ID
+              finalCategoryId = await getOrCreateCategoryId(
+                breadcrumbsForCategoryCreation,
+                brandNameForCategoryFiltering,
+              );
+            }
+            // 如果未设置分类且有性别信息，创建或使用性别分类
+            else if (determinedGender) {
+              const genderName =
+                determinedGender.charAt(0).toUpperCase() +
+                determinedGender.slice(1);
+
+              finalCategoryId = await getOrCreateCategoryId(
+                [genderName],
+                brandNameForCategoryFiltering,
+              );
+            }
+            // 最后的兜底：使用默认分类
+            else {
+              finalCategoryId = await getOrCreateCategoryId(
+                [],
+                brandNameForCategoryFiltering,
+              );
             }
           }
-
-          const categoryId = await getOrCreateCategoryId(
-            processedBreadcrumbs,
-            brandNameForCategoryFiltering,
-          );
+          // --- Cettire Specific Breadcrumb Processing --- END ---
 
           const productPayload: Prisma.ProductCreateInput = {
             name: productData.name || "N/A",
@@ -500,7 +559,7 @@ export async function POST(
               ) || false,
             gender: determinedGender, // Assign the determined gender
             brand: { connect: { id: brandId } },
-            category: { connect: { id: categoryId } },
+            category: { connect: { id: finalCategoryId } },
             promotionUrl: null,
             discount: null,
             coupon: null,

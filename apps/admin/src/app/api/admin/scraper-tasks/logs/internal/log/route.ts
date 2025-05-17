@@ -1,3 +1,6 @@
+import * as fs from "fs";
+import * as path from "path";
+
 import { ScraperLogLevel, Prisma } from "@prisma/client"; // Import the Prisma enum
 import { NextResponse, NextRequest } from "next/server";
 import { z } from "zod";
@@ -32,23 +35,75 @@ export async function POST(request: NextRequest) {
     const { executionId, level, message, context, timestamp } =
       validationResult.data;
 
-    // Ensure the executionId exists (optional, but good for data integrity before logging)
-    // Depending on performance needs, this check could be skipped if executionId is trusted.
-    const executionExists = await db.scraperTaskExecution.findUnique({
+    // 1. 查询 ScraperTaskExecution 和关联的 TaskDefinition
+    const taskExecution = await db.scraperTaskExecution.findUnique({
       where: { id: executionId },
-      select: { id: true },
+      include: {
+        taskDefinition: {
+          select: {
+            isDebugModeEnabled: true,
+            targetSite: true,
+          },
+        },
+      },
     });
 
-    if (!executionExists) {
-      // Decide how to handle: silently fail, log to console, or return error
-      // For now, let's log and return an error as the executionId is crucial.
-
+    if (!taskExecution) {
+      // 这个检查保留，以防万一 executionId 真的无效
       return NextResponse.json(
         { error: `任务执行ID '${executionId}' 不存在，无法记录日志。` },
         { status: 404 },
       );
     }
 
+    // 如果 taskDefinition 不存在 (理论上不应该，因为 executionId 存在就应该有关联的 taskDefinition)
+    if (!taskExecution.taskDefinition) {
+      // console.warn(`[Internal Log API] Task definition not found for executionId: ${executionId}, but proceeding with DB log.`);
+    }
+
+    // 2. 如果启用了调试模式并且 taskDefinition 和 targetSite 存在，则写入本地文件
+    if (
+      taskExecution.taskDefinition?.isDebugModeEnabled &&
+      taskExecution.taskDefinition.targetSite
+    ) {
+      try {
+        const targetSite = taskExecution.taskDefinition.targetSite;
+        const baseStorageDir =
+          process.env.CRAWLEE_STORAGE_DIR ||
+          path.resolve(process.cwd(), "storage");
+        // 确保 targetSite 是一个有效的目录名部分
+        const safeTargetSite = targetSite.replace(/[^a-zA-Z0-9_.-]/g, "_");
+        const siteLogDir = path.join(
+          baseStorageDir,
+          "scraper_storage_runs",
+          safeTargetSite,
+          executionId,
+        );
+
+        if (!fs.existsSync(siteLogDir)) {
+          fs.mkdirSync(siteLogDir, { recursive: true });
+        }
+
+        const logFilePath = path.join(siteLogDir, "debug.log");
+        // 使用传入的 timestamp (如果存在) 或当前时间，并确保是 ISO 格式
+        const logTimestamp = timestamp
+          ? new Date(timestamp).toISOString()
+          : new Date().toISOString();
+        const contextString = context ? JSON.stringify(context) : "";
+        // 确保日志消息末尾有换行符
+        const fileLogMessage = `[${logTimestamp}] [${level}] ${message}${contextString ? ` ${contextString}` : ""}\n`;
+
+        fs.appendFileSync(logFilePath, fileLogMessage, { encoding: "utf8" });
+      } catch {
+        // 记录文件写入失败到控制台，但不中断数据库日志记录或返回错误给客户端
+        // console.error(
+        //   `[Internal Log API FileLog FAIL] Failed to write log to file for execution ${executionId}: ${(_fileError as Error).message}`,
+        //   _fileError,
+        // );
+      }
+    }
+
+    // 3. 将日志写入数据库 (保持原有逻辑)
     await db.scraperTaskLog.create({
       data: {
         executionId,
@@ -61,7 +116,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: "日志已接收" }, { status: 201 });
   } catch {
-    // Avoid sending detailed error back to scraper client for internal log endpoint
+    // General catch block for the POST handler
+    // 避免将详细错误返回给爬虫客户端的内部日志端点
+    // 在服务器端记录完整的错误信息以供调试
+    // console.error("[Internal Log API ERROR] An unexpected error occurred:", _error);
+
     return NextResponse.json({ error: "记录内部日志失败" }, { status: 500 });
   }
 }

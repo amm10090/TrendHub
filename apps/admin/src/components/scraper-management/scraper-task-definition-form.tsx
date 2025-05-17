@@ -107,6 +107,7 @@ export function ScraperTaskDefinitionForm({
       .int()
       .nonnegative({ message: tValidation("inventoryNonNegative") })
       .default(99),
+    isDebugModeEnabled: z.boolean().default(false),
   });
 
   type FormValues = z.infer<typeof FormSchema>;
@@ -124,6 +125,7 @@ export function ScraperTaskDefinitionForm({
       maxLoadClicks: taskDefinition?.maxLoadClicks || undefined,
       maxProducts: taskDefinition?.maxProducts || undefined,
       defaultInventory: taskDefinition?.defaultInventory ?? 99,
+      isDebugModeEnabled: taskDefinition?.isDebugModeEnabled ?? false,
     },
   });
 
@@ -149,6 +151,7 @@ export function ScraperTaskDefinitionForm({
             ? undefined
             : taskDefinition.maxProducts,
         defaultInventory: taskDefinition.defaultInventory,
+        isDebugModeEnabled: taskDefinition.isDebugModeEnabled,
       });
     } else {
       form.reset({
@@ -162,6 +165,7 @@ export function ScraperTaskDefinitionForm({
         maxLoadClicks: undefined,
         maxProducts: undefined,
         defaultInventory: 99,
+        isDebugModeEnabled: false,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -431,6 +435,27 @@ export function ScraperTaskDefinitionForm({
                 <FormLabel>{t("fields.isEnabled.label")}</FormLabel>
                 <FormDescription>
                   {t("fields.isEnabled.description")}
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="isDebugModeEnabled"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>{t("fields.debugModeEnabled.label")}</FormLabel>
+                <FormDescription>
+                  {t("fields.debugModeEnabled.description")}
                 </FormDescription>
               </div>
               <FormControl>

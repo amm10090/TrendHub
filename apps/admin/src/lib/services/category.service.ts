@@ -387,21 +387,60 @@ class CategoryService {
     return sortedItems;
   }
 
-  // 获取分类树结构
+  // 获取分类树结构 (管理面板用，包含所有子分类)
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
     const categoriesFromDb = await this.prisma.category.findMany({
       where: { isActive: true },
       orderBy: [{ level: "asc" }, { name: "asc" }],
-      // No need to include parent here, parentName will be mapped
     });
 
-    // const categoryMap = new Map(categoriesFromDb.map(cat => [cat.id, cat])); // Unused, remove
     const parentIdToNameMap = new Map(
       categoriesFromDb.map((cat) => [cat.id, cat.name]),
     );
 
     const buildTree = (
-      items: typeof categoriesFromDb, // Use the type from Prisma fetch
+      items: typeof categoriesFromDb,
+      parentId: string | null = null,
+      level: number = 1,
+    ): CategoryTreeNode[] => {
+      return items
+        .filter((item) => {
+          // 对所有层级，只检查parentId、level和isActive，移除showInNavbar条件
+          return (
+            item.parentId === parentId && item.level === level && item.isActive
+          );
+        })
+        .map((item) => {
+          const parentName = item.parentId
+            ? parentIdToNameMap.get(item.parentId)
+            : undefined;
+
+          return {
+            ...item,
+            createdAt: new Date(item.createdAt),
+            updatedAt: new Date(item.updatedAt),
+            parentName,
+            children: buildTree(items, item.id, level + 1),
+          };
+        });
+    };
+
+    return buildTree(categoriesFromDb);
+  }
+
+  // 获取公共分类树结构 (前端导航用，只包含showInNavbar为true的分类)
+  async getPublicCategoryTree(): Promise<CategoryTreeNode[]> {
+    const categoriesFromDb = await this.prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: [{ level: "asc" }, { name: "asc" }],
+    });
+
+    const parentIdToNameMap = new Map(
+      categoriesFromDb.map((cat) => [cat.id, cat.name]),
+    );
+
+    const buildTree = (
+      items: typeof categoriesFromDb,
       parentId: string | null = null,
       level: number = 1,
     ): CategoryTreeNode[] => {
@@ -429,8 +468,8 @@ class CategoryService {
 
           return {
             ...item,
-            createdAt: new Date(item.createdAt), // Ensure Date type
-            updatedAt: new Date(item.updatedAt), // Ensure Date type
+            createdAt: new Date(item.createdAt),
+            updatedAt: new Date(item.updatedAt),
             parentName,
             children: buildTree(items, item.id, level + 1),
           };

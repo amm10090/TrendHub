@@ -747,6 +747,12 @@
         "featured": "Featured Product",
         "featuredDescription": "Display on homepage and featured sections",
         "title": "Visibility"
+      },
+      "genderOptions": {
+        "none": "None",
+        "women": "Women",
+        "men": "Men",
+        "unisex": "Unisex"
       }
     }
   },
@@ -1496,45 +1502,49 @@
       "fields": {
         "name": {
           "label": "Task Name",
-          "placeholder": "Enter a unique name for the task"
+          "placeholder": "e.g., Scrape Cettire New Arrivals"
         },
         "description": {
           "label": "Description (Optional)",
-          "placeholder": "Briefly describe this task"
+          "placeholder": "Enter a detailed description for the task"
         },
         "targetSite": {
           "label": "Target Site",
-          "placeholder": "Select the e-commerce site"
+          "placeholder": "Select a target e-commerce site"
         },
         "startUrls": {
           "label": "Start URLs",
           "placeholder": "Enter one URL per line",
-          "description": "These are the initial URLs the scraper will visit."
+          "description": "The scraper will start crawling from these URLs. Enter one URL per line."
         },
         "cronExpression": {
-          "label": "Cron Expression (Optional)",
-          "placeholder": "e.g., 0 0 * * * (for daily at midnight)",
-          "description": "Leave empty if a schedule is not needed. Use crontab.guru for help."
-        },
-        "isEnabled": {
-          "label": "Enable Task",
-          "description": "If disabled, the task won't run on schedule or be triggerable via API."
+          "label": "CRON Expression (Optional)",
+          "placeholder": "e.g., 0 0 * * * (for midnight daily)",
+          "description": "If set, the task will run on this CRON schedule. Leave empty for no schedule."
         },
         "maxRequests": {
           "label": "Max Requests (Optional)",
           "placeholder": "e.g., 1000"
         },
         "maxLoadClicks": {
-          "label": "Max 'Load More' Clicks (Optional)",
-          "placeholder": "e.g., 20"
+          "label": "Max Load Clicks (Optional)",
+          "placeholder": "e.g., 10"
         },
         "maxProducts": {
-          "label": "Max Products to Scrape (Optional)",
+          "label": "Max Products (Optional)",
           "placeholder": "e.g., 500"
         },
         "defaultInventory": {
           "label": "Default Inventory",
           "placeholder": "e.g., 99"
+        },
+        "isEnabled": {
+          "label": "Enable Task",
+          "description": "If disabled, the task will not run on schedule and cannot be triggered via API."
+        },
+        "debugModeEnabled": {
+          "label": "Enable Debug Development Mode",
+          "description": "If enabled, task execution logs will also be saved to the local file system for development and debugging purposes."
         }
       },
       "actions": {

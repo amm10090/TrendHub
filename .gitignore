@@ -180,3 +180,4 @@ apps/admin/scraper_storage_runs
 gender_specific_content_plan.md
 packages/scraper/screenshots
 packages/scraper/test-results
+.cursorignore

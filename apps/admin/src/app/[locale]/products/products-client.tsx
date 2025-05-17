@@ -156,20 +156,23 @@ function CascadeCategorySelector({
   const [level3Value, setLevel3Value] = useState<string | null>(null);
   const [displayFullPathString, setDisplayFullPathString] =
     useState<string>("");
-
   // 生成三级分类
   const level1Categories = useMemo(() => {
     return categories.filter((c) => !c.parentId);
   }, [categories]);
 
   const level2Categories = useMemo(() => {
-    if (!level1Value) return [];
+    if (!level1Value) {
+      return [];
+    }
 
     return categories.filter((c) => c.parentId === level1Value);
   }, [categories, level1Value]);
 
   const level3Categories = useMemo(() => {
-    if (!level2Value) return [];
+    if (!level2Value) {
+      return [];
+    }
 
     return categories.filter((c) => c.parentId === level2Value);
   }, [categories, level2Value]);
@@ -185,12 +188,10 @@ function CascadeCategorySelector({
       return;
     }
 
-    const findCategory = (id: string): SimplifiedCategory | undefined =>
-      categories.find((c) => c.id === id);
+    // 查找选中的分类
+    const selectedCategory = categories.find((c) => c.id === value);
 
-    const targetCategory = findCategory(value);
-
-    if (!targetCategory) {
+    if (!selectedCategory) {
       setLevel1Value(null);
       setLevel2Value(null);
       setLevel3Value(null);
@@ -199,44 +200,142 @@ function CascadeCategorySelector({
       return;
     }
 
-    const ancestorPath: SimplifiedCategory[] = [];
-    let current: SimplifiedCategory | undefined = targetCategory;
+    // 处理分类层级
+    if (selectedCategory.level === 1 || !selectedCategory.parentId) {
+      // 一级分类
+      setLevel1Value(selectedCategory.id);
+      setLevel2Value(null);
+      setLevel3Value(null);
+      setDisplayFullPathString(selectedCategory.name);
+    } else if (
+      selectedCategory.level === 2 ||
+      (selectedCategory.parentId &&
+        categories.find((c) => c.id === selectedCategory.parentId)?.level === 1)
+    ) {
+      // 二级分类
+      const parentCategory = categories.find(
+        (c) => c.id === selectedCategory.parentId,
+      );
 
-    while (current) {
-      ancestorPath.unshift(current); // Add to the beginning to get Root -> ... -> Target order
-      if (!current.parentId) break;
-      current = findCategory(current.parentId);
-      // 安全措施，防止因数据问题导致的死循环
-      if (ancestorPath.length > 10) {
-        // 假设分类层级不会超过10层
-        break;
+      if (!parentCategory) {
+        setLevel1Value(selectedCategory.id);
+        setLevel2Value(null);
+        setLevel3Value(null);
+        setDisplayFullPathString(selectedCategory.name);
+      } else {
+        setLevel1Value(parentCategory.id);
+        setLevel2Value(selectedCategory.id);
+        setLevel3Value(null);
+        setDisplayFullPathString(
+          `${parentCategory.name} > ${selectedCategory.name}`,
+        );
+      }
+    } else {
+      // 三级分类
+      const parentCategory = categories.find(
+        (c) => c.id === selectedCategory.parentId,
+      );
+
+      if (!parentCategory) {
+        setLevel1Value(selectedCategory.id);
+        setLevel2Value(null);
+        setLevel3Value(null);
+        setDisplayFullPathString(selectedCategory.name);
+
+        return;
+      }
+
+      const grandparentCategory = categories.find(
+        (c) => c.id === parentCategory.parentId,
+      );
+
+      if (!grandparentCategory) {
+        setLevel1Value(parentCategory.id);
+        setLevel2Value(selectedCategory.id);
+        setLevel3Value(null);
+        setDisplayFullPathString(
+          `${parentCategory.name} > ${selectedCategory.name}`,
+        );
+      } else {
+        setLevel1Value(grandparentCategory.id);
+        setLevel2Value(parentCategory.id);
+        setLevel3Value(selectedCategory.id);
+        setDisplayFullPathString(
+          `${grandparentCategory.name} > ${parentCategory.name} > ${selectedCategory.name}`,
+        );
       }
     }
-
-    setLevel1Value(ancestorPath.length >= 1 ? ancestorPath[0].id : null);
-    setLevel2Value(ancestorPath.length >= 2 ? ancestorPath[1].id : null);
-    setLevel3Value(ancestorPath.length >= 3 ? ancestorPath[2].id : null);
-
-    const fullPath = ancestorPath.map((cat) => cat.name).join(" > ");
-
-    setDisplayFullPathString(fullPath);
   }, [value, categories]);
 
   const handleLevel1Change = (newValue: string) => {
+    if (!newValue) {
+      setLevel1Value(null);
+      setLevel2Value(null);
+      setLevel3Value(null);
+      onCategoryChange(null);
+
+      return;
+    }
+
+    // 找到选中的一级分类
+    const selectedCategory = categories.find((c) => c.id === newValue);
+
+    if (!selectedCategory) {
+      return;
+    }
+
+    // 更新状态
     setLevel1Value(newValue);
     setLevel2Value(null);
     setLevel3Value(null);
+
+    // 通知父组件选择已更改
     onCategoryChange(newValue);
   };
 
   const handleLevel2Change = (newValue: string) => {
+    if (!newValue) {
+      setLevel2Value(null);
+      setLevel3Value(null);
+      onCategoryChange(level1Value);
+
+      return;
+    }
+
+    // 找到选中的二级分类
+    const selectedCategory = categories.find((c) => c.id === newValue);
+
+    if (!selectedCategory) {
+      return;
+    }
+
+    // 更新状态
     setLevel2Value(newValue);
     setLevel3Value(null);
+
+    // 通知父组件选择已更改
     onCategoryChange(newValue);
   };
 
   const handleLevel3Change = (newValue: string) => {
+    if (!newValue) {
+      setLevel3Value(null);
+      onCategoryChange(level2Value);
+
+      return;
+    }
+
+    // 找到选中的三级分类
+    const selectedCategory = categories.find((c) => c.id === newValue);
+
+    if (!selectedCategory) {
+      return;
+    }
+
+    // 更新状态
     setLevel3Value(newValue);
+
+    // 通知父组件选择已更改
     onCategoryChange(newValue);
   };
 
@@ -260,11 +359,17 @@ function CascadeCategorySelector({
             <SelectValue placeholder={t("categoryLevel1Placeholder")} />
           </SelectTrigger>
           <SelectContent>
-            {level1Categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
+            {level1Categories.length > 0 ? (
+              level1Categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="no-categories" disabled>
+                {t("noCategoriesAvailable")}
               </SelectItem>
-            ))}
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -282,11 +387,17 @@ function CascadeCategorySelector({
               <SelectValue placeholder={t("categoryLevel2Placeholder")} />
             </SelectTrigger>
             <SelectContent>
-              {level2Categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+              {level2Categories.length > 0 ? (
+                level2Categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-subcategories" disabled>
+                  {t("noSubcategoriesAvailable")}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -305,11 +416,17 @@ function CascadeCategorySelector({
               <SelectValue placeholder={t("categoryLevel3Placeholder")} />
             </SelectTrigger>
             <SelectContent>
-              {level3Categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+              {level3Categories.length > 0 ? (
+                level3Categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-subcategories" disabled>
+                  {t("noSubcategoriesAvailable")}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>

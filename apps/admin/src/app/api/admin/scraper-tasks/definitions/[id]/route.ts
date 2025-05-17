@@ -55,6 +55,7 @@ const UpdateScraperTaskDefinitionSchema = z.object({
   maxLoadClicks: z.number().int().positive().optional().nullable(),
   maxProducts: z.number().int().positive().optional().nullable(),
   defaultInventory: z.number().int().nonnegative().optional(),
+  isDebugModeEnabled: z.boolean().optional(),
 });
 
 // PUT handler to update a ScraperTaskDefinition by ID

@@ -122,8 +122,7 @@ const scrapers: ScrapersMap = {
   },
   Farfetch: async () => {
     const moduleImport = await import("@repo/scraper");
-
-    return { farfetchScraper: moduleImport.farfetchScraper }; // 假设名称
+    return { farfetchScraper: moduleImport.farfetchScraper }; // Ensure correct export name
   },
   Cettire: async () => {
     const moduleImport = await import("@repo/scraper");

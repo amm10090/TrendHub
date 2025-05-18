@@ -10,6 +10,7 @@ export interface ScraperOptions {
   maxProducts?: number;
   storageDir?: string; // 添加：存储目录参数
   headless?: boolean; // 添加：控制是否使用无头浏览器模式，默认为true
+  maxConcurrency?: number; // 新增：控制最大并发数
 }
 
 // 新增：统一的爬虫函数类型

@@ -1438,7 +1438,11 @@
         "startUrls": {
           "label": "起始URL列表",
           "placeholder": "每行一个URL",
-          "description": "爬虫将从这些URL开始抓取。每行输入一个URL。"
+          "description": "爬虫将从这些URL开始抓取。每行输入一个URL。",
+          "addButton": "添加URL",
+          "removeButton": "移除",
+          "duplicateUrl": "URL已存在",
+          "invalidUrl": "请输入有效的URL"
         },
         "cronExpression": {
           "label": "CRON表达式 (可选)",

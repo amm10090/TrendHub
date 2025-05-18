@@ -589,6 +589,37 @@ export function ScraperTaskDefinitionsTab() {
 
   const noDataInTable = !isLoading && !table.getRowModel().rows?.length;
 
+  const sheetComponent = isSheetOpen ? (
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+      <SheetContent className="w-full max-w-[90%] md:max-w-[80%] lg:max-w-[75%] p-0">
+        <SheetHeader className="p-6 pb-4 border-b sticky top-0 bg-background z-10">
+          <SheetTitle>
+            {currentTaskDefinition
+              ? tForm("editModalTitle", { name: currentTaskDefinition.name })
+              : tForm("createModalTitle")}
+          </SheetTitle>
+          <SheetDescription>
+            {currentTaskDefinition
+              ? tForm("editModalDescription")
+              : tForm("createModalDescription")}
+          </SheetDescription>
+        </SheetHeader>
+        <div
+          className="px-6 py-4 overflow-y-auto"
+          style={{ maxHeight: "calc(100vh - 100px)" }}
+        >
+          <ScraperTaskDefinitionForm
+            taskDefinition={currentTaskDefinition}
+            onOpenChange={setIsSheetOpen}
+            onSuccess={() => {
+              revalidateDefinitions();
+            }}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
+  ) : null;
+
   return (
     <div className="space-y-6 p-1">
       <div className="flex justify-between items-center mb-4">
@@ -718,31 +749,7 @@ export function ScraperTaskDefinitionsTab() {
       </div>
       {pageCount > 0 && <DataTablePagination table={table} />}
 
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-2xl w-full p-0 overflow-y-auto">
-          <SheetHeader className="p-6 border-b sticky top-0 bg-background z-10">
-            <SheetTitle>
-              {currentTaskDefinition
-                ? tForm("editModalTitle", { name: currentTaskDefinition.name })
-                : tForm("createModalTitle")}
-            </SheetTitle>
-            <SheetDescription>
-              {currentTaskDefinition
-                ? tForm("editModalDescription")
-                : tForm("createModalDescription")}
-            </SheetDescription>
-          </SheetHeader>
-          <div className="p-6">
-            <ScraperTaskDefinitionForm
-              taskDefinition={currentTaskDefinition}
-              onOpenChange={setIsSheetOpen}
-              onSuccess={() => {
-                revalidateDefinitions();
-              }}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+      {sheetComponent}
     </div>
   );
 }

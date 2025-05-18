@@ -1514,8 +1514,12 @@
         },
         "startUrls": {
           "label": "Start URLs",
-          "placeholder": "Enter one URL per line",
-          "description": "The scraper will start crawling from these URLs. Enter one URL per line."
+          "placeholder": "One URL per line",
+          "description": "The scraper will start crawling from these URLs. Enter one URL per line.",
+          "addButton": "Add URL",
+          "removeButton": "Remove",
+          "duplicateUrl": "URL already exists",
+          "invalidUrl": "Please enter a valid URL"
         },
         "cronExpression": {
           "label": "CRON Expression (Optional)",

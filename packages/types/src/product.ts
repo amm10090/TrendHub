@@ -27,6 +27,7 @@ export interface Product {
   // Pricing Information
   currentPrice?: Price; // Current selling price. Renamed from 'price' to be more explicit
   originalPrice?: Price; // Original price before discount, if available
+  discount?: number; // Discount percentage (e.g., 0.2 for 20% off), calculated if possible
   // discount?: number; // Discount percentage or amount - Keep for future use
 
   // Media

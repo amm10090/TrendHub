@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ScraperTaskDefinition } from "@prisma/client";
 import { useTranslations } from "next-intl";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -52,6 +52,9 @@ export function ScraperTaskDefinitionForm({
 }: ScraperTaskDefinitionFormProps) {
   const t = useTranslations("scraperManagement.definitionForm");
   const tValidation = useTranslations("scraperManagement.validation");
+
+  // 为URL输入添加状态
+  const [newUrl, setNewUrl] = useState("");
 
   const FormSchema = z.object({
     name: z.string().min(1, { message: tValidation("nameRequired") }),
@@ -128,6 +131,42 @@ export function ScraperTaskDefinitionForm({
       isDebugModeEnabled: taskDefinition?.isDebugModeEnabled ?? false,
     },
   });
+
+  // 添加URL处理函数
+  const handleAddUrl = (url: string) => {
+    if (!url.trim()) return;
+
+    // 验证输入是有效的 URL
+    try {
+      new URL(url); // 简单验证 URL 格式
+
+      // 添加到现有数组，避免重复
+      const currentUrls = Array.isArray(form.getValues("startUrls"))
+        ? form.getValues("startUrls")
+        : [];
+
+      if (!currentUrls.includes(url)) {
+        form.setValue("startUrls", [...currentUrls, url.trim()]);
+        setNewUrl(""); // 清空输入框
+      } else {
+        toast.info(t("fields.startUrls.duplicateUrl") || "该URL已添加过");
+      }
+    } catch {
+      // URL 无效
+      toast.error(t("fields.startUrls.invalidUrl") || "请输入有效的URL");
+    }
+  };
+
+  // 移除URL处理函数
+  const handleRemoveUrl = (urlToRemove: string) => {
+    const currentUrls = form.getValues("startUrls");
+    if (Array.isArray(currentUrls)) {
+      form.setValue(
+        "startUrls",
+        currentUrls.filter((url) => url !== urlToRemove),
+      );
+    }
+  };
 
   useEffect(() => {
     if (taskDefinition) {
@@ -213,10 +252,7 @@ export function ScraperTaskDefinitionForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 px-1 py-2 max-h-[70vh] overflow-y-auto"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -282,27 +318,52 @@ export function ScraperTaskDefinitionForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("fields.startUrls.label")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t("fields.startUrls.placeholder")}
-                  // {...field} // Managed manually due to array join/split
-                  value={
-                    Array.isArray(field.value) ? field.value.join("\n") : ""
-                  }
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value
-                        .split("\n")
-                        .map((s) => s.trim())
-                        .filter((s) => s),
-                    )
-                  }
-                  rows={3}
-                />
-              </FormControl>
+              <div className="flex items-center space-x-2">
+                <FormControl>
+                  <Input
+                    placeholder={t("fields.startUrls.placeholder")}
+                    value={newUrl}
+                    onChange={(e) => setNewUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddUrl(newUrl);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <Button
+                  type="button"
+                  onClick={() => handleAddUrl(newUrl)}
+                  variant="secondary"
+                  size="sm"
+                >
+                  {t("fields.startUrls.addButton")}
+                </Button>
+              </div>
               <FormDescription>
                 {t("fields.startUrls.description")}
               </FormDescription>
+              {Array.isArray(field.value) && field.value.length > 0 && (
+                <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+                  {field.value.map((url, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 border rounded-md bg-secondary/20"
+                    >
+                      <span className="text-sm truncate flex-1">{url}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveUrl(url)}
+                      >
+                        {t("fields.startUrls.removeButton")}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <FormMessage />
             </FormItem>
           )}

@@ -371,6 +371,10 @@ export class TaskExecutor {
             productData.tags?.some((tag) =>
               tag.toLowerCase().includes("new"),
             ) || false,
+          discount:
+            productData.discount !== undefined && productData.discount !== null
+              ? new Prisma.Decimal(productData.discount)
+              : null,
           brand: { connect: { id: brandId } },
           category: { connect: { id: categoryId } },
           gender: productData.gender,

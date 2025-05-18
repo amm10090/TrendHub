@@ -1,5 +1,8 @@
 // packages/scraper/src/utils.ts
 
+import * as fs from "fs";
+import { Log, log as crawleeLog } from "crawlee";
+
 // 本地 ScraperLogLevel 枚举, 与 Prisma 的 ScraperLogLevel 保持一致
 // 为了避免直接依赖 @prisma/client 在这个包中 (如果项目结构上不希望如此)
 // 如果可以直接导入 Prisma 的枚举，则优先使用 Prisma 的。
@@ -38,6 +41,25 @@ export async function sendLogToBackend(
     );
     return; // 如果没有 executionId，则不发送日志，仅在控制台警告
   }
+
+  // 检查是否为测试运行的executionId (以"test-"开头)
+  if (executionId.startsWith("test-")) {
+    console.log(
+      `[SCRAPER LOG TEST] ${level}: ${message}`,
+      context ? JSON.stringify(context, null, 2) : "",
+    );
+    return; // 测试运行模式下仅输出到控制台，不发送到后端
+  }
+
+  // 检查executionId格式是否符合UUID标准 (后端API期望的格式)
+  // const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  // if (!uuidRegex.test(executionId)) {
+  //   console.warn(
+  //     `[SCRAPER LOG SEND] Invalid executionId format: ${executionId}. Expected UUID format. Message:`,
+  //     message
+  //   );
+  //   return; // 如果executionId格式不正确，则不发送日志
+  // }
 
   try {
     const body = {
@@ -188,4 +210,21 @@ export function logInfo(message: string): void {
  */
 export function logError(message: string): void {
   console.error(`[ERROR] ${message}`);
+}
+
+export function ensureDirectoryExists(
+  dirPath: string,
+  logger: Log = crawleeLog,
+): void {
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+      logger.info(`Created directory: ${dirPath}`);
+    }
+  } catch (error) {
+    logger.error(
+      `Error creating directory ${dirPath}: ${(error as Error).message}`,
+    );
+    throw error;
+  }
 }

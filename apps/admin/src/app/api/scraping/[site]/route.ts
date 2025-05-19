@@ -122,6 +122,7 @@ const scrapers: ScrapersMap = {
   },
   Farfetch: async () => {
     const moduleImport = await import("@repo/scraper");
+
     return { farfetchScraper: moduleImport.farfetchScraper }; // Ensure correct export name
   },
   Cettire: async () => {
@@ -180,9 +181,20 @@ function generateSlug(name: string): string {
     .substring(0, 50); // 限制单片 slug 长度
 }
 
+// 新增：获取分类层级辅助函数
+async function getCategoryLevel(categoryId: string): Promise<number> {
+  const category = await db.category.findUnique({
+    where: { id: categoryId },
+    select: { level: true },
+  });
+
+  return category?.level || 0;
+}
+
 async function getOrCreateCategoryId(
   breadcrumbsInput?: string[],
   productBrandName?: string,
+  baseParentId: string | null = null, // 新增：基础父分类ID参数
 ): Promise<string> {
   let breadcrumbs =
     breadcrumbsInput?.map((b) => b?.trim()).filter((b) => b && b.length > 0) ||
@@ -200,7 +212,12 @@ async function getOrCreateCategoryId(
   const defaultCategoryName = "Default Category";
   const defaultCategorySlug = generateSlug(defaultCategoryName);
 
+  // 如果面包屑为空
   if (breadcrumbs.length === 0) {
+    // 如果提供了基础父分类ID，直接返回它
+    if (baseParentId) return baseParentId;
+
+    // 否则，创建或获取默认分类
     const defaultCategory = await db.category.upsert({
       where: { slug: defaultCategorySlug },
       create: {
@@ -219,9 +236,30 @@ async function getOrCreateCategoryId(
     return defaultCategory.id;
   }
 
-  let currentParentId: string | null = null;
+  // 初始父分类ID和层级
+  let currentParentId: string | null = baseParentId;
+  // 如果有基础父分类，从其level+1开始
   let currentLevel = 1;
+
+  if (baseParentId) {
+    currentLevel = (await getCategoryLevel(baseParentId)) + 1;
+  }
   const accumulatedSlugParts: string[] = [];
+
+  // 如果使用基础父分类，获取其slug用于生成子分类的完整slug
+  if (baseParentId && currentLevel > 1) {
+    const parentCategory = await db.category.findUnique({
+      where: { id: baseParentId },
+      select: { slug: true },
+    });
+
+    if (parentCategory && parentCategory.slug) {
+      // 将父分类slug拆分出来
+      const parentSlugParts = parentCategory.slug.split("-");
+
+      accumulatedSlugParts.push(...parentSlugParts);
+    }
+  }
 
   for (const categoryNamePart of breadcrumbs) {
     const currentNameSlugPart = generateSlug(categoryNamePart);
@@ -248,11 +286,6 @@ async function getOrCreateCategoryId(
     currentLevel++;
   }
 
-  // After creating/finding the deepest category based on breadcrumbs,
-  // we can try to infer gender from its top-level parent if not already determined.
-  // This part is more for a fallback if productData.gender and URL inference fail.
-  // However, the primary gender determination should happen before this function typically.
-  // For this example, we are returning the categoryId. Gender logic is separate.
   return currentParentId as string;
 }
 
@@ -394,8 +427,9 @@ export async function POST(
           // 声明和初始化最终使用的 categoryId 变量
           let finalCategoryId: string;
 
-          // --- Cettire Specific Breadcrumb Processing --- START ---
+          // --- 根据站点分别处理分类逻辑 ---
           if (site === "Cettire") {
+            // --- Cettire 专用分类处理逻辑 ---
             const originalCettireBreadcrumbs = productData.breadcrumbs || [];
 
             // 确保始终以性别作为一级分类
@@ -469,11 +503,66 @@ export async function POST(
                 brandNameForCategoryFiltering,
               );
             }
+          } else if (site === "Italist") {
+            // --- Italist 专用分类处理逻辑 ---
+            // 获取原始面包屑，用于后续处理
+            const originalItalistBreadcrumbs = productData.breadcrumbs || [];
 
-            // 不再需要使用 breadcrumbsForCategoryCreation 变量
-            breadcrumbsForCategoryCreation = []; // 清空，因为我们已经手动处理了分类创建
+            // 确定性别作为一级分类
+            let genderCategory: string | null = null;
+
+            // 1. 首先尝试从已确定的 gender 字段获取性别
+            if (
+              determinedGender &&
+              ["men", "women"].includes(determinedGender.toLowerCase())
+            ) {
+              genderCategory = determinedGender.toLowerCase();
+            }
+            // 2. 如果未确定，默认为 "unisex"（虽然Italist主要是men/women）
+            else {
+              genderCategory = "unisex";
+            }
+
+            // 统一性别首字母大写
+            const formattedGender =
+              genderCategory.charAt(0).toUpperCase() + genderCategory.slice(1);
+
+            // 创建或获取性别分类（一级分类）
+            const genderCategoryId = await getOrCreateCategoryId(
+              [formattedGender],
+              brandNameForCategoryFiltering,
+            );
+
+            // 处理面包屑，去除可能与性别或品牌重复的部分
+            let categoryBreadcrumbs = [...originalItalistBreadcrumbs];
+
+            // 过滤掉品牌名
+            if (brandNameForCategoryFiltering) {
+              categoryBreadcrumbs = categoryBreadcrumbs.filter(
+                (crumb) =>
+                  crumb.toLowerCase() !==
+                  brandNameForCategoryFiltering.toLowerCase(),
+              );
+            }
+
+            // 过滤掉与性别相同的面包屑项
+            categoryBreadcrumbs = categoryBreadcrumbs.filter(
+              (crumb) => crumb.toLowerCase() !== formattedGender.toLowerCase(),
+            );
+
+            // 如果面包屑经过过滤后仍有内容，以性别分类为基础创建多级分类
+            if (categoryBreadcrumbs.length > 0) {
+              finalCategoryId = await getOrCreateCategoryId(
+                categoryBreadcrumbs,
+                brandNameForCategoryFiltering,
+                genderCategoryId, // 使用性别分类ID作为基础父分类
+              );
+            } else {
+              // 如果没有有效的面包屑，直接使用性别分类
+              finalCategoryId = genderCategoryId;
+            }
           } else {
-            // 其他站点的分类处理逻辑保持不变
+            // --- 其他站点的通用分类处理逻辑 ---
             // 过滤掉品牌名称，避免将品牌处理为分类
             if (brandNameForCategoryFiltering) {
               breadcrumbsForCategoryCreation =

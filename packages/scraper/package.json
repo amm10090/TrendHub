@@ -29,6 +29,7 @@
     "build": "tsc --build tsconfig.json",
     "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1",
     "test:cettire": "tsx src/test-cettire.ts",
-    "test:farfetch": "tsx src/test-farfetch.ts"
+    "test:farfetch": "tsx src/test-farfetch.ts",
+    "test:italist": "tsx src/test-italist.ts"
   }
 }

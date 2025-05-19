@@ -160,6 +160,7 @@ export function ScraperTaskDefinitionForm({
   // 移除URL处理函数
   const handleRemoveUrl = (urlToRemove: string) => {
     const currentUrls = form.getValues("startUrls");
+
     if (Array.isArray(currentUrls)) {
       form.setValue(
         "startUrls",

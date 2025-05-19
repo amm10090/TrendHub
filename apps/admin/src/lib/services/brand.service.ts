@@ -14,6 +14,10 @@ export type Brand = {
   popularity: boolean;
   createdAt: Date;
   updatedAt: Date;
+  _count?: {
+    products: number;
+  };
+  productCount?: number;
 };
 
 // 定义查询参数接口
@@ -101,7 +105,7 @@ class BrandService {
     const orderByField = this.mapSortField(sortBy);
 
     // 执行查询
-    const [items, total] = await Promise.all([
+    const [itemsData, total] = await Promise.all([
       this.prisma.brand.findMany({
         where,
         skip: (page - 1) * limit,
@@ -118,10 +122,19 @@ class BrandService {
           popularity: true,
           createdAt: true,
           updatedAt: true,
+          _count: {
+            select: { products: true },
+          },
         },
       }),
       this.prisma.brand.count({ where }),
     ]);
+
+    // 将 _count.products 映射到更友好的 productCount
+    const items = itemsData.map((brand) => ({
+      ...brand,
+      productCount: brand._count?.products ?? 0,
+    }));
 
     return {
       items,
@@ -134,21 +147,28 @@ class BrandService {
 
   // 获取单个品牌
   async getBrand(id: string): Promise<Brand | null> {
-    return this.prisma.brand.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        logo: true,
-        website: true,
-        isActive: true,
-        popularity: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    return this.prisma.brand
+      .findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          logo: true,
+          website: true,
+          isActive: true,
+          popularity: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: {
+            select: { products: true },
+          },
+        },
+      })
+      .then((brand) =>
+        brand ? { ...brand, productCount: brand._count?.products ?? 0 } : null,
+      );
   }
 
   // 通过 slug 查找单个品牌

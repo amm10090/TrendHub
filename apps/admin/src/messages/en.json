@@ -1132,7 +1132,7 @@
       "type": "Type",
       "lastUpdated": "Last Updated",
       "status": "Status",
-      "actions": "Actions"
+      "targetPrimaryCategory": "Target Primary Category"
     },
     "table": {
       "emptyContent": "No content blocks found.",

@@ -30,8 +30,24 @@ import {
   Label,
 } from "@/components/ui";
 import { ImageUploadField } from "@/components/ui/image-upload-field";
-import { Brand } from "@/lib/services/brand.service";
 import { cn } from "@/lib/utils";
+
+// 更新 Brand 类型以包含 productCount
+interface Brand {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null; // 允许 null
+  logo?: string | null; // 允许 null
+  website?: string | null; // 允许 null
+  isActive: boolean;
+  popularity: boolean;
+  productCount?: number; // 新增产品数量字段
+  // 如果API返回 _count 对象，也可以这样定义：
+  // _count?: {
+  //   products?: number;
+  // };
+}
 
 export default function BrandsPage() {
   const t = useTranslations("brands");
@@ -384,7 +400,7 @@ export default function BrandsPage() {
                         {brand.name}
                       </div>
                     </TableCell>
-                    <TableCell>0</TableCell>
+                    <TableCell>{brand.productCount ?? 0}</TableCell>
                     <TableCell>{brand.website || "-"}</TableCell>
                     <TableCell className="text-center">
                       <div

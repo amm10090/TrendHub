@@ -2,6 +2,9 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
+import Resend from "next-auth/providers/resend";
 
 import { db } from "@/lib/db"; // 确保您的 Prisma 实例路径正确
 
@@ -71,15 +74,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
-    // 您可以在此处添加其他 Providers，例如 Google, GitHub 等
-    // import Google from "next-auth/providers/google"
-    // Google({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET }),
+    // 添加Google认证提供商
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
+
+    // 添加GitHub认证提供商
+    GitHub({
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    }),
+
+    // 添加Resend邮件提供商
+    Resend({
+      apiKey: process.env.AUTH_RESEND_KEY as string,
+      from: process.env.EMAIL_FROM as string,
+    }),
   ],
   pages: {
     signIn: "/login", // 指定自定义登录页面的路径
     // signOut: '/auth/signout', // 默认登出页面
     // error: '/auth/error', // 错误页面 (例如，认证失败)
-    // verifyRequest: '/auth/verify-request', // 用于邮件验证等流程
+    verifyRequest: "/verify-email", // 用于邮件验证的页面
     // newUser: null // 如果为 null, 新用户将重定向到 signIn URL
   },
   callbacks: {

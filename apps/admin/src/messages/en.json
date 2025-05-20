@@ -1577,26 +1577,41 @@
   },
   "login": {
     "title": "Admin Login",
-    "description": "Welcome back, please enter your credentials to continue.",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "you@example.com",
+    "description": "Enter your account information to log in",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
     "passwordLabel": "Password",
-    "passwordPlaceholder": "••••••••",
+    "passwordPlaceholder": "Enter your password",
     "loginButton": "Login",
     "loggingIn": "Logging in...",
-    "errorTitle": "Login Failed",
-    "footer": "© TrendHub Admin",
-    "loginSuccess": "Login successful!",
+    "loginSuccess": "Login successful",
+    "footer": "TrendHub Admin © 2023 All rights reserved",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithGithub": "Continue with GitHub",
+    "orLabel": "or",
+    "orWithPassword": "or login with password",
+    "emailSent": "Login link sent to your email",
+    "checkEmail": "Check your email",
+    "emailLinkSent": "We've sent a login link to {email}.",
+    "backToLogin": "Back to login",
     "validation": {
-      "emailRequired": "Email address is required",
-      "emailInvalid": "Please enter a valid email address",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email",
       "passwordRequired": "Password is required"
     },
     "errors": {
-      "CredentialsSignin": "Invalid email or password. Please try again.",
-      "Default": "An unknown error occurred. Please try again later.",
-      "NetworkError": "Network error. Please check your connection and try again.",
-      "Configuration": "Authentication configuration error. Please contact support."
+      "Default": "Login failed, please try again later",
+      "CredentialsSignin": "Invalid email or password",
+      "Configuration": "System configuration error, please contact administrator",
+      "NetworkError": "Network error, please check your connection",
+      "OAuthError": "Third-party login failed, please try another login method",
+      "EmailSignInError": "Email login failed, please check if the email address is correct"
     }
+  },
+  "verifyEmail": {
+    "title": "Verify Your Email",
+    "description": "We've sent an email with a login link to your address. Please check your email and click the link to complete login.",
+    "checkSpam": "If you didn't receive the email, please check your spam folder.",
+    "backToLogin": "Back to login"
   }
 }

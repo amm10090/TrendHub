@@ -462,7 +462,8 @@
         "fetchReportDataFailed": "Failed to fetch report data: {error}",
         "genericReportError": "An unknown error occurred while generating the report"
       }
-    }
+    },
+    "welcomeMessage": "Welcome to the TrendHub Admin Panel!"
   },
   "disclaimer": {
     "last_updated": "",
@@ -1572,6 +1573,30 @@
       "startUrlsRequired": "At least one start URL is required.",
       "inventoryNonNegative": "Default inventory must be 0 or greater.",
       "positiveNumber": "Must be a positive number if provided."
+    }
+  },
+  "login": {
+    "title": "Admin Login",
+    "description": "Welcome back, please enter your credentials to continue.",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "loginButton": "Login",
+    "loggingIn": "Logging in...",
+    "errorTitle": "Login Failed",
+    "footer": "© TrendHub Admin",
+    "loginSuccess": "Login successful!",
+    "validation": {
+      "emailRequired": "Email address is required",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordRequired": "Password is required"
+    },
+    "errors": {
+      "CredentialsSignin": "Invalid email or password. Please try again.",
+      "Default": "An unknown error occurred. Please try again later.",
+      "NetworkError": "Network error. Please check your connection and try again.",
+      "Configuration": "Authentication configuration error. Please contact support."
     }
   }
 }

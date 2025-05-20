@@ -5,5 +5,5 @@ export const routing = defineRouting({
   locales: ["en", "cn"],
 
   // 默认语言
-  defaultLocale: "cn",
+  defaultLocale: "en",
 });

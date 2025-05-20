@@ -374,7 +374,8 @@
         "fetchReportDataFailed": "获取报表数据失败: {error}",
         "genericReportError": "生成报表时发生未知错误"
       }
-    }
+    },
+    "welcomeMessage": "欢迎来到 TrendHub 管理后台！"
   },
   "disclaimer": {
     "last_updated": "最后更新",
@@ -1495,6 +1496,30 @@
       "startUrlsRequired": "至少需要一个起始URL。",
       "inventoryNonNegative": "默认库存必须大于或等于0。",
       "positiveNumber": "如果提供，必须是一个正数。"
+    }
+  },
+  "login": {
+    "title": "管理员登录",
+    "description": "欢迎回来，请输入您的凭证以继续。",
+    "emailLabel": "邮箱地址",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "密码",
+    "passwordPlaceholder": "••••••••",
+    "loginButton": "登录",
+    "loggingIn": "登录中...",
+    "errorTitle": "登录失败",
+    "footer": "© TrendHub Admin",
+    "loginSuccess": "登录成功！",
+    "validation": {
+      "emailRequired": "邮箱地址不能为空",
+      "emailInvalid": "请输入有效的邮箱地址",
+      "passwordRequired": "密码不能为空"
+    },
+    "errors": {
+      "CredentialsSignin": "邮箱或密码错误，请重试。",
+      "Default": "发生未知错误，请稍后重试。",
+      "NetworkError": "网络连接错误，请检查您的网络并重试。",
+      "Configuration": "认证配置错误，请联系管理员。"
     }
   }
 }

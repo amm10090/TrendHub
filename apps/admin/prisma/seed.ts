@@ -1,14 +1,55 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs"; // 导入 bcryptjs
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // --- 创建管理员用户 ---
+  const adminEmail = "admin@trendhub.com";
+  const adminPassword = "secureAdminPassword123"; // 请务必在实际使用中更改此密码并使用更强壮的密码！
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(adminPassword, saltRounds);
+
+  try {
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: {
+        name: "TrendHub Admin",
+        passwordHash: hashedPassword,
+        emailVerified: new Date(),
+      },
+      create: {
+        email: adminEmail,
+        name: "TrendHub Admin",
+        passwordHash: hashedPassword,
+        emailVerified: new Date(),
+        // 如果您的 User 模型有其他必填字段，请在此处添加
+      },
+    });
+  } catch {
+    return;
+    // 根据您的错误处理策略，您可能希望在这里抛出错误或退出进程
+  }
+  // --- 管理员用户创建结束 ---
+
   // Clear existing data - order is important due to foreign key constraints
+  // 注意：如果 User 表与其他表有关联，且 onDelete 不是 Cascade，直接删除 User 可能失败
+  // 确保在删除 User 之前处理或删除依赖 User 的记录，或者调整删除顺序
+  // 为安全起见，在 User 创建之后再执行这些删除操作，并确保依赖关系正确
+
+  // 建议先删除依赖 User 的数据，或者如果 User 是新加的，之前没有 User 数据，则此步骤可以跳过或调整
+  // 例如： await prisma.order.deleteMany({}); // 如果有 Order 表依赖 User
+
   await prisma.product.deleteMany({});
-
+  await prisma.contentItem.deleteMany({}); // 新增，先删除 ContentItem
+  await prisma.contentBlock.deleteMany({}); // 新增，再删除 ContentBlock
   await prisma.category.deleteMany({});
-
   await prisma.brand.deleteMany({});
+  // 如果 User 是新模型，且之前数据库中没有 User 表，或者您希望保留现有的 User（除了 admin），
+  // 则不应执行 prisma.user.deleteMany({})，除非您想清空所有用户只留下 admin。
+  // 如果要保留其他用户，但清空其他数据，则调整此处的删除逻辑。
+  // 假设我们目前只关心 admin 用户，并且其他表数据可以安全删除：
+  // await prisma.user.deleteMany({ where: { email: { not: adminEmail } } }); // 可选：删除除 admin 外的所有用户
 
   // --- Create Brands ---
   const brandGucci = await prisma.brand.create({

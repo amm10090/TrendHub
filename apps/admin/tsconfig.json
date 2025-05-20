@@ -25,6 +25,13 @@
     ],
     "target": "ES2024"
   },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    },
+    "transpileOnly": true,
+    "files": true
+  },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"],
   "references": [

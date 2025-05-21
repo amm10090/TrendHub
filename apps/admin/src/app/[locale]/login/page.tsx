@@ -82,9 +82,9 @@ export default function LoginPage() {
 
       console.log("处理后的重定向URL:", redirectUrl);
 
+      // 修正localhost URL
       if (redirectUrl.includes("localhost")) {
-        const publicUrl =
-          process.env.NEXT_PUBLIC_URL || "http://82.25.95.136:3001";
+        const publicUrl = process.env.NEXT_PUBLIC_URL;
         redirectUrl = redirectUrl.replace(
           /http:\/\/localhost:[0-9]+/g,
           publicUrl,
@@ -92,26 +92,36 @@ export default function LoginPage() {
         console.log("修正localhost的URL为:", redirectUrl);
       }
 
-      try {
+      // 恢复为手动重定向，添加更多详细诊断
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+        callbackUrl: redirectUrl,
+      });
+
+      console.log("SignIn 返回结果:", JSON.stringify(result));
+
+      if (result?.error) {
+        console.error("登录失败，错误信息:", result.error);
+        const errorKey = `errors.${result.error}`;
+        setServerError(t(errorKey, { fallback: t("errors.Default") }));
+      } else if (result?.ok === true) {
+        console.log("登录成功，准备跳转到:", result.url);
         toast.success(t("loginSuccess", { fallback: "登录成功" }));
 
-        await signIn("credentials", {
-          redirect: true,
-          email: data.email,
-          password: data.password,
-          callbackUrl: redirectUrl,
-        });
-
-        console.log("如果看到这条消息，说明自动重定向没有发生");
-      } catch (signInError) {
-        console.error("SignIn错误:", signInError);
-        const errorMessage =
-          signInError instanceof Error ? signInError.message : "未知错误";
-        setServerError(t("errors.Default") + " (" + errorMessage + ")");
+        // 延迟后执行跳转，确保日志和toast有时间完成
+        setTimeout(() => {
+          window.location.href = result.url || "/";
+        }, 1000);
+      } else {
+        console.error("SignIn返回未预期的结果:", result);
+        setServerError(t("errors.Default"));
       }
 
       setIsLoading(false);
     } catch (error) {
+      console.error("登录过程中发生异常:", error);
       let errorMessage = "errors.Default";
 
       if (error instanceof Error) {

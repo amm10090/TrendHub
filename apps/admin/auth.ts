@@ -178,4 +178,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     },
   },
+  debug: true, // 启用调试日志以获取更多信息
 });

@@ -161,30 +161,62 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       console.log("[AUTH.JS REDIRECT CALLBACK] Received url:", url);
       console.log("[AUTH.JS REDIRECT CALLBACK] Received baseUrl:", baseUrl);
 
+      // 从环境变量读取公网URL，避免硬编码
+      // 这解决了Auth.js内部有时错误地将baseUrl设置为localhost的问题
+      // 如果环境变量未设置，则回退到当前接收到的baseUrl
+      const publicBaseUrl = process.env.NEXTAUTH_PUBLIC_URL || baseUrl;
+
+      // 检测baseUrl是否指向localhost，如果是则使用publicBaseUrl替换
+      const shouldUsePublicUrl =
+        baseUrl.includes("localhost") && !publicBaseUrl.includes("localhost");
+      const effectiveBaseUrl = shouldUsePublicUrl ? publicBaseUrl : baseUrl;
+
+      if (shouldUsePublicUrl) {
+        console.log(
+          "[AUTH.JS REDIRECT CALLBACK] Replacing localhost baseUrl with:",
+          publicBaseUrl,
+        );
+      }
+
       // 如果 URL 是相对路径，将其转换为绝对路径
       if (url.startsWith("/")) {
-        const finalUrl = `${baseUrl}${url}`;
+        const finalUrl = `${effectiveBaseUrl}${url}`;
         console.log(
           "[AUTH.JS REDIRECT CALLBACK] Redirecting to (relative):",
           finalUrl,
         );
         return finalUrl;
       }
-      // 如果 URL 已经是绝对路径且与 baseUrl 同源，则直接使用
-      else if (new URL(url).origin === new URL(baseUrl).origin) {
+      // 如果 URL 已经是绝对路径且与有效baseUrl同源，则直接使用
+      else if (url.startsWith(effectiveBaseUrl)) {
         console.log(
           "[AUTH.JS REDIRECT CALLBACK] Redirecting to (absolute, same origin):",
           url,
         );
         return url;
       }
+      // 如果 URL 是绝对路径但指向 localhost，转换为公网URL
+      else if (
+        url.includes("localhost") &&
+        !publicBaseUrl.includes("localhost")
+      ) {
+        const correctedUrl = url.replace(
+          /http:\/\/localhost:[0-9]+/g,
+          publicBaseUrl,
+        );
+        console.log(
+          "[AUTH.JS REDIRECT CALLBACK] Redirecting to (corrected from localhost):",
+          correctedUrl,
+        );
+        return correctedUrl;
+      }
 
-      // 默认返回基础 URL (防止重定向到不安全的域)
+      // 默认返回有效的baseUrl (防止重定向到不安全的域)
       console.log(
         "[AUTH.JS REDIRECT CALLBACK] Redirecting to (default):",
-        baseUrl,
+        effectiveBaseUrl,
       );
-      return baseUrl;
+      return effectiveBaseUrl;
     },
   },
   // debug: process.env.NODE_ENV === "development", // 开发模式下启用调试信息

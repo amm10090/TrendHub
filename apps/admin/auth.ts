@@ -19,7 +19,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       //   email: { label: "邮箱", type: "email", placeholder: "jsmith@example.com" },
       //   password: { label: "密码", type: "password" }
       // },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        // 在此处记录请求头
+        if (req?.headers) {
+          console.log(
+            "[AUTH.JS AUTHORIZE] Request Headers:",
+            JSON.stringify(Object.fromEntries(req.headers.entries()), null, 2),
+          );
+        }
+
         // 读取预设管理员环境变量
         const presetAdminEmail = process.env.PRESET_ADMIN_EMAIL;
         const presetAdminPassword = process.env.PRESET_ADMIN_PASSWORD;

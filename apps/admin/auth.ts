@@ -150,16 +150,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
+      console.log("[AUTH.JS REDIRECT CALLBACK] Received url:", url);
+      console.log("[AUTH.JS REDIRECT CALLBACK] Received baseUrl:", baseUrl);
+
       // 如果 URL 是相对路径，将其转换为绝对路径
       if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
+        const finalUrl = `${baseUrl}${url}`;
+        console.log(
+          "[AUTH.JS REDIRECT CALLBACK] Redirecting to (relative):",
+          finalUrl,
+        );
+        return finalUrl;
       }
       // 如果 URL 已经是绝对路径且与 baseUrl 同源，则直接使用
-      else if (url.startsWith(baseUrl)) {
+      else if (new URL(url).origin === new URL(baseUrl).origin) {
+        console.log(
+          "[AUTH.JS REDIRECT CALLBACK] Redirecting to (absolute, same origin):",
+          url,
+        );
         return url;
       }
 
       // 默认返回基础 URL (防止重定向到不安全的域)
+      console.log(
+        "[AUTH.JS REDIRECT CALLBACK] Redirecting to (default):",
+        baseUrl,
+      );
       return baseUrl;
     },
   },

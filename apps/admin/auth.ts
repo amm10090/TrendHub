@@ -150,9 +150,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // 如果 URL 是相对路径，将其转换为绝对路径
+      // 如果 URL 是相对路径，直接返回相对路径，让浏览器在当前域中解析
       if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
+        return url;
       }
       // 如果 URL 已经是绝对路径且与 baseUrl 同源，则直接使用
       else if (url.startsWith(baseUrl)) {

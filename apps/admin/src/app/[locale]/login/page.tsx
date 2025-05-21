@@ -95,7 +95,17 @@ export default function LoginPage() {
       } else if (result?.url) {
         toast.success(t("loginSuccess", { fallback: "登录成功" }));
         setIsLoading(false);
-        router.push(result.url);
+
+        let finalUrl = result.url;
+        if (
+          finalUrl.startsWith("http://localhost:") ||
+          finalUrl.startsWith("https://localhost:")
+        ) {
+          const urlObj = new URL(finalUrl);
+          finalUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+        }
+
+        router.push(finalUrl);
       } else {
         setServerError(t("errors.Default"));
         setIsLoading(false);

@@ -648,6 +648,25 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/ui:
+    dependencies:
+      next:
+        specifier: ^15.3.2
+        version: 15.3.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react:
+        specifier: ^19.1.0
+        version: 19.1.0
+    devDependencies:
+      '@repo/types':
+        specifier: workspace:*
+        version: link:../types
+      eslint:
+        specifier: ^9.26.0
+        version: 9.26.0(jiti@2.4.2)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
 packages:
 
   '@alloc/quick-lru@5.2.0':

@@ -1,0 +1,11 @@
+    node_modules
+    .DS_Store
+    .git
+    .env
+    .env.*
+    !.env.example
+    *.md
+    .next
+    dist
+    build
+    .turbo

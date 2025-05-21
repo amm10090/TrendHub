@@ -18,6 +18,7 @@ RUN pnpm install --frozen-lockfile
 
 # 构建阶段
 FROM base AS builder
+WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 RUN pnpm turbo run build

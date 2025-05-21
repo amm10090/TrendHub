@@ -339,102 +339,467 @@ pnpm --filter=@trend-hub/admin run db:seed
 
   您还需要使用 Certbot 等工具配置 SSL 证书以启用 HTTPS。
 
-### 5.5. Docker化部署 (可选)
+### 5.5 Docker 容器化部署详细指南
 
-将应用容器化可以提供更好的一致性和可移植性。
+#### 1. Docker 容器化概述
 
-1.  **创建 `Dockerfile`**: 为每个需要部署的应用 (例如 `apps/web`, `apps/admin`) 创建一个 `Dockerfile`。
+Docker 容器化为 TrendHub 项目提供了一致的运行环境、简化的部署流程和更好的资源隔离。本节详细介绍如何使用 Docker 部署整个 Monorepo 项目。
 
-    **`apps/admin/Dockerfile` 示例**:
+#### 2. 前置要求
 
-    ```dockerfile
-    # 1. 选择 Node.js 基础镜像 (与项目兼容的版本)
-    FROM node:18-alpine AS base
+- 安装 Docker Engine (20.10+)
+- 安装 Docker Compose (2.0+)
+- 熟悉基本的 Docker 命令和概念
 
-    # 设置工作目录
-    WORKDIR /app
+##### Docker Engine 安装
 
-    # 安装 pnpm
-    RUN npm install -g pnpm
+###### Linux (以 Ubuntu 为例)
 
-    # --- 依赖安装阶段 ---
-    FROM base AS deps
-    WORKDIR /app
-
-    # 拷贝 Monorepo 结构的关键文件
-    COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
-    COPY apps/admin/package.json ./apps/admin/
-    # 如果有其他共享的 package.json (如 packages/ui), 也需要拷贝
-    # COPY packages/types/package.json ./packages/types/
-    # COPY packages/ui/package.json ./packages/ui/
-
-    # 安装所有依赖 (或仅生产依赖，根据需要调整)
-    # 使用 --filter 来只安装特定应用及其依赖，可以减小镜像体积
-    RUN pnpm install --frozen-lockfile --filter=@trend-hub/admin... # '...' 包含其依赖
-
-    # --- 构建阶段 ---
-    FROM base AS builder
-    WORKDIR /app
-
-    # 拷贝依赖安装阶段的 node_modules
-    COPY --from=deps /app/node_modules ./node_modules
-    # 拷贝整个 Monorepo 的源代码或构建应用所需的部分
-    COPY . .
-
-    # 构建特定应用
-    RUN pnpm --filter=@trend-hub/admin build
-
-    # --- 生产镜像 ---
-    FROM base AS runner
-    WORKDIR /app
-
-    # 从构建器阶段拷贝构建产物和必要的 node_modules
-    # 只拷贝生产所需的依赖
-    COPY --from=builder /app/node_modules ./node_modules
-    COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
-    COPY --from=builder /app/apps/admin/public ./apps/admin/public
-    COPY --from=builder /app/apps/admin/package.json ./apps/admin/package.json
-    COPY --from=builder /app/package.json ./ # 根 package.json 可能包含启动脚本
-    COPY --from=builder /app/pnpm-lock.yaml ./ # 确保版本一致性
-
-    # 暴露端口
-    EXPOSE 3000
-
-    # 设置环境变量 (可以在 docker run 时覆盖)
-    # ENV NODE_ENV=production
-    # ENV PORT=3000
-
-    # 启动命令 (确保 package.json 中有对应的脚本)
-    # CMD ["pnpm", "--filter=@trend-hub/admin", "start"]
-    CMD ["pnpm", "run", "start:admin"] # 假设 apps/admin/package.json 或根 package.json 中有 start:admin 脚本
-
-    ```
-
-    **注意**: 上述 `Dockerfile` 是一个通用指南，您需要根据您的 Monorepo 结构和依赖关系进行精确调整，特别是 `COPY` 指令和 `pnpm install` 的 `--filter` 参数。目标是构建一个包含运行特定应用所需的最少文件的镜像。
-
-2.  **构建 Docker 镜像**:
+1.  **更新包索引并安装依赖**:
     ```bash
-    docker build -t trendhub-admin:latest -f apps/admin/Dockerfile .
-    # 为 apps/web 创建类似的 Dockerfile 并构建镜像
-    # docker build -t trendhub-web:latest -f apps/web/Dockerfile .
+    sudo apt-get update
+    sudo apt-get install -y \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release
     ```
-3.  **运行 Docker 容器**:
-
+2.  **添加 Docker 的官方 GPG 密钥**:
     ```bash
-    docker run -d -p 3001:3000 \
-      --name trendhub-admin-container \
-      -e DATABASE_URL="your_db_connection_string" \
-      -e R2_ACCESS_KEY_ID="your_key_id" \
-      # ... 其他环境变量 ...
-      trendhub-admin:latest
-
-    # docker run -d -p 3002:3000 \
-    #   --name trendhub-web-container \
-    #   # ... 环境变量 ...
-    #   trendhub-web:latest
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    ```
+3.  **设置 Docker APT 仓库**:
+    ```bash
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    ```
+4.  **安装 Docker Engine**:
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    ```
+5.  **验证安装**:
+    ```bash
+    sudo docker run hello-world
+    ```
+6.  **(可选) 将用户添加到 `docker` 组以无 `sudo` 运行 Docker**:
+    ```bash
+    sudo usermod -aG docker $USER
+    # 注销并重新登录以使更改生效
     ```
 
-    可以使用 Docker Compose 来简化多容器应用的定义和管理。
+###### Windows
+
+1.  访问 [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/) 官方文档。
+2.  下载安装程序并按照屏幕上的说明进行操作。
+3.  确保启用了 WSL 2 (Windows Subsystem for Linux 2)，这是 Docker Desktop 在 Windows 上运行所必需的。
+
+###### macOS
+
+1.  访问 [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/) 官方文档。
+2.  根据您的 Mac 芯片（Intel 或 Apple Silicon）下载相应的安装程序。
+3.  打开 `.dmg` 文件并将 Docker 图标拖到 Applications 文件夹中。
+
+##### Docker Compose 安装
+
+- 对于 **Linux** 用户，如果您通过 `docker-compose-plugin` 包安装了 Docker Engine，则 Docker Compose V2 已经包含在内，可以通过 `docker compose` (注意没有连字符) 命令使用。
+- 对于 **Windows 和 macOS** 用户，Docker Desktop 自带 Docker Compose V2，同样通过 `docker compose` 命令使用。
+- 如果需要独立安装 Docker Compose (例如旧版 Docker Engine 或特定需求)，请参考 [Docker Compose 官方安装指南](https://docs.docker.com/compose/install/)。
+
+**官方文档**:
+强烈建议查阅 Docker 官方文档以获取最新和最详细的安装说明：
+
+- Docker Engine: [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
+- Docker Desktop (Windows, Mac): [https://docs.docker.com/desktop/](https://docs.docker.com/desktop/)
+- Docker Compose: [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
+
+---
+
+- 安装 Docker Engine (20.10+)
+- 安装 Docker Compose (2.0+)
+
+#### 3. Docker 配置文件创建
+
+##### 3.1 编写 Dockerfile
+
+在项目根目录创建 `Dockerfile`:
+
+```dockerfile
+# 基础镜像
+FROM node:18-alpine AS base
+
+# 全局依赖
+RUN apk add --no-cache libc6-compat python3 make g++
+RUN npm install -g pnpm@10.10.0
+WORKDIR /app
+
+# 依赖阶段
+FROM base AS deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/admin/package.json ./apps/admin/package.json
+COPY apps/web/package.json ./apps/web/package.json
+COPY packages/types/package.json ./packages/types/package.json
+COPY packages/ui/package.json ./packages/ui/package.json
+COPY packages/scraper/package.json ./packages/scraper/package.json
+
+# 安装所有依赖
+RUN pnpm install --frozen-lockfile
+
+# 构建阶段
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# 构建所有应用
+RUN pnpm turbo run build
+
+# Admin应用生产阶段
+FROM base AS admin
+ENV NODE_ENV production
+WORKDIR /app
+
+# 复制必要文件
+COPY --from=builder /app/apps/admin/package.json ./apps/admin/package.json
+COPY --from=builder /app/apps/admin/next.config.js ./apps/admin/next.config.js
+COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
+COPY --from=builder /app/apps/admin/public ./apps/admin/public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+# 数据库初始化文件
+COPY --from=builder /app/apps/admin/prisma ./apps/admin/prisma
+
+WORKDIR /app/apps/admin
+EXPOSE 3001
+CMD ["pnpm", "start", "--", "-p", "3001"]
+
+# Web应用生产阶段
+FROM base AS web
+ENV NODE_ENV production
+WORKDIR /app
+
+COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
+COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+WORKDIR /app/apps/web
+EXPOSE 3000
+CMD ["pnpm", "start", "--", "-p", "3000"]
+```
+
+##### 3.2 创建 Docker Compose 配置文件
+
+在项目根目录创建 `docker-compose.yml`:
+
+```yaml
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: trendhub-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-trendhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trendhubpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-trendhub_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trendhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: admin
+    container_name: trendhub-admin
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://trendhub:trendhubpassword@postgres:5432/trendhub_db
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3001}
+      - NEXTAUTH_URL_INTERNAL=http://localhost:3001
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret}
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    container_name: trendhub-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+
+  nginx:
+    image: nginx:alpine
+    container_name: trendhub-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - admin
+      - web
+
+volumes:
+  postgres_data:
+```
+
+##### 3.3 配置 Nginx 反向代理
+
+创建 `nginx` 目录和 `nginx/default.conf`:
+
+```bash
+mkdir -p nginx
+```
+
+编辑 `nginx/default.conf`:
+
+```nginx
+# 前台配置
+server {
+    listen 80;
+    server_name trendhub.com www.trendhub.com;
+
+    location / {
+        proxy_pass http://web:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 后台配置
+server {
+    listen 80;
+    server_name admin.trendhub.com;
+
+    location / {
+        proxy_pass http://admin:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+##### 3.4 创建环境变量配置文件
+
+在项目根目录创建 `.env.docker` 文件:
+
+```
+# 数据库设置
+POSTGRES_USER=trendhub
+POSTGRES_PASSWORD=trendhubpassword
+POSTGRES_DB=trendhub_db
+DATABASE_URL=postgresql://trendhub:trendhubpassword@postgres:5432/trendhub_db
+
+# NextAuth配置
+NEXTAUTH_URL=http://localhost:3001
+NEXTAUTH_URL_INTERNAL=http://localhost:3001
+NEXTAUTH_SECRET=your-nextauth-secret-key-change-this
+
+# API URL (供前台访问后台API)
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+
+# 其他必要的环境变量
+# ...添加您项目所需的其他环境变量
+```
+
+#### 4. 构建和运行容器
+
+##### 4.1 构建镜像
+
+```bash
+# 使用环境变量文件
+docker compose --env-file .env.docker build
+```
+
+##### 4.2 启动所有服务
+
+```bash
+docker compose --env-file .env.docker up -d
+```
+
+##### 4.3 初始化数据库
+
+```bash
+# 进入admin容器
+docker exec -it trendhub-admin sh
+
+# 运行Prisma迁移
+cd /app/apps/admin
+npx prisma migrate deploy
+
+# 可选：运行数据填充脚本
+npx prisma db seed
+```
+
+##### 4.4 服务管理命令
+
+```bash
+# 查看所有运行中的容器
+docker compose ps
+
+# 查看容器日志
+docker compose logs -f admin  # 查看admin应用日志
+docker compose logs -f web    # 查看web应用日志
+docker compose logs -f postgres  # 查看数据库日志
+
+# 停止所有服务
+docker compose down
+
+# 停止并删除卷（慎用，会删除数据库数据）
+docker compose down -v
+```
+
+#### 5. 容器化部署最佳实践
+
+##### 5.1 镜像优化
+
+- 使用多阶段构建减小镜像大小
+- 只安装生产依赖 (`pnpm install --frozen-lockfile --prod`)
+- 使用 `.dockerignore` 排除不必要的文件
+
+##### 5.2 安全考虑
+
+创建 `.dockerignore` 文件:
+
+```
+node_modules
+.git
+.env
+.env.*
+!.env.example
+*.md
+.next
+build
+dist
+.turbo
+```
+
+##### 5.3 CI/CD集成
+
+对接 GitHub Actions 自动构建和部署 Docker 镜像的示例配置 (创建 `.github/workflows/docker.yml`):
+
+```yaml
+name: Docker Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            your-registry/trendhub-admin:latest
+            your-registry/trendhub-admin:${{ github.sha }}
+          target: admin
+```
+
+##### 5.4 生产环境部署考虑
+
+- 使用 Docker Swarm 或 Kubernetes 进行容器编排
+- 设置健康检查确保服务可用性
+- 实施自动备份策略
+- 配置监控和告警系统
+
+#### 6. 常见问题解决 (Docker)
+
+##### 6.1 构建时问题
+
+- **依赖安装失败**: 确保 pnpm 版本正确且所有依赖可访问
+- **构建内存不足**: 增加 Docker 内存限制或优化构建过程
+
+##### 6.2 运行时问题
+
+- **容器间通信失败**: 检查网络配置和服务名称解析
+- **数据库连接错误**: 验证连接字符串和数据库凭据
+- **应用启动错误**: 检查环境变量和日志信息
+
+##### 6.3 性能优化
+
+- 配置容器资源限制 (CPU, 内存)
+- 使用 Docker 卷进行数据持久化
+- 利用 Docker 的内置缓存机制
+
+#### 7. 部署到云服务 (Docker)
+
+##### 7.1 AWS ECS/Fargate
+
+```bash
+# 安装和配置AWS CLI
+aws configure
+
+# 创建ECR仓库
+aws ecr create-repository --repository-name trendhub-admin
+aws ecr create-repository --repository-name trendhub-web
+
+# 登录ECR
+aws ecr get-login-password | docker login --username AWS --password-stdin <your-aws-account-id>.dkr.ecr.<region>.amazonaws.com
+
+# 构建并推送镜像
+docker build --target admin -t <your-aws-account-id>.dkr.ecr.<region>.amazonaws.com/trendhub-admin:latest .
+docker push <your-aws-account-id>.dkr.ecr.<region>.amazonaws.com/trendhub-admin:latest
+```
+
+##### 7.2 Google Cloud Run
+
+```bash
+# 安装和配置gcloud CLI
+gcloud auth login
+
+# 构建并推送镜像到Google Container Registry
+gcloud builds submit --tag gcr.io/<project-id>/trendhub-admin --target admin .
+
+# 部署到Cloud Run
+gcloud run deploy trendhub-admin --image gcr.io/<project-id>/trendhub-admin --platform managed
+```
 
 ## 6. 常见问题与故障排查
 

@@ -31,12 +31,14 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile-web # 为web应用创建类似的Dockerfile
+      dockerfile: Dockerfile
+      target: web
+    container_name: trendhub-web
     restart: always
-    environment:
-      - NEXT_PUBLIC_API_URL=https://admin.your-domain.com/api
     ports:
       - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
 
   nginx:
     image: nginx:alpine

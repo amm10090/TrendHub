@@ -95,19 +95,7 @@ export default function LoginPage() {
       } else if (result?.url) {
         toast.success(t("loginSuccess", { fallback: "登录成功" }));
         setIsLoading(false);
-
-        let finalUrl = result.url;
-        if (finalUrl.includes("localhost") || finalUrl.includes("127.0.0.1")) {
-          try {
-            const urlObj = new URL(finalUrl);
-            finalUrl = urlObj.pathname + urlObj.search + urlObj.hash;
-            console.log("转换后的相对URL:", finalUrl);
-          } catch (e) {
-            console.error("URL转换错误:", e);
-          }
-        }
-
-        router.push(finalUrl);
+        router.push(result.url);
       } else {
         setServerError(t("errors.Default"));
         setIsLoading(false);

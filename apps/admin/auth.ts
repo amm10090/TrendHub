@@ -10,11 +10,7 @@ import { db } from "@/lib/db"; // 确保您的 Prisma 实例路径正确
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
-  session: {
-    strategy: "jwt",
-    // 确保会话cookie使用相对路径
-    maxAge: 30 * 24 * 60 * 60, // 30天
-  },
+  session: { strategy: "jwt" }, // 使用 JWT 会话策略
   providers: [
     Credentials({
       // 您可以自定义登录表单的字段，如果需要的话
@@ -154,9 +150,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // 如果 URL 是相对路径，直接返回相对路径，让浏览器在当前域中解析
+      // 如果 URL 是相对路径，将其转换为绝对路径
       if (url.startsWith("/")) {
-        return url;
+        return `${baseUrl}${url}`;
       }
       // 如果 URL 已经是绝对路径且与 baseUrl 同源，则直接使用
       else if (url.startsWith(baseUrl)) {
@@ -183,15 +179,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   debug: true, // 启用调试日志以获取更多信息
-  logger: {
-    error(error) {
-      console.error(`[auth][error]`, error);
-    },
-    warn(code) {
-      console.warn(`[auth][warn][${code}]`);
-    },
-    debug(code, metadata) {
-      console.log(`[auth][debug][${code}]`, metadata);
-    },
-  },
 });

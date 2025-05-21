@@ -1,5 +1,5 @@
 FROM node:18-alpine AS base
-
+ENV PATH /app/node_modules/.bin:$PATH
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
 

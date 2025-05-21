@@ -60,9 +60,9 @@ export default auth((req) => {
     // 构建正确的相对路径，确保路径格式正确
     const callbackUrl = encodeURIComponent(pathname);
 
-    // 使用 NextResponse 构建 URL 而不是直接构造字符串
-    const url = new URL(`/${localeForRedirect}/login`, request.url);
-
+    // 使用相对路径构建URL，而不是绝对URL
+    const loginPath = `/${localeForRedirect}/login`;
+    const url = new URL(loginPath, request.url);
     url.searchParams.set("callbackUrl", callbackUrl);
 
     return NextResponse.redirect(url);

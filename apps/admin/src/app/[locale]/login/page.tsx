@@ -97,12 +97,14 @@ export default function LoginPage() {
         setIsLoading(false);
 
         let finalUrl = result.url;
-        if (
-          finalUrl.startsWith("http://localhost:") ||
-          finalUrl.startsWith("https://localhost:")
-        ) {
-          const urlObj = new URL(finalUrl);
-          finalUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+        if (finalUrl.includes("localhost") || finalUrl.includes("127.0.0.1")) {
+          try {
+            const urlObj = new URL(finalUrl);
+            finalUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+            console.log("转换后的相对URL:", finalUrl);
+          } catch (e) {
+            console.error("URL转换错误:", e);
+          }
         }
 
         router.push(finalUrl);

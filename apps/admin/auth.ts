@@ -20,6 +20,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       //   password: { label: "密码", type: "password" }
       // },
       async authorize(credentials) {
+        // 读取预设管理员环境变量
+        const presetAdminEmail = process.env.PRESET_ADMIN_EMAIL;
+        const presetAdminPassword = process.env.PRESET_ADMIN_PASSWORD;
+
         // 确保 credentials 是一个对象并且有 email 和 password 字段
         if (
           typeof credentials !== "object" ||
@@ -37,6 +41,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null; // 或者抛出错误
         }
 
+        // 检查是否为预设管理员
+        if (
+          presetAdminEmail &&
+          presetAdminPassword &&
+          email === presetAdminEmail &&
+          password === presetAdminPassword
+        ) {
+          // 预设管理员认证成功
+          return {
+            id: "preset-admin-id", // 可以使用一个固定的特殊ID
+            name: "预设管理员",
+            email: presetAdminEmail,
+            image: null, // 或者一个预设的头像URL
+            // role: "admin", // 如果您的系统有角色概念
+          };
+        }
+
+        // 如果不是预设管理员，则继续原有的数据库认证逻辑
         const user = await db.user.findUnique({
           where: { email },
         });

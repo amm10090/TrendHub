@@ -1536,5 +1536,31 @@
     "description": "我们已向您的邮箱发送了一封包含登录链接的邮件。请查看您的邮箱并点击链接以完成登录。",
     "checkSpam": "如果您没有收到邮件，请检查您的垃圾邮件文件夹。",
     "backToLogin": "返回登录页面"
+  },
+  "accountSettings": {
+    "title": "账户设置",
+    "description": "管理您的账户信息并修改密码。",
+    "profileTitle": "个人资料",
+    "nameLabel": "名称",
+    "emailLabel": "邮箱",
+    "changePasswordTitle": "修改密码",
+    "currentPasswordLabel": "当前密码",
+    "currentPasswordPlaceholder": "请输入当前密码",
+    "newPasswordLabel": "新密码",
+    "newPasswordPlaceholder": "请输入新密码",
+    "confirmPasswordLabel": "确认新密码",
+    "confirmPasswordPlaceholder": "请再次输入新密码",
+    "savePasswordButton": "保存密码",
+    "passwordUpdateSuccess": "密码更新成功！",
+    "passwordUpdateError": "密码更新失败，请重试。",
+    "validation": {
+      "currentPasswordRequired": "当前密码不能为空",
+      "newPasswordRequired": "新密码不能为空",
+      "newPasswordMinLength": "新密码至少需要 {minLength} 个字符",
+      "confirmPasswordRequired": "确认新密码不能为空",
+      "passwordsDoNotMatch": "两次输入的新密码不一致"
+    },
+    "warningTitle": "注意",
+    "presetAdminPasswordChangeWarning": "预设管理员账户的密码无法在此处修改。如需更改，请直接修改环境变量。"
   }
 }

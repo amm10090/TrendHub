@@ -1613,5 +1613,31 @@
     "description": "We've sent an email with a login link to your address. Please check your email and click the link to complete login.",
     "checkSpam": "If you didn't receive the email, please check your spam folder.",
     "backToLogin": "Back to login"
+  },
+  "accountSettings": {
+    "title": "Account Settings",
+    "description": "Manage your account information and change your password.",
+    "profileTitle": "Profile",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "changePasswordTitle": "Change Password",
+    "currentPasswordLabel": "Current Password",
+    "currentPasswordPlaceholder": "Enter current password",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Confirm new password",
+    "savePasswordButton": "Save Password",
+    "passwordUpdateSuccess": "Password updated successfully!",
+    "passwordUpdateError": "Failed to update password. Please try again.",
+    "validation": {
+      "currentPasswordRequired": "Current password is required",
+      "newPasswordRequired": "New password is required",
+      "newPasswordMinLength": "New password must be at least {minLength} characters",
+      "confirmPasswordRequired": "Confirm new password is required",
+      "passwordsDoNotMatch": "New passwords do not match"
+    },
+    "warningTitle": "Warning",
+    "presetAdminPasswordChangeWarning": "The preset admin account's password cannot be changed here. Please modify environment variables directly if needed."
   }
 }

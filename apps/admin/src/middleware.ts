@@ -24,6 +24,11 @@ interface AuthSession {
 export default auth((req) => {
   // 类型断言，因为 auth 回调中 req 会被增强
   const request = req as NextRequest & { auth: AuthSession };
+  console.log("[MIDDLEWARE] Request URL:", request.nextUrl.toString());
+  console.log(
+    "[MIDDLEWARE] Request Headers:",
+    JSON.stringify(Object.fromEntries(request.headers.entries()), null, 2),
+  );
 
   const { pathname } = request.nextUrl;
 

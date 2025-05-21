@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
@@ -24,7 +24,6 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const t = useTranslations("login");
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const errorParam = searchParams.get("error");
@@ -80,26 +79,38 @@ export default function LoginPage() {
       if (!redirectUrl.startsWith("/") && !redirectUrl.startsWith("http")) {
         redirectUrl = `/${redirectUrl}`;
       }
-      const result = await signIn("credentials", {
-        redirect: false,
-        email: data.email,
-        password: data.password,
-        callbackUrl: redirectUrl,
-      });
 
-      if (result?.error) {
-        const errorKey = `errors.${result.error}`;
+      console.log("处理后的重定向URL:", redirectUrl);
 
-        setServerError(t(errorKey, { fallback: t("errors.Default") }));
-        setIsLoading(false);
-      } else if (result?.url) {
-        toast.success(t("loginSuccess", { fallback: "登录成功" }));
-        setIsLoading(false);
-        router.push(result.url);
-      } else {
-        setServerError(t("errors.Default"));
-        setIsLoading(false);
+      if (redirectUrl.includes("localhost")) {
+        const publicUrl =
+          process.env.NEXT_PUBLIC_URL || "http://82.25.95.136:3001";
+        redirectUrl = redirectUrl.replace(
+          /http:\/\/localhost:[0-9]+/g,
+          publicUrl,
+        );
+        console.log("修正localhost的URL为:", redirectUrl);
       }
+
+      try {
+        toast.success(t("loginSuccess", { fallback: "登录成功" }));
+
+        await signIn("credentials", {
+          redirect: true,
+          email: data.email,
+          password: data.password,
+          callbackUrl: redirectUrl,
+        });
+
+        console.log("如果看到这条消息，说明自动重定向没有发生");
+      } catch (signInError) {
+        console.error("SignIn错误:", signInError);
+        const errorMessage =
+          signInError instanceof Error ? signInError.message : "未知错误";
+        setServerError(t("errors.Default") + " (" + errorMessage + ")");
+      }
+
+      setIsLoading(false);
     } catch (error) {
       let errorMessage = "errors.Default";
 

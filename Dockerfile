@@ -27,15 +27,34 @@ FROM base AS admin-runner
 ENV NODE_ENV=production
 WORKDIR /app
 
-COPY --from=builder /app/apps/admin/next.config.js ./
-COPY --from=builder /app/apps/admin/package.json ./
-COPY --from=builder /app/apps/admin/.next ./.next
-COPY --from=builder /app/apps/admin/public ./public
-COPY --from=builder /app/apps/admin/node_modules ./node_modules
+COPY --from=builder /app/apps/admin/next.config.js ./apps/admin/next.config.js
+COPY --from=builder /app/apps/admin/package.json ./apps/admin/package.json
+COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
+COPY --from=builder /app/apps/admin/public ./apps/admin/public
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
 # 如果使用 Prisma
-COPY --from=builder /app/apps/admin/prisma ./prisma
+COPY --from=builder /app/apps/admin/prisma ./apps/admin/prisma
 
+WORKDIR /app/apps/admin
 EXPOSE 3001
-CMD ["pnpm", "start"]
+CMD ["pnpm", "start", "--", "-p", "3001"]
+
+# 生产阶段 - Web 应用
+FROM base AS web-runner
+ENV NODE_ENV=production
+WORKDIR /app
+
+COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
+COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+
+WORKDIR /app/apps/web
+EXPOSE 3000
+CMD ["pnpm", "start", "--", "-p", "3000"]

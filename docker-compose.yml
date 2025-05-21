@@ -32,7 +32,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: web
+      target: web-runner
     container_name: trendhub-web
     restart: always
     ports:

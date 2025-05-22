@@ -2,8 +2,8 @@
 
 import { Button } from '@heroui/react';
 import { Heart } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useTranslations } from 'use-intl';
 
 import { ProductDetail } from '@/types/product';
 

@@ -2,8 +2,8 @@
 
 import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@heroui/react';
 import { Mail } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'use-intl';
 
 export default function DisclaimerPage() {
   const t = useTranslations('disclaimer');

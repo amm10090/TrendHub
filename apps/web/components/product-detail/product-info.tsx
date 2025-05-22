@@ -1,7 +1,7 @@
 'use client';
 
 import { Chip } from '@heroui/react';
-import { useTranslations } from 'use-intl';
+import { useTranslations } from 'next-intl';
 
 import { type ProductDetail as ProductDetailType } from '@/types/product';
 

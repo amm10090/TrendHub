@@ -1,9 +1,9 @@
 'use client';
 
 import { Divider, Image, Link as HeroLink } from '@heroui/react';
+import { useLocale, useTranslations } from 'next-intl';
 import * as React from 'react';
 import { SocialIcon } from 'react-social-icons';
-import { useLocale, useTranslations } from 'use-intl';
 
 import { useSettings } from '@/contexts/SettingsContext';
 

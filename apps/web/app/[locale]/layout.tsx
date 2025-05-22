@@ -8,7 +8,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 
 import { Footer } from '@/components/footer';
-import { Navbar } from '@/components/navbar';
+import { MainNavbar } from '@/components/navbar';
 import { Providers } from '@/contexts/Providers';
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { cn } from '@/lib/utils';
@@ -337,7 +337,7 @@ export default async function LocaleLayout({
           {/* Wrap existing Providers with SettingsProvider */}
           <SettingsProvider initialSettings={initialSettings} initialSnippets={initialSnippets}>
             <Providers>
-              <Navbar />
+              <MainNavbar />
               <main className="flex-grow">{children}</main> {/* Ensure main content grows */}
               {/* TODO: Add Footer component - It will consume settings via useSettings() */}
               <Footer /> {/* Render Footer */}

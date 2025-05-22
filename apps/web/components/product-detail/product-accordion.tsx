@@ -1,7 +1,7 @@
 'use client';
 
 import { Accordion, AccordionItem } from '@heroui/react';
-import { useTranslations } from 'use-intl';
+import { useTranslations } from 'next-intl';
 
 import { ProductDetail } from '@/types/product';
 

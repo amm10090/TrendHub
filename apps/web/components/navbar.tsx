@@ -1,10 +1,7 @@
 'use client';
 
-import { Button } from '@heroui/button';
-import { Drawer, DrawerContent } from '@heroui/drawer';
-import { Input } from '@heroui/input';
-import { Link } from '@heroui/link';
-import { Navbar as HeroUINavbar, NavbarContent, NavbarBrand, NavbarItem } from '@heroui/navbar';
+import { Navbar, NavbarContent, NavbarBrand, NavbarItem } from '@heroui/react';
+import { Button, Drawer, DrawerContent, Input, Link } from '@heroui/react';
 import { Tabs, Tab } from '@heroui/react';
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -39,7 +36,7 @@ interface NavCategoryNode {
   children: NavCategoryNode[];
 }
 
-export const Navbar = () => {
+export const MainNavbar = () => {
   const t = useTranslations('nav');
   const router = useRouter();
   const pathname = usePathname();
@@ -259,7 +256,7 @@ export const Navbar = () => {
           </div>
         </div>
       </div>
-      <HeroUINavbar
+      <Navbar
         isBordered
         classNames={{
           wrapper: 'px-4 max-w-full h-16',
@@ -498,7 +495,7 @@ export const Navbar = () => {
             </div>
           </DrawerContent>
         </Drawer>
-      </HeroUINavbar>
+      </Navbar>
     </>
   );
 };

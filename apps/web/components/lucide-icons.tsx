@@ -29,7 +29,7 @@ function adaptProps(props: IconSvgProps): LucideProps {
   return {
     size: size,
     ...rest,
-  };
+  } as LucideProps;
 }
 
 // 导出适配的 Lucide 图标组件

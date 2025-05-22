@@ -2,8 +2,8 @@
 
 import { Button, Input, addToast } from '@heroui/react';
 import { IconMailExclamation, IconMailCheck, IconMailCog } from '@tabler/icons-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useTranslations } from 'use-intl';
 
 export const NewsletterSubscribe = () => {
   const t = useTranslations('footer.newsletter');

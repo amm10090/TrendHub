@@ -2,7 +2,7 @@
 
 import { Accordion, AccordionItem, Link } from '@heroui/react';
 import { Mail } from 'lucide-react';
-import { useTranslations } from 'use-intl';
+import { useTranslations } from 'next-intl';
 
 export default function PrivacyPage() {
   const t = useTranslations('privacy');

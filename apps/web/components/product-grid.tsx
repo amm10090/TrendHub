@@ -1,7 +1,5 @@
 'use client';
-import { Button } from '@heroui/button';
-import { Chip } from '@heroui/chip';
-import { Image } from '@heroui/image';
+import { Button, Chip, Image } from '@heroui/react';
 import { Heart } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';

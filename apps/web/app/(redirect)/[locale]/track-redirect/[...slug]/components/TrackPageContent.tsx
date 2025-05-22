@@ -2,8 +2,8 @@
 
 import { Image, Spinner, Progress, Button } from '@heroui/react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'use-intl';
 
 import { isFeatureEnabled } from '@/lib/dev-config';
 import { products } from '@/lib/mock-data';

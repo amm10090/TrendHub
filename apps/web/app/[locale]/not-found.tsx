@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslations } from 'use-intl';
+import { useTranslations } from 'next-intl';
 
 export default function LocaleNotFound() {
   const t = useTranslations('notFound');

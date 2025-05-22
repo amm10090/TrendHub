@@ -20,8 +20,8 @@ import {
   ModalHeader,
 } from '@heroui/react';
 import { ExternalLink, Heart } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'use-intl';
 
 // 导入标准 ProductDetail 类型
 import { type ProductDetail as AppProductDetailType } from '@/types/product';

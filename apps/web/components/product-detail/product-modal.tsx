@@ -40,8 +40,8 @@ import {
   Ruler,
   Shirt,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState, useMemo } from 'react';
-import { useTranslations } from 'use-intl';
 
 // 从共享类型导入 ProductDetail
 import type { ProductDetail as SharedProductDetailType } from '@/types/product';

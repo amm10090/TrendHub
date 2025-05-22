@@ -1,8 +1,8 @@
 'use client';
 
 import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useTranslations } from 'use-intl';
 
 import { type ProductDetail as ProductDetailType } from '@/types/product';
 

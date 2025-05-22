@@ -495,6 +495,9 @@ importers:
       nodemailer:
         specifier: 7.0.3
         version: 7.0.3
+      qs:
+        specifier: ^6.12.3
+        version: 6.14.0
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -539,7 +542,7 @@ importers:
         specifier: 22.15.21
         version: 22.15.21
       '@types/qs':
-        specifier: 6.14.0
+        specifier: ^6.9.15
         version: 6.14.0
       '@types/react':
         specifier: 19.1.5
@@ -8060,6 +8063,10 @@ packages:
     resolution: {integrity: sha512-Sn6SBPwJ6ASFvQ7knQkR+yG7pcmr4LfXzmoVp3NR0xXyBbPhJa8a8ybtb6fnw1g/DD/2t34//yirubVczko37w==}
     engines: {node: '>=18'}
     hasBin: true
+
+  qs@6.14.0:
+    resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
+    engines: {node: '>=0.6'}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -19002,6 +19009,10 @@ snapshots:
       - supports-color
       - typescript
       - utf-8-validate
+
+  qs@6.14.0:
+    dependencies:
+      side-channel: 1.1.0
 
   queue-microtask@1.2.3: {}
 

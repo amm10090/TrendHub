@@ -2,9 +2,9 @@
 
 import { Button, Image, Link } from '@heroui/react';
 import { Heart } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import Slider from 'react-slick';
-import { useTranslations } from 'use-intl';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';

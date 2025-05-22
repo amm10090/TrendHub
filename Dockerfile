@@ -39,11 +39,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g pnpm@10.10.0
 WORKDIR /app
 COPY --from=admin-deploy-intermediate /prod/admin /app
-
-EXPOSE 3001
-CMD ["pnpm", "start", "--", "-p", "3001"]
-
-
+CMD ["pnpm", "start"]
 
 FROM base AS web-deploy-intermediate
 WORKDIR /app

@@ -30,6 +30,7 @@ FROM base AS admin-deploy-intermediate
 WORKDIR /app
 COPY --from=builder /app /app
 RUN pnpm deploy --filter=@trend-hub/admin --prod /prod/admin --legacy
+RUN cp -r apps/admin/.next /prod/admin/.next
 
 FROM node:20-alpine AS admin-runner
 ENV NODE_ENV=production
@@ -48,6 +49,7 @@ FROM base AS web-deploy-intermediate
 WORKDIR /app
 COPY --from=builder /app /app
 RUN pnpm deploy --filter=front-end --prod /prod/web --legacy
+RUN cp -r apps/web/.next /prod/web/.next
 
 FROM node:20-alpine AS web-runner
 ENV NODE_ENV=production

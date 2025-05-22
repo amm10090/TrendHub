@@ -79,9 +79,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ message: "密码更新成功" }, { status: 200 });
-  } catch (error) {
-    console.error("修改密码错误:", error);
-
+  } catch {
     return NextResponse.json({ error: "服务器内部错误" }, { status: 500 });
   }
 }

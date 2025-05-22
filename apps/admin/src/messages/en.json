@@ -1639,5 +1639,21 @@
     },
     "warningTitle": "Warning",
     "presetAdminPasswordChangeWarning": "The preset admin account's password cannot be changed here. Please modify environment variables directly if needed."
+  },
+  "setupPage": {
+    "title": "System Setup Wizard",
+    "description": "Welcome to TrendHub! First-time setup requires system initialization.",
+    "explanation": "This process will set up the database schema and populate initial data. Click the button below to begin. Please ensure your database service is running and configured correctly.",
+    "buttons": {
+      "start": "Start Initialization",
+      "initializing": "Initializing..."
+    },
+    "messages": {
+      "success": "System initialization successful! Redirecting to login page..."
+    },
+    "errors": {
+      "title": "Initialization Error",
+      "default": "An error occurred during system initialization. Please check server logs or contact an administrator."
+    }
   }
 }

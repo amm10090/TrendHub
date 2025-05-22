@@ -19,15 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       //   email: { label: "邮箱", type: "email", placeholder: "jsmith@example.com" },
       //   password: { label: "密码", type: "password" }
       // },
-      async authorize(credentials, req) {
-        // 在此处记录请求头
-        if (req?.headers) {
-          console.log(
-            "[AUTH.JS AUTHORIZE] Request Headers:",
-            JSON.stringify(Object.fromEntries(req.headers.entries()), null, 2),
-          );
-        }
-
+      async authorize(credentials) {
         // 读取预设管理员环境变量
         const presetAdminEmail = process.env.PRESET_ADMIN_EMAIL;
         const presetAdminPassword = process.env.PRESET_ADMIN_PASSWORD;
@@ -158,9 +150,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      console.log("[AUTH.JS REDIRECT CALLBACK] Received url:", url);
-      console.log("[AUTH.JS REDIRECT CALLBACK] Received baseUrl:", baseUrl);
-
       // 从环境变量读取公网URL，避免硬编码
       // 这解决了Auth.js内部有时错误地将baseUrl设置为localhost的问题
       // 如果环境变量未设置，则回退到当前接收到的baseUrl
@@ -172,27 +161,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const effectiveBaseUrl = shouldUsePublicUrl ? publicBaseUrl : baseUrl;
 
       if (shouldUsePublicUrl) {
-        console.log(
-          "[AUTH.JS REDIRECT CALLBACK] Replacing localhost baseUrl with:",
-          publicBaseUrl,
-        );
+        return effectiveBaseUrl;
       }
 
       // 如果 URL 是相对路径，将其转换为绝对路径
       if (url.startsWith("/")) {
         const finalUrl = `${effectiveBaseUrl}${url}`;
-        console.log(
-          "[AUTH.JS REDIRECT CALLBACK] Redirecting to (relative):",
-          finalUrl,
-        );
+
         return finalUrl;
       }
       // 如果 URL 已经是绝对路径且与有效baseUrl同源，则直接使用
       else if (url.startsWith(effectiveBaseUrl)) {
-        console.log(
-          "[AUTH.JS REDIRECT CALLBACK] Redirecting to (absolute, same origin):",
-          url,
-        );
         return url;
       }
       // 如果 URL 是绝对路径但指向 localhost，转换为公网URL
@@ -204,18 +183,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           /http:\/\/localhost:[0-9]+/g,
           publicBaseUrl,
         );
-        console.log(
-          "[AUTH.JS REDIRECT CALLBACK] Redirecting to (corrected from localhost):",
-          correctedUrl,
-        );
+
         return correctedUrl;
       }
 
-      // 默认返回有效的baseUrl (防止重定向到不安全的域)
-      console.log(
-        "[AUTH.JS REDIRECT CALLBACK] Redirecting to (default):",
-        effectiveBaseUrl,
-      );
       return effectiveBaseUrl;
     },
   },

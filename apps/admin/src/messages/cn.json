@@ -1562,5 +1562,21 @@
     },
     "warningTitle": "注意",
     "presetAdminPasswordChangeWarning": "预设管理员账户的密码无法在此处修改。如需更改，请直接修改环境变量。"
+  },
+  "setupPage": {
+    "title": "系统初始化向导",
+    "description": "欢迎使用 TrendHub！首次启动需要进行系统初始化。",
+    "explanation": "此过程将设置数据库结构并填充初始数据。点击下方按钮开始初始化。请确保您的数据库服务已启动并正确配置。",
+    "buttons": {
+      "start": "开始初始化",
+      "initializing": "正在初始化..."
+    },
+    "messages": {
+      "success": "系统初始化成功！即将跳转到登录页面。"
+    },
+    "errors": {
+      "title": "初始化错误",
+      "default": "系统初始化过程中发生错误，请检查后台日志或联系管理员。"
+    }
   }
 }

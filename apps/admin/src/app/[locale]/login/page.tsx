@@ -80,16 +80,14 @@ export default function LoginPage() {
         redirectUrl = `/${redirectUrl}`;
       }
 
-      console.log("处理后的重定向URL:", redirectUrl);
-
       // 修正localhost URL
       if (redirectUrl.includes("localhost")) {
         const publicUrl = process.env.NEXT_PUBLIC_URL;
+
         redirectUrl = redirectUrl.replace(
           /http:\/\/localhost:[0-9]+/g,
           publicUrl,
         );
-        console.log("修正localhost的URL为:", redirectUrl);
       }
 
       // 恢复为手动重定向，添加更多详细诊断
@@ -100,14 +98,11 @@ export default function LoginPage() {
         callbackUrl: redirectUrl,
       });
 
-      console.log("SignIn 返回结果:", JSON.stringify(result));
-
       if (result?.error) {
-        console.error("登录失败，错误信息:", result.error);
         const errorKey = `errors.${result.error}`;
+
         setServerError(t(errorKey, { fallback: t("errors.Default") }));
       } else if (result?.ok === true) {
-        console.log("登录成功，准备跳转到:", result.url);
         toast.success(t("loginSuccess", { fallback: "登录成功" }));
 
         // 延迟后执行跳转，确保日志和toast有时间完成
@@ -115,13 +110,11 @@ export default function LoginPage() {
           window.location.href = result.url || "/";
         }, 1000);
       } else {
-        console.error("SignIn返回未预期的结果:", result);
         setServerError(t("errors.Default"));
       }
 
       setIsLoading(false);
     } catch (error) {
-      console.error("登录过程中发生异常:", error);
       let errorMessage = "errors.Default";
 
       if (error instanceof Error) {

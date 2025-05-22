@@ -3,33 +3,28 @@ import bcrypt from "bcryptjs"; // 导入 bcryptjs
 
 const prisma = new PrismaClient();
 
-async function main() {
+export async function main() {
   // --- 创建管理员用户 ---
   const adminEmail = "admin@trendhub.com";
   const adminPassword = "secureAdminPassword123"; // 请务必在实际使用中更改此密码并使用更强壮的密码！
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(adminPassword, saltRounds);
 
-  try {
-    await prisma.user.upsert({
-      where: { email: adminEmail },
-      update: {
-        name: "TrendHub Admin",
-        passwordHash: hashedPassword,
-        emailVerified: new Date(),
-      },
-      create: {
-        email: adminEmail,
-        name: "TrendHub Admin",
-        passwordHash: hashedPassword,
-        emailVerified: new Date(),
-        // 如果您的 User 模型有其他必填字段，请在此处添加
-      },
-    });
-  } catch {
-    return;
-    // 根据您的错误处理策略，您可能希望在这里抛出错误或退出进程
-  }
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      name: "TrendHub Admin",
+      passwordHash: hashedPassword,
+      emailVerified: new Date(),
+    },
+    create: {
+      email: adminEmail,
+      name: "TrendHub Admin",
+      passwordHash: hashedPassword,
+      emailVerified: new Date(),
+      // 如果您的 User 模型有其他必填字段，请在此处添加
+    },
+  });
   // --- 管理员用户创建结束 ---
 
   // Clear existing data - order is important due to foreign key constraints
@@ -1088,11 +1083,3 @@ async function main() {
     ],
   });
 }
-
-main()
-  .catch(() => {
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

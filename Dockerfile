@@ -41,7 +41,7 @@ WORKDIR /app
 COPY --from=admin-deploy-intermediate /prod/admin /app
 
 EXPOSE 3001
-CMD ["pnpm", "start"]
+CMD ["pnpm", "start", "--", "-p", "3001"]
 
 
 

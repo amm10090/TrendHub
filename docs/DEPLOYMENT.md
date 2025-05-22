@@ -768,6 +768,91 @@ jobs:
 - 使用 Docker 卷进行数据持久化
 - 利用 Docker 的内置缓存机制
 
+##### 6.4 Docker部署常见问题详细解决方案
+
+###### 6.4.1 容器启动错误：缺失 `.next` 目录
+
+**问题描述**:  
+容器启动时报错 `Could not find a production build in the '.next' directory`，表明最终镜像内没有包含 Next.js 的构建产物。
+
+**解决方案**:  
+在 Dockerfile 中确保 `.next` 目录被正确复制到最终镜像中：
+
+```dockerfile
+# admin-deploy-intermediate 阶段后添加
+RUN cp -r apps/admin/.next /prod/admin/.next
+
+# web-deploy-intermediate 阶段后添加
+RUN cp -r apps/web/.next /prod/web/.next
+```
+
+###### 6.4.2 使用远程镜像替代本地构建
+
+**操作步骤**:
+
+1. **推送镜像到 Docker Hub**:
+
+   ```bash
+   docker tag trendhub-admin:latest amm0512/trendhub-admin:latest
+   docker tag trendhub-web:latest amm0512/trendhub-web:latest
+   docker push amm0512/trendhub-admin:latest
+   docker push amm0512/trendhub-web:latest
+   ```
+
+2. **修改 docker-compose.yml 使用远程镜像**:
+
+   ```yaml
+   admin:
+     image: amm0512/trendhub-admin:latest
+     restart: always
+     # 其他配置不变...
+
+   web:
+     image: amm0512/trendhub-web:latest
+     container_name: trendhub-web
+     # 其他配置不变...
+   ```
+
+3. **拉取并启动远程镜像**:
+   ```bash
+   docker compose pull
+   docker compose --env-file .env.docker up -d
+   ```
+
+###### 6.4.3 磁盘空间不足问题
+
+**问题描述**:  
+构建过程中出现 `ENOSPC: no space left on device` 错误。
+
+**解决方案**:
+
+- 清理 Docker 资源：
+  ```bash
+  docker system prune -a --volumes -f
+  ```
+- 清理临时文件：
+  ```bash
+  rm -rf /tmp/*
+  rm -rf ~/.cache/*
+  ```
+- 确保构建环境有足够的磁盘空间（推荐至少 10GB 可用空间）。
+
+###### 6.4.4 环境清理与重置
+
+**完全清理 Docker 环境**:
+
+```bash
+# 停止并删除所有容器
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
+
+# 删除所有镜像
+docker rmi -f $(docker images -aq)
+
+# 清理所有未使用的资源（慎用）
+docker system prune -a --volumes -f
+```
+
 #### 7. 部署到云服务 (Docker)
 
 ##### 7.1 AWS ECS/Fargate
@@ -897,3 +982,162 @@ gcloud run deploy trendhub-admin --image gcr.io/<project-id>/trendhub-admin --pl
 ---
 
 本文档提供了多种部署 TrendHub 项目的方案以及更新指南。请根据您的具体需求、资源和技术栈偏好选择最合适的方法。始终优先考虑安全性和可维护性。
+
+## 8. CI/CD 与自动化部署
+
+持续集成和持续部署(CI/CD)可以大幅简化TrendHub项目的部署流程，提高开发效率和降低人为错误。
+
+### 8.1 使用 GitHub Actions 自动构建与推送镜像
+
+GitHub Actions 可以在代码推送到仓库后自动构建并推送 Docker 镜像到 Docker Hub。
+
+#### 创建工作流配置文件
+
+创建 `.github/workflows/docker-build.yml` 文件：
+
+```yaml
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push admin image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          target: admin-runner
+          push: true
+          tags: amm0512/trendhub-admin:latest
+
+      - name: Build and push web image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          target: web-runner
+          push: true
+          tags: amm0512/trendhub-web:latest
+```
+
+#### 设置 GitHub Secrets
+
+在 GitHub 仓库中添加以下密钥：
+
+1. `DOCKERHUB_USERNAME`: Docker Hub 用户名
+2. `DOCKERHUB_TOKEN`: Docker Hub 访问令牌 (不要使用账户密码)
+
+### 8.2 服务器自动部署
+
+#### 创建自动更新脚本
+
+在服务器上创建自动更新脚本 `update-trendhub.sh`：
+
+```bash
+#!/bin/bash
+
+# 记录开始时间
+echo "=== 开始更新 TrendHub 应用 $(date) ==="
+
+# 切换到项目目录
+cd /root/TrendHub
+
+# 拉取最新镜像
+echo "正在拉取最新镜像..."
+docker compose pull
+
+# 重启服务
+echo "正在重启服务..."
+docker compose --env-file .env.docker up -d
+
+# 清理未使用的镜像
+echo "正在清理未使用的镜像..."
+docker image prune -f
+
+# 记录结束时间
+echo "=== TrendHub 应用更新完成 $(date) ==="
+```
+
+赋予执行权限：
+
+```bash
+chmod +x update-trendhub.sh
+```
+
+#### 设置定时更新 (可选)
+
+使用 crontab 设置定时任务，例如每天凌晨2点自动更新：
+
+```bash
+crontab -e
+```
+
+添加以下内容：
+
+```
+0 2 * * * /root/update-trendhub.sh >> /var/log/trendhub-update.log 2>&1
+```
+
+### 8.3 使用 Webhook 触发自动部署
+
+可以结合 GitHub Actions 和服务器 Webhook，实现代码推送后自动部署。
+
+#### 安装简易 Webhook 服务器
+
+```bash
+npm install -g webhook-server
+```
+
+#### 创建 Webhook 配置
+
+```json
+{
+  "webhooks": [
+    {
+      "id": "deploy-trendhub",
+      "execute-command": "/root/update-trendhub.sh",
+      "command-working-directory": "/root"
+    }
+  ]
+}
+```
+
+#### 运行 Webhook 服务器
+
+```bash
+webhook-server -c webhook-config.json -p 9000
+```
+
+#### 在 GitHub Actions 中添加部署步骤
+
+在 `.github/workflows/docker-build.yml` 文件末尾添加：
+
+```yaml
+- name: Trigger deployment webhook
+  if: success()
+  run: |
+    curl -X POST http://your-server-ip:9000/hooks/deploy-trendhub
+```
+
+通过以上配置，每当代码推送到 main 分支时，GitHub Actions 将自动构建并推送新镜像，然后触发服务器的部署脚本，完成完整的自动化部署流程。
+
+---
+
+本部署指南提供了从基础部署到高级自动化的全面解决方案。根据项目规模和团队需求，选择适合的部署策略，并确保定期审查和优化部署流程。

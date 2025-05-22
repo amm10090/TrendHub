@@ -24,6 +24,13 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app /app
 COPY . .
+
+# 确保数据库环境变量可用
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+
+RUN cd apps/admin && npx prisma generate
+
 RUN pnpm turbo run build
 
 FROM base AS admin-deploy-intermediate

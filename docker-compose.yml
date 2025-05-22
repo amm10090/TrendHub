@@ -4,9 +4,9 @@ services:
   postgres:
     image: postgres:14
     environment:
-      POSTGRES_USER: trendhub
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: trendhub_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -16,10 +16,10 @@ services:
     image: amm0512/trendhub-admin:latest
     restart: always
     environment:
-      - DATABASE_URL=postgresql://trendhub:your_password@postgres:5432/trendhub_db
-      - NEXTAUTH_URL=https://admin.your-domain.com
-      - NEXTAUTH_URL_INTERNAL=http://localhost:3001
-      - NEXTAUTH_SECRET=your-secret-key
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_URL_INTERNAL=${NEXTAUTH_URL_INTERNAL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
     ports:
       - "3001:3001"
     depends_on:
@@ -32,7 +32,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
   nginx:
     image: nginx:alpine

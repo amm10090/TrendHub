@@ -13,10 +13,7 @@ services:
       - "5432:5432"
 
   admin:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: admin-runner
+    image: amm0512/trendhub-admin:latest
     restart: always
     environment:
       - DATABASE_URL=postgresql://trendhub:your_password@postgres:5432/trendhub_db
@@ -29,10 +26,7 @@ services:
       - postgres
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: web-runner
+    image: amm0512/trendhub-web:latest
     container_name: trendhub-web
     restart: always
     ports:

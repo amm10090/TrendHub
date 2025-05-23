@@ -22,6 +22,7 @@ interface FarfetchUserData {
   plpData?: Partial<Product>; // Data gathered from PLP to pass to PDP
   label?: "LIST" | "DETAIL";
   batchGender?: "women" | "men" | "unisex" | string | null;
+  originUrl?: string; // 新增：获取原始URL
   // currentPage?: number; // Optional: for pagination state, if needed beyond URL params
 }
 
@@ -266,6 +267,7 @@ async function processProductCardsOnPlp(
   batchGender?: string | null,
   processedUrlsSet?: Set<string>, // Optional, but recommended for session de-duplication
   siteName: ECommerceSite = "Farfetch", // <<<< 新增 siteName 参数
+  originUrl?: string, // 新增：传递原始URL参数
 ) {
   if (page.isClosed()) {
     const msg = `${siteName}: Page for ${request.url} is closed before processing product items. Skipping.`; // 使用 siteName
@@ -625,6 +627,7 @@ async function processProductCardsOnPlp(
           plpData: item.plpData, // plpData 已经包含了带有 cardIndexOnPage 的 metadata
           executionId,
           batchGender,
+          originUrl, // 新增：传递原始URL参数
         };
         await crawler.addRequests([
           { url: item.url, label: "DETAIL", userData: detailUserData },
@@ -663,6 +666,7 @@ async function handlePaginationOnPlp(
   executionId?: string,
   batchGender?: string | null,
   scraperOptions?: ScraperOptions,
+  originUrl?: string, // 新增：传递原始URL参数
 ) {
   if (currentEnqueuedCount >= maxProductsLimit) {
     localCrawlerLog.info(
@@ -729,6 +733,7 @@ async function handlePaginationOnPlp(
           label: "LIST",
           executionId,
           batchGender,
+          originUrl, // 新增：保持原始URL
           // plpData is not carried over to next LIST page, only to DETAIL pages
         };
         await crawler.addRequests([
@@ -860,6 +865,25 @@ const scrapeFarfetch: ScraperFunction = async (
     );
   }
 
+  // 新增：计算每个URL的商品数量限制
+  const startUrlsArray = Array.isArray(startUrls) ? startUrls : [startUrls];
+  const totalMaxProducts = options.maxProducts || 1000;
+  const maxProductsPerUrl = Math.ceil(totalMaxProducts / startUrlsArray.length);
+
+  // 新增：为每个URL维护独立的计数器
+  const urlProductCounts = new Map<
+    string,
+    { processedDetailPages: number; enqueuedDetailPages: number }
+  >();
+
+  // 初始化每个URL的计数器
+  startUrlsArray.forEach((url) => {
+    urlProductCounts.set(url, {
+      processedDetailPages: 0,
+      enqueuedDetailPages: 0,
+    });
+  });
+
   const baseStorageDir = path.resolve(
     process.cwd(),
     "..",
@@ -965,9 +989,18 @@ const scrapeFarfetch: ScraperFunction = async (
 
         try {
           if (requestLabel === "DETAIL") {
+            // 获取当前URL对应的计数器
+            const originUrl = request.userData?.originUrl;
+            const urlCounters = originUrl
+              ? urlProductCounts.get(originUrl)
+              : null;
+            if (urlCounters) {
+              urlCounters.processedDetailPages++;
+            }
             processedDetailPages++;
+
             localCrawlerLog.info(
-              `${siteName}: Identified as a DETAIL page: ${request.url} (${processedDetailPages}/${options.maxProducts || "N/A"})`,
+              `${siteName}: Identified as a DETAIL page: ${request.url} (总: ${processedDetailPages}, 当前URL: ${urlCounters?.processedDetailPages || 0}/${maxProductsPerUrl})`,
             );
 
             // 处理通讯订阅弹窗
@@ -975,6 +1008,13 @@ const scrapeFarfetch: ScraperFunction = async (
             const plpData = request.userData?.plpData as
               | Partial<Product>
               | undefined;
+
+            // 新增：基于实际商品URL推断gender，而不是使用全局batchGender
+            const actualGender =
+              inferGenderFromFarfetchUrl(request.url) ||
+              currentBatchGender ||
+              plpData?.gender;
+
             const product: Product = {
               source: siteName,
               url: request.url,
@@ -984,7 +1024,7 @@ const scrapeFarfetch: ScraperFunction = async (
               images: plpData?.images || [], // Start with PLP images, PDP can append or replace
               currentPrice: plpData?.currentPrice, // Fallback, will be overwritten
               originalPrice: plpData?.originalPrice, // Fallback, will be overwritten
-              gender: currentBatchGender || plpData?.gender,
+              gender: actualGender, // 使用基于实际URL推断的gender
               metadata: {
                 executionId: currentExecutionId,
                 storeId: new URL(request.url).searchParams.get("storeid"),
@@ -1603,6 +1643,28 @@ const scrapeFarfetch: ScraperFunction = async (
             await pushData(product);
             allScrapedProducts.push(product);
 
+            // 检查每URL限制
+            if (
+              urlCounters &&
+              urlCounters.processedDetailPages >= maxProductsPerUrl
+            ) {
+              localCrawlerLog.info(
+                `${siteName}: Reached max products limit (${maxProductsPerUrl}) for URL starting from ${originUrl}.`,
+              );
+              if (currentExecutionId) {
+                await sendLogToBackend(
+                  currentExecutionId,
+                  LocalScraperLogLevel.INFO,
+                  `Reached max products limit (${maxProductsPerUrl}) for specific URL.`,
+                  {
+                    originUrl,
+                    processedForUrl: urlCounters.processedDetailPages,
+                  },
+                );
+              }
+              // 不停止整个爬虫，只是不再为这个URL添加新的详情页
+            }
+
             // 当达到最大产品数量限制时，记录日志，但不再停止整个爬虫
             // 后续的列表页处理逻辑 (processProductCardsOnPlp 和 handlePaginationOnPlp)
             // 会通过检查 enqueuedDetailPages < maxProducts 来决定是否继续添加新的详情页请求。
@@ -1636,32 +1698,68 @@ const scrapeFarfetch: ScraperFunction = async (
             // 给页面额外时间完全加载，避免处理骨架屏元素
             await page.waitForTimeout(2000);
 
+            // 获取当前LIST页面对应的原始URL
+            const currentOriginUrl = request.userData?.originUrl || request.url;
+            const currentUrlCounters = urlProductCounts.get(currentOriginUrl);
+
             await processProductCardsOnPlp(
               page,
               request,
               pwtCrawler,
               localCrawlerLog,
-              maxProducts,
-              enqueuedDetailPages,
-              (newCount) => (enqueuedDetailPages = newCount),
+              maxProductsPerUrl, // 使用每个URL的限制
+              currentUrlCounters?.enqueuedDetailPages || 0,
+              (newCount) => {
+                if (currentUrlCounters) {
+                  currentUrlCounters.enqueuedDetailPages = newCount;
+                }
+                // 更新总计数
+                enqueuedDetailPages = Array.from(
+                  urlProductCounts.values(),
+                ).reduce((sum, counts) => sum + counts.enqueuedDetailPages, 0);
+              },
               currentExecutionId,
               currentBatchGender,
               processedUrls,
               siteName,
+              currentOriginUrl, // 新增：传递原始URL参数
             );
 
+            // 检查当前URL是否已达到限制
+            if (
+              currentUrlCounters &&
+              currentUrlCounters.enqueuedDetailPages >= maxProductsPerUrl
+            ) {
+              localCrawlerLog.info(
+                `${siteName}: Reached max products enqueue limit (${maxProductsPerUrl}) for URL ${currentOriginUrl}, not proceeding to pagination.`,
+              );
+              if (currentExecutionId) {
+                await sendLogToBackend(
+                  currentExecutionId,
+                  LocalScraperLogLevel.INFO,
+                  `Reached max products enqueue limit (${maxProductsPerUrl}) for specific URL.`,
+                  { originUrl: currentOriginUrl },
+                );
+              }
+              return;
+            }
+
             // Only proceed to pagination if not already at product limit from current page processing
-            if (enqueuedDetailPages < maxProducts) {
+            if (
+              currentUrlCounters &&
+              currentUrlCounters.enqueuedDetailPages < maxProductsPerUrl
+            ) {
               await handlePaginationOnPlp(
                 page,
                 request,
                 pwtCrawler,
                 localCrawlerLog,
-                maxProducts,
-                enqueuedDetailPages,
+                maxProductsPerUrl, // 使用每个URL的限制
+                currentUrlCounters.enqueuedDetailPages,
                 currentExecutionId,
                 currentBatchGender,
                 options,
+                currentOriginUrl, // 新增：传递原始URL参数
               );
             }
           }
@@ -1710,7 +1808,12 @@ const scrapeFarfetch: ScraperFunction = async (
     Array.isArray(startUrls) ? startUrls : [startUrls]
   ).map((url) => ({
     url,
-    userData: { executionId, label: "LIST", batchGender } as FarfetchUserData,
+    userData: {
+      executionId,
+      label: "LIST",
+      batchGender,
+      originUrl: url, // 新增：为每个初始请求添加originUrl
+    } as FarfetchUserData,
     label: "LIST",
   }));
 
@@ -1736,12 +1839,30 @@ const scrapeFarfetch: ScraperFunction = async (
         processedDetailPages,
         enqueuedDetailPages,
         processedUrlsCount: processedUrls.size,
+        urlBreakdown: Array.from(urlProductCounts.entries()).map(
+          ([url, counts]) => ({
+            url,
+            processedDetailPages: counts.processedDetailPages,
+            enqueuedDetailPages: counts.enqueuedDetailPages,
+            maxAllowedPerUrl: maxProductsPerUrl,
+          }),
+        ),
+        totalMaxProducts,
+        maxProductsPerUrl,
       },
     );
   }
   crawleeLog.info(
     `${siteName} scraper finished. Collected: ${allScrapedProducts.length}, Enqueued: ${enqueuedDetailPages}, Processed PDP: ${processedDetailPages}`,
   );
+
+  // 输出每个URL的详细统计
+  Array.from(urlProductCounts.entries()).forEach(([url, counts]) => {
+    crawleeLog.info(
+      `  ${url}: 处理了 ${counts.processedDetailPages}/${maxProductsPerUrl} 个商品 (入队: ${counts.enqueuedDetailPages})`,
+    );
+  });
+
   return allScrapedProducts;
 };
 

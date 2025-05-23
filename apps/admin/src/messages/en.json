@@ -1653,7 +1653,34 @@
     },
     "errors": {
       "title": "Initialization Error",
-      "default": "An error occurred during system initialization. Please check server logs or contact an administrator."
+      "default": "An error occurred during system initialization. Please check server logs or contact an administrator.",
+      "missingEnvVars": "Please configure all required environment variables first.",
+      "adminCredentialsRequired": "Please enter admin email and password."
+    },
+    "envCheck": {
+      "title": "Environment Variable Check",
+      "checking": "Checking environment variables...",
+      "missingRequired": "Critical environment variables are missing!",
+      "allRequiredPresent": "All required environment variables are configured.",
+      "suggestedMissing": "Suggested environment variables are missing:",
+      "generateSecret": "Generate Secret",
+      "secretGenerated": "AUTH_SECRET has been generated!",
+      "generatedSecretValue": "Generated AUTH_SECRET (copy and save to your .env file):",
+      "copyAndSave": "Please copy this and save it in your .env file, then reload this page.",
+      "copiedToClipboard": "Copied to clipboard!",
+      "copyFailed": "Failed to copy.",
+      "seeExample": "Please refer to the .env.example content below to configure your .env file:",
+      "envExampleContent": ".env.example file content",
+      "fetchError": "Failed to check environment variables. Please refresh the page."
+    },
+    "adminSetup": {
+      "title": "Administrator Account & Site Setup",
+      "siteNameLabel": "Site Name",
+      "siteNamePlaceholder": "e.g., TrendHub",
+      "emailLabel": "Admin Email",
+      "emailPlaceholder": "Enter admin email address",
+      "passwordLabel": "Admin Password",
+      "passwordPlaceholder": "Enter admin password (min. 8 characters)"
     }
   }
 }

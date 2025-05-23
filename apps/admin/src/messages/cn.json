@@ -1576,7 +1576,34 @@
     },
     "errors": {
       "title": "初始化错误",
-      "default": "系统初始化过程中发生错误，请检查后台日志或联系管理员。"
+      "default": "系统初始化过程中发生错误，请检查后台日志或联系管理员。",
+      "missingEnvVars": "请先配置所有必需的环境变量。",
+      "adminCredentialsRequired": "请输入管理员邮箱和密码。"
+    },
+    "envCheck": {
+      "title": "环境变量检查",
+      "checking": "正在检查环境变量...",
+      "missingRequired": "关键环境变量缺失!",
+      "allRequiredPresent": "所有必需的环境变量均已配置。",
+      "suggestedMissing": "建议配置的环境变量缺失:",
+      "generateSecret": "生成密钥",
+      "secretGenerated": "AUTH_SECRET 已生成!",
+      "generatedSecretValue": "生成的 AUTH_SECRET (请复制并保存到您的 .env 文件):",
+      "copyAndSave": "请将其复制并保存在您的 .env 文件中，然后重新加载此页面。",
+      "copiedToClipboard": "已复制到剪贴板!",
+      "copyFailed": "复制失败。",
+      "seeExample": "请参考以下 .env.example 内容配置您的 .env 文件:",
+      "envExampleContent": ".env.example 文件内容",
+      "fetchError": "检查环境变量失败，请刷新页面重试。"
+    },
+    "adminSetup": {
+      "title": "管理员账户与站点设置",
+      "siteNameLabel": "网站名称",
+      "siteNamePlaceholder": "例如：TrendHub",
+      "emailLabel": "管理员邮箱",
+      "emailPlaceholder": "请输入管理员邮箱",
+      "passwordLabel": "管理员密码",
+      "passwordPlaceholder": "请输入管理员密码 (至少8位)"
     }
   }
 }

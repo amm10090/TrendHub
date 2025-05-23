@@ -33,10 +33,7 @@ export default function LoginPage() {
   const [isFlipped, setIsFlipped] = useState(false);
 
   const LoginSchema = z.object({
-    email: z
-      .string()
-      .min(1, { message: t("validation.emailRequired") })
-      .email({ message: t("validation.emailInvalid") }),
+    email: z.string().min(1, { message: t("validation.emailRequired") }),
     password: z.string().min(1, { message: t("validation.passwordRequired") }),
   });
 
@@ -245,9 +242,9 @@ export default function LoginPage() {
                 <div className="relative">
                   <Input
                     id="email"
-                    type="email"
+                    type="text"
                     placeholder={t("emailPlaceholder")}
-                    autoComplete="email"
+                    autoComplete="username"
                     className="pr-10 bg-white border-gray-200 text-gray-800 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                     {...register("email")}
                     disabled={isLoading}
@@ -264,7 +261,7 @@ export default function LoginPage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={1.5}
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
                   </div>

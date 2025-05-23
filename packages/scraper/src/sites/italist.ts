@@ -24,6 +24,7 @@ interface ItalistUserData {
   plpData?: Partial<Product>;
   label?: "LIST" | "DETAIL";
   batchGender?: "women" | "men" | "unisex" | string | null;
+  originUrl?: string; // 新增：获取原始URL
 }
 
 // 基于 README.md 和初步分析的预估选择器
@@ -554,6 +555,7 @@ async function processProductCardsOnPlpItalist(
           plpData: item.plpData,
           executionId,
           batchGender,
+          originUrl: item.url, // 新增：设置原始URL
         };
         potentialDetailRequestObjects.push({
           url: item.url,
@@ -732,6 +734,7 @@ async function handlePaginationItalist(
           label: "LIST",
           executionId,
           batchGender,
+          originUrl: nextPageUrl, // 新增：设置原始URL
         };
         await crawler.addRequests([
           {
@@ -805,6 +808,25 @@ const scrapeItalist: ScraperFunction = async (
       },
     );
   }
+
+  // 新增：计算每个URL的商品数量限制
+  const startUrlsArray = Array.isArray(startUrls) ? startUrls : [startUrls];
+  const totalMaxProducts = options.maxProducts || 1000;
+  const maxProductsPerUrl = Math.ceil(totalMaxProducts / startUrlsArray.length);
+
+  // 新增：为每个URL维护独立的计数器
+  const urlProductCounts = new Map<
+    string,
+    { processedDetailPages: number; enqueuedDetailPages: number }
+  >();
+
+  // 初始化每个URL的计数器
+  startUrlsArray.forEach((url) => {
+    urlProductCounts.set(url, {
+      processedDetailPages: 0,
+      enqueuedDetailPages: 0,
+    });
+  });
 
   const baseStorageDir = path.resolve(
     process.cwd(),
@@ -1078,15 +1100,30 @@ const scrapeItalist: ScraperFunction = async (
           }
 
           if (requestLabel === "DETAIL") {
+            // 获取当前URL对应的计数器
+            const originUrl = request.userData?.originUrl;
+            const urlCounters = originUrl
+              ? urlProductCounts.get(originUrl)
+              : null;
+            if (urlCounters) {
+              urlCounters.processedDetailPages++;
+            }
             processedDetailPages++;
+
             localCrawlerLog.info(
-              `[${siteName}] 识别为详情页: ${request.url} (${processedDetailPages}/${maxProducts})`,
+              `[${siteName}] 识别为详情页: ${request.url} (总: ${processedDetailPages}, 当前URL: ${urlCounters?.processedDetailPages || 0}/${maxProductsPerUrl})`,
             );
             if (processedUrls) processedUrls.add(request.url);
 
             const plpData = request.userData?.plpData as
               | Partial<Product>
               | undefined;
+
+            // 新增：基于实际商品URL推断gender，而不是使用全局batchGender
+            const actualGender =
+              inferGenderFromItalistUrl(request.url) ||
+              currentBatchGender ||
+              plpData?.gender;
 
             const product: Product = {
               source: siteName as ECommerceSite,
@@ -1100,7 +1137,7 @@ const scrapeItalist: ScraperFunction = async (
               discount: plpData?.discount,
               sizes: [], // PDP 会填充
               tags: plpData?.tags || [],
-              gender: currentBatchGender || plpData?.gender,
+              gender: actualGender, // 使用基于实际URL推断的gender
               materialDetails: [],
               metadata: {
                 ...(plpData?.metadata || {}),
@@ -2161,27 +2198,62 @@ const scrapeItalist: ScraperFunction = async (
           } else {
             // LIST page
             localCrawlerLog.info(`[${siteName}] 识别为列表页: ${request.url}`);
+
+            // 获取当前LIST页面对应的原始URL
+            const currentOriginUrl = request.userData?.originUrl || request.url;
+            const currentUrlCounters = urlProductCounts.get(currentOriginUrl);
+
             await processProductCardsOnPlpItalist(
               page,
               request,
               pwtCrawler,
               localCrawlerLog,
-              maxProducts,
-              enqueuedDetailPages,
-              (newCount) => (enqueuedDetailPages = newCount),
+              maxProductsPerUrl, // 使用每个URL的限制
+              currentUrlCounters?.enqueuedDetailPages || 0,
+              (newCount) => {
+                if (currentUrlCounters) {
+                  currentUrlCounters.enqueuedDetailPages = newCount;
+                }
+                // 更新总计数
+                enqueuedDetailPages = Array.from(
+                  urlProductCounts.values(),
+                ).reduce((sum, counts) => sum + counts.enqueuedDetailPages, 0);
+              },
               currentExecutionId,
               currentBatchGender,
               processedUrls,
             );
 
-            if (enqueuedDetailPages < maxProducts) {
+            // 检查当前URL是否已达到限制
+            if (
+              currentUrlCounters &&
+              currentUrlCounters.enqueuedDetailPages >= maxProductsPerUrl
+            ) {
+              localCrawlerLog.info(
+                `[${siteName}] Reached max products enqueue limit (${maxProductsPerUrl}) for URL ${currentOriginUrl}, not proceeding to pagination.`,
+              );
+              if (currentExecutionId) {
+                await sendLogToBackend(
+                  currentExecutionId,
+                  LocalScraperLogLevel.INFO,
+                  `Reached max products enqueue limit (${maxProductsPerUrl}) for specific URL.`,
+                  { originUrl: currentOriginUrl },
+                );
+              }
+              return;
+            }
+
+            if (
+              currentUrlCounters &&
+              currentUrlCounters.enqueuedDetailPages < maxProductsPerUrl
+            ) {
               await handlePaginationItalist(
                 page,
                 request,
                 pwtCrawler,
                 localCrawlerLog,
-                maxProducts,
-                enqueuedDetailPages,
+                maxProductsPerUrl, // 使用每个URL的限制
+                currentUrlCounters.enqueuedDetailPages,
                 currentExecutionId,
                 currentBatchGender,
                 options,
@@ -2240,6 +2312,7 @@ const scrapeItalist: ScraperFunction = async (
       executionId,
       label: "LIST",
       batchGender,
+      originUrl: url, // 新增：为每个初始请求添加originUrl
     } as ItalistUserData,
     label: "LIST",
     uniqueKey: url, // Added uniqueKey for initial requests too

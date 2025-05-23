@@ -18,6 +18,7 @@ interface CettireUserData {
   plpData?: Partial<Product>; // 列表页提取的初步产品数据
   label?: string; // 标记请求类型：LIST 或 DETAIL
   batchGender?: "women" | "men" | "unisex" | string | null; // 从URL推断的性别类别
+  originUrl?: string; // 新增：获取原始URL
 }
 
 // CSS 选择器
@@ -222,6 +223,7 @@ export async function scrapeCettireWithCrawler(
         executionId: executionId,
         label: "LIST",
         batchGender: batchGender,
+        originUrl: url,
       } as CettireUserData,
       label: "LIST",
     };
@@ -235,16 +237,14 @@ export async function scrapeCettireWithCrawler(
       {
         count: initialRequests.length,
         // Log first 5 requests for brevity, ensure not too large for log payload
-        requestsContent: initialRequests
-          .slice(0, 5)
-          .map((r) => ({
-            url: r.url,
-            label: r.label,
-            userDataPreview: {
-              label: r.userData.label,
-              batchGender: r.userData.batchGender,
-            },
-          })),
+        requestsContent: initialRequests.slice(0, 5).map((r) => ({
+          url: r.url,
+          label: r.label,
+          userDataPreview: {
+            label: r.userData.label,
+            batchGender: r.userData.batchGender,
+          },
+        })),
       },
     );
   }
@@ -265,6 +265,25 @@ export async function scrapeCettireWithCrawler(
 
   const DEFAULT_MAX_PRODUCTS = 1000;
   const FALLBACK_MAX_REQUESTS_BUFFER = 20; // Buffer for PLP, load more, retries
+
+  // 新增：计算每个URL的商品数量限制
+  const startUrlsArray = Array.isArray(startUrls) ? startUrls : [startUrls];
+  const totalMaxProducts = options.maxProducts || DEFAULT_MAX_PRODUCTS;
+  const maxProductsPerUrl = Math.ceil(totalMaxProducts / startUrlsArray.length);
+
+  // 新增：为每个URL维护独立的计数器
+  const urlProductCounts = new Map<
+    string,
+    { processedDetailPages: number; enqueuedDetailPages: number }
+  >();
+
+  // 初始化每个URL的计数器
+  startUrlsArray.forEach((url) => {
+    urlProductCounts.set(url, {
+      processedDetailPages: 0,
+      enqueuedDetailPages: 0,
+    });
+  });
 
   const targetMaxProducts = options.maxProducts || DEFAULT_MAX_PRODUCTS;
   let effectiveMaxRequests = options.maxRequests;
@@ -440,15 +459,30 @@ export async function scrapeCettireWithCrawler(
 
         try {
           if (requestLabel === "DETAIL") {
+            // 获取当前URL对应的计数器
+            const originUrl = request.userData?.originUrl;
+            const urlCounters = originUrl
+              ? urlProductCounts.get(originUrl)
+              : null;
+            if (urlCounters) {
+              urlCounters.processedDetailPages++;
+            }
             processedDetailPages++;
+
             localCrawlerLog.info(
-              `Cettire: 识别为详情页: ${request.url} (${processedDetailPages}/${targetMaxProducts})`,
+              `Cettire: 识别为详情页: ${request.url} (总: ${processedDetailPages}, 当前URL: ${urlCounters?.processedDetailPages || 0}/${maxProductsPerUrl})`,
             );
 
             // 将URL添加到处理集合中，防止重复处理
             processedUrls.add(request.url);
 
             const plpData = request.userData?.plpData;
+
+            // 新增：基于实际商品URL推断gender，而不是使用全局batchGender
+            const actualGender =
+              inferGenderFromCettireUrl(request.url) ||
+              currentBatchGender ||
+              plpData?.gender;
 
             const product: Product = {
               source: "Cettire" as ECommerceSite,
@@ -461,7 +495,7 @@ export async function scrapeCettireWithCrawler(
               originalPrice: plpData?.originalPrice,
               sizes: [],
               tags: plpData?.tags || [],
-              gender: currentBatchGender || plpData?.gender,
+              gender: actualGender, // 使用基于实际URL推断的gender
               materialDetails: [],
               metadata: { executionId: currentExecutionId }, // 将 executionId 添加到元数据
             };
@@ -619,6 +653,10 @@ export async function scrapeCettireWithCrawler(
               `Cettire: 在 ${request.url} 上找到 ${productCards.length} 个商品卡片`,
             );
 
+            // 获取当前LIST页面对应的原始URL
+            const currentOriginUrl = request.userData?.originUrl || request.url;
+            const currentUrlCounters = urlProductCounts.get(currentOriginUrl);
+
             // 传递 processedUrls 集合到处理卡片函数
             await processProductCards(
               productCards,
@@ -626,10 +664,16 @@ export async function scrapeCettireWithCrawler(
               request,
               crawler,
               localCrawlerLog,
-              targetMaxProducts, // Pass targetMaxProducts
-              enqueuedDetailPages,
+              maxProductsPerUrl, // 使用每个URL的限制
+              currentUrlCounters?.enqueuedDetailPages || 0,
               (newCount: number) => {
-                enqueuedDetailPages = newCount;
+                if (currentUrlCounters) {
+                  currentUrlCounters.enqueuedDetailPages = newCount;
+                }
+                // 更新总计数
+                enqueuedDetailPages = Array.from(
+                  urlProductCounts.values(),
+                ).reduce((sum, counts) => sum + counts.enqueuedDetailPages, 0);
               },
               currentExecutionId, // 传递 executionId
               currentBatchGender,
@@ -641,23 +685,27 @@ export async function scrapeCettireWithCrawler(
 
             // 添加调试日志
             localCrawlerLog.info(
-              `Cettire: DEBUG - Before 'no more loading' check. enqueuedDetailPages: ${enqueuedDetailPages}, targetMaxProducts: ${targetMaxProducts}, 已处理URLs: ${processedUrls.size}`,
+              `Cettire: DEBUG - Before 'no more loading' check. enqueuedDetailPages: ${enqueuedDetailPages}, maxProductsPerUrl: ${maxProductsPerUrl}, 已处理URLs: ${processedUrls.size}`,
             );
 
-            if (enqueuedDetailPages >= targetMaxProducts) {
-              // Check against targetMaxProducts
+            if (
+              currentUrlCounters &&
+              currentUrlCounters.enqueuedDetailPages >= maxProductsPerUrl
+            ) {
+              // Check against maxProductsPerUrl
               localCrawlerLog.info(
-                `Cettire: 已达到最大产品入队限制(${targetMaxProducts})，不再加载更多。`,
+                `Cettire: 已达到最大产品入队限制(${maxProductsPerUrl})，不再加载更多。`,
               );
               if (currentExecutionId) {
                 await sendLogToBackend(
                   currentExecutionId,
                   LocalScraperLogLevel.INFO,
-                  `Cettire: Reached max products enqueue limit(${targetMaxProducts}), not loading more from this list page.`,
+                  `Cettire: Reached max products enqueue limit(${maxProductsPerUrl}) for specific URL.`,
                   {
-                    enqueuedDetailPages,
-                    maxProducts: targetMaxProducts,
+                    enqueuedDetailPages: currentUrlCounters.enqueuedDetailPages,
+                    maxProducts: maxProductsPerUrl,
                     url: request.url,
+                    originUrl: currentOriginUrl,
                   },
                 );
               }
@@ -671,10 +719,16 @@ export async function scrapeCettireWithCrawler(
               request,
               crawler,
               localCrawlerLog,
-              targetMaxProducts, // Pass targetMaxProducts
-              enqueuedDetailPages,
+              maxProductsPerUrl, // 使用每个URL的限制
+              currentUrlCounters?.enqueuedDetailPages || 0,
               (newCount: number) => {
-                enqueuedDetailPages = newCount;
+                if (currentUrlCounters) {
+                  currentUrlCounters.enqueuedDetailPages = newCount;
+                }
+                // 更新总计数
+                enqueuedDetailPages = Array.from(
+                  urlProductCounts.values(),
+                ).reduce((sum, counts) => sum + counts.enqueuedDetailPages, 0);
               },
               currentExecutionId, // 传递 executionId
               currentBatchGender,
@@ -760,14 +814,31 @@ export async function scrapeCettireWithCrawler(
         processedUrls: processedUrls.size,
         processedPositions: processedPositions.size,
         maxPosition: maxPositionRef.value,
+        urlBreakdown: Array.from(urlProductCounts.entries()).map(
+          ([url, counts]) => ({
+            url,
+            processedDetailPages: counts.processedDetailPages,
+            enqueuedDetailPages: counts.enqueuedDetailPages,
+            maxAllowedPerUrl: maxProductsPerUrl,
+          }),
+        ),
+        totalMaxProducts,
+        maxProductsPerUrl,
         optionsUsed: options, // log the options used for this run
       },
     );
   }
 
+  // 输出每个URL的详细统计
+  Array.from(urlProductCounts.entries()).forEach(([url, counts]) => {
+    logInfo(
+      `  ${url}: 处理了 ${counts.processedDetailPages}/${maxProductsPerUrl} 个商品 (入队: ${counts.enqueuedDetailPages})`,
+    );
+  });
+
   // 添加最终总结日志，包含去重统计
   logInfo(
-    `Cettire 爬虫总结 - 收集商品: ${allScrapedProducts.length}, 处理过的详情页: ${processedDetailPages}, 入队过的URL: ${enqueuedDetailPages}, 会话内URL去重总数: ${processedUrls.size}, 会话内位置去重总数: ${processedPositions.size}, 最大位置值: ${maxPositionRef.value}, 最终入队/目标比: ${enqueuedDetailPages}/${targetMaxProducts}`,
+    `Cettire 爬虫总结 - 收集商品: ${allScrapedProducts.length}, 处理过的详情页: ${processedDetailPages}, 入队过的URL: ${enqueuedDetailPages}, 会话内URL去重总数: ${processedUrls.size}, 会话内位置去重总数: ${processedPositions.size}, 最大位置值: ${maxPositionRef.value}, 最终入队/目标比: ${enqueuedDetailPages}/${totalMaxProducts}`,
   );
 
   return allScrapedProducts;
@@ -1225,6 +1296,7 @@ async function processProductCards(
         label: "DETAIL",
         batchGender: batchGender,
         executionId: executionId, // 传递 executionId
+        originUrl: request.userData?.originUrl, // 新增：传递原始URL
       };
       await crawler.addRequests([
         {

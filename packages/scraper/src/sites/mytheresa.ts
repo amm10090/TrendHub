@@ -20,6 +20,7 @@ interface MytheresaUserData {
   plpData?: Partial<Product>;
   label?: string;
   batchGender?: "women" | "men" | "unisex" | string | null; // For carrying over determined gender
+  originUrl?: string; // 新增：获取原始URL
 }
 
 function ensureDirectoryExists(
@@ -78,7 +79,26 @@ export default async function scrapeMytheresa(
   const allScrapedProducts: Product[] = [];
   const maxRequests = options.maxRequests || 90;
   const maxLoadClicks = options.maxLoadClicks || 10;
-  const maxProducts = options.maxProducts || 1000;
+
+  // 新增：计算每个URL的商品数量限制
+  const startUrlsArray = Array.isArray(startUrls) ? startUrls : [startUrls];
+  const totalMaxProducts = options.maxProducts || 1000;
+  const maxProductsPerUrl = Math.ceil(totalMaxProducts / startUrlsArray.length);
+
+  // 新增：为每个URL维护独立的计数器
+  const urlProductCounts = new Map<
+    string,
+    { processedDetailPages: number; enqueuedDetailPages: number }
+  >();
+
+  // 初始化每个URL的计数器
+  startUrlsArray.forEach((url) => {
+    urlProductCounts.set(url, {
+      processedDetailPages: 0,
+      enqueuedDetailPages: 0,
+    });
+  });
+
   let processedDetailPages = 0;
   let enqueuedDetailPages = 0;
 
@@ -130,6 +150,7 @@ export default async function scrapeMytheresa(
         const currentExecutionId = request.userData?.executionId;
         const requestLabel = request.userData?.label || request.label;
         const currentBatchGender = request.userData?.batchGender; // Get gender from request
+        const originUrl = request.userData?.originUrl; // 新增：获取原始URL
 
         if (currentExecutionId) {
           await sendLogToBackend(
@@ -145,11 +166,26 @@ export default async function scrapeMytheresa(
 
         try {
           if (requestLabel === "DETAIL") {
+            // 获取当前URL对应的计数器
+            const urlCounters = originUrl
+              ? urlProductCounts.get(originUrl)
+              : null;
+            if (urlCounters) {
+              urlCounters.processedDetailPages++;
+            }
             processedDetailPages++;
+
             localCrawlerLog.info(
-              `Mytheresa: Identified as a DETAIL page: ${request.url} (${processedDetailPages}/${maxProducts})`,
+              `Mytheresa: Identified as a DETAIL page: ${request.url} (总: ${processedDetailPages}, 当前URL: ${urlCounters?.processedDetailPages || 0}/${maxProductsPerUrl})`,
             );
             const plpData = request.userData?.plpData;
+
+            // 新增：基于实际商品URL推断gender，而不是使用全局batchGender
+            const actualGender =
+              inferGenderFromMytheresaUrl(request.url) ||
+              currentBatchGender ||
+              plpData?.gender;
+
             const product: Product = {
               source: "Mytheresa" as ECommerceSite,
               url: request.url,
@@ -159,7 +195,7 @@ export default async function scrapeMytheresa(
               images: plpData?.images,
               sizes: plpData?.sizes,
               tags: plpData?.tags,
-              gender: currentBatchGender || plpData?.gender, // Use gender from request, fallback to PLP if any
+              gender: actualGender, // 使用基于实际URL推断的gender
               materialDetails: [],
               metadata: {},
             };
@@ -385,17 +421,25 @@ export default async function scrapeMytheresa(
             await pushData(product);
             allScrapedProducts.push(product);
 
-            if (processedDetailPages >= maxProducts) {
+            if (
+              urlCounters &&
+              urlCounters.processedDetailPages >= maxProductsPerUrl
+            ) {
               localCrawlerLog.info(
-                `Mytheresa: Reached max products limit (${maxProducts}), stopping crawler.`,
+                `Mytheresa: Reached max products limit (${maxProductsPerUrl}) for URL starting from ${originUrl}.`,
               );
-              if (currentExecutionId)
+              if (currentExecutionId) {
                 await sendLogToBackend(
                   currentExecutionId,
                   LocalScraperLogLevel.INFO,
-                  `Reached max products limit (${maxProducts}).`,
+                  `Reached max products limit (${maxProductsPerUrl}) for specific URL.`,
+                  {
+                    originUrl,
+                    processedForUrl: urlCounters.processedDetailPages,
+                  },
                 );
-              await crawler.stop();
+              }
+              // 不停止整个爬虫，只是不再为这个URL添加新的详情页
             }
           } else {
             // LIST page
@@ -408,29 +452,44 @@ export default async function scrapeMytheresa(
               `Mytheresa: Found ${productItems.length} product items initially on ${request.url}`,
             );
 
+            // 获取当前LIST页面对应的原始URL
+            const currentOriginUrl = request.userData?.originUrl || request.url;
+            const currentUrlCounters = urlProductCounts.get(currentOriginUrl);
+
             await processProductItems(
               productItems,
               page,
               request,
               crawler,
               localCrawlerLog,
-              maxProducts,
-              enqueuedDetailPages,
+              maxProductsPerUrl, // 使用每个URL的限制
+              currentUrlCounters?.enqueuedDetailPages || 0,
               (newCount) => {
-                enqueuedDetailPages = newCount;
+                if (currentUrlCounters) {
+                  currentUrlCounters.enqueuedDetailPages = newCount;
+                }
+                // 更新总计数
+                enqueuedDetailPages = Array.from(
+                  urlProductCounts.values(),
+                ).reduce((sum, counts) => sum + counts.enqueuedDetailPages, 0);
               },
               currentExecutionId,
+              currentOriginUrl, // 传递原始URL
             );
 
-            if (enqueuedDetailPages >= maxProducts) {
+            if (
+              currentUrlCounters &&
+              currentUrlCounters.enqueuedDetailPages >= maxProductsPerUrl
+            ) {
               localCrawlerLog.info(
-                `Mytheresa: Reached max products enqueue limit (${maxProducts}), not loading more.`,
+                `Mytheresa: Reached max products enqueue limit (${maxProductsPerUrl}) for URL ${currentOriginUrl}, not loading more.`,
               );
               if (currentExecutionId)
                 await sendLogToBackend(
                   currentExecutionId,
                   LocalScraperLogLevel.INFO,
-                  `Reached max products enqueue limit (${maxProducts}).`,
+                  `Reached max products enqueue limit (${maxProductsPerUrl}) for specific URL.`,
+                  { originUrl: currentOriginUrl },
                 );
               return;
             }
@@ -478,12 +537,12 @@ export default async function scrapeMytheresa(
                 !(await loadMoreButton.isVisible()) ||
                 !(await loadMoreButton.isEnabled()) ||
                 loadMoreClickedCount >= maxLoadMoreClicksVal ||
-                enqueuedDetailPages >= maxProducts
+                enqueuedDetailPages >= totalMaxProducts
               ) {
                 if (
                   currentExecutionId &&
                   (loadMoreClickedCount >= maxLoadMoreClicksVal ||
-                    enqueuedDetailPages >= maxProducts)
+                    enqueuedDetailPages >= totalMaxProducts)
                 ) {
                   await sendLogToBackend(
                     currentExecutionId,
@@ -493,7 +552,7 @@ export default async function scrapeMytheresa(
                       loadMoreClickedCount,
                       enqueuedDetailPages,
                       maxLoadMoreClicksVal,
-                      maxProducts,
+                      maxProducts: totalMaxProducts,
                     },
                   );
                 }
@@ -565,12 +624,22 @@ export default async function scrapeMytheresa(
                   request,
                   crawler,
                   localCrawlerLog,
-                  maxProducts,
-                  enqueuedDetailPages,
+                  maxProductsPerUrl, // 使用每个URL的限制
+                  currentUrlCounters?.enqueuedDetailPages || 0,
                   (newCount) => {
-                    enqueuedDetailPages = newCount;
+                    if (currentUrlCounters) {
+                      currentUrlCounters.enqueuedDetailPages = newCount;
+                    }
+                    // 更新总计数
+                    enqueuedDetailPages = Array.from(
+                      urlProductCounts.values(),
+                    ).reduce(
+                      (sum, counts) => sum + counts.enqueuedDetailPages,
+                      0,
+                    );
                   },
                   currentExecutionId,
+                  currentOriginUrl, // 传递原始URL
                 );
               } catch (error) {
                 localCrawlerLog.error(
@@ -658,6 +727,7 @@ export default async function scrapeMytheresa(
         executionId: executionId,
         label: label,
         batchGender: batchGender,
+        originUrl: url,
       } as MytheresaUserData,
       label: label,
     };
@@ -673,12 +743,30 @@ export default async function scrapeMytheresa(
       {
         processedDetailPages,
         enqueuedDetailPages,
+        urlBreakdown: Array.from(urlProductCounts.entries()).map(
+          ([url, counts]) => ({
+            url,
+            processedDetailPages: counts.processedDetailPages,
+            enqueuedDetailPages: counts.enqueuedDetailPages,
+            maxAllowedPerUrl: maxProductsPerUrl,
+          }),
+        ),
+        totalMaxProducts,
+        maxProductsPerUrl,
       },
     );
   }
   crawleeLog.info(
-    `Mytheresa scraper finished. Total products collected: ${allScrapedProducts.length}.`,
+    `Mytheresa scraper finished. Total products collected: ${allScrapedProducts.length}. Per-URL breakdown:`,
   );
+
+  // 输出每个URL的详细统计
+  Array.from(urlProductCounts.entries()).forEach(([url, counts]) => {
+    crawleeLog.info(
+      `  ${url}: 处理了 ${counts.processedDetailPages}/${maxProductsPerUrl} 个商品 (入队: ${counts.enqueuedDetailPages})`,
+    );
+  });
+
   return allScrapedProducts;
 }
 
@@ -692,6 +780,7 @@ async function processProductItems(
   currentEnqueuedCount: number,
   updateEnqueuedCount: (newCount: number) => void,
   executionId?: string,
+  originUrl?: string,
 ) {
   if (page.isClosed()) {
     crawlerLog.warning(
@@ -905,6 +994,7 @@ async function processProductItems(
           plpData: potentialItem.plpData,
           label: "DETAIL",
           batchGender: currentRequestBatchGender,
+          originUrl: originUrl,
         };
         await crawler.addRequests([
           {

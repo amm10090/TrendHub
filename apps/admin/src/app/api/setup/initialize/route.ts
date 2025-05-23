@@ -43,7 +43,10 @@ async function runPrismaDbPush(): Promise<{ stdout: string; stderr: string }> {
           ) &&
           !stderr.includes("command not found")
         ) {
-          return;
+          // Consider specific stderr messages that are benign
+          // If a truly unexpected stderr occurs, it might be better to reject
+          // For now, if there is stderr but not matching known benign messages, it will resolve.
+          // This might need refinement based on typical `prisma db push` outputs.
         }
         resolve({ stdout, stderr });
       } else {
@@ -69,8 +72,18 @@ async function runPrismaDbPush(): Promise<{ stdout: string; stderr: string }> {
   });
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const body = await request.json();
+    const { adminEmail, adminPassword, siteName } = body;
+
+    if (!adminEmail || !adminPassword || !siteName) {
+      return NextResponse.json(
+        { error: "管理员邮箱、密码和站点名称是必填项。" },
+        { status: 400 },
+      );
+    }
+
     let isAlreadyInitialized = false;
 
     try {
@@ -84,11 +97,11 @@ export async function POST() {
     } catch (e: unknown) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === "P2021"
+        e.code === "P2021" // Table does not exist
       ) {
         isAlreadyInitialized = false;
       } else {
-        throw e;
+        throw e; // Re-throw other errors
       }
     }
 
@@ -101,7 +114,8 @@ export async function POST() {
 
     await runPrismaDbPush();
 
-    await seedDatabase();
+    // Pass admin credentials and site name to the seeding function
+    await seedDatabase({ adminEmail, adminPassword, siteName });
 
     await db.siteSetting.upsert({
       where: { key: "systemInitialized" },
@@ -122,8 +136,7 @@ export async function POST() {
       { status: 500 },
     );
   } finally {
-    // 确保 Prisma Client 连接在开发/测试环境或独立脚本中正确断开
-    // 在 Next.js API 路由中，通常不需要手动断开，因为连接是按需的。
-    // 如果 seedDatabase 或 db 实例在外部管理连接，则可能需要外部处理 $disconnect
+    // Prisma client disconnection is typically handled by Prisma itself in serverless environments like Next.js API routes.
+    // Explicit $disconnect might be needed if running as a long-lived process or script.
   }
 }

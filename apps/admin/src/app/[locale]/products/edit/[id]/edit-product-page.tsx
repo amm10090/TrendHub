@@ -167,6 +167,18 @@ export function EditProductPage({ id }: { id: string }) {
     fetchProduct();
   }, [productId, t]);
 
+  // 页面加载完成后清理导航状态（如果存在的话）
+  useEffect(() => {
+    // 这里可以通过URL参数或全局状态来检测是否从列表页导航而来
+    // 为了演示，我们在组件挂载时模拟清理导航状态
+    const timer = setTimeout(() => {
+      // 这里可以清理父组件的导航状态
+      // 例如：parentComponentClearNavigationState?.()
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleTagInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
       e.preventDefault();
@@ -953,7 +965,7 @@ export function EditProductPage({ id }: { id: string }) {
         </Button>
         <Button onClick={handleSubmit} disabled={isUpdating}>
           {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {t("save")}
+          {isUpdating ? t("saving") : t("save")}
         </Button>
       </div>
 

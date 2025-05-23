@@ -53,10 +53,20 @@ function PageWrapper({ children }: { children: ReactNode }) {
   );
 }
 
-function AddButton() {
+interface AddButtonProps {
+  onClick?: () => void;
+  isLoading?: boolean;
+}
+
+function AddButton({ onClick, isLoading }: AddButtonProps) {
   const t = useTranslations("products");
 
-  return <Button>{t("addProduct")}</Button>;
+  return (
+    <Button onClick={onClick} disabled={isLoading}>
+      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {t("addProduct")}
+    </Button>
+  );
 }
 
 function AddCategoryButton() {
@@ -72,6 +82,7 @@ interface ActionMenuProps {
   isDeleting: boolean;
   isActive?: boolean;
   productName?: string;
+  isNavigatingToEdit?: boolean;
 }
 
 function ActionMenu({
@@ -81,6 +92,7 @@ function ActionMenu({
   isDeleting,
   isActive = true,
   productName,
+  isNavigatingToEdit,
 }: ActionMenuProps) {
   const t = useTranslations("products");
 
@@ -96,9 +108,17 @@ function ActionMenu({
           productName ? t("actionsFor", { name: productName }) : t("actions")
         }
       >
-        <DropdownMenuItem key="edit" onSelect={onEdit}>
-          <Pencil className="w-4 h-4 mr-2" />
-          {t("edit")}
+        <DropdownMenuItem
+          key="edit"
+          onSelect={onEdit}
+          disabled={isNavigatingToEdit}
+        >
+          {isNavigatingToEdit ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Pencil className="w-4 h-4 mr-2" />
+          )}
+          {isNavigatingToEdit ? t("navigating") : t("edit")}
         </DropdownMenuItem>
         <DropdownMenuItem key="toggle" onSelect={onToggleStatus}>
           {isActive ? (
@@ -114,7 +134,11 @@ function ActionMenu({
           onSelect={onDelete}
           disabled={isDeleting}
         >
-          <Trash2 className="w-4 h-4 mr-2" />
+          {isDeleting ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Trash2 className="w-4 h-4 mr-2" />
+          )}
           {isDeleting ? t("deleting") : t("delete")}
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -1002,6 +1026,7 @@ interface ProductRowProps {
   isDeleting?: boolean;
   isSelected?: boolean;
   onSelectChange?: (id: string, checked: boolean) => void;
+  isNavigatingToEdit?: boolean;
 }
 
 function ProductRow({
@@ -1013,6 +1038,7 @@ function ProductRow({
   isDeleting,
   isSelected,
   onSelectChange,
+  isNavigatingToEdit,
 }: ProductRowProps) {
   const t = useTranslations("products");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -1100,6 +1126,7 @@ function ProductRow({
             isDeleting={!!isDeleting}
             isActive={!!product.isActive}
             productName={product.name}
+            isNavigatingToEdit={!!isNavigatingToEdit}
           />
         </td>
       </tr>
@@ -1198,7 +1225,7 @@ function ProductFilter({
   const tCommon = useTranslations("common");
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // 步骤 1 (来自上一次的计划): 为 searchTerm, localMinPrice, localMaxPrice 添加 useState Hooks
+  // 步骤 1: 为 searchTerm, localMinPrice, localMaxPrice 添加 useState Hooks
   const [searchTerm, setSearchTerm] = useState<string>(
     activeFilters.search || "",
   );
@@ -1209,14 +1236,17 @@ function ProductFilter({
     activeFilters.maxPrice?.toString() || "",
   );
 
-  // 步骤 1 (本次计划的核心): 使用 useMemo 创建 relevantActiveFilters 对象
-  const relevantActiveFilters = useMemo(() => {
+  // 修复：使用深度比较来创建稳定的筛选器对象
+  const stableActiveFilters = useMemo(() => {
     return {
       status: activeFilters.status,
       categoryId: activeFilters.categoryId,
       brandId: activeFilters.brandId,
       hasDiscount: activeFilters.hasDiscount,
       hasCoupon: activeFilters.hasCoupon,
+      search: activeFilters.search,
+      minPrice: activeFilters.minPrice,
+      maxPrice: activeFilters.maxPrice,
     };
   }, [
     activeFilters.status,
@@ -1224,18 +1254,12 @@ function ProductFilter({
     activeFilters.brandId,
     activeFilters.hasDiscount,
     activeFilters.hasCoupon,
+    activeFilters.search,
+    activeFilters.minPrice,
+    activeFilters.maxPrice,
   ]);
 
-  // 步骤 1 (本次计划的核心): 使用 useMemo 创建 syncableFilterInputs 对象
-  const syncableFilterInputs = useMemo(() => {
-    return {
-      search: activeFilters.search,
-      minPrice: activeFilters.minPrice,
-      maxPrice: activeFilters.maxPrice,
-    };
-  }, [activeFilters.search, activeFilters.minPrice, activeFilters.maxPrice]);
-
-  // 第一个 useEffect Hook (防抖逻辑)
+  // 修复：添加防抖和条件检查的 useEffect
   useEffect(() => {
     const handler = setTimeout(() => {
       const newMinPrice =
@@ -1252,13 +1276,28 @@ function ProductFilter({
           ? newMaxPrice
           : undefined;
 
-      // 步骤 1 (本次计划的核心): 修改 onFiltersChange 调用以使用 relevantActiveFilters
-      onFiltersChange({
-        ...relevantActiveFilters, // 展开 memoized 对象
-        search: searchTerm || undefined,
-        minPrice: finalMinPrice,
-        maxPrice: finalMaxPrice,
-      });
+      // 修复：更严格的变更检查
+      const currentSearch = searchTerm.trim() || undefined;
+      const hasSearchChanged = currentSearch !== stableActiveFilters.search;
+      const hasPriceChanged =
+        finalMinPrice !== stableActiveFilters.minPrice ||
+        finalMaxPrice !== stableActiveFilters.maxPrice;
+
+      // 只有在搜索或价格真正改变时才调用 onFiltersChange
+      if (hasSearchChanged || hasPriceChanged) {
+        const newFilters = {
+          status: stableActiveFilters.status,
+          categoryId: stableActiveFilters.categoryId,
+          brandId: stableActiveFilters.brandId,
+          hasDiscount: stableActiveFilters.hasDiscount,
+          hasCoupon: stableActiveFilters.hasCoupon,
+          search: currentSearch,
+          minPrice: finalMinPrice,
+          maxPrice: finalMaxPrice,
+        };
+
+        onFiltersChange(newFilters);
+      }
     }, 500);
 
     return () => {
@@ -1269,16 +1308,26 @@ function ProductFilter({
     localMinPrice,
     localMaxPrice,
     onFiltersChange,
-    relevantActiveFilters, // 依赖 memoized 对象
+    stableActiveFilters.search,
+    stableActiveFilters.minPrice,
+    stableActiveFilters.maxPrice,
+    stableActiveFilters.status,
+    stableActiveFilters.categoryId,
+    stableActiveFilters.brandId,
+    stableActiveFilters.hasDiscount,
+    stableActiveFilters.hasCoupon,
   ]);
 
-  // 第二个 useEffect Hook (同步 activeFilters prop 的变化到本地状态)
+  // 修复：同步外部筛选器变化到本地状态，但避免循环更新
   useEffect(() => {
-    // 步骤 1 (本次计划的核心): 从 syncableFilterInputs 读取值
-    setSearchTerm(syncableFilterInputs.search || "");
-    setLocalMinPrice(syncableFilterInputs.minPrice?.toString() || "");
-    setLocalMaxPrice(syncableFilterInputs.maxPrice?.toString() || "");
-  }, [syncableFilterInputs]);
+    setSearchTerm(stableActiveFilters.search || "");
+    setLocalMinPrice(stableActiveFilters.minPrice?.toString() || "");
+    setLocalMaxPrice(stableActiveFilters.maxPrice?.toString() || "");
+  }, [
+    stableActiveFilters.search,
+    stableActiveFilters.minPrice,
+    stableActiveFilters.maxPrice,
+  ]);
 
   const handleLocalResetFilters = () => {
     onFiltersChange({ status: "all" });
@@ -1549,6 +1598,7 @@ interface ProductTableProps {
   onBulkDelete?: (ids: string[]) => void;
   onBulkToggleStatus?: (ids: string[], setActive: boolean) => void;
   isLoading?: boolean;
+  navigatingToEdit?: string | null;
 }
 
 function ProductTable({
@@ -1563,6 +1613,7 @@ function ProductTable({
   onBulkDelete,
   onBulkToggleStatus,
   isLoading,
+  navigatingToEdit,
 }: ProductTableProps) {
   const t = useTranslations("products");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -1655,6 +1706,7 @@ function ProductTable({
                 onToggleStatus={onToggleStatus}
                 isSelected={selectedIds.includes(product.id)}
                 onSelectChange={handleSelectOne}
+                isNavigatingToEdit={navigatingToEdit === product.id}
               />
             ))}
           </tbody>

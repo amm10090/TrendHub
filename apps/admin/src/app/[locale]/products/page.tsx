@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
@@ -68,6 +68,7 @@ interface ProductFilters {
 
 export default function ProductsPage() {
   const t = useTranslations("products");
+  const router = useRouter();
   const [page, setPage] = useState(1);
   // 从localStorage读取初始limit值，默认为10
   const [limit, setLimit] = useState(() =>
@@ -77,6 +78,8 @@ export default function ProductsPage() {
   const [currentFilters, setCurrentFilters] = useState<ProductFilters>({
     status: "all", // 默认筛选状态为 "all"
   });
+  const [navigatingToEdit, setNavigatingToEdit] = useState<string | null>(null);
+  const [navigatingToNew, setNavigatingToNew] = useState(false);
 
   // 这些hooks和函数虽然可能在新UI中看起来未使用，但它们被ProductsClient.ProductTable内部组件使用
   // 它们提供了产品数据的加载、删除、更新等核心功能
@@ -114,10 +117,19 @@ export default function ProductsPage() {
     saveToLocalStorage(STORAGE_KEY, limitValue);
   };
 
-  const handleFiltersChange = useCallback((newFilters: ProductFilters) => {
-    setPage(1); // 当筛选条件改变时，重置到第一页
-    setCurrentFilters(newFilters);
-  }, []);
+  const handleFiltersChange = useCallback(
+    (newFilters: ProductFilters) => {
+      // 修复：只有在筛选条件真正改变时才重置页面
+      const filtersChanged =
+        JSON.stringify(currentFilters) !== JSON.stringify(newFilters);
+
+      if (filtersChanged) {
+        setPage(1); // 当筛选条件改变时，重置到第一页
+        setCurrentFilters(newFilters);
+      }
+    },
+    [currentFilters],
+  );
 
   // 辅助函数判断是否应用了筛选 (除了默认的 status: 'all')
   const areFiltersApplied = (filters: ProductFilters): boolean => {
@@ -145,10 +157,10 @@ export default function ProductsPage() {
   };
 
   const handleEdit = (id: string) => {
-    // 跳转到编辑页面，使用当前语言环境
-    const locale = window.location.pathname.split("/")[1] || "en";
-
-    window.location.href = `/${locale}/products/edit/${id}`;
+    // 设置加载状态
+    setNavigatingToEdit(id);
+    // 使用 Next.js router 进行导航
+    router.push(`/products/edit/${id}`);
   };
 
   const handleToggleStatus = async (id: string, currentStatus: string) => {
@@ -172,6 +184,12 @@ export default function ProductsPage() {
     }
   };
 
+  // 处理新建商品导航
+  const handleNavigateToNew = () => {
+    setNavigatingToNew(true);
+    router.push("/products/new");
+  };
+
   if (error) {
     return (
       <div className="flex h-[400px] items-center justify-center">
@@ -186,9 +204,10 @@ export default function ProductsPage() {
         <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
         <div className="flex items-center space-x-2">
           {selectedTab === "products" ? (
-            <Link href="/products/new">
-              <ProductsClient.AddButton />
-            </Link>
+            <ProductsClient.AddButton
+              onClick={handleNavigateToNew}
+              isLoading={navigatingToNew}
+            />
           ) : (
             <ProductsClient.AddCategoryButton />
           )}
@@ -268,6 +287,7 @@ export default function ProductsPage() {
                   }
                   activeFilters={currentFilters}
                   onFiltersChange={handleFiltersChange}
+                  navigatingToEdit={navigatingToEdit}
                   onBulkDelete={async (ids) => {
                     try {
                       // 实现批量删除
@@ -375,9 +395,16 @@ export default function ProductsPage() {
                           {t("addProductPrompt")}
                         </p>
                         {/* 可以添加一个直接跳转到添加商品页面的链接按钮 */}
-                        <Link href="/products/new" className="mt-2">
-                          <Button>{t("addProduct")}</Button>
-                        </Link>
+                        <Button
+                          onClick={handleNavigateToNew}
+                          disabled={navigatingToNew}
+                          className="mt-2"
+                        >
+                          {navigatingToNew && (
+                            <Spinner className="mr-2 h-4 w-4" />
+                          )}
+                          {t("addProduct")}
+                        </Button>
                       </div>
                     )}
                   </div>

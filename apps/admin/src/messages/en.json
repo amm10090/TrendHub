@@ -656,7 +656,9 @@
       "media": {
         "imagesLabel": "Images",
         "title": "Media",
-        "videosLabel": "Videos (Optional)"
+        "videosLabel": "Videos (Optional)",
+        "uploadMain": "Upload Main Image",
+        "uploadTip": "Supports .jpg, .jpeg, .png, .webp formats. Recommended image size: 800x800 pixels, maximum 5MB"
       },
       "organization": {
         "brand": "Product Brand",
@@ -718,11 +720,27 @@
       },
       "productNotFound": "Product not found",
       "save": "Save Changes",
+      "saving": "Saving...",
       "seo": {
-        "title": "SEO (Search Engine Optimization)"
+        "title": "SEO (Search Engine Optimization)",
+        "seoTitle": "SEO Title",
+        "seoTitlePlaceholder": "Search engine title",
+        "metaDescription": "Meta Description",
+        "metaDescriptionPlaceholder": "Search engine description"
       },
       "shipping": {
-        "title": "Shipping"
+        "title": "Shipping Information",
+        "weight": "Weight (grams)",
+        "weightPlaceholder": "0",
+        "shippingMethod": "Shipping Method",
+        "shippingMethodPlaceholder": "Select shipping method",
+        "standardShipping": "Standard Shipping",
+        "expressShipping": "Express Shipping",
+        "freeShipping": "Free Shipping",
+        "length": "Length (cm)",
+        "width": "Width (cm)",
+        "height": "Height (cm)",
+        "dimensionPlaceholder": "0"
       },
       "status": {
         "active": "",
@@ -742,18 +760,50 @@
         "successUpdate": "Product updated successfully."
       },
       "variants": {
-        "title": "Variants"
+        "title": "Product Variants",
+        "addVariant": "Add Variant",
+        "variantName": "Variant Name",
+        "variantNamePlaceholder": "Color/Size/Spec",
+        "variantValue": "Variant Value",
+        "variantValuePlaceholder": "Black/XL/Set",
+        "variantPrice": "Price",
+        "variantStock": "Stock",
+        "variantActions": "Actions",
+        "removeVariant": "Remove Variant"
       },
       "visibility": {
         "featured": "Featured Product",
         "featuredDescription": "Display on homepage and featured sections",
-        "title": "Visibility"
+        "title": "Visibility",
+        "taxCategory": "Tax Category",
+        "taxCategoryPlaceholder": "Select tax category",
+        "standardTax": "Standard Tax Rate",
+        "reducedTax": "Reduced Tax Rate",
+        "zeroTax": "Zero Tax Rate"
       },
       "genderOptions": {
         "none": "None",
         "women": "Women",
         "men": "Men",
         "unisex": "Unisex"
+      },
+      "advancedSettings": {
+        "title": "Advanced Settings",
+        "inventoryManagement": "Inventory Management",
+        "trackInventory": "Track Inventory",
+        "trackInventoryDescription": "System will automatically update inventory when enabled",
+        "allowBackorder": "Allow Backorder",
+        "allowBackorderDescription": "Allow customers to purchase out-of-stock items"
+      },
+      "actions": {
+        "saveDraft": "Save Draft",
+        "publish": "Publish Product",
+        "publishing": "Publishing...",
+        "cancel": "Cancel"
+      },
+      "new": {
+        "title": "Add New Product",
+        "loadingMessage": "Preparing new product page..."
       }
     }
   },
@@ -824,6 +874,7 @@
     "loading": "Loading...",
     "lowStock": "Low Stock",
     "name": "Product Name",
+    "navigating": "Navigating...",
     "noImage": "No Image",
     "noInventory": "No Inventory",
     "noProducts": "No products found",
@@ -1133,6 +1184,7 @@
       "type": "Type",
       "lastUpdated": "Last Updated",
       "status": "Status",
+      "actions": "Actions",
       "targetPrimaryCategory": "Target Primary Category"
     },
     "table": {

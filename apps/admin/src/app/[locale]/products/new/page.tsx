@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChangeEvent, KeyboardEvent, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { ProductsClient } from "@/app/[locale]/products/products-client";
@@ -55,6 +55,8 @@ export default function NewProductPage() {
     error: brandsError,
   } = useBrands();
 
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [brandId, setBrandId] = useState("");
@@ -86,6 +88,27 @@ export default function NewProductPage() {
   const [sizes, setSizes] = useState<string[]>([]);
   const [sizeInput, setSizeInput] = useState("");
   const [gender, setGender] = useState<"women" | "men" | "unisex" | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isPageLoading) {
+    return (
+      <NewProductClient.PageWrapper>
+        <div className="flex h-[400px] items-center justify-center">
+          <div className="text-center space-y-4">
+            <Spinner className="h-8 w-8 mx-auto" />
+            <p className="text-muted-foreground">{t("new.loadingMessage")}</p>
+          </div>
+        </div>
+      </NewProductClient.PageWrapper>
+    );
+  }
 
   const handleTagInput = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -248,14 +271,16 @@ export default function NewProductPage() {
   return (
     <NewProductClient.PageWrapper>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold tracking-tight">添加新商品</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("new.title")}</h2>
         <div className="flex items-center gap-2">
           <Switch
             id="product-status"
             checked={isActive}
             onCheckedChange={setIsActive}
           />
-          <Label htmlFor="product-status">{isActive ? "激活" : "草稿"}</Label>
+          <Label htmlFor="product-status">
+            {isActive ? t("status.active") : t("status.draft")}
+          </Label>
         </div>
       </div>
 
@@ -265,31 +290,34 @@ export default function NewProductPage() {
             <CardContent className="pt-6 space-y-4">
               <div>
                 <Label htmlFor="product-name">
-                  商品名称 <span className="text-destructive">*</span>
+                  {t("productInfo.name")}{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="product-name"
-                  placeholder="请输入商品名称"
+                  placeholder={t("productInfo.namePlaceholder")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="mt-1"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  给你的商品起一个吸引人的名称
+                  {t("productInfo.nameDescription")}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="product-description">商品描述</Label>
+                <Label htmlFor="product-description">
+                  {t("productInfo.description")}
+                </Label>
                 <Textarea
                   id="product-description"
-                  placeholder="请输入商品描述"
+                  placeholder={t("productInfo.descriptionPlaceholder")}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="min-h-32 mt-1"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  详细描述商品的特点、用途和优势
+                  {t("productInfo.descriptionHelp")}
                 </p>
               </div>
             </CardContent>
@@ -297,67 +325,73 @@ export default function NewProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>基本信息</CardTitle>
+              <CardTitle>{t("basicInfo.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="product-source">商品来源</Label>
+                <Label htmlFor="product-source">{t("basicInfo.source")}</Label>
                 <Input
                   id="product-source"
-                  placeholder="请输入商品来源"
+                  placeholder={t("basicInfo.sourcePlaceholder")}
                   value={source}
                   onChange={(e) => setSource(e.target.value)}
                   className="mt-1"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  商品生产地或采购来源
+                  {t("basicInfo.sourceDescription")}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="product-promotion-url">商品推广链接</Label>
+                <Label htmlFor="product-promotion-url">
+                  {t("basicInfo.promotionUrl")}
+                </Label>
                 <Input
                   id="product-promotion-url"
-                  placeholder="请输入推广链接"
+                  placeholder={t("basicInfo.promotionPlaceholder")}
                   value={promotionUrl}
                   onChange={(e) => setPromotionUrl(e.target.value)}
                   className="mt-1"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  外部推广或营销链接
+                  {t("basicInfo.promotionDescription")}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="product-material">商品材质</Label>
+                <Label htmlFor="product-material">
+                  {t("basicInfo.material")}
+                </Label>
                 <Textarea
                   id="product-material"
-                  placeholder="请输入商品材质信息"
+                  placeholder={t("basicInfo.materialPlaceholder")}
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
                   className="min-h-[48px] mt-1"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  描述商品的材质成分
+                  {t("basicInfo.materialDescription")}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="product-cautions">商品注意事项</Label>
+                <Label htmlFor="product-cautions">
+                  {t("basicInfo.cautions")}
+                </Label>
                 <Textarea
                   id="product-cautions"
-                  placeholder="请输入商品注意事项"
+                  placeholder={t("basicInfo.cautionsPlaceholder")}
                   value={cautions}
                   onChange={(e) => setCautions(e.target.value)}
                   className="min-h-[48px] mt-1"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  使用、保养等相关注意事项
+                  {t("basicInfo.cautionsDescription")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="product-colors">商品颜色</Label>
+                <Label htmlFor="product-colors">{t("basicInfo.colors")}</Label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {colors.map((color) => (
                     <Badge
@@ -390,7 +424,7 @@ export default function NewProductPage() {
                 </div>
                 <Input
                   id="product-colors"
-                  placeholder="输入颜色并按回车添加"
+                  placeholder={t("basicInfo.colorsPlaceholder")}
                   value={colorInput}
                   onChange={handleColorInputChange}
                   onKeyDown={handleColorInput}
@@ -398,7 +432,7 @@ export default function NewProductPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="product-sizes">商品尺码</Label>
+                <Label htmlFor="product-sizes">{t("basicInfo.sizes")}</Label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {sizes.map((size) => (
                     <Badge
@@ -431,7 +465,7 @@ export default function NewProductPage() {
                 </div>
                 <Input
                   id="product-sizes"
-                  placeholder="输入尺码并按回车添加"
+                  placeholder={t("basicInfo.sizesPlaceholder")}
                   value={sizeInput}
                   onChange={handleSizeInputChange}
                   onKeyDown={handleSizeInput}
@@ -442,7 +476,7 @@ export default function NewProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>媒体</CardTitle>
+              <CardTitle>{t("media.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-5 gap-4">
@@ -464,7 +498,7 @@ export default function NewProductPage() {
                         />
                       </svg>
                       <span className="mt-2 text-sm text-muted-foreground">
-                        上传主图
+                        {t("media.uploadMain")}
                       </span>
                     </div>
                   </div>
@@ -495,24 +529,22 @@ export default function NewProductPage() {
                 </div>
               </div>
               <div className="mt-4 text-sm text-muted-foreground">
-                <p>
-                  支持 .jpg、.jpeg、.png、.webp 格式，图片尺寸建议为 800x800
-                  像素，最大不超过 5MB
-                </p>
+                <p>{t("media.uploadTip")}</p>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>价格与库存</CardTitle>
+              <CardTitle>{t("priceAndInventory.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="product-price">
-                      售价 <span className="text-destructive">*</span>
+                      {t("priceAndInventory.price")}{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-muted-foreground">¥</span>
@@ -526,7 +558,9 @@ export default function NewProductPage() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="product-original-price">原价</Label>
+                    <Label htmlFor="product-original-price">
+                      {t("priceAndInventory.originalPrice")}
+                    </Label>
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-muted-foreground">¥</span>
                       <Input
@@ -541,7 +575,9 @@ export default function NewProductPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="product-cost-price">成本价</Label>
+                    <Label htmlFor="product-cost-price">
+                      {t("priceAndInventory.costPrice")}
+                    </Label>
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-muted-foreground">¥</span>
                       <Input
@@ -555,7 +591,8 @@ export default function NewProductPage() {
                   </div>
                   <div>
                     <Label htmlFor="product-inventory">
-                      库存数量 <span className="text-destructive">*</span>
+                      {t("priceAndInventory.inventory")}{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id="product-inventory"
@@ -569,20 +606,24 @@ export default function NewProductPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="product-sku">SKU</Label>
+                    <Label htmlFor="product-sku">
+                      {t("priceAndInventory.sku")}
+                    </Label>
                     <Input
                       id="product-sku"
-                      placeholder="例如：SM-BLK-L"
+                      placeholder={t("priceAndInventory.skuPlaceholder")}
                       value={sku}
                       onChange={(e) => setSku(e.target.value)}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="product-barcode">条形码</Label>
+                    <Label htmlFor="product-barcode">
+                      {t("priceAndInventory.barcode")}
+                    </Label>
                     <Input
                       id="product-barcode"
-                      placeholder="例如：123456789012"
+                      placeholder={t("priceAndInventory.barcodePlaceholder")}
                       value={barcode}
                       onChange={(e) => setBarcode(e.target.value)}
                       className="mt-1"
@@ -597,9 +638,11 @@ export default function NewProductPage() {
                     onCheckedChange={setIsOnSale}
                   />
                   <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="product-on-sale">特价商品</Label>
+                    <Label htmlFor="product-on-sale">
+                      {t("priceAndInventory.onSale")}
+                    </Label>
                     <p className="text-sm text-muted-foreground">
-                      设置为特价商品后，将在特价区域显示
+                      {t("priceAndInventory.onSaleDescription")}
                     </p>
                   </div>
                 </div>
@@ -609,13 +652,13 @@ export default function NewProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>商品变体</CardTitle>
+              <CardTitle>{t("variants.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <Button variant="ghost" size="sm" onClick={addVariantRow}>
-                    添加变体
+                    {t("variants.addVariant")}
                   </Button>
                 </div>
 
@@ -627,18 +670,32 @@ export default function NewProductPage() {
                     >
                       <div className="col-span-3">
                         {index === 0 && (
-                          <Label className="text-sm">规格名称</Label>
+                          <Label className="text-sm">
+                            {t("variants.variantName")}
+                          </Label>
                         )}
-                        <Input placeholder="颜色/尺寸/规格" className="mt-1" />
+                        <Input
+                          placeholder={t("variants.variantNamePlaceholder")}
+                          className="mt-1"
+                        />
                       </div>
                       <div className="col-span-3">
                         {index === 0 && (
-                          <Label className="text-sm">规格值</Label>
+                          <Label className="text-sm">
+                            {t("variants.variantValue")}
+                          </Label>
                         )}
-                        <Input placeholder="黑色/XL/套装" className="mt-1" />
+                        <Input
+                          placeholder={t("variants.variantValuePlaceholder")}
+                          className="mt-1"
+                        />
                       </div>
                       <div className="col-span-2">
-                        {index === 0 && <Label className="text-sm">价格</Label>}
+                        {index === 0 && (
+                          <Label className="text-sm">
+                            {t("variants.variantPrice")}
+                          </Label>
+                        )}
                         <Input
                           type="number"
                           placeholder="0.00"
@@ -646,12 +703,18 @@ export default function NewProductPage() {
                         />
                       </div>
                       <div className="col-span-2">
-                        {index === 0 && <Label className="text-sm">库存</Label>}
+                        {index === 0 && (
+                          <Label className="text-sm">
+                            {t("variants.variantStock")}
+                          </Label>
+                        )}
                         <Input type="number" placeholder="0" className="mt-1" />
                       </div>
                       <div className="col-span-2 flex justify-center items-center h-full">
                         {index === 0 && (
-                          <Label className="text-sm invisible">操作</Label>
+                          <Label className="text-sm invisible">
+                            {t("variants.variantActions")}
+                          </Label>
                         )}
                         <div className="flex items-center h-full mt-1">
                           {index !== 0 && (
@@ -673,7 +736,9 @@ export default function NewProductPage() {
                                   clipRule="evenodd"
                                 />
                               </svg>
-                              <span className="sr-only">删除变体</span>
+                              <span className="sr-only">
+                                {t("variants.removeVariant")}
+                              </span>
                             </Button>
                           )}
                         </div>
@@ -687,58 +752,68 @@ export default function NewProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>配送信息</CardTitle>
+              <CardTitle>{t("shipping.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="product-weight">重量(克)</Label>
+                  <Label htmlFor="product-weight">{t("shipping.weight")}</Label>
                   <Input
                     id="product-weight"
                     type="number"
-                    placeholder="0"
+                    placeholder={t("shipping.weightPlaceholder")}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="shipping-method">配送方式</Label>
+                  <Label htmlFor="shipping-method">
+                    {t("shipping.shippingMethod")}
+                  </Label>
                   <Select>
                     <SelectTrigger id="shipping-method" className="mt-1">
-                      <SelectValue placeholder="请选择配送方式" />
+                      <SelectValue
+                        placeholder={t("shipping.shippingMethodPlaceholder")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="standard">标准快递</SelectItem>
-                      <SelectItem value="express">加急快递</SelectItem>
-                      <SelectItem value="free">免费配送</SelectItem>
+                      <SelectItem value="standard">
+                        {t("shipping.standardShipping")}
+                      </SelectItem>
+                      <SelectItem value="express">
+                        {t("shipping.expressShipping")}
+                      </SelectItem>
+                      <SelectItem value="free">
+                        {t("shipping.freeShipping")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div>
-                  <Label htmlFor="product-length">长度(厘米)</Label>
+                  <Label htmlFor="product-length">{t("shipping.length")}</Label>
                   <Input
                     id="product-length"
                     type="number"
-                    placeholder="0"
+                    placeholder={t("shipping.dimensionPlaceholder")}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="product-width">宽度(厘米)</Label>
+                  <Label htmlFor="product-width">{t("shipping.width")}</Label>
                   <Input
                     id="product-width"
                     type="number"
-                    placeholder="0"
+                    placeholder={t("shipping.dimensionPlaceholder")}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="product-height">高度(厘米)</Label>
+                  <Label htmlFor="product-height">{t("shipping.height")}</Label>
                   <Input
                     id="product-height"
                     type="number"
-                    placeholder="0"
+                    placeholder={t("shipping.dimensionPlaceholder")}
                     className="mt-1"
                   />
                 </div>
@@ -750,12 +825,13 @@ export default function NewProductPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>组织</CardTitle>
+              <CardTitle>{t("organization.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="brand-select">
-                  商品品牌 <span className="text-destructive">*</span>
+                  {t("organization.brand")}{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   value={brandId}
@@ -763,18 +839,20 @@ export default function NewProductPage() {
                   disabled={isBrandsLoading}
                 >
                   <SelectTrigger id="brand-select" className="w-full mt-1">
-                    <SelectValue placeholder="请选择品牌" />
+                    <SelectValue
+                      placeholder={t("organization.brandPlaceholder")}
+                    />
                     {isBrandsLoading && <Spinner className="ml-2 h-4 w-4" />}
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       {brandsError ? (
                         <SelectItem value="error" disabled>
-                          获取品牌失败
+                          {t("organization.brandError")}
                         </SelectItem>
                       ) : brands.length === 0 ? (
                         <SelectItem value="empty" disabled>
-                          暂无品牌数据
+                          {t("organization.brandEmpty")}
                         </SelectItem>
                       ) : (
                         brands.map((brand) => (
@@ -799,7 +877,7 @@ export default function NewProductPage() {
               />
 
               <div className="space-y-2">
-                <Label htmlFor="product-tags">商品标签</Label>
+                <Label htmlFor="product-tags">{t("organization.tags")}</Label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {tags.map((tag) => (
                     <Badge
@@ -832,7 +910,7 @@ export default function NewProductPage() {
                 </div>
                 <Input
                   id="product-tags"
-                  placeholder="输入标签并按回车添加"
+                  placeholder={t("organization.tagsPlaceholder")}
                   value={tagInput}
                   onChange={handleTagInputChange}
                   onKeyDown={handleTagInput}
@@ -881,7 +959,7 @@ export default function NewProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>可见性</CardTitle>
+              <CardTitle>{t("visibility.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
@@ -891,23 +969,35 @@ export default function NewProductPage() {
                   onCheckedChange={setIsFeatured}
                 />
                 <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="product-featured">特色商品</Label>
+                  <Label htmlFor="product-featured">
+                    {t("visibility.featured")}
+                  </Label>
                   <p className="text-sm text-muted-foreground">
-                    在首页和特色区域显示
+                    {t("visibility.featuredDescription")}
                   </p>
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="tax-category">税收类别</Label>
+                <Label htmlFor="tax-category">
+                  {t("visibility.taxCategory")}
+                </Label>
                 <Select>
                   <SelectTrigger id="tax-category" className="mt-1">
-                    <SelectValue placeholder="请选择税收类别" />
+                    <SelectValue
+                      placeholder={t("visibility.taxCategoryPlaceholder")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="standard">标准税率</SelectItem>
-                    <SelectItem value="reduced">优惠税率</SelectItem>
-                    <SelectItem value="zero">零税率</SelectItem>
+                    <SelectItem value="standard">
+                      {t("visibility.standardTax")}
+                    </SelectItem>
+                    <SelectItem value="reduced">
+                      {t("visibility.reducedTax")}
+                    </SelectItem>
+                    <SelectItem value="zero">
+                      {t("visibility.zeroTax")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -916,27 +1006,29 @@ export default function NewProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>高级设置</CardTitle>
+              <CardTitle>{t("advancedSettings.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-1">
-                  <AccordionTrigger>SEO设置</AccordionTrigger>
+                  <AccordionTrigger>{t("seo.title")}</AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 py-2">
                       <div>
-                        <Label htmlFor="seo-title">SEO标题</Label>
+                        <Label htmlFor="seo-title">{t("seo.seoTitle")}</Label>
                         <Input
                           id="seo-title"
-                          placeholder="搜索引擎标题"
+                          placeholder={t("seo.seoTitlePlaceholder")}
                           className="mt-1"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="meta-description">Meta描述</Label>
+                        <Label htmlFor="meta-description">
+                          {t("seo.metaDescription")}
+                        </Label>
                         <Textarea
                           id="meta-description"
-                          placeholder="搜索引擎描述"
+                          placeholder={t("seo.metaDescriptionPlaceholder")}
                           className="min-h-[48px] mt-1"
                         />
                       </div>
@@ -944,24 +1036,30 @@ export default function NewProductPage() {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-2">
-                  <AccordionTrigger>库存管理</AccordionTrigger>
+                  <AccordionTrigger>
+                    {t("advancedSettings.inventoryManagement")}
+                  </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 py-2">
                       <div className="flex items-center gap-2">
                         <Switch id="track-inventory" defaultChecked />
                         <div className="grid gap-1.5 leading-none">
-                          <Label htmlFor="track-inventory">跟踪库存</Label>
+                          <Label htmlFor="track-inventory">
+                            {t("advancedSettings.trackInventory")}
+                          </Label>
                           <p className="text-sm text-muted-foreground">
-                            启用后系统将自动更新库存
+                            {t("advancedSettings.trackInventoryDescription")}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch id="allow-backorder" defaultChecked />
                         <div className="grid gap-1.5 leading-none">
-                          <Label htmlFor="allow-backorder">允许缺货下单</Label>
+                          <Label htmlFor="allow-backorder">
+                            {t("advancedSettings.allowBackorder")}
+                          </Label>
                           <p className="text-sm text-muted-foreground">
-                            允许顾客购买缺货商品
+                            {t("advancedSettings.allowBackorderDescription")}
                           </p>
                         </div>
                       </div>
@@ -1079,11 +1177,11 @@ export default function NewProductPage() {
 
       <div className="flex justify-end space-x-2 pt-4 mt-6">
         <Button variant="outline" disabled={isCreating}>
-          保存草稿
+          {t("actions.saveDraft")}
         </Button>
         <Button onClick={handleSubmit} disabled={isCreating}>
           {isCreating && <Spinner className="mr-2 h-4 w-4 animate-spin" />}
-          发布商品
+          {t("actions.publish")}
         </Button>
       </div>
     </NewProductClient.PageWrapper>

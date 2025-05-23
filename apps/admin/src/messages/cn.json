@@ -568,7 +568,9 @@
       "media": {
         "imagesLabel": "图像",
         "title": "媒体",
-        "videosLabel": "视频（可选）"
+        "videosLabel": "视频（可选）",
+        "uploadMain": "上传主图",
+        "uploadTip": "支持 .jpg、.jpeg、.png、.webp 格式，图片尺寸建议为 800x800 像素，最大不超过 5MB"
       },
       "organization": {
         "brand": "商品品牌",
@@ -632,11 +634,27 @@
       },
       "productNotFound": "商品不存在",
       "save": "保存修改",
+      "saving": "保存中...",
       "seo": {
-        "title": "搜索引擎优化 (SEO)"
+        "title": "搜索引擎优化 (SEO)",
+        "seoTitle": "SEO标题",
+        "seoTitlePlaceholder": "搜索引擎标题",
+        "metaDescription": "Meta描述",
+        "metaDescriptionPlaceholder": "搜索引擎描述"
       },
       "shipping": {
-        "title": "运输"
+        "title": "配送信息",
+        "weight": "重量(克)",
+        "weightPlaceholder": "0",
+        "shippingMethod": "配送方式",
+        "shippingMethodPlaceholder": "请选择配送方式",
+        "standardShipping": "标准快递",
+        "expressShipping": "加急快递",
+        "freeShipping": "免费配送",
+        "length": "长度(厘米)",
+        "width": "宽度(厘米)",
+        "height": "高度(厘米)",
+        "dimensionPlaceholder": "0"
       },
       "status": {
         "active": "激活",
@@ -656,18 +674,50 @@
         "successUpdate": "产品更新成功。"
       },
       "variants": {
-        "title": "变种"
+        "title": "商品变体",
+        "addVariant": "添加变体",
+        "variantName": "规格名称",
+        "variantNamePlaceholder": "颜色/尺寸/规格",
+        "variantValue": "规格值",
+        "variantValuePlaceholder": "黑色/XL/套装",
+        "variantPrice": "价格",
+        "variantStock": "库存",
+        "variantActions": "操作",
+        "removeVariant": "删除变体"
       },
       "visibility": {
         "featured": "特色商品",
         "featuredDescription": "在首页和特色区域显示",
-        "title": "可见性"
+        "title": "可见性",
+        "taxCategory": "税收类别",
+        "taxCategoryPlaceholder": "请选择税收类别",
+        "standardTax": "标准税率",
+        "reducedTax": "优惠税率",
+        "zeroTax": "零税率"
       },
       "genderOptions": {
         "none": "无",
         "women": "女装",
         "men": "男装",
         "unisex": "中性"
+      },
+      "advancedSettings": {
+        "title": "高级设置",
+        "inventoryManagement": "库存管理",
+        "trackInventory": "跟踪库存",
+        "trackInventoryDescription": "启用后系统将自动更新库存",
+        "allowBackorder": "允许缺货下单",
+        "allowBackorderDescription": "允许顾客购买缺货商品"
+      },
+      "actions": {
+        "saveDraft": "保存草稿",
+        "publish": "发布商品",
+        "publishing": "发布中...",
+        "cancel": "取消"
+      },
+      "new": {
+        "title": "添加新商品",
+        "loadingMessage": "正在准备新建商品页面..."
       }
     }
   },
@@ -738,6 +788,7 @@
     "loading": "加载中...",
     "lowStock": "库存不足",
     "name": "商品名称",
+    "navigating": "导航中...",
     "noImage": "无图片",
     "noInventory": "无库存",
     "noProducts": "没有找到商品",

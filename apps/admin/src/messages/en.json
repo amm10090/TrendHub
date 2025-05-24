@@ -1723,7 +1723,13 @@
       "copyFailed": "Failed to copy.",
       "seeExample": "Please refer to the .env.example content below to configure your .env file:",
       "envExampleContent": ".env.example file content",
-      "fetchError": "Failed to check environment variables. Please refresh the page."
+      "fetchError": "Failed to check environment variables. Please refresh the page.",
+      "envTemplate": {
+        "requiredComment": "# Required environment variables",
+        "optionalComment": "# Optional environment variables (recommended)",
+        "emailFunctionalityComment": "# (Optional: for email functionality)",
+        "r2Comment": "# Cloudflare R2 configuration (Optional: for image upload functionality)"
+      }
     },
     "adminSetup": {
       "title": "Administrator Account & Site Setup",
@@ -1733,6 +1739,33 @@
       "emailPlaceholder": "Enter admin email address",
       "passwordLabel": "Admin Password",
       "passwordPlaceholder": "Enter admin password (min. 8 characters)"
+    },
+    "databaseTest": {
+      "title": "Test Database Connection",
+      "buttonTest": "Test Connection",
+      "buttonTesting": "Testing...",
+      "successMessage": "Database connection successful",
+      "errorMessage": "Database connection failed",
+      "networkErrorMessage": "Network request failed"
+    },
+    "initialization": {
+      "validation": {
+        "adminCredentialsRequired": "Admin email, password, and site name are required."
+      },
+      "messages": {
+        "alreadyInitialized": "System has already been initialized.",
+        "initializationStart": "Database tables do not exist or connection failed, proceeding with initialization...",
+        "dbCheckFailed": "Database check failed",
+        "dbConnectionFailed": "Database connection or query failed",
+        "dbPushStart": "Starting database schema push...",
+        "dbPushComplete": "Database push completed",
+        "seedStart": "Starting database seed data initialization...",
+        "seedComplete": "Seed data initialization completed",
+        "initializationSuccess": "System initialization successful!",
+        "initializationFailed": "Initialization failed",
+        "systemInitializationFailed": "System initialization failed.",
+        "dbDisconnectWarning": "Error disconnecting database"
+      }
     }
   }
 }

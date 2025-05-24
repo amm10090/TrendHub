@@ -32,30 +32,45 @@ interface EnvCheckResult {
   generatedAuthSecret?: string;
 }
 
-const DOTENV_EXAMPLE_CONTENT = `
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
-AUTH_SECRET=""
-NEXTAUTH_URL="http://localhost:3001"
-CLOUDFLARE_ACCOUNT_ID=""
-R2_ACCESS_KEY_ID=""
-R2_SECRET_ACCESS_KEY=""
-R2_BUCKET_NAME=""
-R2_PUBLIC_URL=""
-# RESEND_API_KEY="" (Optional: for email functionality)
-LOG_LEVEL="info"
-NODE_ENV="development"
-`.trim();
+// 将删除硬编码的内容，改为动态生成
 
 export default function SetupPage() {
   const t = useTranslations("setupPage");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
+  // 动态生成环境变量示例内容
+  const generateEnvExampleContent = () => {
+    return `
+${t("envCheck.envTemplate.requiredComment")}
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+AUTH_SECRET=""
+NEXTAUTH_URL="http://localhost:3001"
+
+${t("envCheck.envTemplate.optionalComment")}
+LOG_LEVEL="info"
+NODE_ENV="development"
+RESEND_API_KEY="" ${t("envCheck.envTemplate.emailFunctionalityComment")}
+
+${t("envCheck.envTemplate.r2Comment")}
+CLOUDFLARE_ACCOUNT_ID=""
+R2_ACCESS_KEY_ID=""
+R2_SECRET_ACCESS_KEY=""
+R2_BUCKET_NAME=""
+R2_PUBLIC_URL=""
+`.trim();
+  };
   const [initError, setInitError] = useState<string | null>(null);
   const [envCheckResult, setEnvCheckResult] = useState<EnvCheckResult | null>(
     null,
   );
   const [isCheckingEnv, setIsCheckingEnv] = useState(true);
   const [generatedSecret, setGeneratedSecret] = useState<string | null>(null);
+  const [isTestingDb, setIsTestingDb] = useState(false);
+  const [dbTestResult, setDbTestResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
@@ -106,6 +121,39 @@ export default function SetupPage() {
     );
   };
 
+  const handleTestDatabase = async () => {
+    setIsTestingDb(true);
+    setDbTestResult(null);
+    try {
+      const response = await fetch("/api/setup/test-db");
+      const result = await response.json();
+
+      // 转换API响应为本地化消息
+      const localizedResult = {
+        success: result.success,
+        message: result.success
+          ? t("databaseTest.successMessage")
+          : t("databaseTest.errorMessage") +
+            (result.details ? `: ${result.details}` : ""),
+      };
+
+      setDbTestResult(localizedResult);
+      if (result.success) {
+        toast.success(t("databaseTest.successMessage"));
+      } else {
+        toast.error(t("databaseTest.errorMessage"));
+      }
+    } catch {
+      setDbTestResult({
+        success: false,
+        message: t("databaseTest.networkErrorMessage"),
+      });
+      toast.error(t("databaseTest.errorMessage"));
+    } finally {
+      setIsTestingDb(false);
+    }
+  };
+
   const handleInitialize = async () => {
     if (envCheckResult && envCheckResult.missing.length > 0) {
       toast.error(t("errors.missingEnvVars"));
@@ -136,10 +184,18 @@ export default function SetupPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.details || result.error || t("errors.default"));
+        const errorMessage = result.isTranslationKey
+          ? t(result.error)
+          : result.details || result.error || t("errors.default");
+
+        throw new Error(errorMessage);
       }
 
-      toast.success(t("messages.success"));
+      const successMessage = result.isTranslationKey
+        ? t(result.message)
+        : result.message || t("messages.success");
+
+      toast.success(successMessage);
       router.push("/login");
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -273,10 +329,45 @@ export default function SetupPage() {
                   </p>
                   <Textarea
                     readOnly
-                    value={DOTENV_EXAMPLE_CONTENT}
+                    value={generateEnvExampleContent()}
                     className="w-full h-40 text-xs bg-slate-100 dark:bg-slate-700 dark:text-slate-300"
                     aria-label={t("envCheck.envExampleContent")}
                   />
+
+                  {allRequiredEnvVarsPresent && (
+                    <div className="mt-4 p-3 border rounded-md bg-blue-50 dark:bg-blue-900/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                          {t("databaseTest.title")}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleTestDatabase}
+                          disabled={isTestingDb}
+                          className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                        >
+                          {isTestingDb && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          {isTestingDb
+                            ? t("databaseTest.buttonTesting")
+                            : t("databaseTest.buttonTest")}
+                        </Button>
+                      </div>
+                      {dbTestResult && (
+                        <div
+                          className={`mt-2 p-2 rounded text-xs ${
+                            dbTestResult.success
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                              : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                          }`}
+                        >
+                          {dbTestResult.message}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </>
             )}

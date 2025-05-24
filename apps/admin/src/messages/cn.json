@@ -1645,7 +1645,13 @@
       "copyFailed": "复制失败。",
       "seeExample": "请参考以下 .env.example 内容配置您的 .env 文件:",
       "envExampleContent": ".env.example 文件内容",
-      "fetchError": "检查环境变量失败，请刷新页面重试。"
+      "fetchError": "检查环境变量失败，请刷新页面重试。",
+      "envTemplate": {
+        "requiredComment": "# 必需的环境变量",
+        "optionalComment": "# 可选的环境变量 (建议配置)",
+        "emailFunctionalityComment": "# (可选: 用于邮件功能)",
+        "r2Comment": "# Cloudflare R2 配置 (可选: 用于图片上传功能)"
+      }
     },
     "adminSetup": {
       "title": "管理员账户与站点设置",
@@ -1655,6 +1661,33 @@
       "emailPlaceholder": "请输入管理员邮箱",
       "passwordLabel": "管理员密码",
       "passwordPlaceholder": "请输入管理员密码 (至少8位)"
+    },
+    "databaseTest": {
+      "title": "测试数据库连接",
+      "buttonTest": "测试连接",
+      "buttonTesting": "测试中...",
+      "successMessage": "数据库连接成功",
+      "errorMessage": "数据库连接失败",
+      "networkErrorMessage": "网络请求失败"
+    },
+    "initialization": {
+      "validation": {
+        "adminCredentialsRequired": "管理员邮箱、密码和站点名称是必填项。"
+      },
+      "messages": {
+        "alreadyInitialized": "系统已初始化，无需重复操作。",
+        "initializationStart": "数据库表不存在或连接失败，将执行初始化...",
+        "dbCheckFailed": "数据库检查失败",
+        "dbConnectionFailed": "数据库连接或查询失败",
+        "dbPushStart": "开始执行数据库模式推送...",
+        "dbPushComplete": "数据库推送完成",
+        "seedStart": "开始执行数据库种子数据初始化...",
+        "seedComplete": "种子数据初始化完成",
+        "initializationSuccess": "系统初始化成功！",
+        "initializationFailed": "初始化失败",
+        "systemInitializationFailed": "系统初始化失败。",
+        "dbDisconnectWarning": "断开数据库连接时出错"
+      }
     }
   }
 }

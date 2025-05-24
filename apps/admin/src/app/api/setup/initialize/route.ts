@@ -79,7 +79,10 @@ export async function POST(request: Request) {
 
     if (!adminEmail || !adminPassword || !siteName) {
       return NextResponse.json(
-        { error: "管理员邮箱、密码和站点名称是必填项。" },
+        {
+          error: "setupPage.initialization.validation.adminCredentialsRequired",
+          isTranslationKey: true,
+        },
         { status: 400 },
       );
     }
@@ -87,6 +90,10 @@ export async function POST(request: Request) {
     let isAlreadyInitialized = false;
 
     try {
+      // 首先测试数据库连接
+      await db.$connect();
+
+      // 检查是否已初始化
       const initializedSetting = await db.siteSetting.findUnique({
         where: { key: "systemInitialized" },
       });
@@ -97,46 +104,67 @@ export async function POST(request: Request) {
     } catch (e: unknown) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === "P2021" // Table does not exist
+        (e.code === "P2021" || e.code === "P1001") // Table does not exist or database connection failed
       ) {
         isAlreadyInitialized = false;
       } else {
-        throw e; // Re-throw other errors
+        throw new Error(
+          `Database connection or query failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
       }
     }
 
     if (isAlreadyInitialized) {
       return NextResponse.json(
-        { message: "系统已初始化，无需重复操作。" },
+        {
+          message: "setupPage.initialization.messages.alreadyInitialized",
+          isTranslationKey: true,
+        },
         { status: 400 },
       );
     }
 
+    // 执行数据库推送
     await runPrismaDbPush();
 
-    // Pass admin credentials and site name to the seeding function
+    // 重新连接数据库以确保表已创建
+    await db.$disconnect();
+    await db.$connect();
+
+    // 执行数据库种子数据初始化
     await seedDatabase({ adminEmail, adminPassword, siteName });
 
+    // 设置系统初始化标志
     await db.siteSetting.upsert({
       where: { key: "systemInitialized" },
       update: { value: "true", category: "system" },
       create: { key: "systemInitialized", value: "true", category: "system" },
     });
 
-    return NextResponse.json({ message: "系统初始化成功！" }, { status: 200 });
+    return NextResponse.json(
+      {
+        message: "setupPage.initialization.messages.initializationSuccess",
+        isTranslationKey: true,
+      },
+      { status: 200 },
+    );
   } catch (error: unknown) {
     const err = error as Error;
 
     return NextResponse.json(
       {
-        error: "系统初始化失败。",
+        error: "setupPage.initialization.messages.systemInitializationFailed",
+        isTranslationKey: true,
         details: err.message,
         stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
       },
       { status: 500 },
     );
   } finally {
-    // Prisma client disconnection is typically handled by Prisma itself in serverless environments like Next.js API routes.
-    // Explicit $disconnect might be needed if running as a long-lived process or script.
+    try {
+      await db.$disconnect();
+    } catch {
+      // Silently ignore disconnect errors
+    }
   }
 }

@@ -28,8 +28,8 @@ export async function GET() {
   } finally {
     try {
       await db.$disconnect();
-    } catch (e) {
-      console.warn("Database disconnect warning:", e);
+    } catch {
+      // Silently ignore disconnect errors
     }
   }
 }

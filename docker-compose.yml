@@ -15,13 +15,14 @@ services:
     restart: always
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      # 关键修复：容器内部使用容器名称，外部使用公网地址
-      - NEXTAUTH_URL=${NEXTAUTH_URL}
-      - NEXTAUTH_URL_INTERNAL=${NEXTAUTH_URL_INTERNAL}
-      - NEXTAUTH_PUBLIC_URL=${NEXTAUTH_PUBLIC_URL}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      # Auth.js v5 配置
       - AUTH_SECRET=${AUTH_SECRET}
-      - AUTH_TRUST_HOST=true
+      - AUTH_TRUST_HOST=${AUTH_TRUST_HOST}
+      - AUTH_URL=${AUTH_URL}
+      # 向后兼容的NextAuth配置
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      # 其他配置
       - NODE_ENV=${NODE_ENV}
       - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
       - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}

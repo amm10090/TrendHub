@@ -124,53 +124,57 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async redirect({ url, baseUrl }) {
       // 获取环境变量
-      const publicUrl = process.env.NEXTAUTH_PUBLIC_URL || process.env.AUTH_URL;
+      const authUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
 
       console.log("Redirect callback:", {
         url,
         baseUrl,
-        publicUrl,
+        authUrl,
+        envAuthUrl: process.env.AUTH_URL,
+        envNextAuthUrl: process.env.NEXTAUTH_URL,
       });
 
       // 如果URL是相对路径，转换为绝对路径
       if (url.startsWith("/")) {
-        const redirectUrl = `${publicUrl || baseUrl}${url}`;
+        const redirectUrl = `${authUrl || baseUrl}${url}`;
         console.log("Relative URL redirect:", redirectUrl);
         return redirectUrl;
       }
 
-      // 如果URL已经是正确的公网URL，直接返回
-      if (publicUrl && url.startsWith(publicUrl)) {
-        console.log("Public URL redirect:", url);
+      // 如果URL已经是正确的外部URL，直接返回
+      if (authUrl && url.startsWith(authUrl)) {
+        console.log("Auth URL redirect:", url);
         return url;
       }
 
-      // 处理容器内部URL，转换为公网URL
+      // 处理容器内部URL，转换为外部URL
       if (
         url.includes("localhost") ||
         url.includes("admin:3001") ||
         url.includes("172.")
       ) {
         const urlObj = new URL(url);
-        const correctedUrl = `${publicUrl || baseUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
+        const correctedUrl = `${authUrl || baseUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
         console.log("Internal URL corrected:", url, "->", correctedUrl);
         return correctedUrl;
       }
 
+      // 防止无限重定向：如果URL与baseUrl相同，返回根路径
+      if (url === baseUrl) {
+        const rootUrl = `${authUrl || baseUrl}/`;
+        console.log("Same URL redirect to root:", rootUrl);
+        return rootUrl;
+      }
+
       // 如果URL与当前baseUrl同源，直接返回
       if (url.startsWith(baseUrl)) {
-        if (publicUrl && baseUrl !== publicUrl) {
-          const correctedUrl = url.replace(baseUrl, publicUrl);
-          console.log("BaseURL corrected:", url, "->", correctedUrl);
-          return correctedUrl;
-        }
         console.log("BaseURL redirect:", url);
         return url;
       }
 
-      // 默认返回有效的基础URL
-      const defaultUrl = publicUrl || baseUrl;
-      console.log("Default redirect:", defaultUrl);
+      // 默认返回根路径，防止重定向循环
+      const defaultUrl = `${authUrl || baseUrl}/`;
+      console.log("Default redirect to root:", defaultUrl);
       return defaultUrl;
     },
   },

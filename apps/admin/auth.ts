@@ -135,11 +135,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return url;
       }
 
-      // 处理localhost和容器名称的URL
-      if (url.includes("localhost") || url.includes("admin:3001")) {
-        const correctedUrl = url
-          .replace(/http:\/\/localhost:[0-9]+/g, publicUrl || baseUrl)
-          .replace(/http:\/\/admin:3001/g, publicUrl || baseUrl);
+      // 处理容器内部URL，转换为公网URL
+      if (
+        url.includes("localhost") ||
+        url.includes("admin:3001") ||
+        url.includes("172.")
+      ) {
+        const urlObj = new URL(url);
+        const correctedUrl = `${publicUrl || baseUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
         return correctedUrl;
       }
 
@@ -182,6 +185,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         secure: process.env.NODE_ENV === "production",
         // 在 Docker 环境中不设置 domain，让浏览器自动处理
         domain: undefined,
+        maxAge: 30 * 24 * 60 * 60, // 30 days
       },
     },
     callbackUrl: {
@@ -192,6 +196,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         path: "/",
         secure: process.env.NODE_ENV === "production",
         domain: undefined,
+        maxAge: 30 * 24 * 60 * 60, // 30 days
       },
     },
     csrfToken: {
@@ -202,6 +207,40 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         path: "/",
         secure: process.env.NODE_ENV === "production",
         domain: undefined,
+        maxAge: 60 * 60, // 1 hour
+      },
+    },
+    pkceCodeVerifier: {
+      name: `next-auth.pkce.code_verifier`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: undefined,
+        maxAge: 60 * 15, // 15 minutes
+      },
+    },
+    state: {
+      name: `next-auth.state`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: undefined,
+        maxAge: 60 * 15, // 15 minutes
+      },
+    },
+    nonce: {
+      name: `next-auth.nonce`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: undefined,
+        maxAge: 60 * 15, // 15 minutes
       },
     },
   },
@@ -222,5 +261,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.debug(`[AUTH DEBUG] ${code}:`, metadata);
       }
     },
+  },
+
+  // 添加 experimental 配置来处理 CSRF
+  experimental: {
+    enableWebAuthn: false,
   },
 });

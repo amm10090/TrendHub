@@ -1579,7 +1579,9 @@
       "Configuration": "系统配置错误，请联系管理员",
       "NetworkError": "网络错误，请检查您的网络连接",
       "OAuthError": "第三方登录失败，请尝试其他登录方式",
-      "EmailSignInError": "邮箱登录失败，请检查邮箱地址是否正确"
+      "EmailSignInError": "邮箱登录失败，请检查邮箱地址是否正确",
+      "CSRFTokenMissing": "CSRF token 缺失，请刷新页面重试",
+      "MissingCSRF": "CSRF token 验证失败，请刷新页面重试"
     }
   },
   "verifyEmail": {

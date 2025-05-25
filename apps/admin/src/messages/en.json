@@ -1657,7 +1657,9 @@
       "Configuration": "System configuration error, please contact administrator",
       "NetworkError": "Network error, please check your connection",
       "OAuthError": "Third-party login failed, please try another login method",
-      "EmailSignInError": "Email login failed, please check if the email address is correct"
+      "EmailSignInError": "Email login failed, please check if the email address is correct",
+      "CSRFTokenMissing": "CSRF token is missing, please refresh the page and try again",
+      "MissingCSRF": "CSRF token validation failed, please refresh the page and try again"
     }
   },
   "verifyEmail": {

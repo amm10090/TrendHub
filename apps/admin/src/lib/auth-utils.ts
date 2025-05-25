@@ -7,8 +7,8 @@ import { cookies } from "next/headers";
 export const getCsrfTokenServerSide = async (): Promise<string | undefined> => {
   try {
     const NextAuthBaseUrl = process.env.NEXTAUTH_URL || process.env.AUTH_URL;
+
     if (!NextAuthBaseUrl) {
-      console.error("NEXTAUTH_URL or AUTH_URL is not configured");
       return undefined;
     }
 
@@ -25,18 +25,13 @@ export const getCsrfTokenServerSide = async (): Promise<string | undefined> => {
     });
 
     if (!csrfResponse.ok) {
-      console.error(
-        "Failed to fetch CSRF token:",
-        csrfResponse.status,
-        csrfResponse.statusText,
-      );
       return undefined;
     }
 
     const csrfData = await csrfResponse.json();
+
     return csrfData.csrfToken;
-  } catch (error) {
-    console.error("Error fetching CSRF token:", error);
+  } catch {
     return undefined;
   }
 };
@@ -57,12 +52,12 @@ export const getCsrfTokenFromCookies = async (): Promise<
     if (csrfCookie?.value) {
       // CSRF token 通常以 "token|hash" 的格式存储，我们只需要第一部分
       const tokenParts = csrfCookie.value.split("|");
+
       return tokenParts[0];
     }
 
     return undefined;
-  } catch (error) {
-    console.error("Error extracting CSRF token from cookies:", error);
+  } catch {
     return undefined;
   }
 };

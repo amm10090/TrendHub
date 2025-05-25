@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { getCsrfToken, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -15,13 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-interface LoginFormProps {
-  csrfToken?: string;
-}
-
-export default function LoginForm({
-  csrfToken: serverCsrfToken,
-}: LoginFormProps) {
+export default function LoginForm() {
   const t = useTranslations("login");
   const searchParams = useSearchParams();
   // 解码 callbackUrl 并处理特殊情况
@@ -31,7 +25,6 @@ export default function LoginForm({
 
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [csrfToken, setCsrfToken] = useState<string>(serverCsrfToken || "");
 
   const LoginSchema = z.object({
     email: z.string().min(1, { message: t("validation.emailRequired") }),
@@ -41,25 +34,9 @@ export default function LoginForm({
   type LoginFormValues = z.infer<typeof LoginSchema>;
 
   useEffect(() => {
-    // 获取最新的 CSRF token
-    const fetchCsrfToken = async () => {
-      try {
-        const token = await getCsrfToken();
-        if (token) {
-          setCsrfToken(token);
-          console.log("CSRF token fetched:", token.substring(0, 10) + "...");
-        } else {
-          console.warn("Failed to fetch CSRF token");
-        }
-      } catch (error) {
-        console.error("Failed to fetch CSRF token:", error);
-      }
-    };
-
-    fetchCsrfToken();
-
     if (errorParam) {
       const errorKey = `errors.${errorParam}`;
+
       setServerError(t(errorKey, { fallback: t("errors.Default") }));
     }
   }, [errorParam, t]);
@@ -81,11 +58,6 @@ export default function LoginForm({
     setServerError(null);
 
     try {
-      console.log(
-        "Attempting login with CSRF token:",
-        csrfToken.substring(0, 10) + "...",
-      );
-
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
@@ -93,25 +65,20 @@ export default function LoginForm({
         redirect: false, // 不自动重定向，让我们手动处理
       });
 
-      console.log("Login result:", result);
-
       if (result?.error) {
-        console.error("Login error:", result.error);
         const errorKey = `errors.${result.error}`;
+
         setServerError(t(errorKey, { fallback: t("errors.Default") }));
       } else if (result?.ok) {
-        console.log("Login successful, redirecting to:", callbackUrl);
         // 登录成功，手动重定向
         // 如果 callbackUrl 是根路径，重定向到 /en
         const finalRedirectUrl = callbackUrl === "/" ? "/en" : callbackUrl;
-        console.log("Final redirect URL:", finalRedirectUrl);
+
         window.location.href = finalRedirectUrl;
       } else {
-        console.error("Unexpected login result:", result);
         setServerError(t("errors.Default"));
       }
-    } catch (error) {
-      console.error("Login exception:", error);
+    } catch {
       setServerError(t("errors.Default"));
     } finally {
       setIsLoading(false);

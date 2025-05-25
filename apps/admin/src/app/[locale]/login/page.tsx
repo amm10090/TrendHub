@@ -1,12 +1,12 @@
 import { getTranslations } from "next-intl/server";
 
+import LoginForm from "@/components/auth/login-form";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import LoginForm from "@/components/auth/login-form";
 import { getCsrfTokenServerSide } from "@/lib/auth-utils";
 
 export default async function LoginPage() {

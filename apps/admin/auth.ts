@@ -19,13 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "密码", type: "password" },
       },
       async authorize(credentials) {
-        console.log("Credentials authorize called with:", {
-          email: credentials?.email,
-          hasPassword: !!credentials?.password,
-        });
-
         if (!credentials?.email || !credentials?.password) {
-          console.log("Missing email or password");
           return null;
         }
 
@@ -42,7 +36,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email === presetAdminEmail &&
           password === presetAdminPassword
         ) {
-          console.log("Preset admin login successful");
           return {
             id: "preset-admin-id",
             name: "预设管理员",
@@ -58,7 +51,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
 
           if (!user?.passwordHash) {
-            console.log("User not found or no password hash");
             return null;
           }
 
@@ -68,19 +60,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
 
           if (!isValidPassword) {
-            console.log("Invalid password");
             return null;
           }
 
-          console.log("Database user login successful");
           return {
             id: user.id,
             name: user.name,
             email: user.email,
             image: user.image,
           };
-        } catch (error) {
-          console.error("认证错误:", error);
+        } catch {
           return null;
         }
       },
@@ -113,6 +102,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id; // 将用户ID添加到 token
       }
+
       return token;
     },
     // 使用 session 回调来使会话对象包含 JWT 中的信息
@@ -120,6 +110,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && token.id) {
         session.user.id = token.id as string;
       }
+
       return session;
     },
     async redirect({ url, baseUrl }) {
@@ -130,32 +121,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ? authUrl.slice(0, -1)
         : authUrl;
 
-      console.log("Redirect callback:", {
-        url,
-        baseUrl,
-        authUrl,
-        finalBaseUrl,
-      });
-
       try {
         // 如果是相对路径
         if (url.startsWith("/")) {
           // 根路径重定向到默认语言页面
           if (url === "/" || url === "") {
             const redirectUrl = `${finalBaseUrl}/en`;
-            console.log("Root path redirect to:", redirectUrl);
+
             return redirectUrl;
           }
 
           // 确保路径以语言代码开头
           if (!url.startsWith("/en") && !url.startsWith("/cn")) {
             const redirectUrl = `${finalBaseUrl}/en${url}`;
-            console.log("Adding locale prefix:", redirectUrl);
+
             return redirectUrl;
           }
 
           const redirectUrl = `${finalBaseUrl}${url}`;
-          console.log("Relative path redirect:", redirectUrl);
+
           return redirectUrl;
         }
 
@@ -174,7 +158,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (pathSegments.length === 0) {
             // 空路径，重定向到默认语言
             const redirectUrl = `${finalBaseUrl}/en`;
-            console.log("Empty path redirect to:", redirectUrl);
+
             return redirectUrl;
           }
 
@@ -182,32 +166,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             // 没有语言前缀，添加默认语言
             const newPath = `/en${urlObj.pathname}`;
             const redirectUrl = `${finalBaseUrl}${newPath}${urlObj.search}${urlObj.hash}`;
-            console.log("Adding locale to full URL:", redirectUrl);
+
             return redirectUrl;
           }
 
-          console.log("Same domain redirect:", url);
           return url;
         }
 
         // 不同域名或其他情况，重定向到默认页面
         const redirectUrl = `${finalBaseUrl}/en`;
-        console.log("Cross-domain or other case, redirect to:", redirectUrl);
+
         return redirectUrl;
-      } catch (error) {
-        console.error("Redirect error:", error);
+      } catch {
         const fallbackUrl = `${finalBaseUrl}/en`;
-        console.log("Error fallback redirect to:", fallbackUrl);
+
         return fallbackUrl;
       }
     },
   },
   events: {
-    async signIn(message) {
-      console.log("用户登录事件:", message.user.email);
+    async signIn() {
+      // 用户登录事件处理
     },
     async signOut() {
-      console.log("用户已登出事件");
+      // 用户登出事件处理
     },
   },
 
@@ -219,14 +201,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   // 额外的安全配置
   logger: {
-    error(error) {
-      console.error(`[AUTH ERROR]:`, error);
+    error() {
+      // 错误日志处理
     },
-    warn(code) {
-      console.warn(`[AUTH WARN] ${code}`);
+    warn() {
+      // 警告日志处理
     },
-    debug(code, metadata) {
-      console.debug(`[AUTH DEBUG] ${code}:`, metadata);
+    debug() {
+      // 调试日志处理
     },
   },
 });

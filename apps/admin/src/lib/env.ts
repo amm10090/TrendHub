@@ -19,6 +19,7 @@ export const env = {
     if (isInternal && process.env.NEXTAUTH_URL_INTERNAL) {
       return process.env.NEXTAUTH_URL_INTERNAL;
     }
+
     return process.env.NEXTAUTH_URL || "http://localhost:3001";
   },
 

@@ -21,13 +21,8 @@ export default auth((req) => {
   const request = req as NextRequest & { auth: AuthSession };
   const { pathname } = request.nextUrl;
 
-  console.log(
-    `[MIDDLEWARE] Processing: ${pathname}, User: ${request.auth?.user ? "authenticated" : "not authenticated"}`,
-  );
-
   // 检查 /api/auth 路径, 如果匹配则直接返回，不进行后续处理
   if (pathname.startsWith("/api/auth")) {
-    console.log("[MIDDLEWARE] Auth API route, bypassing further checks.");
     return; // Auth.js API 路由直接放行
   }
 
@@ -54,7 +49,6 @@ export default auth((req) => {
   const isPublicPage = publicPathnameRegex.test(pathname);
 
   if (isPublicPage) {
-    console.log(`[MIDDLEWARE] Public page: ${pathname}`);
     return intlMiddleware(request);
   }
 
@@ -69,7 +63,7 @@ export default auth((req) => {
       request.nextUrl.host;
 
     const redirectUrl = `${protocol}://${host}/en`;
-    console.log(`[MIDDLEWARE] Root path redirect to: ${redirectUrl}`);
+
     return NextResponse.redirect(redirectUrl);
   }
 
@@ -95,13 +89,9 @@ export default auth((req) => {
     const callbackUrl = pathname === "/" ? "/" : encodeURIComponent(pathname);
     const loginUrl = `${protocol}://${host}/${locale}/login?callbackUrl=${callbackUrl}`;
 
-    console.log(
-      `[MIDDLEWARE] User not authenticated, redirecting to: ${loginUrl}`,
-    );
     return NextResponse.redirect(loginUrl);
   }
 
-  console.log("[MIDDLEWARE] User authenticated, applying intl middleware.");
   return intlMiddleware(request);
 });
 

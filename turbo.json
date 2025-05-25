@@ -132,7 +132,7 @@
     }
   },
   "remoteCache": {
-    "signature": true,
+    "signature": false,
     "enabled": true
   }
 }

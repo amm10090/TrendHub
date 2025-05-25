@@ -15,8 +15,7 @@ services:
     restart: always
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - NEXTAUTH_URL=${NEXTAUTH_URL}
-      - NEXTAUTH_URL_INTERNAL=${NEXTAUTH_URL_INTERNAL}
+      - NEXTAUTH_URL=http://admin:3001
       - NEXTAUTH_PUBLIC_URL=${NEXTAUTH_PUBLIC_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - AUTH_SECRET=${AUTH_SECRET}

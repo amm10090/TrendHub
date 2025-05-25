@@ -70,24 +70,24 @@ export default function LoginPage() {
     try {
       let redirectUrl = callbackUrl;
 
+      // 简化重定向逻辑，始终使用相对路径
       if (redirectUrl.startsWith("%2F")) {
         redirectUrl = decodeURIComponent(redirectUrl);
       }
-      if (!redirectUrl.startsWith("/") && !redirectUrl.startsWith("http")) {
-        redirectUrl = `/${redirectUrl}`;
+
+      // 确保是相对路径
+      if (!redirectUrl.startsWith("/")) {
+        // 如果不是相对路径，尝试提取路径部分
+        try {
+          const url = new URL(redirectUrl);
+
+          redirectUrl = url.pathname + url.search + url.hash;
+        } catch {
+          // 如果解析失败，默认重定向到首页
+          redirectUrl = "/";
+        }
       }
 
-      // 修正localhost URL
-      if (redirectUrl.includes("localhost")) {
-        const publicUrl = process.env.NEXT_PUBLIC_URL;
-
-        redirectUrl = redirectUrl.replace(
-          /http:\/\/localhost:[0-9]+/g,
-          publicUrl,
-        );
-      }
-
-      // 恢复为手动重定向，添加更多详细诊断
       const result = await signIn("credentials", {
         redirect: false,
         email: data.email,
@@ -102,9 +102,25 @@ export default function LoginPage() {
       } else if (result?.ok === true) {
         toast.success(t("loginSuccess", { fallback: "登录成功" }));
 
-        // 延迟后执行跳转，确保日志和toast有时间完成
+        // 使用相对路径进行重定向
+        const finalRedirectUrl = result.url || redirectUrl || "/";
+
+        // 如果返回的 URL 是绝对路径，提取相对路径部分
+        let relativeUrl = finalRedirectUrl;
+
+        if (finalRedirectUrl.startsWith("http")) {
+          try {
+            const url = new URL(finalRedirectUrl);
+
+            relativeUrl = url.pathname + url.search + url.hash;
+          } catch {
+            relativeUrl = "/";
+          }
+        }
+
+        // 延迟后执行跳转
         setTimeout(() => {
-          window.location.href = result.url || "/";
+          window.location.href = relativeUrl;
         }, 1000);
       } else {
         setServerError(t("errors.Default"));

@@ -24,7 +24,7 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
     serverActions: {
-      allowedOrigins: ["localhost:3001"],
+      allowedOrigins: ["localhost:3001", "82.25.95.136:3001"],
     },
   },
   webpack: (config, { isServer, dev }) => {

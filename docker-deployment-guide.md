@@ -121,7 +121,17 @@ admin:
 **原因**：`NEXTAUTH_PUBLIC_URL` 未正确设置
 **解决**：设置 `NEXTAUTH_PUBLIC_URL` 为外部可访问的IP地址
 
-##### 问题3：会话无法保持
+##### 问题3：重定向到容器内部地址 (admin:3001)
+
+**现象**：访问 `http://82.25.95.136:3001` 被重定向到 `http://admin:3001/en/login`
+**原因**：中间件使用了错误的基础URL进行重定向
+**解决**：
+
+1. 确保 `.env` 文件中设置了 `NEXTAUTH_PUBLIC_URL=http://82.25.95.136:3001`
+2. 重新启动容器：`docker-compose down && docker-compose up -d`
+3. 清除浏览器缓存和Cookie
+
+##### 问题4：会话无法保持
 
 **原因**：Cookie域名设置问题
 **解决**：确保所有URL配置一致，使用相同的域名或IP

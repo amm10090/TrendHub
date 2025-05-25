@@ -12,22 +12,22 @@ echo ""
 
 # 检查容器状态
 echo "2. 检查容器状态："
-docker-compose ps
+docker compose ps
 echo ""
 
 # 检查admin容器的环境变量
 echo "3. 检查admin容器内的环境变量："
-docker-compose exec admin printenv | grep -E "(NEXTAUTH|NODE_ENV)" | sort
+docker compose exec admin printenv | grep -E "(NEXTAUTH|NODE_ENV)" | sort
 echo ""
 
 # 检查容器日志
 echo "4. 最近的容器日志："
-docker-compose logs --tail=20 admin
+docker compose logs --tail=20 admin
 echo ""
 
 # 测试内部连接
 echo "5. 测试容器内部连接："
-docker-compose exec admin curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/api/auth/session || echo "内部连接失败"
+docker compose exec admin curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/api/auth/session || echo "内部连接失败"
 echo ""
 
 # 提供修复建议

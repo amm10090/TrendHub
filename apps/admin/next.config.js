@@ -26,6 +26,7 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ["localhost:3001", "82.25.95.136:3001"],
     },
+    serverComponentsExternalPackages: ["@prisma/client"],
   },
   webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {
@@ -55,6 +56,14 @@ const nextConfig = {
     }
 
     return config;
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/auth/:path*",
+        destination: "/api/auth/:path*",
+      },
+    ];
   },
 };
 

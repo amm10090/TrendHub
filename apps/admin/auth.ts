@@ -202,6 +202,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET, // 从环境变量获取 AUTH_SECRET
   trustHost: true, // 强制信任主机头
   basePath: "/api/auth", // 确保基础路径正确
+  // 在Docker环境中使用localhost而不是容器名称进行内部调用
+  useSecureCookies: process.env.NODE_ENV === "production",
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,

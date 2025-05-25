@@ -18,7 +18,7 @@ const nextConfig = {
   turbopack: {
     // 如果有特定设置，放在这里
   },
-  serverExternalPackages: ["playwright", "@crawlee/core"],
+  serverExternalPackages: ["playwright", "@crawlee/core", "@prisma/client"],
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
@@ -26,7 +26,6 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ["localhost:3001", "82.25.95.136:3001"],
     },
-    serverComponentsExternalPackages: ["@prisma/client"],
   },
   webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {

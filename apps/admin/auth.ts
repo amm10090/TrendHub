@@ -123,49 +123,82 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // 获取正确的基础URL，优先使用环境变量
       const authUrl =
         process.env.AUTH_URL || process.env.NEXTAUTH_URL || baseUrl;
+      const finalBaseUrl = authUrl.endsWith("/")
+        ? authUrl.slice(0, -1)
+        : authUrl;
 
-      console.log("Redirect callback:", { url, baseUrl, authUrl });
+      console.log("Redirect callback:", {
+        url,
+        baseUrl,
+        authUrl,
+        finalBaseUrl,
+      });
 
-      // 简单且安全的重定向逻辑
       try {
         // 如果是相对路径
         if (url.startsWith("/")) {
           // 根路径重定向到默认语言页面
           if (url === "/" || url === "") {
-            return `${authUrl}/en`;
+            const redirectUrl = `${finalBaseUrl}/en`;
+            console.log("Root path redirect to:", redirectUrl);
+            return redirectUrl;
           }
-          return `${authUrl}${url}`;
+
+          // 确保路径以语言代码开头
+          if (!url.startsWith("/en") && !url.startsWith("/cn")) {
+            const redirectUrl = `${finalBaseUrl}/en${url}`;
+            console.log("Adding locale prefix:", redirectUrl);
+            return redirectUrl;
+          }
+
+          const redirectUrl = `${finalBaseUrl}${url}`;
+          console.log("Relative path redirect:", redirectUrl);
+          return redirectUrl;
         }
 
         // 如果是完整URL
         const urlObj = new URL(url);
-        const authUrlObj = new URL(authUrl);
+        const baseUrlObj = new URL(finalBaseUrl);
 
-        // 如果主机名匹配，直接返回
-        if (urlObj.hostname === authUrlObj.hostname) {
-          // 但如果路径是根路径，重定向到默认语言页面
-          if (urlObj.pathname === "/" || urlObj.pathname === "") {
-            return `${authUrl}/en`;
+        // 如果主机名和端口匹配，说明是同域重定向
+        if (
+          urlObj.hostname === baseUrlObj.hostname &&
+          urlObj.port === baseUrlObj.port
+        ) {
+          // 检查路径是否有语言前缀
+          const pathSegments = urlObj.pathname.split("/").filter(Boolean);
+
+          if (pathSegments.length === 0) {
+            // 空路径，重定向到默认语言
+            const redirectUrl = `${finalBaseUrl}/en`;
+            console.log("Empty path redirect to:", redirectUrl);
+            return redirectUrl;
           }
+
+          if (!pathSegments[0].match(/^(en|cn)$/)) {
+            // 没有语言前缀，添加默认语言
+            const newPath = `/en${urlObj.pathname}`;
+            const redirectUrl = `${finalBaseUrl}${newPath}${urlObj.search}${urlObj.hash}`;
+            console.log("Adding locale to full URL:", redirectUrl);
+            return redirectUrl;
+          }
+
+          console.log("Same domain redirect:", url);
           return url;
         }
 
-        // 处理内部容器URL
-        if (
-          url.includes("admin:3001") ||
-          url.includes("localhost") ||
-          url.includes("172.")
-        ) {
-          return `${authUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
-        }
-
-        // 默认返回首页
-        return `${authUrl}/en`;
+        // 不同域名或其他情况，重定向到默认页面
+        const redirectUrl = `${finalBaseUrl}/en`;
+        console.log("Cross-domain or other case, redirect to:", redirectUrl);
+        return redirectUrl;
       } catch (error) {
         console.error("Redirect error:", error);
-        return `${authUrl}/en`;
+        const fallbackUrl = `${finalBaseUrl}/en`;
+        console.log("Error fallback redirect to:", fallbackUrl);
+        return fallbackUrl;
       }
     },
   },

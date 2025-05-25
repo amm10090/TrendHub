@@ -17,11 +17,12 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       # Auth.js v5 配置
       - AUTH_SECRET=${AUTH_SECRET}
-      - AUTH_TRUST_HOST=${AUTH_TRUST_HOST}
+      - AUTH_TRUST_HOST=true
       - AUTH_URL=${AUTH_URL}
       # 向后兼容的NextAuth配置
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_TRUST_HOST=true
       # 其他配置
       - NODE_ENV=${NODE_ENV}
       - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}

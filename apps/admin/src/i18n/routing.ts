@@ -6,4 +6,10 @@ export const routing = defineRouting({
 
   // 默认语言
   defaultLocale: "en",
+
+  // 在生产环境中始终显示语言前缀，避免重定向冲突
+  localePrefix: "always",
+
+  // 禁用自动语言检测，避免与Auth.js冲突
+  localeDetection: false,
 });

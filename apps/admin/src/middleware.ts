@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 
 import { auth } from "@/../auth"; // 直接导入 auth 函数
-import { locales, defaultLocale, Locale } from "@/i18n";
+import { routing } from "@/i18n/routing";
 
-const intlMiddleware = createIntlMiddleware({
-  locales,
-  defaultLocale,
-  localeDetection: true,
-  // localePrefix: undefined, // 假设 next-intl 根据路由策略自动处理前缀
-});
+const intlMiddleware = createIntlMiddleware(routing);
 
 // 定义认证会话类型
 interface AuthSession {
@@ -24,13 +19,15 @@ interface AuthSession {
 export default auth((req) => {
   // 类型断言，因为 auth 回调中 req 会被增强
   const request = req as NextRequest & { auth: AuthSession };
-  // console.log(`[MIDDLEWARE] Pathname: ${request.nextUrl.pathname}`);
-
   const { pathname } = request.nextUrl;
+
+  console.log(
+    `[MIDDLEWARE] Processing: ${pathname}, User: ${request.auth?.user ? "authenticated" : "not authenticated"}`,
+  );
 
   // 检查 /api/auth 路径, 如果匹配则直接返回，不进行后续处理
   if (pathname.startsWith("/api/auth")) {
-    // console.log("[MIDDLEWARE] Auth API route, bypassing further checks.");
+    console.log("[MIDDLEWARE] Auth API route, bypassing further checks.");
     return; // Auth.js API 路由直接放行
   }
 
@@ -39,78 +36,71 @@ export default auth((req) => {
     return;
   }
 
-  const setupPageRegex = RegExp(`^(/(${locales.join("|")}))?/setup$`, "i");
+  // 静态资源和 Next.js 内部路径直接放行
   const isAssetOrNextInternal =
-    /\.(svg|png|jpg|jpeg|gif|webp)$|\/_next\//i.test(pathname);
+    /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$|\/_next\/|\/favicon\.ico$/i.test(
+      pathname,
+    );
 
-  // 如果是静态资源或 Next.js 内部路径，直接放行
   if (isAssetOrNextInternal) {
     return;
   }
 
+  // 定义公共页面（不需要认证的页面）
   const publicPathnameRegex = RegExp(
-    `^(/(${locales.join("|")}))?/(login|public)|/favicon.ico$|/_next/static/|/_next/image/|/images/|/placeholder.svg$|/placeholder-logo.png$|/placeholder-user.jpg$|/placeholder.jpg$`,
+    `^/(en|cn)/(login|setup|verify-email|public)(/.*)?$`,
     "i",
   );
-  const isPublicPage =
-    publicPathnameRegex.test(pathname) || setupPageRegex.test(pathname);
+  const isPublicPage = publicPathnameRegex.test(pathname);
 
   if (isPublicPage) {
-    // console.log(`[MIDDLEWARE] Public page or setup related: ${pathname}`);
+    console.log(`[MIDDLEWARE] Public page: ${pathname}`);
     return intlMiddleware(request);
   }
 
+  // 处理根路径访问
+  if (pathname === "/" || pathname === "") {
+    const protocol =
+      request.headers.get("x-forwarded-proto") ||
+      (request.nextUrl.protocol === "https:" ? "https" : "http");
+    const host =
+      request.headers.get("x-forwarded-host") ||
+      request.headers.get("host") ||
+      request.nextUrl.host;
+
+    const redirectUrl = `${protocol}://${host}/en`;
+    console.log(`[MIDDLEWARE] Root path redirect to: ${redirectUrl}`);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // 检查用户是否已认证
   if (!request.auth?.user) {
-    let localeForRedirect: Locale = defaultLocale;
-    const pathnameSegments = pathname.split("/");
+    // 提取语言代码
+    const pathSegments = pathname.split("/").filter(Boolean);
+    const locale =
+      pathSegments[0] === "en" || pathSegments[0] === "cn"
+        ? pathSegments[0]
+        : "en";
 
-    if (
-      pathnameSegments.length > 1 &&
-      locales.includes(pathnameSegments[1] as Locale)
-    ) {
-      localeForRedirect = pathnameSegments[1] as Locale;
-    }
+    // 构建登录URL
+    const protocol =
+      request.headers.get("x-forwarded-proto") ||
+      (request.nextUrl.protocol === "https:" ? "https" : "http");
+    const host =
+      request.headers.get("x-forwarded-host") ||
+      request.headers.get("host") ||
+      request.nextUrl.host;
 
-    // 防止根路径的无限重定向
-    const callbackUrl = pathname === "/" ? "/en" : pathname;
-    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
-
-    // 获取正确的基础URL
-    let baseUrl = request.url;
-
-    // 在生产环境中，优先使用公网URL
-    if (
-      process.env.NODE_ENV === "production" &&
-      process.env.NEXTAUTH_PUBLIC_URL
-    ) {
-      const publicUrl = process.env.NEXTAUTH_PUBLIC_URL;
-      // 如果当前请求URL包含容器内部地址，替换为公网地址
-      if (
-        request.url.includes("admin:3001") ||
-        request.url.includes("localhost")
-      ) {
-        baseUrl = publicUrl;
-      } else {
-        // 确保使用正确的协议和主机
-        try {
-          const publicUrlObj = new URL(publicUrl);
-          baseUrl = `${publicUrlObj.protocol}//${publicUrlObj.host}`;
-        } catch {
-          baseUrl = publicUrl;
-        }
-      }
-    }
-
-    const loginUrl = new URL(`/${localeForRedirect}/login`, baseUrl);
-    loginUrl.searchParams.set("callbackUrl", encodedCallbackUrl);
+    const callbackUrl = encodeURIComponent(pathname);
+    const loginUrl = `${protocol}://${host}/${locale}/login?callbackUrl=${callbackUrl}`;
 
     console.log(
-      `[MIDDLEWARE] User not authenticated, redirecting to login: ${loginUrl.toString()}`,
+      `[MIDDLEWARE] User not authenticated, redirecting to: ${loginUrl}`,
     );
     return NextResponse.redirect(loginUrl);
   }
 
-  // console.log("[MIDDLEWARE] User authenticated, applying intl middleware.");
+  console.log("[MIDDLEWARE] User authenticated, applying intl middleware.");
   return intlMiddleware(request);
 });
 
@@ -118,6 +108,6 @@ export const config = {
   matcher: [
     // 排除所有 API 路由、Next.js 静态文件、图片和特定文件后缀
     // 主要匹配页面路由
-    "/((?!api/|_next/static|_next/image|favicon.ico|images/|assets/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api/|_next/static|_next/image|favicon.ico|images/|assets/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)",
   ],
 };

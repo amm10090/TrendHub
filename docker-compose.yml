@@ -16,8 +16,8 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       # 关键修复：容器内部使用容器名称，外部使用公网地址
-      - NEXTAUTH_URL=http://admin:3001
-      - NEXTAUTH_URL_INTERNAL=http://admin:3001
+      - NEXTAUTH_URL=http://localhost:3001
+      - NEXTAUTH_URL_INTERNAL=http://localhost:3001
       - NEXTAUTH_PUBLIC_URL=${NEXTAUTH_PUBLIC_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - AUTH_SECRET=${AUTH_SECRET}

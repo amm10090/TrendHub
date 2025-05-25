@@ -71,7 +71,9 @@ export default auth((req) => {
       localeForRedirect = pathnameSegments[1] as Locale;
     }
 
-    const callbackUrl = encodeURIComponent(pathname);
+    // 防止根路径的无限重定向
+    const callbackUrl = pathname === "/" ? "/en" : pathname;
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
 
     // 获取正确的基础URL
     let baseUrl = request.url;
@@ -100,9 +102,11 @@ export default auth((req) => {
     }
 
     const loginUrl = new URL(`/${localeForRedirect}/login`, baseUrl);
-    loginUrl.searchParams.set("callbackUrl", callbackUrl);
+    loginUrl.searchParams.set("callbackUrl", encodedCallbackUrl);
 
-    // console.log(`[MIDDLEWARE] User not authenticated, redirecting to login: ${loginUrl.toString()}`);
+    console.log(
+      `[MIDDLEWARE] User not authenticated, redirecting to login: ${loginUrl.toString()}`,
+    );
     return NextResponse.redirect(loginUrl);
   }
 

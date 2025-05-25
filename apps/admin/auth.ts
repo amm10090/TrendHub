@@ -123,82 +123,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // 获取环境变量
-      const authUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
-      const finalBaseUrl = authUrl || baseUrl;
+      const authUrl =
+        process.env.AUTH_URL || process.env.NEXTAUTH_URL || baseUrl;
 
-      console.log("Redirect callback:", {
-        url,
-        baseUrl,
-        authUrl,
-        finalBaseUrl,
-      });
+      console.log("Redirect callback:", { url, baseUrl, authUrl });
 
-      // 强制防止无限重定向：检查多种根路径情况
-      const rootUrls = [
-        finalBaseUrl,
-        `${finalBaseUrl}/`,
-        baseUrl,
-        `${baseUrl}/`,
-      ];
-
-      if (rootUrls.includes(url)) {
-        const defaultPage = `${finalBaseUrl}/en`;
-        console.log(
-          "Preventing infinite redirect, going to default page:",
-          defaultPage,
-        );
-        return defaultPage;
-      }
-
-      // 如果URL是相对路径，转换为绝对路径
-      if (url.startsWith("/")) {
-        // 确保不是根路径
-        if (url === "/" || url === "") {
-          const defaultPage = `${finalBaseUrl}/en`;
-          console.log("Root path redirect to default page:", defaultPage);
-          return defaultPage;
+      // 简单且安全的重定向逻辑
+      try {
+        // 如果是相对路径
+        if (url.startsWith("/")) {
+          // 根路径重定向到默认语言页面
+          if (url === "/" || url === "") {
+            return `${authUrl}/en`;
+          }
+          return `${authUrl}${url}`;
         }
-        const redirectUrl = `${finalBaseUrl}${url}`;
-        console.log("Relative URL redirect:", redirectUrl);
-        return redirectUrl;
-      }
 
-      // 处理容器内部URL，转换为外部URL
-      if (
-        url.includes("localhost") ||
-        url.includes("admin:3001") ||
-        url.includes("172.")
-      ) {
-        try {
-          const urlObj = new URL(url);
-          const correctedUrl = `${finalBaseUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
-          console.log("Internal URL corrected:", url, "->", correctedUrl);
-          return correctedUrl;
-        } catch (error) {
-          console.error("Error parsing internal URL:", error);
-          const defaultPage = `${finalBaseUrl}/en`;
-          console.log("Fallback to default page:", defaultPage);
-          return defaultPage;
+        // 如果是完整URL
+        const urlObj = new URL(url);
+        const authUrlObj = new URL(authUrl);
+
+        // 如果主机名匹配，直接返回
+        if (urlObj.hostname === authUrlObj.hostname) {
+          // 但如果路径是根路径，重定向到默认语言页面
+          if (urlObj.pathname === "/" || urlObj.pathname === "") {
+            return `${authUrl}/en`;
+          }
+          return url;
         }
-      }
 
-      // 如果URL已经是正确的外部URL且与finalBaseUrl匹配，直接返回
-      if (url.startsWith(finalBaseUrl)) {
-        console.log("Final base URL redirect:", url);
-        return url;
-      }
+        // 处理内部容器URL
+        if (
+          url.includes("admin:3001") ||
+          url.includes("localhost") ||
+          url.includes("172.")
+        ) {
+          return `${authUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
+        }
 
-      // 如果URL与当前baseUrl同源，直接返回
-      if (url.startsWith(baseUrl)) {
-        console.log("BaseURL redirect:", url);
-        return url;
+        // 默认返回首页
+        return `${authUrl}/en`;
+      } catch (error) {
+        console.error("Redirect error:", error);
+        return `${authUrl}/en`;
       }
-
-      // 默认返回默认语言页面，防止重定向循环
-      const defaultUrl = `${finalBaseUrl}/en`;
-      console.log("Default redirect to default page:", defaultUrl);
-      return defaultUrl;
     },
   },
   events: {

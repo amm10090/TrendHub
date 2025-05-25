@@ -13,112 +13,84 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" }, // 使用 JWT 会话策略
   providers: [
     Credentials({
-      // 您可以自定义登录表单的字段，如果需要的话
-      // name: "Credentials",
-      // credentials: {
-      //   email: { label: "邮箱", type: "email", placeholder: "jsmith@example.com" },
-      //   password: { label: "密码", type: "password" }
-      // },
+      name: "credentials",
+      credentials: {
+        email: { label: "邮箱", type: "email" },
+        password: { label: "密码", type: "password" },
+      },
       async authorize(credentials) {
-        // 读取预设管理员环境变量
-        const presetAdminEmail = process.env.PRESET_ADMIN_EMAIL;
-        const presetAdminPassword = process.env.PRESET_ADMIN_PASSWORD;
-
-        // 确保 credentials 是一个对象并且有 email 和 password 字段
-        if (
-          typeof credentials !== "object" ||
-          credentials === null ||
-          !("email" in credentials) ||
-          !("password" in credentials)
-        ) {
+        if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
         const email = credentials.email as string;
         const password = credentials.password as string;
 
-        if (!email || !password) {
-          return null; // 或者抛出错误
-        }
+        // 检查预设管理员
+        const presetAdminEmail = process.env.PRESET_ADMIN_EMAIL;
+        const presetAdminPassword = process.env.PRESET_ADMIN_PASSWORD;
 
-        // 检查是否为预设管理员
         if (
           presetAdminEmail &&
           presetAdminPassword &&
           email === presetAdminEmail &&
           password === presetAdminPassword
         ) {
-          // 预设管理员认证成功
           return {
-            id: "preset-admin-id", // 可以使用一个固定的特殊ID
+            id: "preset-admin-id",
             name: "预设管理员",
             email: presetAdminEmail,
-            image: null, // 或者一个预设的头像URL
-            // role: "admin", // 如果您的系统有角色概念
+            image: null,
           };
         }
 
-        // 如果不是预设管理员，则继续原有的数据库认证逻辑
-        const user = await db.user.findUnique({
-          where: { email },
-        });
+        // 数据库用户认证
+        try {
+          const user = await db.user.findUnique({
+            where: { email },
+          });
 
-        if (!user) {
-          // 用户不存在
+          if (!user?.passwordHash) {
+            return null;
+          }
+
+          const isValidPassword = await bcrypt.compare(
+            password,
+            user.passwordHash,
+          );
+
+          if (!isValidPassword) {
+            return null;
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            image: user.image,
+          };
+        } catch (error) {
+          console.error("认证错误:", error);
           return null;
         }
-
-        // 确保用户有密码字段 (如果您的 User 模型允许密码为空，可能需要调整)
-        // 在 Prisma schema 中，User 模型需要有一个 passwordHash 字段
-        if (!user.passwordHash) {
-          // console.error("User does not have a password hash set.");
-          return null;
-        }
-
-        // 验证密码
-        const isValidPassword = await bcrypt.compare(
-          password,
-          user.passwordHash,
-        );
-
-        if (!isValidPassword) {
-          // 密码不匹配
-          return null;
-        }
-
-        // 认证成功，返回用户信息（不应包含密码）
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          // 您可以根据需要添加更多用户字段到会话中
-        };
       },
     }),
     // 添加Google认证提供商
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-        },
-      },
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
 
     // 添加GitHub认证提供商
     GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     }),
 
     // 添加Resend邮件提供商
     Resend({
-      apiKey: process.env.AUTH_RESEND_KEY as string,
-      from: process.env.EMAIL_FROM as string,
+      apiKey: process.env.AUTH_RESEND_KEY!,
+      from: process.env.EMAIL_FROM!,
     }),
   ],
   pages: {
@@ -152,19 +124,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async redirect({ url, baseUrl }) {
       // 获取环境变量
       const publicUrl = process.env.NEXTAUTH_PUBLIC_URL;
-      const internalUrl = process.env.NEXTAUTH_URL_INTERNAL;
-
-      // 确定有效的基础URL
-      let effectiveBaseUrl = baseUrl;
-
-      // 在生产环境中，优先使用公网URL
-      if (process.env.NODE_ENV === "production" && publicUrl) {
-        effectiveBaseUrl = publicUrl;
-      }
 
       // 如果URL是相对路径，转换为绝对路径
       if (url.startsWith("/")) {
-        return `${effectiveBaseUrl}${url}`;
+        return `${publicUrl || baseUrl}${url}`;
       }
 
       // 如果URL已经是正确的公网URL，直接返回
@@ -172,30 +135,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return url;
       }
 
-      // 处理内部容器URL，转换为公网URL
-      if (internalUrl && url.includes(internalUrl.replace("http://", ""))) {
-        return url.replace(internalUrl, effectiveBaseUrl);
-      }
-
       // 处理localhost和容器名称的URL
       if (url.includes("localhost") || url.includes("admin:3001")) {
         const correctedUrl = url
-          .replace(/http:\/\/localhost:[0-9]+/g, effectiveBaseUrl)
-          .replace(/http:\/\/admin:3001/g, effectiveBaseUrl);
+          .replace(/http:\/\/localhost:[0-9]+/g, publicUrl || baseUrl)
+          .replace(/http:\/\/admin:3001/g, publicUrl || baseUrl);
         return correctedUrl;
       }
 
       // 如果URL与当前baseUrl同源，直接返回
       if (url.startsWith(baseUrl)) {
-        // 如果在生产环境且有公网URL，替换为公网URL
-        if (process.env.NODE_ENV === "production" && publicUrl) {
+        if (publicUrl) {
           return url.replace(baseUrl, publicUrl);
         }
         return url;
       }
 
       // 默认返回有效的基础URL
-      return effectiveBaseUrl;
+      return publicUrl || baseUrl;
+    },
+  },
+  events: {
+    async signIn(message) {
+      console.log("用户登录:", message.user.email);
+    },
+    async signOut() {
+      console.log("用户已登出");
     },
   },
   // debug: process.env.NODE_ENV === "development", // 开发模式下启用调试信息

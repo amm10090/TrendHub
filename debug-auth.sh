@@ -1,43 +1,67 @@
 #!/bin/bash
 
-echo "=== TrendHub NextAuth 调试脚本 ==="
+echo "=== TrendHub 认证配置调试 ==="
 echo ""
 
 # 检查环境变量
-echo "1. 检查环境变量配置："
-echo "NEXTAUTH_PUBLIC_URL: ${NEXTAUTH_PUBLIC_URL:-未设置}"
+echo "1. 检查关键环境变量:"
+echo "AUTH_SECRET: ${AUTH_SECRET:+已设置}"
 echo "NEXTAUTH_URL: ${NEXTAUTH_URL:-未设置}"
-echo "NODE_ENV: ${NODE_ENV:-未设置}"
+echo "NEXTAUTH_PUBLIC_URL: ${NEXTAUTH_PUBLIC_URL:-未设置}"
+echo "DATABASE_URL: ${DATABASE_URL:+已设置}"
 echo ""
 
-# 检查容器状态
-echo "2. 检查容器状态："
-docker compose ps
+# 检查 NextAuth 配置文件
+echo "2. 检查配置文件:"
+if [ -f "apps/admin/auth.ts" ]; then
+    echo "✓ auth.ts 存在"
+else
+    echo "✗ auth.ts 不存在"
+fi
+
+if [ -f "apps/admin/src/app/api/auth/[...nextauth]/route.ts" ]; then
+    echo "✓ API 路由存在"
+else
+    echo "✗ API 路由不存在"
+fi
+
+if [ -f "apps/admin/src/middleware.ts" ]; then
+    echo "✓ 中间件存在"
+else
+    echo "✗ 中间件不存在"
+fi
 echo ""
 
-# 检查admin容器的环境变量
-echo "3. 检查admin容器内的环境变量："
-docker compose exec admin printenv | grep -E "(NEXTAUTH|NODE_ENV)" | sort
+# 检查端口和服务
+echo "3. 检查服务状态:"
+if curl -s http://localhost:3001/api/auth/csrf > /dev/null; then
+    echo "✓ CSRF 端点可访问"
+else
+    echo "✗ CSRF 端点不可访问"
+fi
+
+if curl -s http://localhost:3001/api/auth/providers > /dev/null; then
+    echo "✓ 提供商端点可访问"
+else
+    echo "✗ 提供商端点不可访问"
+fi
 echo ""
 
-# 检查容器日志
-echo "4. 最近的容器日志："
-docker compose logs --tail=20 admin
+# 检查数据库连接
+echo "4. 检查数据库连接:"
+cd apps/admin
+if npx prisma db push --accept-data-loss > /dev/null 2>&1; then
+    echo "✓ 数据库连接正常"
+else
+    echo "✗ 数据库连接失败"
+fi
+cd ../..
 echo ""
 
-# 测试内部连接
-echo "5. 测试容器内部连接："
-docker compose exec admin curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/api/auth/session || echo "内部连接失败"
+echo "=== 调试完成 ==="
 echo ""
-
-# 提供修复建议
-echo "=== 修复建议 ==="
-echo "如果看到重定向到 admin:3001，请确保："
-echo "1. .env 文件中设置了正确的 NEXTAUTH_PUBLIC_URL"
-echo "2. 重新启动容器: docker-compose down && docker-compose up -d"
-echo "3. 清除浏览器缓存和Cookie"
-echo ""
-echo "正确的 .env 配置示例："
-echo "NEXTAUTH_PUBLIC_URL=http://82.25.95.136:3001"
-echo "NEXTAUTH_URL=http://admin:3001"
-echo "NODE_ENV=production" 
+echo "如果发现问题，请检查："
+echo "1. 环境变量是否正确设置"
+echo "2. 数据库是否正在运行"
+echo "3. NextAuth 配置是否正确"
+echo "4. 端口 3001 是否被占用" 

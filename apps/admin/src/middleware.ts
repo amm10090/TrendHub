@@ -34,93 +34,54 @@ export default auth((req) => {
     return; // Auth.js API 路由直接放行
   }
 
-  return (async () => {
-    let systemInitialized = false;
+  // 检查 /api/setup 路径，直接放行
+  if (pathname.startsWith("/api/setup")) {
+    return;
+  }
 
-    try {
-      const statusApiUrl = new URL("/api/setup/status", request.url);
-      const statusResponse = await fetch(statusApiUrl.toString());
+  const setupPageRegex = RegExp(`^(/(${locales.join("|")}))?/setup$`, "i");
+  const isAssetOrNextInternal =
+    /\.(svg|png|jpg|jpeg|gif|webp)$|\/_next\//i.test(pathname);
 
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
+  // 如果是静态资源或 Next.js 内部路径，直接放行
+  if (isAssetOrNextInternal) {
+    return;
+  }
 
-        systemInitialized = statusData.initialized === true;
-      } else {
-        // 如果状态接口调用失败（例如数据库未连接），保守地认为未初始化
-        systemInitialized = false;
-      }
-    } catch {
-      systemInitialized = false;
-    }
+  const publicPathnameRegex = RegExp(
+    `^(/(${locales.join("|")}))?/(login|public)|/favicon.ico$|/_next/static/|/_next/image/|/images/|/placeholder.svg$|/placeholder-logo.png$|/placeholder-user.jpg$|/placeholder.jpg$`,
+    "i",
+  );
+  const isPublicPage =
+    publicPathnameRegex.test(pathname) || setupPageRegex.test(pathname);
 
-    // console.log(`[MIDDLEWARE] System Initialized (from API): ${systemInitialized}`);
+  if (isPublicPage) {
+    // console.log(`[MIDDLEWARE] Public page or setup related: ${pathname}`);
+    return intlMiddleware(request);
+  }
 
-    const setupPageRegex = RegExp(`^(/(${locales.join("|")}))?/setup$`, "i");
-    // 允许 /api/setup/initialize 和 /api/setup/status
-    const setupApiRegex = RegExp(`^/api/setup/(initialize|status)$`, "i");
-    const isAssetOrNextInternal =
-      /\.(svg|png|jpg|jpeg|gif|webp)$|\/_next\//i.test(pathname);
+  if (!request.auth?.user) {
+    let localeForRedirect: Locale = defaultLocale;
+    const pathnameSegments = pathname.split("/");
 
     if (
-      !systemInitialized &&
-      !setupPageRegex.test(pathname) &&
-      !setupApiRegex.test(pathname) &&
-      !isAssetOrNextInternal
+      pathnameSegments.length > 1 &&
+      locales.includes(pathnameSegments[1] as Locale)
     ) {
-      let localeForRedirect: Locale = defaultLocale;
-      const pathnameSegments = pathname.split("/");
-
-      if (
-        pathnameSegments.length > 1 &&
-        locales.includes(pathnameSegments[1] as Locale)
-      ) {
-        localeForRedirect = pathnameSegments[1] as Locale;
-      }
-      const setupUrl = new URL(`/${localeForRedirect}/setup`, request.url);
-
-      // console.log(`[MIDDLEWARE] Redirecting to setup: ${setupUrl.toString()}`);
-      return NextResponse.redirect(setupUrl);
+      localeForRedirect = pathnameSegments[1] as Locale;
     }
 
-    // 如果系统已初始化，或者当前是 setup 页面/API，则继续后续的认证和 intl 中间件逻辑
+    const callbackUrl = encodeURIComponent(pathname);
+    const loginUrl = new URL(`/${localeForRedirect}/login`, request.url);
 
-    const publicPathnameRegex = RegExp(
-      `^(/(${locales.join("|")}))?/(login|public)|/favicon.ico$|/_next/static/|/_next/image/|/images/|/placeholder.svg$|/placeholder-logo.png$|/placeholder-user.jpg$|/placeholder.jpg$`,
-      "i",
-    );
-    const isPublicPage =
-      publicPathnameRegex.test(pathname) ||
-      setupPageRegex.test(pathname) ||
-      setupApiRegex.test(pathname);
+    loginUrl.searchParams.set("callbackUrl", callbackUrl);
 
-    if (isPublicPage) {
-      // console.log(`[MIDDLEWARE] Public page or setup related: ${pathname}`);
-      return intlMiddleware(request);
-    }
+    // console.log(`[MIDDLEWARE] User not authenticated, redirecting to login: ${loginUrl.toString()}`);
+    return NextResponse.redirect(loginUrl);
+  }
 
-    if (!request.auth?.user) {
-      let localeForRedirect: Locale = defaultLocale;
-      const pathnameSegments = pathname.split("/");
-
-      if (
-        pathnameSegments.length > 1 &&
-        locales.includes(pathnameSegments[1] as Locale)
-      ) {
-        localeForRedirect = pathnameSegments[1] as Locale;
-      }
-
-      const callbackUrl = encodeURIComponent(pathname);
-      const loginUrl = new URL(`/${localeForRedirect}/login`, request.url);
-
-      loginUrl.searchParams.set("callbackUrl", callbackUrl);
-
-      // console.log(`[MIDDLEWARE] User not authenticated, redirecting to login: ${loginUrl.toString()}`);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // console.log("[MIDDLEWARE] User authenticated, applying intl middleware.");
-    return intlMiddleware(request);
-  })();
+  // console.log("[MIDDLEWARE] User authenticated, applying intl middleware.");
+  return intlMiddleware(request);
 });
 
 export const config = {

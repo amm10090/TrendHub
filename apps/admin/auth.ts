@@ -125,26 +125,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async redirect({ url, baseUrl }) {
       // 获取环境变量
       const authUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
+      const finalBaseUrl = authUrl || baseUrl;
 
       console.log("Redirect callback:", {
         url,
         baseUrl,
         authUrl,
-        envAuthUrl: process.env.AUTH_URL,
-        envNextAuthUrl: process.env.NEXTAUTH_URL,
+        finalBaseUrl,
       });
+
+      // 强制防止无限重定向：检查多种根路径情况
+      const rootUrls = [
+        finalBaseUrl,
+        `${finalBaseUrl}/`,
+        baseUrl,
+        `${baseUrl}/`,
+      ];
+
+      if (rootUrls.includes(url)) {
+        const defaultPage = `${finalBaseUrl}/en`;
+        console.log(
+          "Preventing infinite redirect, going to default page:",
+          defaultPage,
+        );
+        return defaultPage;
+      }
 
       // 如果URL是相对路径，转换为绝对路径
       if (url.startsWith("/")) {
-        const redirectUrl = `${authUrl || baseUrl}${url}`;
+        // 确保不是根路径
+        if (url === "/" || url === "") {
+          const defaultPage = `${finalBaseUrl}/en`;
+          console.log("Root path redirect to default page:", defaultPage);
+          return defaultPage;
+        }
+        const redirectUrl = `${finalBaseUrl}${url}`;
         console.log("Relative URL redirect:", redirectUrl);
         return redirectUrl;
-      }
-
-      // 如果URL已经是正确的外部URL，直接返回
-      if (authUrl && url.startsWith(authUrl)) {
-        console.log("Auth URL redirect:", url);
-        return url;
       }
 
       // 处理容器内部URL，转换为外部URL
@@ -153,17 +170,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         url.includes("admin:3001") ||
         url.includes("172.")
       ) {
-        const urlObj = new URL(url);
-        const correctedUrl = `${authUrl || baseUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
-        console.log("Internal URL corrected:", url, "->", correctedUrl);
-        return correctedUrl;
+        try {
+          const urlObj = new URL(url);
+          const correctedUrl = `${finalBaseUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
+          console.log("Internal URL corrected:", url, "->", correctedUrl);
+          return correctedUrl;
+        } catch (error) {
+          console.error("Error parsing internal URL:", error);
+          const defaultPage = `${finalBaseUrl}/en`;
+          console.log("Fallback to default page:", defaultPage);
+          return defaultPage;
+        }
       }
 
-      // 防止无限重定向：如果URL与baseUrl相同，返回根路径
-      if (url === baseUrl) {
-        const rootUrl = `${authUrl || baseUrl}/`;
-        console.log("Same URL redirect to root:", rootUrl);
-        return rootUrl;
+      // 如果URL已经是正确的外部URL且与finalBaseUrl匹配，直接返回
+      if (url.startsWith(finalBaseUrl)) {
+        console.log("Final base URL redirect:", url);
+        return url;
       }
 
       // 如果URL与当前baseUrl同源，直接返回
@@ -172,9 +195,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return url;
       }
 
-      // 默认返回根路径，防止重定向循环
-      const defaultUrl = `${authUrl || baseUrl}/`;
-      console.log("Default redirect to root:", defaultUrl);
+      // 默认返回默认语言页面，防止重定向循环
+      const defaultUrl = `${finalBaseUrl}/en`;
+      console.log("Default redirect to default page:", defaultUrl);
       return defaultUrl;
     },
   },

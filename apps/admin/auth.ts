@@ -151,39 +151,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async redirect({ url, baseUrl }) {
       // 从环境变量读取公网URL，避免硬编码
-      // 这解决了Auth.js内部有时错误地将baseUrl设置为localhost的问题
-      // 如果环境变量未设置，则回退到当前接收到的baseUrl
       const publicBaseUrl = process.env.NEXTAUTH_PUBLIC_URL || baseUrl;
 
-      // 检测baseUrl是否指向localhost，如果是则使用publicBaseUrl替换
-      const shouldUsePublicUrl =
-        baseUrl.includes("localhost") && !publicBaseUrl.includes("localhost");
-      const effectiveBaseUrl = shouldUsePublicUrl ? publicBaseUrl : baseUrl;
-
-      if (shouldUsePublicUrl) {
-        return effectiveBaseUrl;
-      }
+      // 在Docker环境中，始终使用公网URL
+      const effectiveBaseUrl = publicBaseUrl;
 
       // 如果 URL 是相对路径，将其转换为绝对路径
       if (url.startsWith("/")) {
-        const finalUrl = `${effectiveBaseUrl}${url}`;
-
-        return finalUrl;
+        return `${effectiveBaseUrl}${url}`;
       }
+
       // 如果 URL 已经是绝对路径且与有效baseUrl同源，则直接使用
-      else if (url.startsWith(effectiveBaseUrl)) {
+      if (url.startsWith(effectiveBaseUrl)) {
         return url;
       }
-      // 如果 URL 是绝对路径但指向 localhost，转换为公网URL
-      else if (
-        url.includes("localhost") &&
-        !publicBaseUrl.includes("localhost")
-      ) {
-        const correctedUrl = url.replace(
-          /http:\/\/localhost:[0-9]+/g,
-          publicBaseUrl,
-        );
 
+      // 如果 URL 包含容器名称或localhost，转换为公网URL
+      if (url.includes("admin:3001") || url.includes("localhost")) {
+        const correctedUrl = url
+          .replace(/http:\/\/admin:3001/g, effectiveBaseUrl)
+          .replace(/http:\/\/localhost:[0-9]+/g, effectiveBaseUrl);
         return correctedUrl;
       }
 

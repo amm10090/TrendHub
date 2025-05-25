@@ -72,8 +72,34 @@ export default auth((req) => {
     }
 
     const callbackUrl = encodeURIComponent(pathname);
-    const loginUrl = new URL(`/${localeForRedirect}/login`, request.url);
 
+    // 获取正确的基础URL
+    let baseUrl = request.url;
+
+    // 在生产环境中，优先使用公网URL
+    if (
+      process.env.NODE_ENV === "production" &&
+      process.env.NEXTAUTH_PUBLIC_URL
+    ) {
+      const publicUrl = process.env.NEXTAUTH_PUBLIC_URL;
+      // 如果当前请求URL包含容器内部地址，替换为公网地址
+      if (
+        request.url.includes("admin:3001") ||
+        request.url.includes("localhost")
+      ) {
+        baseUrl = publicUrl;
+      } else {
+        // 确保使用正确的协议和主机
+        try {
+          const publicUrlObj = new URL(publicUrl);
+          baseUrl = `${publicUrlObj.protocol}//${publicUrlObj.host}`;
+        } catch {
+          baseUrl = publicUrl;
+        }
+      }
+    }
+
+    const loginUrl = new URL(`/${localeForRedirect}/login`, baseUrl);
     loginUrl.searchParams.set("callbackUrl", callbackUrl);
 
     // console.log(`[MIDDLEWARE] User not authenticated, redirecting to login: ${loginUrl.toString()}`);

@@ -24,16 +24,16 @@ jobs:
         with:
           fetch-depth: 0  # 获取完整历史，用于 Turborepo 缓存
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
-
-      - name: 安装 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.10.0
 
       - name: 安装依赖
         run: pnpm install --frozen-lockfile

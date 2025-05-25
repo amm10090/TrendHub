@@ -19,7 +19,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "密码", type: "password" },
       },
       async authorize(credentials) {
+        console.log("Credentials authorize called with:", {
+          email: credentials?.email,
+          hasPassword: !!credentials?.password,
+        });
+
         if (!credentials?.email || !credentials?.password) {
+          console.log("Missing email or password");
           return null;
         }
 
@@ -36,6 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email === presetAdminEmail &&
           password === presetAdminPassword
         ) {
+          console.log("Preset admin login successful");
           return {
             id: "preset-admin-id",
             name: "预设管理员",
@@ -51,6 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
 
           if (!user?.passwordHash) {
+            console.log("User not found or no password hash");
             return null;
           }
 
@@ -60,9 +68,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
 
           if (!isValidPassword) {
+            console.log("Invalid password");
             return null;
           }
 
+          console.log("Database user login successful");
           return {
             id: user.id,
             name: user.name,
@@ -179,10 +189,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async signIn(message) {
-      console.log("用户登录:", message.user.email);
+      console.log("用户登录事件:", message.user.email);
     },
     async signOut() {
-      console.log("用户已登出");
+      console.log("用户已登出事件");
     },
   },
   // 关键配置：解决 CSRF 错误
@@ -264,8 +274,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 
-  // 调试配置
-  debug: process.env.NODE_ENV === "development",
+  // 调试配置 - 在生产环境中也启用以便排查问题
+  debug: true,
 
   // 额外的安全配置
   logger: {
@@ -276,9 +286,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       console.warn(`[AUTH WARN] ${code}`);
     },
     debug(code, metadata) {
-      if (process.env.NODE_ENV === "development") {
-        console.debug(`[AUTH DEBUG] ${code}:`, metadata);
-      }
+      console.debug(`[AUTH DEBUG] ${code}:`, metadata);
     },
   },
 

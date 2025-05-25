@@ -123,15 +123,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async redirect({ url, baseUrl }) {
       // 获取环境变量
-      const publicUrl = process.env.NEXTAUTH_PUBLIC_URL;
+      const publicUrl =
+        process.env.NEXTAUTH_PUBLIC_URL || process.env.NEXTAUTH_URL;
+      const internalUrl = process.env.NEXTAUTH_URL_INTERNAL;
+
+      console.log("Redirect callback:", {
+        url,
+        baseUrl,
+        publicUrl,
+        internalUrl,
+      });
 
       // 如果URL是相对路径，转换为绝对路径
       if (url.startsWith("/")) {
-        return `${publicUrl || baseUrl}${url}`;
+        const redirectUrl = `${publicUrl || baseUrl}${url}`;
+        console.log("Relative URL redirect:", redirectUrl);
+        return redirectUrl;
       }
 
       // 如果URL已经是正确的公网URL，直接返回
       if (publicUrl && url.startsWith(publicUrl)) {
+        console.log("Public URL redirect:", url);
         return url;
       }
 
@@ -139,23 +151,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (
         url.includes("localhost") ||
         url.includes("admin:3001") ||
-        url.includes("172.")
+        url.includes("172.") ||
+        (internalUrl && url.startsWith(internalUrl))
       ) {
         const urlObj = new URL(url);
         const correctedUrl = `${publicUrl || baseUrl}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
+        console.log("Internal URL corrected:", url, "->", correctedUrl);
         return correctedUrl;
       }
 
       // 如果URL与当前baseUrl同源，直接返回
       if (url.startsWith(baseUrl)) {
-        if (publicUrl) {
-          return url.replace(baseUrl, publicUrl);
+        if (publicUrl && baseUrl !== publicUrl) {
+          const correctedUrl = url.replace(baseUrl, publicUrl);
+          console.log("BaseURL corrected:", url, "->", correctedUrl);
+          return correctedUrl;
         }
+        console.log("BaseURL redirect:", url);
         return url;
       }
 
       // 默认返回有效的基础URL
-      return publicUrl || baseUrl;
+      const defaultUrl = publicUrl || baseUrl;
+      console.log("Default redirect:", defaultUrl);
+      return defaultUrl;
     },
   },
   events: {

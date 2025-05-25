@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { getCsrfToken } from "next-auth/react";
+import { getCsrfToken, signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -39,17 +39,18 @@ export default function LoginForm({
   type LoginFormValues = z.infer<typeof LoginSchema>;
 
   useEffect(() => {
-    // 如果服务器端没有提供 CSRF token，则在客户端获取
+    // 获取最新的 CSRF token
     const fetchCsrfToken = async () => {
-      if (!serverCsrfToken) {
-        try {
-          const token = await getCsrfToken();
-          if (token) {
-            setCsrfToken(token);
-          }
-        } catch (error) {
-          console.error("Failed to fetch CSRF token:", error);
+      try {
+        const token = await getCsrfToken();
+        if (token) {
+          setCsrfToken(token);
+          console.log("CSRF token fetched:", token.substring(0, 10) + "...");
+        } else {
+          console.warn("Failed to fetch CSRF token");
         }
+      } catch (error) {
+        console.error("Failed to fetch CSRF token:", error);
       }
     };
 
@@ -59,7 +60,7 @@ export default function LoginForm({
       const errorKey = `errors.${errorParam}`;
       setServerError(t(errorKey, { fallback: t("errors.Default") }));
     }
-  }, [errorParam, t, serverCsrfToken]);
+  }, [errorParam, t]);
 
   const {
     register,
@@ -77,29 +78,39 @@ export default function LoginForm({
     setIsLoading(true);
     setServerError(null);
 
-    // 使用原生表单提交，这样 NextAuth.js 可以正确处理 CSRF token
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = "/api/auth/callback/credentials";
+    try {
+      console.log(
+        "Attempting login with CSRF token:",
+        csrfToken.substring(0, 10) + "...",
+      );
 
-    // 添加表单字段
-    const fields = {
-      csrfToken: csrfToken,
-      email: data.email,
-      password: data.password,
-      callbackUrl: callbackUrl,
-    };
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        callbackUrl: callbackUrl,
+        redirect: false, // 不自动重定向，让我们手动处理
+      });
 
-    Object.entries(fields).forEach(([name, value]) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      input.value = value;
-      form.appendChild(input);
-    });
+      console.log("Login result:", result);
 
-    document.body.appendChild(form);
-    form.submit();
+      if (result?.error) {
+        console.error("Login error:", result.error);
+        const errorKey = `errors.${result.error}`;
+        setServerError(t(errorKey, { fallback: t("errors.Default") }));
+      } else if (result?.ok) {
+        console.log("Login successful, redirecting to:", callbackUrl);
+        // 登录成功，手动重定向
+        window.location.href = callbackUrl;
+      } else {
+        console.error("Unexpected login result:", result);
+        setServerError(t("errors.Default"));
+      }
+    } catch (error) {
+      console.error("Login exception:", error);
+      setServerError(t("errors.Default"));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -121,9 +132,6 @@ export default function LoginForm({
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        {/* CSRF Token 隐藏字段 */}
-        <input name="csrfToken" type="hidden" value={csrfToken} />
-
         <motion.div
           className="space-y-2"
           initial={{ y: 20, opacity: 0 }}

@@ -1,17 +1,18 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "globalDependencies": ["pnpm-lock.yaml", "tsconfig.json", "**/.env.*local"],
-  "globalEnv": ["TURBO_REMOTE_CACHE_SIGNATURE_KEY"],
+  "globalEnv": ["TURBO_REMOTE_CACHE_SIGNATURE_KEY", "NODE_ENV", "CI"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.test.*",
         "!**/*.spec.*",
         "!README.md",
-        "!CHANGELOG.md"
+        "!CHANGELOG.md",
+        "!**/*.md"
       ],
       "env": [
         "SMTP_HOST",
@@ -21,8 +22,12 @@
         "SMTP_FROM",
         "NODE_ENV",
         "NEXT_PUBLIC_*",
-        "TURBO_REMOTE_CACHE_SIGNATURE_KEY"
-      ]
+        "TURBO_REMOTE_CACHE_SIGNATURE_KEY",
+        "DATABASE_URL",
+        "AUTH_SECRET",
+        "NEXTAUTH_SECRET"
+      ],
+      "outputLogs": "new-only"
     },
     "lint": {
       "outputs": [],
@@ -35,10 +40,30 @@
         "*.{js,cjs,mjs,ts,tsx,jsx}",
         "package.json",
         "tsconfig.json",
+        "eslint.config.js",
+        ".eslintrc.*",
         "!dist/**",
         "!.next/**",
         "!**/*.md"
-      ]
+      ],
+      "outputLogs": "errors-only"
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "inputs": [
+        "src/**",
+        "app/**",
+        "pages/**",
+        "components/**",
+        "lib/**",
+        "*.{ts,tsx}",
+        "package.json",
+        "tsconfig.json",
+        "!dist/**",
+        "!.next/**"
+      ],
+      "outputLogs": "errors-only"
     },
     "dev": {
       "cache": false,
@@ -52,7 +77,7 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": [],
+      "outputs": ["coverage/**", "test-results/**"],
       "inputs": [
         "src/**",
         "app/**",
@@ -62,9 +87,12 @@
         "*.spec.*",
         "package.json",
         "tsconfig.json",
+        "jest.config.*",
+        "vitest.config.*",
         "!dist/**",
         "!.next/**"
-      ]
+      ],
+      "outputLogs": "errors-only"
     },
     "clean": {
       "cache": false
@@ -77,7 +105,8 @@
         "package.json",
         "tsconfig.json",
         "../../pnpm-lock.yaml"
-      ]
+      ],
+      "outputLogs": "new-only"
     },
     "@repo/scraper#build": {
       "dependsOn": ["^build"],
@@ -87,7 +116,19 @@
         "package.json",
         "tsconfig.json",
         "../../pnpm-lock.yaml"
-      ]
+      ],
+      "outputLogs": "new-only"
+    },
+    "@repo/ui#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "inputs": [
+        "src/**",
+        "package.json",
+        "tsconfig.json",
+        "../../pnpm-lock.yaml"
+      ],
+      "outputLogs": "new-only"
     }
   },
   "remoteCache": {

@@ -91,7 +91,8 @@ export default auth((req) => {
       request.headers.get("host") ||
       request.nextUrl.host;
 
-    const callbackUrl = encodeURIComponent(pathname);
+    // 对于根路径，直接使用 "/"，避免不必要的编码
+    const callbackUrl = pathname === "/" ? "/" : encodeURIComponent(pathname);
     const loginUrl = `${protocol}://${host}/${locale}/login?callbackUrl=${callbackUrl}`;
 
     console.log(

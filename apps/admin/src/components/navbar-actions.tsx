@@ -45,11 +45,27 @@ export function NavbarActions() {
   };
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" });
+    // 使用相对路径，基于当前域名和语言环境
+    const currentLocale = pathname.startsWith("/en") ? "en" : "cn";
+    try {
+      await signOut({
+        redirect: false, // 禁用自动重定向
+      });
+      // 手动重定向到当前域名的登录页面，使用相对路径
+      window.location.href = `/${currentLocale}/login`;
+    } catch (error) {
+      console.error("Sign out error:", error);
+      // 即使出错也重定向到登录页面
+      window.location.href = `/${currentLocale}/login`;
+    }
   };
 
   const handleSignIn = () => {
-    router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+    // 使用相对路径，基于当前语言环境
+    const currentLocale = pathname.startsWith("/en") ? "en" : "cn";
+    router.push(
+      `/${currentLocale}/login?callbackUrl=${encodeURIComponent(pathname)}`,
+    );
   };
 
   return (

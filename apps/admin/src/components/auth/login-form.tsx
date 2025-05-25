@@ -24,7 +24,9 @@ export default function LoginForm({
 }: LoginFormProps) {
   const t = useTranslations("login");
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  // 解码 callbackUrl 并处理特殊情况
+  const rawCallbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = decodeURIComponent(rawCallbackUrl);
   const errorParam = searchParams.get("error");
 
   const [isLoading, setIsLoading] = useState(false);
@@ -100,7 +102,10 @@ export default function LoginForm({
       } else if (result?.ok) {
         console.log("Login successful, redirecting to:", callbackUrl);
         // 登录成功，手动重定向
-        window.location.href = callbackUrl;
+        // 如果 callbackUrl 是根路径，重定向到 /en
+        const finalRedirectUrl = callbackUrl === "/" ? "/en" : callbackUrl;
+        console.log("Final redirect URL:", finalRedirectUrl);
+        window.location.href = finalRedirectUrl;
       } else {
         console.error("Unexpected login result:", result);
         setServerError(t("errors.Default"));

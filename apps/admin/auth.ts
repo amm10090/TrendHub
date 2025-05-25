@@ -163,12 +163,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       console.log("用户已登出");
     },
   },
-  // debug: process.env.NODE_ENV === "development", // 开发模式下启用调试信息
+  // 关键配置：解决 CSRF 错误
   secret: process.env.AUTH_SECRET, // 从环境变量获取 AUTH_SECRET
   trustHost: true, // 强制信任主机头
   basePath: "/api/auth", // 确保基础路径正确
-  // 在Docker环境中使用localhost而不是容器名称进行内部调用
+
+  // 在生产环境中使用安全 Cookie
   useSecureCookies: process.env.NODE_ENV === "production",
+
+  // Cookie 配置 - 关键修复
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,
@@ -177,14 +180,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        // 在生产环境中设置domain以支持跨子域会话共享
-        domain:
-          process.env.NODE_ENV === "production" &&
-          process.env.NEXTAUTH_PUBLIC_URL
-            ? new URL(process.env.NEXTAUTH_PUBLIC_URL).hostname
-            : undefined,
+        // 在 Docker 环境中不设置 domain，让浏览器自动处理
+        domain: undefined,
+      },
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: undefined,
+      },
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: undefined,
       },
     },
   },
-  debug: process.env.NODE_ENV === "development", // 只在开发环境启用调试
+
+  // 调试配置
+  debug: process.env.NODE_ENV === "development",
+
+  // 额外的安全配置
+  logger: {
+    error(error) {
+      console.error(`[AUTH ERROR]:`, error);
+    },
+    warn(code) {
+      console.warn(`[AUTH WARN] ${code}`);
+    },
+    debug(code, metadata) {
+      if (process.env.NODE_ENV === "development") {
+        console.debug(`[AUTH DEBUG] ${code}:`, metadata);
+      }
+    },
+  },
 });

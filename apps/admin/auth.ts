@@ -150,30 +150,51 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // 从环境变量读取公网URL，避免硬编码
-      const publicBaseUrl = process.env.NEXTAUTH_PUBLIC_URL || baseUrl;
+      // 获取环境变量
+      const publicUrl = process.env.NEXTAUTH_PUBLIC_URL;
+      const internalUrl = process.env.NEXTAUTH_URL_INTERNAL;
 
-      // 在Docker环境中，始终使用公网URL
-      const effectiveBaseUrl = publicBaseUrl;
+      // 确定有效的基础URL
+      let effectiveBaseUrl = baseUrl;
 
-      // 如果 URL 是相对路径，将其转换为绝对路径
+      // 在生产环境中，优先使用公网URL
+      if (process.env.NODE_ENV === "production" && publicUrl) {
+        effectiveBaseUrl = publicUrl;
+      }
+
+      // 如果URL是相对路径，转换为绝对路径
       if (url.startsWith("/")) {
         return `${effectiveBaseUrl}${url}`;
       }
 
-      // 如果 URL 已经是绝对路径且与有效baseUrl同源，则直接使用
-      if (url.startsWith(effectiveBaseUrl)) {
+      // 如果URL已经是正确的公网URL，直接返回
+      if (publicUrl && url.startsWith(publicUrl)) {
         return url;
       }
 
-      // 如果 URL 包含容器名称或localhost，转换为公网URL
-      if (url.includes("admin:3001") || url.includes("localhost")) {
+      // 处理内部容器URL，转换为公网URL
+      if (internalUrl && url.includes(internalUrl.replace("http://", ""))) {
+        return url.replace(internalUrl, effectiveBaseUrl);
+      }
+
+      // 处理localhost和容器名称的URL
+      if (url.includes("localhost") || url.includes("admin:3001")) {
         const correctedUrl = url
-          .replace(/http:\/\/admin:3001/g, effectiveBaseUrl)
-          .replace(/http:\/\/localhost:[0-9]+/g, effectiveBaseUrl);
+          .replace(/http:\/\/localhost:[0-9]+/g, effectiveBaseUrl)
+          .replace(/http:\/\/admin:3001/g, effectiveBaseUrl);
         return correctedUrl;
       }
 
+      // 如果URL与当前baseUrl同源，直接返回
+      if (url.startsWith(baseUrl)) {
+        // 如果在生产环境且有公网URL，替换为公网URL
+        if (process.env.NODE_ENV === "production" && publicUrl) {
+          return url.replace(baseUrl, publicUrl);
+        }
+        return url;
+      }
+
+      // 默认返回有效的基础URL
       return effectiveBaseUrl;
     },
   },
@@ -189,8 +210,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
+        // 在生产环境中设置domain以支持跨子域会话共享
+        domain:
+          process.env.NODE_ENV === "production" &&
+          process.env.NEXTAUTH_PUBLIC_URL
+            ? new URL(process.env.NEXTAUTH_PUBLIC_URL).hostname
+            : undefined,
       },
     },
   },
-  debug: true, // 启用调试日志以获取更多信息
+  debug: process.env.NODE_ENV === "development", // 只在开发环境启用调试
 });

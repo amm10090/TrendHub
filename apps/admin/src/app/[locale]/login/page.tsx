@@ -70,7 +70,7 @@ export default function LoginPage() {
     try {
       let redirectUrl = callbackUrl;
 
-      // 简化重定向逻辑，始终使用相对路径
+      // 处理URL编码的重定向路径
       if (redirectUrl.startsWith("%2F")) {
         redirectUrl = decodeURIComponent(redirectUrl);
       }
@@ -80,7 +80,6 @@ export default function LoginPage() {
         // 如果不是相对路径，尝试提取路径部分
         try {
           const url = new URL(redirectUrl);
-
           redirectUrl = url.pathname + url.search + url.hash;
         } catch {
           // 如果解析失败，默认重定向到首页
@@ -97,30 +96,31 @@ export default function LoginPage() {
 
       if (result?.error) {
         const errorKey = `errors.${result.error}`;
-
         setServerError(t(errorKey, { fallback: t("errors.Default") }));
       } else if (result?.ok === true) {
         toast.success(t("loginSuccess", { fallback: "登录成功" }));
 
-        // 使用相对路径进行重定向
-        const finalRedirectUrl = result.url || redirectUrl || "/";
+        // 获取最终重定向URL
+        let finalRedirectUrl = result.url || redirectUrl || "/";
 
-        // 如果返回的 URL 是绝对路径，提取相对路径部分
-        let relativeUrl = finalRedirectUrl;
-
+        // 如果返回的URL是绝对路径，提取相对路径部分
         if (finalRedirectUrl.startsWith("http")) {
           try {
             const url = new URL(finalRedirectUrl);
-
-            relativeUrl = url.pathname + url.search + url.hash;
+            finalRedirectUrl = url.pathname + url.search + url.hash;
           } catch {
-            relativeUrl = "/";
+            finalRedirectUrl = "/";
           }
         }
 
-        // 延迟后执行跳转
+        // 确保重定向URL是相对路径
+        if (!finalRedirectUrl.startsWith("/")) {
+          finalRedirectUrl = "/" + finalRedirectUrl;
+        }
+
+        // 使用window.location.href进行客户端重定向
         setTimeout(() => {
-          window.location.href = relativeUrl;
+          window.location.href = finalRedirectUrl;
         }, 1000);
       } else {
         setServerError(t("errors.Default"));

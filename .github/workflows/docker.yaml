@@ -15,14 +15,27 @@ env:
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
-  build-and-push:
+  # 分离构建任务以减少单个 job 的磁盘使用
+  build-admin:
     runs-on: ubuntu-latest
-
     steps:
+      - name: 释放磁盘空间
+        run: |
+          # 删除不必要的软件包以释放空间
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker system prune -af
+          sudo apt-get autoremove -y
+          sudo apt-get autoclean
+          # 显示可用空间
+          df -h
+
       - name: 检出代码
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 获取完整历史，用于 Turborepo 缓存
+          fetch-depth: 1  # 减少历史记录以节省空间
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
@@ -36,16 +49,27 @@ jobs:
           cache: 'pnpm'
 
       - name: 安装依赖
-        run: pnpm install --frozen-lockfile
-
-      - name: 构建项目 (使用 Turborepo 缓存)
         run: |
-          # 使用 Turborepo 构建，启用远程缓存
-          pnpm turbo build --cache-dir=.turbo/cache
+          # 只安装生产依赖以节省空间
+          pnpm install --frozen-lockfile --prod=false
+          # 清理 pnpm 缓存
+          pnpm store prune
+
+      - name: 构建项目 (仅 admin)
+        run: |
+          # 只构建 admin 应用
+          pnpm turbo build --filter=@trend-hub/admin --cache-dir=.turbo/cache
         env:
-          # 传递缓存相关环境变量
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
+
+      - name: 清理构建缓存
+        run: |
+          # 清理不必要的文件
+          rm -rf node_modules/.cache
+          rm -rf .turbo/cache
+          find . -name "*.log" -delete
+          find . -name "*.tmp" -delete
 
       - name: 设置 Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -66,11 +90,81 @@ jobs:
           tags: |
             ${{ env.IMAGE_ADMIN }}:latest
             ${{ env.IMAGE_ADMIN }}:${{ github.sha }}
-          # Docker 构建缓存配置
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # 优化缓存策略
+          cache-from: type=gha,scope=admin
+          cache-to: type=gha,mode=min,scope=admin
           build-args: |
             DATABASE_URL=postgresql://dummy:dummy@dummy:5432/dummy
+
+      - name: 清理 Docker 资源
+        if: always()
+        run: |
+          docker system prune -af --volumes
+          docker builder prune -af
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 释放磁盘空间
+        run: |
+          # 删除不必要的软件包以释放空间
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker system prune -af
+          sudo apt-get autoremove -y
+          sudo apt-get autoclean
+          # 显示可用空间
+          df -h
+
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # 减少历史记录以节省空间
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: 安装依赖
+        run: |
+          # 只安装生产依赖以节省空间
+          pnpm install --frozen-lockfile --prod=false
+          # 清理 pnpm 缓存
+          pnpm store prune
+
+      - name: 构建项目 (仅 web)
+        run: |
+          # 只构建 web 应用
+          pnpm turbo build --filter=front-end --cache-dir=.turbo/cache
+        env:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+
+      - name: 清理构建缓存
+        run: |
+          # 清理不必要的文件
+          rm -rf node_modules/.cache
+          rm -rf .turbo/cache
+          find . -name "*.log" -delete
+          find . -name "*.tmp" -delete
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录 Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: 构建并推送 web 镜像
         uses: docker/build-push-action@v5
@@ -82,19 +176,29 @@ jobs:
           tags: |
             ${{ env.IMAGE_WEB }}:latest
             ${{ env.IMAGE_WEB }}:${{ github.sha }}
-          # Docker 构建缓存配置
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # 优化缓存策略
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=min,scope=web
 
-      # 如需自动部署到服务器，取消下方注释并补充 secrets
-      # - name: 远程部署
-      #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      #   uses: appleboy/ssh-action@v1.0.3
-      #   with:
-      #     host: ${{ secrets.SERVER_HOST }}
-      #     username: ${{ secrets.SERVER_USER }}
-      #     key: ${{ secrets.SERVER_SSH_KEY }}
-      #     script: |
-      #       cd /path/to/TrendHub
-      #       docker compose pull
-      #       docker compose up -d
+      - name: 清理 Docker 资源
+        if: always()
+        run: |
+          docker system prune -af --volumes
+          docker builder prune -af
+
+  # 如需自动部署到服务器，取消下方注释并补充 secrets
+  # deploy:
+  #   needs: [build-admin, build-web]
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: 远程部署
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       with:
+  #         host: ${{ secrets.SERVER_HOST }}
+  #         username: ${{ secrets.SERVER_USER }}
+  #         key: ${{ secrets.SERVER_SSH_KEY }}
+  #         script: |
+  #           cd /path/to/TrendHub
+  #           docker compose pull
+  #           docker compose up -d

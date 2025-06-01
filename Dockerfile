@@ -54,12 +54,32 @@ RUN cd apps/admin && npx prisma generate && \
 FROM base AS admin-deploy-intermediate
 WORKDIR /app
 COPY --from=builder /app /app
-RUN pnpm deploy --filter=@trend-hub/admin --prod /prod/admin --legacy && \
-    cp -r apps/admin/.next /prod/admin/.next && \
+# 使用手动复制方式，避免 pnpm deploy 的符号链接问题
+RUN mkdir -p /prod/admin && \
+    # 复制应用文件和配置
+    cp -r apps/admin/package.json /prod/admin/ && \
+    cp -r apps/admin/.next /prod/admin/ && \
+    cp -r apps/admin/prisma /prod/admin/ 2>/dev/null || true && \
+    # 创建简化的 package.json，只包含生产依赖
+    cd /prod/admin && \
+    # 从原始 package.json 中提取生产依赖并创建新的 package.json
+    node -e "
+      const pkg = require('./package.json');
+      const newPkg = {
+        name: pkg.name,
+        version: pkg.version,
+        private: pkg.private,
+        type: pkg.type,
+        scripts: { start: pkg.scripts.start },
+        dependencies: pkg.dependencies || {}
+      };
+      require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
+    " && \
+    # 安装生产依赖（不使用工作区）
+    pnpm install --prod --no-frozen-lockfile && \
     # 确保复制Prisma生成的文件
-    cp -r apps/admin/prisma /prod/admin/prisma 2>/dev/null || true && \
-    cp -r apps/admin/node_modules/.prisma /prod/admin/node_modules/.prisma 2>/dev/null || true && \
-    cp -r apps/admin/node_modules/@prisma /prod/admin/node_modules/@prisma 2>/dev/null || true && \
+    cp -r /app/apps/admin/node_modules/.prisma ./node_modules/.prisma 2>/dev/null || true && \
+    cp -r /app/apps/admin/node_modules/@prisma ./node_modules/@prisma 2>/dev/null || true && \
     # 清理不必要的文件
     rm -rf /app && \
     find /prod/admin -name "*.log" -delete && \
@@ -87,8 +107,28 @@ CMD ["pnpm", "start"]
 FROM base AS web-deploy-intermediate
 WORKDIR /app
 COPY --from=builder /app /app
-RUN pnpm deploy --filter=front-end --prod /prod/web --legacy && \
-    cp -r apps/web/.next /prod/web/.next && \
+# 使用手动复制方式，避免 pnpm deploy 的符号链接问题
+RUN mkdir -p /prod/web && \
+    # 复制应用文件和配置
+    cp -r apps/web/package.json /prod/web/ && \
+    cp -r apps/web/.next /prod/web/ && \
+    # 创建简化的 package.json，只包含生产依赖
+    cd /prod/web && \
+    # 从原始 package.json 中提取生产依赖并创建新的 package.json
+    node -e "
+      const pkg = require('./package.json');
+      const newPkg = {
+        name: pkg.name,
+        version: pkg.version,
+        private: pkg.private,
+        type: pkg.type,
+        scripts: { start: pkg.scripts.start },
+        dependencies: pkg.dependencies || {}
+      };
+      require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
+    " && \
+    # 安装生产依赖（不使用工作区）
+    pnpm install --prod --no-frozen-lockfile && \
     # 清理不必要的文件
     rm -rf /app && \
     find /prod/web -name "*.log" -delete && \

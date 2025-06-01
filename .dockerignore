@@ -1,76 +1,53 @@
 # Git 相关
 .git
-.gitignore
 .github
+.gitignore
 
-# 依赖目录
-node_modules
-.pnpm-store
-.npm
+# Node.js 相关
+**/node_modules
+**/npm-debug.log
+**/.turbo
 
 # 构建输出
-.next
-.turbo
-dist
-build
-out
+**/.next
+**/dist
+**/out
+**/.vercel
+**/.output
 
-# 缓存目录
-.cache
-.temp
-.tmp
-*.log
-*.tmp
+# 环境变量和密钥
+**/.env
+**/.env.*
+!**/.env.example
 
-# 开发工具
-.vscode
-.idea
-*.swp
-*.swo
+# 日志
+**/logs
+**/*.log
 
-# 测试相关
-coverage
-test-results
-.nyc_output
+# 测试文件
+**/coverage
+**/.nyc_output
+**/cypress
+**/__tests__
+**/*.test.*
 
-# 环境文件
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# IDE 和编辑器
+**/.idea
+**/.vscode
+**/.DS_Store
 
-# 操作系统文件
-.DS_Store
-Thumbs.db
+# 缓存
+**/.cache
+**/.eslintcache
 
-# 文档
+# 其他
 README.md
+**/README.md
 CHANGELOG.md
-docs/
-*.md
+LICENSE
 
-# 其他不必要的文件
-.eslintcache
-.stylelintcache
-.prettierignore
-.editorconfig
-
-# 部署相关
+# 特定排除
+**/Dockerfile
+**/.dockerignore
 docker-compose.yml
 docker-compose.*.yml
-Dockerfile.*
-.dockerignore
-
-# 证书和配置
-certbot/
-nginx/
-.vercel/
-
-# Python 虚拟环境
-.venv/
-__pycache__/
-*.pyc
-
-# 爬虫存储
-packages/scraper/storage/
-packages/scraper/test-results/

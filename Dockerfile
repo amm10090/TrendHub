@@ -7,9 +7,7 @@ FROM base AS fetcher
 WORKDIR /app
 COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
-RUN pnpm fetch --frozen-lockfile && \
-    # 清理缓存以减少层大小
-    pnpm store prune
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm fetch --frozen-lockfile
 
 # 2. Deps 阶段：安装所有依赖（包括 devDependencies，因为构建可能需要它们）
 FROM base AS deps
@@ -22,21 +20,19 @@ COPY apps/web/package.json ./apps/web/package.json
 COPY packages/types/package.json ./packages/types/package.json
 COPY packages/scraper/package.json ./packages/scraper/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
-RUN pnpm install --frozen-lockfile --prefer-offline && \
-    # 清理不必要的文件
-    find . -name "*.log" -delete && \
-    find . -name "*.tmp" -delete && \
-    rm -rf /tmp/* && \
-    pnpm store prune
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm install --frozen-lockfile --prefer-offline
 
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app /app
-# 修改为更精确的复制方式，避免复制node_modules
+
+# 复制核心文件和配置
 COPY .github ./.github
 COPY .gitignore ./
 COPY .npmrc ./
-COPY .nvmrc ./
+COPY turbo.json ./
+COPY eslint.config.js ./
+COPY LICENSE ./
 
 # Admin 应用文件
 COPY apps/admin/prisma ./apps/admin/prisma
@@ -44,7 +40,6 @@ COPY apps/admin/src ./apps/admin/src
 COPY apps/admin/public ./apps/admin/public
 COPY apps/admin/next.config.js ./apps/admin/
 COPY apps/admin/postcss.config.js ./apps/admin/
-COPY apps/admin/tailwind.config.js ./apps/admin/
 COPY apps/admin/tsconfig.json ./apps/admin/
 COPY apps/admin/auth.ts ./apps/admin/
 COPY apps/admin/components.json ./apps/admin/
@@ -80,9 +75,8 @@ COPY packages/types/src ./packages/types/src
 COPY packages/types/tsconfig.json ./packages/types/
 COPY packages/scraper/src ./packages/scraper/src
 COPY packages/scraper/tsconfig.json ./packages/scraper/
-
-# 根目录文件
-COPY turbo.json eslint.config.js LICENSE ./
+COPY packages/ui/src ./packages/ui/src
+COPY packages/ui/tsconfig.json ./packages/ui/
 
 # 确保数据库环境变量可用
 ARG DATABASE_URL
@@ -91,77 +85,44 @@ ENV DATABASE_URL=${DATABASE_URL}
 # 生成Prisma客户端并构建应用
 RUN cd apps/admin && npx prisma generate && \
     cd /app && \
-    pnpm turbo run build && \
-    # 清理构建缓存和临时文件
-    rm -rf .turbo/cache && \
-    rm -rf node_modules/.cache && \
-    find . -name "*.log" -delete && \
-    find . -name "*.tmp" -delete && \
-    rm -rf /tmp/*
+    pnpm turbo run build
 
-FROM base AS admin-runner
+FROM base AS admin-deploy-intermediate
 WORKDIR /app
-COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
-COPY --from=builder /app/apps/admin/package.json ./apps/admin/package.json
-COPY --from=builder /app/apps/admin/prisma ./apps/admin/prisma
-COPY --from=builder /app/apps/admin/public ./apps/admin/public
-COPY --from=builder /app/apps/admin/next.config.js ./apps/admin/next.config.js
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app /app
+RUN pnpm deploy --filter=@trend-hub/admin --prod /prod/admin --legacy
+RUN cp -r apps/admin/.next /prod/admin/.next
+# 确保复制Prisma生成的文件
+RUN cp -r apps/admin/prisma /prod/admin/prisma 2>/dev/null || true
+RUN cp -r apps/admin/node_modules/.prisma /prod/admin/node_modules/.prisma 2>/dev/null || true
+RUN cp -r apps/admin/node_modules/@prisma /prod/admin/node_modules/@prisma 2>/dev/null || true
 
-# 复制必要的 packages
-COPY --from=builder /app/packages ./packages
-
-# 安装生产依赖
-RUN pnpm install --frozen-lockfile --prod && \
-    # 生成 Prisma 客户端
-    cd apps/admin && npx prisma generate && \
-    # 清理不必要的文件
-    find . -name "*.log" -delete && \
-    find . -name "*.tmp" -delete && \
-    rm -rf /tmp/* && \
-    pnpm store prune
-
+FROM node:20-alpine AS admin-runner
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm@10.10.0 && \
-    # 清理 npm 缓存
-    npm cache clean --force
+RUN npm install -g pnpm@10.10.0
+WORKDIR /app
+COPY --from=admin-deploy-intermediate /prod/admin /app
 
-WORKDIR /app/apps/admin
+# 在运行时重新生成Prisma客户端（如果需要）
+RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
+
 EXPOSE 3001
 CMD ["pnpm", "start"]
 
-FROM base AS web-runner
+FROM base AS web-deploy-intermediate
 WORKDIR /app
-COPY --from=builder /app/apps/web/.next ./apps/web/.next
-COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
-COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app /app
+RUN pnpm deploy --filter=front-end --prod /prod/web --legacy
+RUN cp -r apps/web/.next /prod/web/.next
 
-# 复制必要的 packages
-COPY --from=builder /app/packages ./packages
-
-# 安装生产依赖
-RUN pnpm install --frozen-lockfile --prod && \
-    # 清理不必要的文件
-    find . -name "*.log" -delete && \
-    find . -name "*.tmp" -delete && \
-    rm -rf /tmp/* && \
-    pnpm store prune
-
+FROM node:20-alpine AS web-runner
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm@10.10.0 && \
-    # 清理 npm 缓存
-    npm cache clean --force
-
-WORKDIR /app/apps/web
+RUN npm install -g pnpm@10.10.0
+WORKDIR /app
+COPY --from=web-deploy-intermediate /prod/web /app
 EXPOSE 3000
 CMD ["pnpm", "start"]

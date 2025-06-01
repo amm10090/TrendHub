@@ -92,7 +92,7 @@ jobs:
             ${{ env.IMAGE_ADMIN }}:${{ github.sha }}
           # 优化缓存策略
           cache-from: type=gha,scope=admin
-          cache-to: type=gha,mode=min,scope=admin
+          cache-to: type=gha,mode=max,scope=admin
           build-args: |
             DATABASE_URL=postgresql://dummy:dummy@dummy:5432/dummy
 
@@ -178,7 +178,7 @@ jobs:
             ${{ env.IMAGE_WEB }}:${{ github.sha }}
           # 优化缓存策略
           cache-from: type=gha,scope=web
-          cache-to: type=gha,mode=min,scope=web
+          cache-to: type=gha,mode=max,scope=web
 
       - name: 清理 Docker 资源
         if: always()

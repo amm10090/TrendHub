@@ -32,7 +32,66 @@ RUN pnpm install --frozen-lockfile --prefer-offline && \
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app /app
-COPY . .
+# 修改为更精确的复制方式，避免复制node_modules
+COPY .github ./.github
+COPY .gitignore ./
+COPY .npmrc ./
+COPY .nvmrc ./
+
+# Admin 应用文件
+COPY apps/admin/prisma ./apps/admin/prisma
+COPY apps/admin/src ./apps/admin/src
+COPY apps/admin/public ./apps/admin/public
+COPY apps/admin/next.config.js ./apps/admin/
+COPY apps/admin/postcss.config.js ./apps/admin/
+COPY apps/admin/tailwind.config.js ./apps/admin/
+COPY apps/admin/tsconfig.json ./apps/admin/
+COPY apps/admin/auth.ts ./apps/admin/
+COPY apps/admin/components.json ./apps/admin/
+COPY apps/admin/eslint.config.mjs ./apps/admin/
+COPY apps/admin/next-env.d.ts ./apps/admin/
+COPY apps/admin/.npmrc ./apps/admin/
+COPY apps/admin/.env.local ./apps/admin/.env.local
+COPY apps/admin/.env ./apps/admin/.env
+
+# Web 应用文件
+COPY apps/web/app ./apps/web/app
+COPY apps/web/components ./apps/web/components
+COPY apps/web/config ./apps/web/config
+COPY apps/web/contexts ./apps/web/contexts
+COPY apps/web/i18n ./apps/web/i18n
+COPY apps/web/lib ./apps/web/lib
+COPY apps/web/messages ./apps/web/messages
+COPY apps/web/pages ./apps/web/pages
+COPY apps/web/public ./apps/web/public
+COPY apps/web/styles ./apps/web/styles
+COPY apps/web/types ./apps/web/types
+COPY apps/web/services ./apps/web/services
+COPY apps/web/next.config.js ./apps/web/
+COPY apps/web/postcss.config.js ./apps/web/
+COPY apps/web/tailwind.config.js ./apps/web/
+COPY apps/web/tsconfig.json ./apps/web/
+COPY apps/web/middleware.ts ./apps/web/
+COPY apps/web/next-env.d.ts ./apps/web/
+COPY apps/web/eslint.config.mjs ./apps/web/
+COPY apps/web/.npmrc ./apps/web/
+COPY apps/web/.prettierrc ./apps/web/
+COPY apps/web/.env ./apps/web/.env
+COPY apps/web/.envexample ./apps/web/.envexample
+
+# Packages 文件
+COPY packages/types/src ./packages/types/src
+COPY packages/types/tsconfig.json ./packages/types/
+COPY packages/scraper/src ./packages/scraper/src
+COPY packages/scraper/tsconfig.json ./packages/scraper/
+COPY packages/ui/src ./packages/ui/src
+COPY packages/ui/tsconfig.json ./packages/ui/
+
+# 根目录文件
+COPY turbo.json eslint.config.js LICENSE ./ 
+COPY .env.example ./
+COPY .env.docker ./
+COPY docker-compose.yml ./
 
 # 确保数据库环境变量可用
 ARG DATABASE_URL
@@ -54,9 +113,15 @@ WORKDIR /app
 COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
 COPY --from=builder /app/apps/admin/package.json ./apps/admin/package.json
 COPY --from=builder /app/apps/admin/prisma ./apps/admin/prisma
+COPY --from=builder /app/apps/admin/public ./apps/admin/public
+COPY --from=builder /app/apps/admin/.env ./apps/admin/.env
+COPY --from=builder /app/apps/admin/.env.local ./apps/admin/.env.local
+COPY --from=builder /app/apps/admin/next.config.js ./apps/admin/next.config.js
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/.env.example ./.env.example
+COPY --from=builder /app/.env.docker ./.env.docker
 
 # 复制必要的 packages
 COPY --from=builder /app/packages ./packages
@@ -86,9 +151,15 @@ FROM base AS web-runner
 WORKDIR /app
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/web/.env ./apps/web/.env
+COPY --from=builder /app/apps/web/.envexample ./apps/web/.envexample
+COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/.env.example ./.env.example
+COPY --from=builder /app/.env.docker ./.env.docker
 
 # 复制必要的 packages
 COPY --from=builder /app/packages ./packages

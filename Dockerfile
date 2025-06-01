@@ -7,8 +7,7 @@ FROM base AS fetcher
 WORKDIR /app
 COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
-RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm fetch --frozen-lockfile && \
+RUN pnpm fetch --frozen-lockfile && \
     # 清理缓存以减少层大小
     pnpm store prune
 
@@ -23,8 +22,7 @@ COPY apps/web/package.json ./apps/web/package.json
 COPY packages/types/package.json ./packages/types/package.json
 COPY packages/scraper/package.json ./packages/scraper/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
-RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --frozen-lockfile --prefer-offline && \
+RUN pnpm install --frozen-lockfile --prefer-offline && \
     # 清理不必要的文件
     find . -name "*.log" -delete && \
     find . -name "*.tmp" -delete && \
@@ -51,112 +49,65 @@ RUN cd apps/admin && npx prisma generate && \
     find . -name "*.tmp" -delete && \
     rm -rf /tmp/*
 
-FROM base AS admin-deploy-intermediate
+FROM base AS admin-runner
 WORKDIR /app
-COPY --from=builder /app /app
-# 使用手动复制方式，避免 pnpm deploy 的符号链接问题
-RUN mkdir -p /prod/admin && \
-    # 复制应用文件和配置
-    cp -r apps/admin/package.json /prod/admin/ && \
-    cp -r apps/admin/.next /prod/admin/ && \
-    cp -r apps/admin/prisma /prod/admin/ 2>/dev/null || true && \
-    # 创建简化的 package.json，只包含生产依赖
-    cd /prod/admin && \
-    # 从原始 package.json 中提取生产依赖并创建新的 package.json
-    node <<EOF && \
-const pkg = require('./package.json');
-const newPkg = {
-  name: pkg.name,
-  version: pkg.version,
-  private: pkg.private,
-  type: pkg.type,
-  scripts: { start: pkg.scripts.start },
-  dependencies: pkg.dependencies || {}
-};
-require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
-EOF
+COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
+COPY --from=builder /app/apps/admin/package.json ./apps/admin/package.json
+COPY --from=builder /app/apps/admin/prisma ./apps/admin/prisma
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-# 安装生产依赖（不使用工作区）
-RUN cd /prod/admin && \
-    pnpm install --prod --no-frozen-lockfile && \
-    # 确保 node_modules 目录存在
-    mkdir -p ./node_modules && \
-    # 确保复制Prisma生成的文件
-    if [ -d "/app/apps/admin/node_modules/.prisma" ]; then \
-        cp -r /app/apps/admin/node_modules/.prisma ./node_modules/ 2>/dev/null || true; \
-    fi && \
-    if [ -d "/app/apps/admin/node_modules/@prisma" ]; then \
-        cp -r /app/apps/admin/node_modules/@prisma ./node_modules/ 2>/dev/null || true; \
-    fi && \
+# 复制必要的 packages
+COPY --from=builder /app/packages ./packages
+
+# 安装生产依赖
+RUN pnpm install --frozen-lockfile --prod && \
+    # 生成 Prisma 客户端
+    cd apps/admin && npx prisma generate && \
     # 清理不必要的文件
-    rm -rf /app && \
-    find /prod/admin -name "*.log" -delete && \
-    find /prod/admin -name "*.tmp" -delete
+    find . -name "*.log" -delete && \
+    find . -name "*.tmp" -delete && \
+    rm -rf /tmp/* && \
+    pnpm store prune
 
-FROM node:20-alpine AS admin-runner
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g pnpm@10.10.0 && \
     # 清理 npm 缓存
     npm cache clean --force
-WORKDIR /app
-COPY --from=admin-deploy-intermediate /prod/admin /app
 
-# 在运行时重新生成Prisma客户端（如果需要）
-RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi && \
-    # 清理临时文件
-    rm -rf /tmp/* && \
-    rm -rf ~/.npm
-
+WORKDIR /app/apps/admin
 EXPOSE 3001
 CMD ["pnpm", "start"]
 
-FROM base AS web-deploy-intermediate
+FROM base AS web-runner
 WORKDIR /app
-COPY --from=builder /app /app
-# 使用手动复制方式，避免 pnpm deploy 的符号链接问题
-RUN mkdir -p /prod/web && \
-    # 复制应用文件和配置
-    cp -r apps/web/package.json /prod/web/ && \
-    cp -r apps/web/.next /prod/web/ && \
-    # 创建简化的 package.json，只包含生产依赖
-    cd /prod/web && \
-    # 从原始 package.json 中提取生产依赖并创建新的 package.json
-    node <<EOF && \
-const pkg = require('./package.json');
-const newPkg = {
-  name: pkg.name,
-  version: pkg.version,
-  private: pkg.private,
-  type: pkg.type,
-  scripts: { start: pkg.scripts.start },
-  dependencies: pkg.dependencies || {}
-};
-require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
-EOF
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-# 安装生产依赖（不使用工作区）
-RUN cd /prod/web && \
-    pnpm install --prod --no-frozen-lockfile && \
+# 复制必要的 packages
+COPY --from=builder /app/packages ./packages
+
+# 安装生产依赖
+RUN pnpm install --frozen-lockfile --prod && \
     # 清理不必要的文件
-    rm -rf /app && \
-    find /prod/web -name "*.log" -delete && \
-    find /prod/web -name "*.tmp" -delete
+    find . -name "*.log" -delete && \
+    find . -name "*.tmp" -delete && \
+    rm -rf /tmp/* && \
+    pnpm store prune
 
-FROM node:20-alpine AS web-runner
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g pnpm@10.10.0 && \
     # 清理 npm 缓存
     npm cache clean --force
-WORKDIR /app
-COPY --from=web-deploy-intermediate /prod/web /app
 
-# 清理临时文件
-RUN rm -rf /tmp/* && \
-    rm -rf ~/.npm
-
+WORKDIR /app/apps/web
 EXPOSE 3000
 CMD ["pnpm", "start"]

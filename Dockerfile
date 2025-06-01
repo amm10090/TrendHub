@@ -51,8 +51,6 @@ COPY apps/admin/components.json ./apps/admin/
 COPY apps/admin/eslint.config.mjs ./apps/admin/
 COPY apps/admin/next-env.d.ts ./apps/admin/
 COPY apps/admin/.npmrc ./apps/admin/
-COPY apps/admin/.env.local ./apps/admin/.env.local
-COPY apps/admin/.env ./apps/admin/.env
 
 # Web 应用文件
 COPY apps/web/app ./apps/web/app
@@ -76,8 +74,6 @@ COPY apps/web/next-env.d.ts ./apps/web/
 COPY apps/web/eslint.config.mjs ./apps/web/
 COPY apps/web/.npmrc ./apps/web/
 COPY apps/web/.prettierrc ./apps/web/
-COPY apps/web/.env ./apps/web/.env
-COPY apps/web/.envexample ./apps/web/.envexample
 
 # Packages 文件
 COPY packages/types/src ./packages/types/src
@@ -88,9 +84,7 @@ COPY packages/ui/src ./packages/ui/src
 COPY packages/ui/tsconfig.json ./packages/ui/
 
 # 根目录文件
-COPY turbo.json eslint.config.js LICENSE ./ 
-COPY .env.example ./
-COPY .env.docker ./
+COPY turbo.json eslint.config.js LICENSE ./
 
 # 确保数据库环境变量可用
 ARG DATABASE_URL
@@ -113,14 +107,10 @@ COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
 COPY --from=builder /app/apps/admin/package.json ./apps/admin/package.json
 COPY --from=builder /app/apps/admin/prisma ./apps/admin/prisma
 COPY --from=builder /app/apps/admin/public ./apps/admin/public
-COPY --from=builder /app/apps/admin/.env ./apps/admin/.env
-COPY --from=builder /app/apps/admin/.env.local ./apps/admin/.env.local
 COPY --from=builder /app/apps/admin/next.config.js ./apps/admin/next.config.js
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --from=builder /app/.env.example ./.env.example
-COPY --from=builder /app/.env.docker ./.env.docker
 
 # 复制必要的 packages
 COPY --from=builder /app/packages ./packages
@@ -151,14 +141,10 @@ WORKDIR /app
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/apps/web/.env ./apps/web/.env
-COPY --from=builder /app/apps/web/.envexample ./apps/web/.envexample
 COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --from=builder /app/.env.example ./.env.example
-COPY --from=builder /app/.env.docker ./.env.docker
 
 # 复制必要的 packages
 COPY --from=builder /app/packages ./packages

@@ -63,18 +63,18 @@ RUN mkdir -p /prod/admin && \
     # 创建简化的 package.json，只包含生产依赖
     cd /prod/admin && \
     # 从原始 package.json 中提取生产依赖并创建新的 package.json
-    node -e "
-      const pkg = require('./package.json');
-      const newPkg = {
-        name: pkg.name,
-        version: pkg.version,
-        private: pkg.private,
-        type: pkg.type,
-        scripts: { start: pkg.scripts.start },
-        dependencies: pkg.dependencies || {}
-      };
-      require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
-    " && \
+    node <<EOF && \
+const pkg = require('./package.json');
+const newPkg = {
+  name: pkg.name,
+  version: pkg.version,
+  private: pkg.private,
+  type: pkg.type,
+  scripts: { start: pkg.scripts.start },
+  dependencies: pkg.dependencies || {}
+};
+require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
+EOF
     # 安装生产依赖（不使用工作区）
     pnpm install --prod --no-frozen-lockfile && \
     # 确保复制Prisma生成的文件
@@ -115,18 +115,18 @@ RUN mkdir -p /prod/web && \
     # 创建简化的 package.json，只包含生产依赖
     cd /prod/web && \
     # 从原始 package.json 中提取生产依赖并创建新的 package.json
-    node -e "
-      const pkg = require('./package.json');
-      const newPkg = {
-        name: pkg.name,
-        version: pkg.version,
-        private: pkg.private,
-        type: pkg.type,
-        scripts: { start: pkg.scripts.start },
-        dependencies: pkg.dependencies || {}
-      };
-      require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
-    " && \
+    node <<EOF && \
+const pkg = require('./package.json');
+const newPkg = {
+  name: pkg.name,
+  version: pkg.version,
+  private: pkg.private,
+  type: pkg.type,
+  scripts: { start: pkg.scripts.start },
+  dependencies: pkg.dependencies || {}
+};
+require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
+EOF
     # 安装生产依赖（不使用工作区）
     pnpm install --prod --no-frozen-lockfile && \
     # 清理不必要的文件

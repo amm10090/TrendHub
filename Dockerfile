@@ -91,7 +91,6 @@ COPY packages/ui/tsconfig.json ./packages/ui/
 COPY turbo.json eslint.config.js LICENSE ./ 
 COPY .env.example ./
 COPY .env.docker ./
-COPY docker-compose.yml ./
 
 # 确保数据库环境变量可用
 ARG DATABASE_URL

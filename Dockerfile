@@ -76,7 +76,7 @@ const newPkg = {
 require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
 EOF
     # 安装生产依赖（不使用工作区）
-    pnpm install --prod --no-frozen-lockfile && \
+RUN pnpm install --prod --no-frozen-lockfile && \
     # 确保复制Prisma生成的文件
     cp -r /app/apps/admin/node_modules/.prisma ./node_modules/.prisma 2>/dev/null || true && \
     cp -r /app/apps/admin/node_modules/@prisma ./node_modules/@prisma 2>/dev/null || true && \
@@ -128,7 +128,7 @@ const newPkg = {
 require('fs').writeFileSync('package.json', JSON.stringify(newPkg, null, 2));
 EOF
     # 安装生产依赖（不使用工作区）
-    pnpm install --prod --no-frozen-lockfile && \
+RUN pnpm install --prod --no-frozen-lockfile && \
     # 清理不必要的文件
     rm -rf /app && \
     find /prod/web -name "*.log" -delete && \

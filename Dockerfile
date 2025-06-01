@@ -62,6 +62,16 @@ COPY --from=admin-deploy-intermediate /prod/admin /app
 # 在运行时重新生成Prisma客户端
 RUN npx prisma generate || true
 
+# 在admin-runner阶段添加
+RUN apk add --no-cache chromium
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin/chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV CHROMIUM_PATH=/usr/bin/chromium-browser
+
+# 创建目录并建立链接
+RUN mkdir -p /root/.cache/ms-playwright/chromium-1169/chrome-linux/
+RUN ln -sf /usr/bin/chromium-browser /root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome
+
 EXPOSE 3001
 CMD ["pnpm", "start"]
 

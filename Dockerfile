@@ -76,7 +76,8 @@ COPY packages/types/tsconfig.json ./packages/types/
 COPY packages/scraper/src ./packages/scraper/src
 COPY packages/scraper/tsconfig.json ./packages/scraper/
 COPY packages/ui/src ./packages/ui/src
-COPY packages/ui/tsconfig.json ./packages/ui/
+# 使用2>/dev/null，如果文件不存在也不会报错
+COPY packages/ui/tsconfig.json ./packages/ui/ 2>/dev/null || true
 
 # 确保数据库环境变量可用
 ARG DATABASE_URL

@@ -80,7 +80,6 @@ COPY packages/types/src ./packages/types/src
 COPY packages/types/tsconfig.json ./packages/types/
 COPY packages/scraper/src ./packages/scraper/src
 COPY packages/scraper/tsconfig.json ./packages/scraper/
-COPY packages/ui/src ./packages/ui/src
 
 # 根目录文件
 COPY turbo.json eslint.config.js LICENSE ./

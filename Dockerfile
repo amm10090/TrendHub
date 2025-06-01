@@ -62,13 +62,27 @@ COPY --from=admin-deploy-intermediate /prod/admin /app
 # 在运行时重新生成Prisma客户端
 RUN npx prisma generate || true
 
-# 在admin-runner阶段添加
-RUN apk add --no-cache chromium
+# 在admin-runner阶段添加更多依赖
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    fontconfig \
+    dbus \
+    udev \
+    xvfb \
+    bash \
+    python3
+
+# 为Playwright设置环境变量
 ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin/chromium
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV CHROMIUM_PATH=/usr/bin/chromium-browser
 
-# 创建目录并建立链接
+# 创建必要的目录结构
 RUN mkdir -p /root/.cache/ms-playwright/chromium-1169/chrome-linux/
 RUN ln -sf /usr/bin/chromium-browser /root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome
 

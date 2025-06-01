@@ -93,8 +93,6 @@ jobs:
           # 优化缓存策略
           cache-from: type=gha,scope=admin
           cache-to: type=gha,mode=max,scope=admin
-          build-args: |
-            DATABASE_URL=postgresql://dummy:dummy@dummy:5432/dummy
 
       - name: 清理 Docker 资源
         if: always()

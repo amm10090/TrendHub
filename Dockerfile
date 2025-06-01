@@ -75,12 +75,13 @@ COPY packages/types/src ./packages/types/src
 COPY packages/types/tsconfig.json ./packages/types/
 COPY packages/scraper/src ./packages/scraper/src
 COPY packages/scraper/tsconfig.json ./packages/scraper/
+
+# UI 包文件 - 使用通配符避免特定文件不存在的问题
 COPY packages/ui/src ./packages/ui/src
-# 使用2>/dev/null，如果文件不存在也不会报错
-COPY packages/ui/tsconfig.json ./packages/ui/ 2>/dev/null || true
+COPY packages/ui/*.json ./packages/ui/ 2>/dev/null || true
 
 # 确保数据库环境变量可用
-ARG DATABASE_URL
+ARG DATABASE_URL=postgresql://dummy:dummy@postgres:5432/trendhub
 ENV DATABASE_URL=${DATABASE_URL}
 
 # 生成Prisma客户端并构建应用

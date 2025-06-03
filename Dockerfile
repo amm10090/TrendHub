@@ -1,7 +1,7 @@
 FROM node:20-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm@10.10.0
+RUN npm install -g pnpm@10.11.0
 
 FROM base AS fetcher
 WORKDIR /app
@@ -55,7 +55,7 @@ FROM node:20-alpine AS admin-runner
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm@10.10.0
+RUN npm install -g pnpm@10.11.0
 WORKDIR /app
 COPY --from=admin-deploy-intermediate /prod/admin /app
 
@@ -75,19 +75,34 @@ RUN apk add --no-cache \
     udev \
     xvfb \
     bash \
-    python3
+    python3 \
+    # Added dependencies for headless chromium and D-Bus
+    xorg-server-xvfb \
+    gcompat \
+    libstdc++ \
+    libgcc \
+    libx11 \
+    libxext \
+    libxrandr \
+    libxfixes \
+    libxi \
+    libxrender \
+    libxtst \
+    mesa-gl \
+    mesa-gbm \
+    libexif \
+    dbus-x11
 
 # 为Playwright设置环境变量
-ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin/chromium
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV CHROMIUM_PATH=/usr/bin/chromium-browser
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# 创建必要的目录结构
-RUN mkdir -p /root/.cache/ms-playwright/chromium-1169/chrome-linux/
-RUN ln -sf /usr/bin/chromium-browser /root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome
+# 创建必要的目录结构并建立链接 (fallback)
+RUN mkdir -p /root/.cache/ms-playwright/chromium-1169/chrome-linux/ && \
+    ln -sf /usr/bin/chromium-browser /root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome
 
 EXPOSE 3001
-CMD ["pnpm", "start"]
+CMD ["dbus-run-session", "--", "pnpm", "start"]
 
 FROM base AS web-deploy-intermediate
 WORKDIR /app
@@ -99,7 +114,7 @@ FROM node:20-alpine AS web-runner
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm@10.10.0
+RUN npm install -g pnpm@10.11.0
 WORKDIR /app
 COPY --from=web-deploy-intermediate /prod/web /app
 EXPOSE 3000

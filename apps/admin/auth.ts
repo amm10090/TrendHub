@@ -165,60 +165,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return session;
     },
-    async redirect({ url, baseUrl }) {
-      // 使用内部URL避免socket hang up问题
-      const effectiveBaseUrl = getAuthUrl();
-      const finalBaseUrl = effectiveBaseUrl.endsWith("/")
-        ? effectiveBaseUrl.slice(0, -1)
-        : effectiveBaseUrl;
-
+    // 禁用 Auth.js 的 redirect 回调，让中间件处理所有重定向逻辑
+    // 这避免了与 next-intl 中间件的冲突
+    async redirect({ url }) {
       // 生产环境调试
       if (process.env.NODE_ENV === "production") {
         console.log(
-          `[AUTH_REDIRECT] Original URL: "${url}", BaseURL: "${baseUrl}", FinalBaseURL: "${finalBaseUrl}"`,
+          `[AUTH_REDIRECT] Redirect disabled, returning original URL: "${url}"`,
         );
       }
 
-      try {
-        // 简化重定向逻辑，避免与 next-intl 冲突
-        if (url.startsWith("/")) {
-          // 相对路径处理
-          if (url === "/" || url === "") {
-            return `${finalBaseUrl}/en`;
-          }
-
-          // 如果路径已经有语言前缀，直接返回
-          if (url.match(/^\/(en|cn)(\/.*)?$/)) {
-            return `${finalBaseUrl}${url}`;
-          }
-
-          // 否则添加默认语言前缀
-          return `${finalBaseUrl}/en${url}`;
-        } else {
-          // 绝对路径处理
-          try {
-            const urlObj = new URL(url);
-            const finalBaseUrlObj = new URL(finalBaseUrl);
-
-            if (
-              urlObj.hostname === finalBaseUrlObj.hostname &&
-              urlObj.port === finalBaseUrlObj.port
-            ) {
-              // 同源URL，保持原路径
-              return url;
-            } else {
-              // 不同源，重定向到默认页面
-              return `${finalBaseUrl}/en`;
-            }
-          } catch {
-            // URL解析失败，返回默认页面
-            return `${finalBaseUrl}/en`;
-          }
-        }
-      } catch (error) {
-        console.error("[AUTH_REDIRECT] Error during redirect:", error);
-        return `${finalBaseUrl}/en`;
-      }
+      // 简单返回原始URL，让中间件处理重定向
+      return url;
     },
   },
   events: {

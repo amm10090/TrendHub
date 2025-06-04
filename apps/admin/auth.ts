@@ -8,15 +8,6 @@ import Resend from "next-auth/providers/resend";
 
 import { db } from "@/lib/db"; // 确保您的 Prisma 实例路径正确
 
-// 确保环境变量存在
-if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
-  throw new Error("AUTH_SECRET or NEXTAUTH_SECRET must be set");
-}
-
-if (!process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
-  throw new Error("AUTH_URL or NEXTAUTH_URL must be set");
-}
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" }, // 使用 JWT 会话策略

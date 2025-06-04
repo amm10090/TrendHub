@@ -165,18 +165,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return session;
     },
-    // 禁用 Auth.js 的 redirect 回调，让中间件处理所有重定向逻辑
-    // 这避免了与 next-intl 中间件的冲突
-    async redirect({ url }) {
-      // 生产环境调试
-      if (process.env.NODE_ENV === "production") {
-        console.log(
-          `[AUTH_REDIRECT] Redirect disabled, returning original URL: "${url}"`,
-        );
+    // 简化的重定向回调逻辑 - 防止无限循环
+    async redirect({ url, baseUrl }) {
+      // 只在开发环境记录详细日志
+      const debugLog = process.env.NODE_ENV === "development";
+
+      if (debugLog) {
+        console.log(`[AUTH_REDIRECT] url: "${url}", baseUrl: "${baseUrl}"`);
       }
 
-      // 简单返回原始URL，让中间件处理重定向
-      return url;
+      // 防止自我重定向循环 - 如果URL和baseUrl相同，返回默认页面
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/en`;
+      }
+
+      // 如果URL已经是完整的外部URL并且指向我们的域，直接返回
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+
+      // 如果是相对路径，组合成完整URL
+      if (url.startsWith("/")) {
+        // 避免递归重定向到相同路径
+        if (url === "/en" && baseUrl.endsWith("en")) {
+          return `${baseUrl}`;
+        }
+        return `${baseUrl}${url}`;
+      }
+
+      // 默认重定向到主页面
+      return `${baseUrl}/en`;
     },
   },
   events: {

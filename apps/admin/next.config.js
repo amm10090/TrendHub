@@ -36,12 +36,6 @@ const nextConfig = {
         ...allowedDevOrigins.map((ip) => `${ip}:3001`),
       ],
     },
-    // 添加允许的开发源
-    allowedDevOrigins: [
-      "localhost:3001",
-      "127.0.0.1:3001",
-      ...allowedDevOrigins.map((ip) => `${ip}:3001`),
-    ],
   },
   webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {

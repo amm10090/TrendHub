@@ -165,35 +165,59 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return session;
     },
-    // 简化的重定向回调逻辑 - 防止无限循环
+    // 完全重写的重定向回调逻辑 - 彻底防止无限循环
     async redirect({ url, baseUrl }) {
-      // 只在开发环境记录详细日志
-      const debugLog = process.env.NODE_ENV === "development";
+      // 生产环境不记录日志
+      const isProduction = process.env.NODE_ENV === "production";
 
-      if (debugLog) {
+      if (!isProduction) {
         console.log(`[AUTH_REDIRECT] url: "${url}", baseUrl: "${baseUrl}"`);
       }
 
-      // 防止自我重定向循环 - 如果URL和baseUrl相同，返回默认页面
+      // 如果是绝对URL且属于外部域，直接允许
+      try {
+        const urlObj = new URL(url);
+        const baseUrlObj = new URL(baseUrl);
+
+        if (urlObj.hostname !== baseUrlObj.hostname) {
+          // 外部URL，允许重定向
+          return url;
+        }
+      } catch {
+        // 如果URL解析失败，继续处理相对路径
+      }
+
+      // 检查是否是相对路径
+      if (url.startsWith("/")) {
+        // 防止重定向到当前相同的路径
+        const currentPath = url;
+
+        // 如果当前已经在登录页面，不要再重定向到登录页面
+        if (currentPath.includes("/login")) {
+          // 登录成功后，重定向到仪表板
+          return `${baseUrl}/en`;
+        }
+
+        // 如果是根路径，重定向到 /en
+        if (currentPath === "/" || currentPath === "") {
+          return `${baseUrl}/en`;
+        }
+
+        // 其他相对路径，组合完整URL
+        return `${baseUrl}${currentPath}`;
+      }
+
+      // 如果URL完全匹配baseUrl，重定向到默认页面
       if (url === baseUrl || url === `${baseUrl}/`) {
         return `${baseUrl}/en`;
       }
 
-      // 如果URL已经是完整的外部URL并且指向我们的域，直接返回
+      // 如果URL已经是完整的同域URL，直接返回
       if (url.startsWith(baseUrl)) {
         return url;
       }
 
-      // 如果是相对路径，组合成完整URL
-      if (url.startsWith("/")) {
-        // 避免递归重定向到相同路径
-        if (url === "/en" && baseUrl.endsWith("en")) {
-          return `${baseUrl}`;
-        }
-        return `${baseUrl}${url}`;
-      }
-
-      // 默认重定向到主页面
+      // 默认情况：重定向到主页
       return `${baseUrl}/en`;
     },
   },

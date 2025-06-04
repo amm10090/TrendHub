@@ -21,12 +21,9 @@ export default auth((req) => {
   const request = req as NextRequest & { auth: AuthSession };
   const { pathname } = request.nextUrl;
 
-  // 只在特定条件下记录日志，减少噪音
-  const shouldLog =
-    process.env.NODE_ENV === "development" ||
-    (process.env.NODE_ENV === "production" &&
-      pathname.includes("/login") &&
-      Math.random() < 0.1);
+  // 生产环境减少日志，只在特定错误情况下记录
+  const isProduction = process.env.NODE_ENV === "production";
+  const shouldLog = !isProduction || (isProduction && Math.random() < 0.01); // 生产环境只记录1%的请求
 
   if (shouldLog) {
     console.log(
@@ -34,7 +31,7 @@ export default auth((req) => {
     );
   }
 
-  // Auth.js API 路径直接放行
+  // 完全跳过所有Auth.js相关路径，避免冲突
   if (pathname.startsWith("/api/auth")) {
     return;
   }
@@ -78,7 +75,7 @@ export default auth((req) => {
     pathname.startsWith("/en/public") ||
     pathname.startsWith("/cn/public");
 
-  // 如果是公共页面，应用国际化中间件后直接返回
+  // 如果是公共页面，直接应用国际化中间件
   if (isPublicPage) {
     return intlMiddleware(request);
   }
@@ -87,6 +84,11 @@ export default auth((req) => {
   const isAuthenticated = !!request.auth?.user;
 
   if (!isAuthenticated) {
+    // 防止重定向循环：如果已经在登录页面，就不要再重定向
+    if (pathname.includes("/login")) {
+      return intlMiddleware(request);
+    }
+
     // 提取语言代码
     const pathSegments = pathname.split("/").filter(Boolean);
     const locale =

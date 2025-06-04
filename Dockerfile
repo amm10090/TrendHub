@@ -1,7 +1,7 @@
 FROM node:20-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm@10.11.0
+RUN npm install -g pnpm@10.11.1
 
 FROM base AS fetcher
 WORKDIR /app
@@ -55,7 +55,7 @@ FROM node:20-alpine AS admin-runner
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm@10.11.0
+RUN npm install -g pnpm@10.11.1
 WORKDIR /app
 COPY --from=admin-deploy-intermediate /prod/admin /app
 
@@ -114,7 +114,7 @@ FROM node:20-alpine AS web-runner
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm@10.11.0
+RUN npm install -g pnpm@10.11.1
 WORKDIR /app
 COPY --from=web-deploy-intermediate /prod/web /app
 EXPOSE 3000

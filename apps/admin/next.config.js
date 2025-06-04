@@ -1,6 +1,12 @@
+/* eslint-disable no-undef */
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+// 解析 NEXT_PUBLIC_ALLOWED_DEV_ORIGINS 环境变量
+const allowedDevOrigins = process.env.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS
+  ? JSON.parse(process.env.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS)
+  : [];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -24,8 +30,18 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
     serverActions: {
-      allowedOrigins: ["localhost:3001", "82.25.95.136:3001"],
+      allowedOrigins: [
+        "localhost:3001",
+        "127.0.0.1:3001",
+        ...allowedDevOrigins.map((ip) => `${ip}:3001`),
+      ],
     },
+    // 添加允许的开发源
+    allowedDevOrigins: [
+      "localhost:3001",
+      "127.0.0.1:3001",
+      ...allowedDevOrigins.map((ip) => `${ip}:3001`),
+    ],
   },
   webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {

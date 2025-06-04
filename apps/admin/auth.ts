@@ -140,73 +140,82 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // 获取正确的基础URL，优先使用环境变量
-      const authUrl =
+      const effectiveBaseUrl =
         process.env.AUTH_URL || process.env.NEXTAUTH_URL || baseUrl;
-      const finalBaseUrl = authUrl.endsWith("/")
-        ? authUrl.slice(0, -1)
-        : authUrl;
+      const finalBaseUrl = effectiveBaseUrl.endsWith("/")
+        ? effectiveBaseUrl.slice(0, -1)
+        : effectiveBaseUrl;
+
+      console.log(
+        `[AUTH_REDIRECT] Original URL: "${url}", BaseURL: "${baseUrl}", FinalBaseURL: "${finalBaseUrl}"`,
+      );
 
       try {
-        // 如果是相对路径
+        let targetUrl;
+
         if (url.startsWith("/")) {
-          // 根路径重定向到默认语言页面
+          // Handle relative URLs
+          let prefixedPath = url;
           if (url === "/" || url === "") {
-            const redirectUrl = `${finalBaseUrl}/en`;
-
-            return redirectUrl;
+            prefixedPath = "/en";
+            console.log(
+              `[AUTH_REDIRECT] Case 1: Root relative URL. Path becomes: "${prefixedPath}"`,
+            );
+          } else if (!url.match(/^\/(en|cn)(\/.*)?$/)) {
+            // Add language prefix if not present and not a root path
+            prefixedPath = `/en${url}`;
+            console.log(
+              `[AUTH_REDIRECT] Case 2: Other relative URL "${url}". Path becomes: "${prefixedPath}"`,
+            );
+          } else {
+            console.log(
+              `[AUTH_REDIRECT] Case 3: Relative URL "${url}" already has language prefix or is a language root. Path remains: "${prefixedPath}"`,
+            );
           }
+          targetUrl = `${finalBaseUrl}${prefixedPath}`;
+        } else {
+          // Handle absolute URLs
+          const urlObj = new URL(url);
+          const finalBaseUrlObj = new URL(finalBaseUrl);
 
-          // 确保路径以语言代码开头
-          if (!url.startsWith("/en") && !url.startsWith("/cn")) {
-            const redirectUrl = `${finalBaseUrl}/en${url}`;
-
-            return redirectUrl;
+          if (
+            urlObj.hostname === finalBaseUrlObj.hostname &&
+            urlObj.port === finalBaseUrlObj.port
+          ) {
+            // URL is on the same origin
+            let path = urlObj.pathname;
+            if (path === "/" || path === "") {
+              path = "/en";
+              console.log(
+                `[AUTH_REDIRECT] Case 4: Absolute URL, same origin, root path. Path becomes: "${path}"`,
+              );
+            } else if (!path.match(/^\/(en|cn)(\/.*)?$/)) {
+              path = `/en${path}`;
+              console.log(
+                `[AUTH_REDIRECT] Case 5: Absolute URL, same origin, needs lang prefix. Original path: "${urlObj.pathname}". Path becomes: "${path}"`,
+              );
+            } else {
+              console.log(
+                `[AUTH_REDIRECT] Case 6: Absolute URL, same origin, path "${path}" is fine.`,
+              );
+            }
+            targetUrl = `${finalBaseUrl}${path}${urlObj.search}${urlObj.hash}`;
+          } else {
+            // URL is on a different origin, redirect to default page on our domain
+            targetUrl = `${finalBaseUrl}/en`;
+            console.log(
+              `[AUTH_REDIRECT] Case 7: Absolute URL, different origin. Redirecting to default: "${targetUrl}"`,
+            );
           }
-
-          const redirectUrl = `${finalBaseUrl}${url}`;
-
-          return redirectUrl;
         }
-
-        // 如果是完整URL
-        const urlObj = new URL(url);
-        const baseUrlObj = new URL(finalBaseUrl);
-
-        // 如果主机名和端口匹配，说明是同域重定向
-        if (
-          urlObj.hostname === baseUrlObj.hostname &&
-          urlObj.port === baseUrlObj.port
-        ) {
-          // 检查路径是否有语言前缀
-          const pathSegments = urlObj.pathname.split("/").filter(Boolean);
-
-          if (pathSegments.length === 0) {
-            // 空路径，重定向到默认语言
-            const redirectUrl = `${finalBaseUrl}/en`;
-
-            return redirectUrl;
-          }
-
-          if (!pathSegments[0].match(/^(en|cn)$/)) {
-            // 没有语言前缀，添加默认语言
-            const newPath = `/en${urlObj.pathname}`;
-            const redirectUrl = `${finalBaseUrl}${newPath}${urlObj.search}${urlObj.hash}`;
-
-            return redirectUrl;
-          }
-
-          return url;
-        }
-
-        // 不同域名或其他情况，重定向到默认页面
-        const redirectUrl = `${finalBaseUrl}/en`;
-
-        return redirectUrl;
+        console.log(`[AUTH_REDIRECT] Final redirect decision: "${targetUrl}"`);
+        return targetUrl;
       } catch (error) {
-        console.error("Auth redirect error:", error);
+        console.error("[AUTH_REDIRECT] Error during redirect:", error);
         const fallbackUrl = `${finalBaseUrl}/en`;
-
+        console.log(
+          `[AUTH_REDIRECT] Fallback redirect due to error: "${fallbackUrl}"`,
+        );
         return fallbackUrl;
       }
     },

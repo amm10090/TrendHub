@@ -8,6 +8,20 @@ import Resend from "next-auth/providers/resend";
 
 import { db } from "@/lib/db"; // 确保您的 Prisma 实例路径正确
 
+// console.log("Auth.ts - AUTH_URL:", process.env.AUTH_URL);
+// console.log("Auth.ts - NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+// console.log("Auth.ts - AUTH_SECRET exists:", !!process.env.AUTH_SECRET);
+
+// 决定 useSecureCookies 的值
+// 在生产环境中，如果 AUTH_URL 明确以 http:// 开头，则不使用安全 cookies
+// 否则，在生产环境中使用安全 cookies (即 AUTH_URL 是 https:// 或未指定但期望是 https)
+const productionAuthUrlIsHttp =
+  process.env.NODE_ENV === "production" &&
+  process.env.AUTH_URL?.startsWith("http://");
+
+const shouldUseSecureCookies =
+  process.env.NODE_ENV === "production" && !productionAuthUrlIsHttp;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" }, // 使用 JWT 会话策略
@@ -228,10 +242,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   // 生产环境安全配置
-  useSecureCookies: process.env.NODE_ENV === "production",
+  useSecureCookies: shouldUseSecureCookies, // 使用计算出的值
 
   // 确保正确的 URL 配置
-  ...(process.env.AUTH_URL && {
-    url: process.env.AUTH_URL,
-  }),
+  // ...(process.env.AUTH_URL && { // 这个条件性展开可能不是必须的，因为NextAuth会直接读取AUTH_URL环境变量
+  //   url: process.env.AUTH_URL,
+  // }),
 });

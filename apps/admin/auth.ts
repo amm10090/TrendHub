@@ -22,6 +22,15 @@ const productionAuthUrlIsHttp =
 const shouldUseSecureCookies =
   process.env.NODE_ENV === "production" && !productionAuthUrlIsHttp;
 
+// 生产环境调试日志
+if (process.env.NODE_ENV === "production") {
+  console.log("[AUTH CONFIG] Production auth configuration:");
+  console.log("[AUTH CONFIG] AUTH_URL:", process.env.AUTH_URL);
+  console.log("[AUTH CONFIG] Using secure cookies:", shouldUseSecureCookies);
+  console.log("[AUTH CONFIG] AUTH_TRUST_HOST:", process.env.AUTH_TRUST_HOST);
+  console.log("[AUTH CONFIG] Production HTTP mode:", productionAuthUrlIsHttp);
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" }, // 使用 JWT 会话策略
@@ -156,6 +165,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (url.startsWith("/")) {
           // Handle relative URLs
           let prefixedPath = url;
+
           if (url === "/" || url === "") {
             prefixedPath = "/en";
             console.log(
@@ -184,6 +194,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           ) {
             // URL is on the same origin
             let path = urlObj.pathname;
+
             if (path === "/" || path === "") {
               path = "/en";
               console.log(
@@ -209,13 +220,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         }
         console.log(`[AUTH_REDIRECT] Final redirect decision: "${targetUrl}"`);
+
         return targetUrl;
       } catch (error) {
         console.error("[AUTH_REDIRECT] Error during redirect:", error);
         const fallbackUrl = `${finalBaseUrl}/en`;
+
         console.log(
           `[AUTH_REDIRECT] Fallback redirect due to error: "${fallbackUrl}"`,
         );
+
         return fallbackUrl;
       }
     },
@@ -252,6 +266,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   // 生产环境安全配置
   useSecureCookies: shouldUseSecureCookies, // 使用计算出的值
+
+  // HTTP环境特殊配置
+  ...(productionAuthUrlIsHttp && {
+    cookies: {
+      sessionToken: {
+        name: `${shouldUseSecureCookies ? "__Secure-" : ""}next-auth.session-token`,
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          secure: false, // HTTP环境下设置为false
+        },
+      },
+      callbackUrl: {
+        name: `${shouldUseSecureCookies ? "__Secure-" : ""}next-auth.callback-url`,
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          secure: false, // HTTP环境下设置为false
+        },
+      },
+      csrfToken: {
+        name: `${shouldUseSecureCookies ? "__Host-" : ""}next-auth.csrf-token`,
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          secure: false, // HTTP环境下设置为false
+        },
+      },
+    },
+  }),
 
   // 确保正确的 URL 配置
   // ...(process.env.AUTH_URL && { // 这个条件性展开可能不是必须的，因为NextAuth会直接读取AUTH_URL环境变量

@@ -21,6 +21,11 @@ export default auth((req) => {
   const request = req as NextRequest & { auth: AuthSession };
   const { pathname } = request.nextUrl;
 
+  // 生产环境调试
+  if (process.env.NODE_ENV === "production") {
+    console.log(`[MIDDLEWARE] ${new Date().toISOString()} - ${pathname}`);
+  }
+
   // 检查 /api/auth 路径, 如果匹配则直接返回，不进行后续处理
   if (pathname.startsWith("/api/auth")) {
     return; // Auth.js API 路由直接放行
@@ -54,15 +59,17 @@ export default auth((req) => {
 
   // 处理根路径访问
   if (pathname === "/" || pathname === "") {
-    const protocol =
-      request.headers.get("x-forwarded-proto") ||
-      (request.nextUrl.protocol === "https:" ? "https" : "http");
+    const protocol = "http"; // 生产环境使用HTTP
     const host =
       request.headers.get("x-forwarded-host") ||
       request.headers.get("host") ||
       request.nextUrl.host;
 
     const redirectUrl = `${protocol}://${host}/en`;
+
+    if (process.env.NODE_ENV === "production") {
+      console.log(`[MIDDLEWARE] Root redirect to: ${redirectUrl}`);
+    }
 
     return NextResponse.redirect(redirectUrl);
   }
@@ -76,10 +83,8 @@ export default auth((req) => {
         ? pathSegments[0]
         : "en";
 
-    // 构建登录URL
-    const protocol =
-      request.headers.get("x-forwarded-proto") ||
-      (request.nextUrl.protocol === "https:" ? "https" : "http");
+    // 构建登录URL - 适配HTTP环境
+    const protocol = "http"; // 生产环境使用HTTP
     const host =
       request.headers.get("x-forwarded-host") ||
       request.headers.get("host") ||
@@ -88,6 +93,10 @@ export default auth((req) => {
     // 对于根路径，直接使用 "/"，避免不必要的编码
     const callbackUrl = pathname === "/" ? "/" : encodeURIComponent(pathname);
     const loginUrl = `${protocol}://${host}/${locale}/login?callbackUrl=${callbackUrl}`;
+
+    if (process.env.NODE_ENV === "production") {
+      console.log(`[MIDDLEWARE] Redirecting to: ${loginUrl}`);
+    }
 
     return NextResponse.redirect(loginUrl);
   }

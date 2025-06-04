@@ -21,6 +21,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // 生产环境优化
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: false,
   turbopack: {
     // 如果有特定设置，放在这里
   },
@@ -33,6 +37,7 @@ const nextConfig = {
       allowedOrigins: [
         "localhost:3001",
         "127.0.0.1:3001",
+        "82.25.95.136:3001", // 添加你的生产服务器IP
         ...allowedDevOrigins.map((ip) => `${ip}:3001`),
       ],
     },

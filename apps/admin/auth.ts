@@ -172,82 +172,52 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ? effectiveBaseUrl.slice(0, -1)
         : effectiveBaseUrl;
 
-      console.log(
-        `[AUTH_REDIRECT] Original URL: "${url}", BaseURL: "${baseUrl}", FinalBaseURL: "${finalBaseUrl}"`,
-      );
+      // 生产环境调试
+      if (process.env.NODE_ENV === "production") {
+        console.log(
+          `[AUTH_REDIRECT] Original URL: "${url}", BaseURL: "${baseUrl}", FinalBaseURL: "${finalBaseUrl}"`,
+        );
+      }
 
       try {
-        let targetUrl;
-
+        // 简化重定向逻辑，避免与 next-intl 冲突
         if (url.startsWith("/")) {
-          // Handle relative URLs
-          let prefixedPath = url;
-
+          // 相对路径处理
           if (url === "/" || url === "") {
-            prefixedPath = "/en";
-            console.log(
-              `[AUTH_REDIRECT] Case 1: Root relative URL. Path becomes: "${prefixedPath}"`,
-            );
-          } else if (!url.match(/^\/(en|cn)(\/.*)?$/)) {
-            // Add language prefix if not present and not a root path
-            prefixedPath = `/en${url}`;
-            console.log(
-              `[AUTH_REDIRECT] Case 2: Other relative URL "${url}". Path becomes: "${prefixedPath}"`,
-            );
-          } else {
-            console.log(
-              `[AUTH_REDIRECT] Case 3: Relative URL "${url}" already has language prefix or is a language root. Path remains: "${prefixedPath}"`,
-            );
+            return `${finalBaseUrl}/en`;
           }
-          targetUrl = `${finalBaseUrl}${prefixedPath}`;
+
+          // 如果路径已经有语言前缀，直接返回
+          if (url.match(/^\/(en|cn)(\/.*)?$/)) {
+            return `${finalBaseUrl}${url}`;
+          }
+
+          // 否则添加默认语言前缀
+          return `${finalBaseUrl}/en${url}`;
         } else {
-          // Handle absolute URLs
-          const urlObj = new URL(url);
-          const finalBaseUrlObj = new URL(finalBaseUrl);
+          // 绝对路径处理
+          try {
+            const urlObj = new URL(url);
+            const finalBaseUrlObj = new URL(finalBaseUrl);
 
-          if (
-            urlObj.hostname === finalBaseUrlObj.hostname &&
-            urlObj.port === finalBaseUrlObj.port
-          ) {
-            // URL is on the same origin
-            let path = urlObj.pathname;
-
-            if (path === "/" || path === "") {
-              path = "/en";
-              console.log(
-                `[AUTH_REDIRECT] Case 4: Absolute URL, same origin, root path. Path becomes: "${path}"`,
-              );
-            } else if (!path.match(/^\/(en|cn)(\/.*)?$/)) {
-              path = `/en${path}`;
-              console.log(
-                `[AUTH_REDIRECT] Case 5: Absolute URL, same origin, needs lang prefix. Original path: "${urlObj.pathname}". Path becomes: "${path}"`,
-              );
+            if (
+              urlObj.hostname === finalBaseUrlObj.hostname &&
+              urlObj.port === finalBaseUrlObj.port
+            ) {
+              // 同源URL，保持原路径
+              return url;
             } else {
-              console.log(
-                `[AUTH_REDIRECT] Case 6: Absolute URL, same origin, path "${path}" is fine.`,
-              );
+              // 不同源，重定向到默认页面
+              return `${finalBaseUrl}/en`;
             }
-            targetUrl = `${finalBaseUrl}${path}${urlObj.search}${urlObj.hash}`;
-          } else {
-            // URL is on a different origin, redirect to default page on our domain
-            targetUrl = `${finalBaseUrl}/en`;
-            console.log(
-              `[AUTH_REDIRECT] Case 7: Absolute URL, different origin. Redirecting to default: "${targetUrl}"`,
-            );
+          } catch {
+            // URL解析失败，返回默认页面
+            return `${finalBaseUrl}/en`;
           }
         }
-        console.log(`[AUTH_REDIRECT] Final redirect decision: "${targetUrl}"`);
-
-        return targetUrl;
       } catch (error) {
         console.error("[AUTH_REDIRECT] Error during redirect:", error);
-        const fallbackUrl = `${finalBaseUrl}/en`;
-
-        console.log(
-          `[AUTH_REDIRECT] Fallback redirect due to error: "${fallbackUrl}"`,
-        );
-
-        return fallbackUrl;
+        return `${finalBaseUrl}/en`;
       }
     },
   },

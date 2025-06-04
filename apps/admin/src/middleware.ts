@@ -1,44 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 
-import { auth } from "@/../auth"; // 直接导入 auth 函数
 import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-// 定义认证会话类型
-interface AuthSession {
-  user?: {
-    id: string;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  } | null;
+// 手动检查认证状态，避免使用Auth.js的包装器
+function isUserAuthenticated(request: NextRequest): boolean {
+  try {
+    // 检查Next-Auth会话cookie
+    const sessionToken =
+      request.cookies.get("next-auth.session-token")?.value ||
+      request.cookies.get("__Secure-next-auth.session-token")?.value ||
+      request.cookies.get("authjs.session-token")?.value;
+
+    return !!sessionToken;
+  } catch {
+    return false;
+  }
 }
 
-export default auth((req) => {
-  // 类型断言，因为 auth 回调中 req 会被增强
-  const request = req as NextRequest & { auth: AuthSession };
+export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 生产环境减少日志，只在特定错误情况下记录
+  // 生产环境大幅减少日志记录
   const isProduction = process.env.NODE_ENV === "production";
-  const shouldLog = !isProduction || (isProduction && Math.random() < 0.01); // 生产环境只记录1%的请求
+  const shouldLog = !isProduction; // 只在开发环境记录日志
 
   if (shouldLog) {
-    console.log(
-      `[MIDDLEWARE] Processing: ${pathname}, Auth: ${!!request.auth?.user}`,
-    );
+    console.log(`[MIDDLEWARE] Processing: ${pathname}`);
   }
 
-  // 完全跳过所有Auth.js相关路径，避免冲突
+  // 完全跳过所有Auth.js相关路径
   if (pathname.startsWith("/api/auth")) {
-    return;
+    return NextResponse.next();
   }
 
   // 设置和公共API直接放行
   if (pathname.startsWith("/api/setup") || pathname.startsWith("/api/public")) {
-    return;
+    return NextResponse.next();
   }
 
   // 静态资源和 Next.js 内部路径直接放行
@@ -47,7 +47,7 @@ export default auth((req) => {
       pathname,
     )
   ) {
-    return;
+    return NextResponse.next();
   }
 
   // 处理根路径重定向
@@ -77,15 +77,24 @@ export default auth((req) => {
 
   // 如果是公共页面，直接应用国际化中间件
   if (isPublicPage) {
+    if (shouldLog) {
+      console.log(
+        `[MIDDLEWARE] Public page, applying intl middleware: ${pathname}`,
+      );
+    }
     return intlMiddleware(request);
   }
 
-  // 检查用户认证状态
-  const isAuthenticated = !!request.auth?.user;
+  // 手动检查用户认证状态
+  const isAuthenticated = isUserAuthenticated(request);
+
+  if (shouldLog) {
+    console.log(`[MIDDLEWARE] Auth status for ${pathname}: ${isAuthenticated}`);
+  }
 
   if (!isAuthenticated) {
-    // 防止重定向循环：如果已经在登录页面，就不要再重定向
-    if (pathname.includes("/login")) {
+    // 防止重定向循环：如果已经在任何公共页面，不要重定向
+    if (publicPaths.some((path) => pathname.startsWith(path))) {
       return intlMiddleware(request);
     }
 
@@ -107,17 +116,20 @@ export default auth((req) => {
     const loginUrl = `${protocol}://${host}/${locale}/login?callbackUrl=${callbackUrl}`;
 
     if (shouldLog) {
-      console.log(
-        `[MIDDLEWARE] Redirecting unauthenticated user to: ${loginUrl}`,
-      );
+      console.log(`[MIDDLEWARE] Redirecting to login: ${loginUrl}`);
     }
 
     return NextResponse.redirect(loginUrl);
   }
 
   // 用户已认证，应用国际化中间件
+  if (shouldLog) {
+    console.log(
+      `[MIDDLEWARE] User authenticated, applying intl middleware: ${pathname}`,
+    );
+  }
   return intlMiddleware(request);
-});
+}
 
 export const config = {
   matcher: [

@@ -74,23 +74,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       },
     }),
-    // 添加Google认证提供商
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    // 条件性添加Google认证提供商
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
 
-    // 添加GitHub认证提供商
-    GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }),
+    // 条件性添加GitHub认证提供商
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ? [
+          GitHub({
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          }),
+        ]
+      : []),
 
-    // 添加Resend邮件提供商
-    Resend({
-      apiKey: process.env.AUTH_RESEND_KEY!,
-      from: process.env.EMAIL_FROM!,
-    }),
+    // 条件性添加Resend邮件提供商
+    ...(process.env.AUTH_RESEND_KEY && process.env.EMAIL_FROM
+      ? [
+          Resend({
+            apiKey: process.env.AUTH_RESEND_KEY,
+            from: process.env.EMAIL_FROM,
+          }),
+        ]
+      : []),
   ],
   pages: {
     signIn: "/login", // 指定自定义登录页面的路径
@@ -177,7 +189,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const redirectUrl = `${finalBaseUrl}/en`;
 
         return redirectUrl;
-      } catch {
+      } catch (error) {
+        console.error("Auth redirect error:", error);
         const fallbackUrl = `${finalBaseUrl}/en`;
 
         return fallbackUrl;
@@ -196,19 +209,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // 根据最新文档的关键配置
   trustHost: true, // Docker环境必需
 
-  // 调试配置
-  debug: true,
+  // 调试配置 - 生产环境建议关闭
+  debug: process.env.NODE_ENV === "development",
 
   // 额外的安全配置
   logger: {
-    error() {
-      // 错误日志处理
+    error(error: Error) {
+      console.error("Auth.js Error:", error);
     },
-    warn() {
-      // 警告日志处理
+    warn(code: string) {
+      console.warn(`Auth.js Warning [${code}]`);
     },
-    debug() {
-      // 调试日志处理
+    debug(code: string, metadata?: unknown) {
+      if (process.env.NODE_ENV === "development") {
+        console.debug(`Auth.js Debug [${code}]:`, metadata);
+      }
     },
   },
+
+  // 生产环境安全配置
+  useSecureCookies: process.env.NODE_ENV === "production",
+
+  // 确保正确的 URL 配置
+  ...(process.env.AUTH_URL && {
+    url: process.env.AUTH_URL,
+  }),
 });

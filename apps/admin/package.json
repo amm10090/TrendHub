@@ -18,7 +18,19 @@
     "db:start:unix": "sudo service postgresql start",
     "db:stop:unix": "sudo service postgresql stop",
     "start:all:win": "npm run db:start:win && npm run dev",
-    "start:all:unix": "npm run db:start:unix && npm run dev"
+    "start:all:unix": "npm run db:start:unix && npm run dev",
+    "// === PM2 进程管理 ===": "",
+    "pm2:start": "pm2 start ecosystem.config.json",
+    "pm2:start:prod": "npm run build && pm2 start ecosystem.config.json --env production",
+    "pm2:stop": "pm2 stop trend-hub-admin",
+    "pm2:restart": "pm2 restart trend-hub-admin",
+    "pm2:reload": "pm2 reload trend-hub-admin",
+    "pm2:delete": "pm2 delete trend-hub-admin",
+    "pm2:logs": "pm2 logs trend-hub-admin",
+    "pm2:monitor": "pm2 monit",
+    "pm2:status": "pm2 status",
+    "pm2:save": "pm2 save",
+    "pm2:resurrect": "pm2 resurrect"
   },
   "dependencies": {
     "@auth/prisma-adapter": "2.9.1",

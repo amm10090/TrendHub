@@ -6,12 +6,24 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3000",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "clean": "rm -rf .next node_modules"
+    "clean": "rm -rf .next node_modules",
+    "// === PM2 进程管理 ===": "",
+    "pm2:start": "pm2 start ecosystem.config.json",
+    "pm2:start:prod": "npm run build && pm2 start ecosystem.config.json --env production",
+    "pm2:stop": "pm2 stop trend-hub-web",
+    "pm2:restart": "pm2 restart trend-hub-web",
+    "pm2:reload": "pm2 reload trend-hub-web",
+    "pm2:delete": "pm2 delete trend-hub-web",
+    "pm2:logs": "pm2 logs trend-hub-web",
+    "pm2:monitor": "pm2 monit",
+    "pm2:status": "pm2 status",
+    "pm2:save": "pm2 save",
+    "pm2:resurrect": "pm2 resurrect"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

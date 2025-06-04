@@ -22,10 +22,27 @@ const productionAuthUrlIsHttp =
 const shouldUseSecureCookies =
   process.env.NODE_ENV === "production" && !productionAuthUrlIsHttp;
 
+// 解决内部/外部URL问题
+const getAuthUrl = () => {
+  // 在生产环境中，对于内部请求使用 localhost，对于外部请求使用配置的 AUTH_URL
+  if (process.env.NODE_ENV === "production") {
+    // 服务器内部请求使用 localhost
+    const internalUrl = "http://localhost:3001";
+
+    // 根据请求来源决定使用哪个URL
+    // 这里我们优先使用内部URL，因为大部分Auth.js的内部请求都是服务器到服务器的
+    return internalUrl;
+  }
+  return (
+    process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3001"
+  );
+};
+
 // 生产环境调试日志
 if (process.env.NODE_ENV === "production") {
   console.log("[AUTH CONFIG] Production auth configuration:");
-  console.log("[AUTH CONFIG] AUTH_URL:", process.env.AUTH_URL);
+  console.log("[AUTH CONFIG] AUTH_URL (external):", process.env.AUTH_URL);
+  console.log("[AUTH CONFIG] Internal Auth URL:", getAuthUrl());
   console.log("[AUTH CONFIG] Using secure cookies:", shouldUseSecureCookies);
   console.log("[AUTH CONFIG] AUTH_TRUST_HOST:", process.env.AUTH_TRUST_HOST);
   console.log("[AUTH CONFIG] Production HTTP mode:", productionAuthUrlIsHttp);
@@ -149,8 +166,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      const effectiveBaseUrl =
-        process.env.AUTH_URL || process.env.NEXTAUTH_URL || baseUrl;
+      // 使用内部URL避免socket hang up问题
+      const effectiveBaseUrl = getAuthUrl();
       const finalBaseUrl = effectiveBaseUrl.endsWith("/")
         ? effectiveBaseUrl.slice(0, -1)
         : effectiveBaseUrl;

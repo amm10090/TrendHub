@@ -21,18 +21,27 @@ export default auth((req) => {
   const request = req as NextRequest & { auth: AuthSession };
   const { pathname } = request.nextUrl;
 
-  // 生产环境调试
+  // 生产环境调试 - 添加更详细的日志
   if (process.env.NODE_ENV === "production") {
-    console.log(`[MIDDLEWARE] ${new Date().toISOString()} - ${pathname}`);
+    console.log(
+      `[MIDDLEWARE] ${new Date().toISOString()} - Processing: ${pathname}`,
+    );
+    console.log(`[MIDDLEWARE] Auth user exists: ${!!request.auth?.user}`);
   }
 
   // 检查 /api/auth 路径, 如果匹配则直接返回，不进行后续处理
   if (pathname.startsWith("/api/auth")) {
+    if (process.env.NODE_ENV === "production") {
+      console.log(`[MIDDLEWARE] Allowing API auth route: ${pathname}`);
+    }
     return; // Auth.js API 路由直接放行
   }
 
   // 检查 /api/setup 路径，直接放行
   if (pathname.startsWith("/api/setup")) {
+    if (process.env.NODE_ENV === "production") {
+      console.log(`[MIDDLEWARE] Allowing API setup route: ${pathname}`);
+    }
     return;
   }
 
@@ -44,17 +53,6 @@ export default auth((req) => {
 
   if (isAssetOrNextInternal) {
     return;
-  }
-
-  // 定义公共页面（不需要认证的页面）
-  const publicPathnameRegex = RegExp(
-    `^/(en|cn)/(login|setup|verify-email|public)(/.*)?$`,
-    "i",
-  );
-  const isPublicPage = publicPathnameRegex.test(pathname);
-
-  if (isPublicPage) {
-    return intlMiddleware(request);
   }
 
   // 处理根路径访问
@@ -74,7 +72,28 @@ export default auth((req) => {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 检查用户是否已认证
+  // 定义公共页面（不需要认证的页面）
+  const publicPathnameRegex = RegExp(
+    `^/(en|cn)/(login|setup|verify-email|public)(/.*)?$`,
+    "i",
+  );
+  const isPublicPage = publicPathnameRegex.test(pathname);
+
+  if (process.env.NODE_ENV === "production") {
+    console.log(
+      `[MIDDLEWARE] Public page check: ${pathname} -> ${isPublicPage}`,
+    );
+  }
+
+  // 如果是公共页面，直接应用国际化中间件，不进行认证检查
+  if (isPublicPage) {
+    if (process.env.NODE_ENV === "production") {
+      console.log(`[MIDDLEWARE] Allowing public page: ${pathname}`);
+    }
+    return intlMiddleware(request);
+  }
+
+  // 检查用户是否已认证 - 只对非公共页面进行此检查
   if (!request.auth?.user) {
     // 提取语言代码
     const pathSegments = pathname.split("/").filter(Boolean);
@@ -95,10 +114,18 @@ export default auth((req) => {
     const loginUrl = `${protocol}://${host}/${locale}/login?callbackUrl=${callbackUrl}`;
 
     if (process.env.NODE_ENV === "production") {
-      console.log(`[MIDDLEWARE] Redirecting to: ${loginUrl}`);
+      console.log(
+        `[MIDDLEWARE] User not authenticated, redirecting to: ${loginUrl}`,
+      );
     }
 
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    console.log(
+      `[MIDDLEWARE] User authenticated, applying intl middleware for: ${pathname}`,
+    );
   }
 
   return intlMiddleware(request);

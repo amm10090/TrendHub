@@ -8,10 +8,6 @@ import Resend from "next-auth/providers/resend";
 
 import { db } from "@/lib/db"; // 确保您的 Prisma 实例路径正确
 
-// console.log("Auth.ts - AUTH_URL:", process.env.AUTH_URL);
-// console.log("Auth.ts - NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
-// console.log("Auth.ts - AUTH_SECRET exists:", !!process.env.AUTH_SECRET);
-
 // 决定 useSecureCookies 的值
 // 在生产环境中，如果 AUTH_URL 明确以 http:// 开头，则不使用安全 cookies
 // 否则，在生产环境中使用安全 cookies (即 AUTH_URL 是 https:// 或未指定但期望是 https)
@@ -21,32 +17,6 @@ const productionAuthUrlIsHttp =
 
 const shouldUseSecureCookies =
   process.env.NODE_ENV === "production" && !productionAuthUrlIsHttp;
-
-// 解决内部/外部URL问题
-const getAuthUrl = () => {
-  // 在生产环境中，对于内部请求使用 localhost，对于外部请求使用配置的 AUTH_URL
-  if (process.env.NODE_ENV === "production") {
-    // 服务器内部请求使用 localhost
-    const internalUrl = "http://localhost:3001";
-
-    // 根据请求来源决定使用哪个URL
-    // 这里我们优先使用内部URL，因为大部分Auth.js的内部请求都是服务器到服务器的
-    return internalUrl;
-  }
-  return (
-    process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3001"
-  );
-};
-
-// 生产环境调试日志
-if (process.env.NODE_ENV === "production") {
-  console.log("[AUTH CONFIG] Production auth configuration:");
-  console.log("[AUTH CONFIG] AUTH_URL (external):", process.env.AUTH_URL);
-  console.log("[AUTH CONFIG] Internal Auth URL:", getAuthUrl());
-  console.log("[AUTH CONFIG] Using secure cookies:", shouldUseSecureCookies);
-  console.log("[AUTH CONFIG] AUTH_TRUST_HOST:", process.env.AUTH_TRUST_HOST);
-  console.log("[AUTH CONFIG] Production HTTP mode:", productionAuthUrlIsHttp);
-}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
@@ -165,15 +135,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return session;
     },
-    // 完全重写的重定向回调逻辑 - 彻底防止无限循环
+    // 重定向回调逻辑
     async redirect({ url, baseUrl }) {
-      // 生产环境不记录日志
-      const isProduction = process.env.NODE_ENV === "production";
-
-      if (!isProduction) {
-        console.log(`[AUTH_REDIRECT] url: "${url}", baseUrl: "${baseUrl}"`);
-      }
-
       // 如果是绝对URL且属于外部域，直接允许
       try {
         const urlObj = new URL(url);
@@ -236,21 +199,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // 调试配置 - 生产环境建议关闭
   debug: process.env.NODE_ENV === "development",
 
-  // 额外的安全配置
-  logger: {
-    error(error: Error) {
-      console.error("Auth.js Error:", error);
-    },
-    warn(code: string) {
-      console.warn(`Auth.js Warning [${code}]`);
-    },
-    debug(code: string, metadata?: unknown) {
-      if (process.env.NODE_ENV === "development") {
-        console.debug(`Auth.js Debug [${code}]:`, metadata);
-      }
-    },
-  },
-
   // 生产环境安全配置
   useSecureCookies: shouldUseSecureCookies, // 使用计算出的值
 
@@ -286,9 +234,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     },
   }),
-
-  // 确保正确的 URL 配置
-  // ...(process.env.AUTH_URL && { // 这个条件性展开可能不是必须的，因为NextAuth会直接读取AUTH_URL环境变量
-  //   url: process.env.AUTH_URL,
-  // }),
 });

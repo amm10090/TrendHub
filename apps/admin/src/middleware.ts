@@ -23,14 +23,6 @@ function isUserAuthenticated(request: NextRequest): boolean {
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 生产环境大幅减少日志记录
-  const isProduction = process.env.NODE_ENV === "production";
-  const shouldLog = !isProduction; // 只在开发环境记录日志
-
-  if (shouldLog) {
-    console.log(`[MIDDLEWARE] Processing: ${pathname}`);
-  }
-
   // 完全跳过所有Auth.js相关路径
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
@@ -57,6 +49,7 @@ export default function middleware(request: NextRequest) {
       request.headers.get("x-forwarded-host") ||
       request.headers.get("host") ||
       request.nextUrl.host;
+
     return NextResponse.redirect(`${protocol}://${host}/en`);
   }
 
@@ -77,20 +70,11 @@ export default function middleware(request: NextRequest) {
 
   // 如果是公共页面，直接应用国际化中间件
   if (isPublicPage) {
-    if (shouldLog) {
-      console.log(
-        `[MIDDLEWARE] Public page, applying intl middleware: ${pathname}`,
-      );
-    }
     return intlMiddleware(request);
   }
 
   // 手动检查用户认证状态
   const isAuthenticated = isUserAuthenticated(request);
-
-  if (shouldLog) {
-    console.log(`[MIDDLEWARE] Auth status for ${pathname}: ${isAuthenticated}`);
-  }
 
   if (!isAuthenticated) {
     // 防止重定向循环：如果已经在任何公共页面，不要重定向
@@ -115,19 +99,10 @@ export default function middleware(request: NextRequest) {
     const callbackUrl = pathname === "/" ? "/" : encodeURIComponent(pathname);
     const loginUrl = `${protocol}://${host}/${locale}/login?callbackUrl=${callbackUrl}`;
 
-    if (shouldLog) {
-      console.log(`[MIDDLEWARE] Redirecting to login: ${loginUrl}`);
-    }
-
     return NextResponse.redirect(loginUrl);
   }
 
   // 用户已认证，应用国际化中间件
-  if (shouldLog) {
-    console.log(
-      `[MIDDLEWARE] User authenticated, applying intl middleware: ${pathname}`,
-    );
-  }
   return intlMiddleware(request);
 }
 

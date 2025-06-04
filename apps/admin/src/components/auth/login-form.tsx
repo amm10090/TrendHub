@@ -15,7 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  csrfToken: string;
+}
+
+export default function LoginForm({ csrfToken }: LoginFormProps) {
   const t = useTranslations("login");
   const searchParams = useSearchParams();
   // 解码 callbackUrl 并处理特殊情况
@@ -63,6 +67,7 @@ export default function LoginForm() {
         password: data.password,
         callbackUrl: callbackUrl,
         redirect: false, // 不自动重定向，让我们手动处理
+        csrfToken, // 包含 CSRF token 以增强安全性
       });
 
       if (result?.error) {

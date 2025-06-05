@@ -29,7 +29,14 @@ const queryClient = new QueryClient({
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem={true}
+        disableTransitionOnChange={false}
+        themes={["light", "dark", "system"]}
+        storageKey="trendhub-admin-theme"
+      >
         <SessionProvider>
           <DynamicHeroUIProvider>
             <DynamicToastProvider

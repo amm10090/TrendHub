@@ -1,272 +1,98 @@
 @import 'tailwindcss';
+
+/* HeroUI 主题源文件扫描 */
 @source '../../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
-@custom-variant dark (&:is(.dark *));
 
-/* 定义容器工具类 - 基础样式 */
-@utility container {
-  margin-inline: auto;
-  padding-inline: 1rem;
-}
-
-@layer base {
-  /* 设置所有元素的默认边框颜色，确保与Tailwind CSS v3兼容 */
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
-
-  /* HeroUI 主题变量 - 暗色模式 */
-  .dark {
-    /* 主要颜色 - 暗色模式下颜色顺序反转，深色变浅色，浅色变深色 */
-    --primary-50: #001833;
-    --primary-100: #003166;
-    --primary-200: #004A94;
-    --primary-300: #0062C3;
-    --primary-400: #0080FF;
-    --primary-500: #3D9AFF; /* 暗色模式主色调 */
-    --primary-600: #66AFFF;
-    --primary-700: #B3D4FF;
-    --primary-800: #D0E4FF;
-    --primary-900: #EDF5FF;
-    --primary-foreground: #000000;
-
-    /* 次要颜色 - 暗色模式下的紫色系列 */
-    --secondary-50: #4C1D95;
-    --secondary-100: #5B21B6;
-    --secondary-200: #6D28D9;
-    --secondary-300: #7C3AED;
-    --secondary-400: #8B5CF6;
-    --secondary-500: #A683FF; /* 暗色模式次色调 */
-    --secondary-600: #BEA6FF;
-    --secondary-700: #D9CCFF;
-    --secondary-800: #EBE3FF;
-    --secondary-900: #F4F0FF;
-    --secondary-foreground: #000000;
-
-    /* 成功颜色 - 暗色模式下的绿色系列 */
-    --success-50: #14532D;
-    --success-100: #166534;
-    --success-200: #15803D;
-    --success-300: #16A34A;
-    --success-400: #22C55E;
-    --success-500: #4ADE80; /* 暗色模式主成功色 */
-    --success-600: #86EFAC;
-    --success-700: #BBF7D0;
-    --success-800: #DCFCE7;
-    --success-900: #F0FDF4;
-    --success-foreground: #000000;
-
-    /* 警告颜色 - 暗色模式下的黄色系列 */
-    --warning-50: #78350F;
-    --warning-100: #92400E;
-    --warning-200: #B45309;
-    --warning-300: #D97706;
-    --warning-400: #F59E0B;
-    --warning-500: #FBBF24; /* 暗色模式主警告色 */
-    --warning-600: #FCD34D;
-    --warning-700: #FDE68A;
-    --warning-800: #FEF3C7;
-    --warning-900: #FFFBEB;
-    --warning-foreground: #000000;
-
-    /* 危险颜色 - 暗色模式下的红色系列 */
-    --danger-50: #7F1D1D;
-    --danger-100: #991B1B;
-    --danger-200: #B91C1C;
-    --danger-300: #DC2626;
-    --danger-400: #EF4444;
-    --danger-500: #F87171; /* 暗色模式主危险色 */
-    --danger-600: #FCA5A5;
-    --danger-700: #FECACA;
-    --danger-800: #FEE2E2;
-    --danger-900: #FEF2F2;
-    --danger-foreground: #000000;
-
-    /* 默认颜色 - 暗色模式下的灰色系列 */
-    --default-50: #111827;
-    --default-100: #1F2937;
-    --default-200: #374151;
-    --default-300: #4B5563;
-    --default-400: #6B7280;
-    --default-500: #9CA3AF; /* 暗色模式主默认色 */
-    --default-600: #D1D5DB;
-    --default-700: #E5E7EB;
-    --default-800: #F3F4F6;
-    --default-900: #F9FAFB;
-    --default-foreground: #000000;
-
-    /* 新增 - 信息颜色 - 暗色模式下的蓝青色系列 */
-    --info-50: #164E63;
-    --info-100: #155E75;
-    --info-200: #0E7490;
-    --info-300: #0891B2;
-    --info-400: #06B6D4;
-    --info-500: #22CCEE; /* 暗色模式主信息色 */
-    --info-600: #67E3F9;
-    --info-700: #A5F0FC;
-    --info-800: #CFF9FE;
-    --info-900: #ECFDFF;
-    --info-foreground: #000000;
-
-    /* 新增 - 柔和颜色 - 暗色模式下的灰褐色系列 */
-    --muted-50: #0F172A;
-    --muted-100: #1E293B;
-    --muted-200: #334155;
-    --muted-300: #475569;
-    --muted-400: #64748B;
-    --muted-500: #94A3B8; /* 暗色模式主柔和色 */
-    --muted-600: #CBD5E1;
-    --muted-700: #E2E8F0;
-    --muted-800: #F1F5F9;
-    --muted-900: #F8FAFC;
-    --muted-foreground: #000000;
-
-    /* 新增 - 强调颜色 - 暗色模式下的橙色系列 */
-    --accent-50: #7C2D12;
-    --accent-100: #9A3412;
-    --accent-200: #C2410C;
-    --accent-300: #EA580C;
-    --accent-400: #F97316;
-    --accent-500: #FB923C; /* 暗色模式主强调色 */
-    --accent-600: #FDBA74;
-    --accent-700: #FED7AA;
-    --accent-800: #FFEDD5;
-    --accent-900: #FFF7ED;
-    --accent-foreground: #000000;
-
-    /* 新增 - 语义化颜色变量 - 暗色模式 */
-    --background: var(--color-bg-primary-dark);
-    --foreground: var(--color-text-primary-dark);
-    --card: var(--color-bg-secondary-dark);
-    --card-foreground: var(--color-text-primary-dark);
-    --popover: var(--color-bg-primary-dark);
-    --popover-foreground: var(--color-text-primary-dark);
-    --input: var(--color-bg-secondary-dark);
-    --input-foreground: var(--color-text-primary-dark);
-    --border: var(--color-border-primary-dark);
-    --ring: var(--color-primary-500);
-  }
-}
-
-/* 定义响应式容器工具类 - 包含断点适配 */
-@utility container {
-  @apply w-full mx-auto px-4; /* 应用基础样式 */
-  max-width: 100%;
-
-  /* 小屏幕断点 (640px) */
-  @media (width >= theme(--breakpoint-sm)) {
-    max-width: 640px;
-  }
-
-  /* 中等屏幕断点 (768px) */
-  @media (width >= theme(--breakpoint-md)) {
-    max-width: 768px;
-  }
-
-  /* 大屏幕断点 (1024px) */
-  @media (width >= theme(--breakpoint-lg)) {
-    max-width: 1024px;
-  }
-
-  /* 超大屏幕断点 (1280px) */
-  @media (width >= theme(--breakpoint-xl)) {
-    max-width: 1280px;
-    margin: 0 auto;
-  }
-
-  /* 2倍超大屏幕断点 (1536px) */
-  @media (width >= theme(--breakpoint-2xl)) {
-    max-width: 1536px;
-    margin: 0 auto;
-  }
-}
-
-/* 基础盒模型设置 */
-@layer base {
-  * {
-    @apply box-border p-0 m-0; /* 应用盒模型、内边距和外边距重置 */
-  }
-
-  html, body {
-    @apply h-full; /* 设置HTML和body元素高度为100% */
-  }
-}
-
-/* 隐藏滚动条但保留滚动功能 */
-@utility scrollbar-hide {
-  -ms-overflow-style: none;  /* IE和Edge浏览器 */
-  scrollbar-width: none;     /* Firefox浏览器 */
-}
-
-@utility scrollbar-hide {
-  &::-webkit-scrollbar {
-    display: none;             /* Chrome、Safari和Opera浏览器 */
-  }
-}
-
-/* 确保按钮颜色正确显示的工具类 */
-
-/* 新增 - 颜色过渡效果工具类 */
-@utility transition-colors {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-@utility transition-shadow {
-  transition-property: box-shadow;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-/* 新增 - 主题配色混合工具类 */
-@utility theme-primary {
-  --tw-bg-opacity: 1;
-  --tw-text-opacity: 1;
-  background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
-}
-
-@utility theme-secondary {
-  --tw-bg-opacity: 1;
-  --tw-text-opacity: 1;
-  background-color: var(--color-secondary);
-  color: var(--color-secondary-foreground);
-}
-
-@utility theme-accent {
-  --tw-bg-opacity: 1;
-  --tw-text-opacity: 1;
-  background-color: var(--color-accent);
-  color: var(--color-accent-foreground);
-}
-
-@utility theme-muted {
-  --tw-bg-opacity: 1;
-  --tw-text-opacity: 1;
-  background-color: var(--color-muted);
-  color: var(--color-muted-foreground);
-}
-
-
-
+/* Tailwind V4 主题配置 */
 @theme {
+  /* 基础设计令牌 */
   --radius: 0.625rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /* 标准颜色调色板 - Tailwind V4 默认颜色 */
+  --color-red-50: oklch(0.971 0.013 17.38);
+  --color-red-100: oklch(0.936 0.032 17.717);
+  --color-red-200: oklch(0.885 0.062 18.334);
+  --color-red-300: oklch(0.808 0.114 19.571);
+  --color-red-400: oklch(0.704 0.191 22.216);
+  --color-red-500: oklch(0.637 0.237 25.331);
+  --color-red-600: oklch(0.577 0.245 27.325);
+  --color-red-700: oklch(0.505 0.213 27.518);
+  --color-red-800: oklch(0.444 0.177 26.899);
+  --color-red-900: oklch(0.396 0.141 25.723);
+  --color-red-950: oklch(0.258 0.092 26.042);
+
+  --color-blue-50: oklch(0.979 0.016 247.858);
+  --color-blue-100: oklch(0.944 0.035 241.987);
+  --color-blue-200: oklch(0.895 0.067 237.234);
+  --color-blue-300: oklch(0.824 0.106 237.464);
+  --color-blue-400: oklch(0.726 0.139 237.695);
+  --color-blue-500: oklch(0.631 0.155 240.334);
+  --color-blue-600: oklch(0.536 0.135 242.831);
+  --color-blue-700: oklch(0.445 0.115 244.652);
+  --color-blue-800: oklch(0.383 0.095 245.391);
+  --color-blue-900: oklch(0.329 0.074 247.016);
+  --color-blue-950: oklch(0.241 0.051 252.891);
+
+  --color-green-50: oklch(0.982 0.018 155.826);
+  --color-green-100: oklch(0.962 0.044 156.743);
+  --color-green-200: oklch(0.925 0.084 155.995);
+  --color-green-300: oklch(0.871 0.15 154.449);
+  --color-green-400: oklch(0.792 0.209 151.711);
+  --color-green-500: oklch(0.723 0.219 149.579);
+  --color-green-600: oklch(0.627 0.194 149.214);
+  --color-green-700: oklch(0.527 0.154 150.069);
+  --color-green-800: oklch(0.448 0.119 151.328);
+  --color-green-900: oklch(0.393 0.095 152.535);
+  --color-green-950: oklch(0.266 0.065 152.934);
+
+  --color-yellow-50: oklch(0.987 0.026 102.212);
+  --color-yellow-100: oklch(0.973 0.071 103.193);
+  --color-yellow-200: oklch(0.945 0.129 101.54);
+  --color-yellow-300: oklch(0.905 0.182 98.111);
+  --color-yellow-400: oklch(0.852 0.199 91.936);
+  --color-yellow-500: oklch(0.795 0.184 86.047);
+  --color-yellow-600: oklch(0.681 0.162 75.834);
+  --color-yellow-700: oklch(0.554 0.135 66.442);
+  --color-yellow-800: oklch(0.476 0.114 61.907);
+  --color-yellow-900: oklch(0.421 0.095 57.708);
+  --color-yellow-950: oklch(0.286 0.066 53.813);
+
+  --color-purple-50: oklch(0.982 0.018 307.989);
+  --color-purple-100: oklch(0.953 0.044 308.849);
+  --color-purple-200: oklch(0.906 0.087 309.438);
+  --color-purple-300: oklch(0.838 0.153 308.924);
+  --color-purple-400: oklch(0.751 0.215 307.554);
+  --color-purple-500: oklch(0.668 0.243 303.9);
+  --color-purple-600: oklch(0.593 0.235 299.705);
+  --color-purple-700: oklch(0.516 0.204 295.78);
+  --color-purple-800: oklch(0.439 0.169 293.629);
+  --color-purple-900: oklch(0.381 0.132 292.942);
+  --color-purple-950: oklch(0.286 0.107 294.213);
+
+  --color-gray-50: oklch(0.985 0.002 247.839);
+  --color-gray-100: oklch(0.967 0.003 264.542);
+  --color-gray-200: oklch(0.928 0.006 264.531);
+  --color-gray-300: oklch(0.872 0.01 258.338);
+  --color-gray-400: oklch(0.707 0.022 261.325);
+  --color-gray-500: oklch(0.551 0.027 264.364);
+  --color-gray-600: oklch(0.446 0.03 256.802);
+  --color-gray-700: oklch(0.373 0.034 259.733);
+  --color-gray-800: oklch(0.278 0.033 256.848);
+  --color-gray-900: oklch(0.21 0.034 264.665);
+  --color-gray-950: oklch(0.13 0.028 261.692);
+
+  /* 语义化颜色 - 亮色模式默认 */
   --color-background: oklch(1 0 0);
   --color-foreground: oklch(0.145 0 0);
   --color-card: oklch(1 0 0);
   --color-card-foreground: oklch(0.145 0 0);
   --color-popover: oklch(1 0 0);
   --color-popover-foreground: oklch(0.145 0 0);
-  --color-primary: oklch(0.205 0 0);
+  --color-primary: oklch(0.631 0.155 240.334);
   --color-primary-foreground: oklch(0.985 0 0);
   --color-secondary: oklch(0.97 0 0);
   --color-secondary-foreground: oklch(0.205 0 0);
@@ -275,33 +101,163 @@
   --color-accent: oklch(0.97 0 0);
   --color-accent-foreground: oklch(0.205 0 0);
   --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.985 0 0);
   --color-border: oklch(0.922 0 0);
   --color-input: oklch(0.922 0 0);
   --color-ring: oklch(0.708 0 0);
-  --color-chart-1: oklch(0.646 0.222 41.116);
-  --color-chart-2: oklch(0.6 0.118 184.704);
-  --color-chart-3: oklch(0.398 0.07 227.392);
-  --color-chart-4: oklch(0.828 0.189 84.429);
-  --color-chart-5: oklch(0.769 0.188 70.08);
-  --color-sidebar: oklch(0.985 0 0);
-  --color-sidebar-foreground: oklch(0.145 0 0);
-  --color-sidebar-primary: oklch(0.205 0 0);
-  --color-sidebar-primary-foreground: oklch(0.985 0 0);
-  --color-sidebar-accent: oklch(0.97 0 0);
-  --color-sidebar-accent-foreground: oklch(0.205 0 0);
-  --color-sidebar-border: oklch(0.922 0 0);
-  --color-sidebar-ring: oklch(0.708 0 0);
+
+  /* HeroUI 语义颜色 - 亮色模式默认 */
+  --color-default-50: #F9FAFB;
+  --color-default-100: #F3F4F6;
+  --color-default-200: #E5E7EB;
+  --color-default-300: #D1D5DB;
+  --color-default-400: #9CA3AF;
+  --color-default-500: #6B7280;
+  --color-default-600: #4B5563;
+  --color-default-700: #374151;
+  --color-default-800: #1F2937;
+  --color-default-900: #111827;
+
+  --color-success-50: #F0FDF4;
+  --color-success-100: #DCFCE7;
+  --color-success-200: #BBF7D0;
+  --color-success-300: #86EFAC;
+  --color-success-400: #4ADE80;
+  --color-success-500: #22C55E;
+  --color-success-600: #16A34A;
+  --color-success-700: #15803D;
+  --color-success-800: #166534;
+  --color-success-900: #14532D;
+
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-200: #FDE68A;
+  --color-warning-300: #FCD34D;
+  --color-warning-400: #FBBF24;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
+  --color-warning-800: #92400E;
+  --color-warning-900: #78350F;
+
+  --color-danger-50: #FEF2F2;
+  --color-danger-100: #FEE2E2;
+  --color-danger-200: #FECACA;
+  --color-danger-300: #FCA5A5;
+  --color-danger-400: #F87171;
+  --color-danger-500: #EF4444;
+  --color-danger-600: #DC2626;
+  --color-danger-700: #B91C1C;
+  --color-danger-800: #991B1B;
+  --color-danger-900: #7F1D1D;
 }
 
-@theme dark {
+/* 明确的亮色模式类 */
+.light {
+  /* 语义化颜色 - 亮色模式 */
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.145 0 0);
+  --color-primary: oklch(0.631 0.155 240.334);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.97 0 0);
+  --color-secondary-foreground: oklch(0.205 0 0);
+  --color-muted: oklch(0.97 0 0);
+  --color-muted-foreground: oklch(0.556 0 0);
+  --color-accent: oklch(0.97 0 0);
+  --color-accent-foreground: oklch(0.205 0 0);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.922 0 0);
+  --color-input: oklch(0.922 0 0);
+  --color-ring: oklch(0.708 0 0);
+}
+
+/* 暗色模式主题变量 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 语义化颜色 - 暗色模式 */
+    --color-background: oklch(0.145 0 0);
+    --color-foreground: oklch(0.985 0 0);
+    --color-card: oklch(0.205 0 0);
+    --color-card-foreground: oklch(0.985 0 0);
+    --color-popover: oklch(0.205 0 0);
+    --color-popover-foreground: oklch(0.985 0 0);
+    --color-primary: oklch(0.726 0.139 237.695);
+    --color-primary-foreground: oklch(0.145 0 0);
+    --color-secondary: oklch(0.269 0 0);
+    --color-secondary-foreground: oklch(0.985 0 0);
+    --color-muted: oklch(0.269 0 0);
+    --color-muted-foreground: oklch(0.708 0 0);
+    --color-accent: oklch(0.269 0 0);
+    --color-accent-foreground: oklch(0.985 0 0);
+    --color-destructive: oklch(0.704 0.191 22.216);
+    --color-destructive-foreground: oklch(0.985 0 0);
+    --color-border: oklch(1 0 0 / 10%);
+    --color-input: oklch(1 0 0 / 15%);
+    --color-ring: oklch(0.556 0 0);
+
+    /* HeroUI 语义颜色 - 暗色模式 */
+    --color-default-50: #111827;
+    --color-default-100: #1F2937;
+    --color-default-200: #374151;
+    --color-default-300: #4B5563;
+    --color-default-400: #6B7280;
+    --color-default-500: #9CA3AF;
+    --color-default-600: #D1D5DB;
+    --color-default-700: #E5E7EB;
+    --color-default-800: #F3F4F6;
+    --color-default-900: #F9FAFB;
+
+    --color-success-50: #14532D;
+    --color-success-100: #166534;
+    --color-success-200: #15803D;
+    --color-success-300: #16A34A;
+    --color-success-400: #22C55E;
+    --color-success-500: #4ADE80;
+    --color-success-600: #86EFAC;
+    --color-success-700: #BBF7D0;
+    --color-success-800: #DCFCE7;
+    --color-success-900: #F0FDF4;
+
+    --color-warning-50: #78350F;
+    --color-warning-100: #92400E;
+    --color-warning-200: #B45309;
+    --color-warning-300: #D97706;
+    --color-warning-400: #F59E0B;
+    --color-warning-500: #FBBF24;
+    --color-warning-600: #FCD34D;
+    --color-warning-700: #FDE68A;
+    --color-warning-800: #FEF3C7;
+    --color-warning-900: #FFFBEB;
+
+    --color-danger-50: #7F1D1D;
+    --color-danger-100: #991B1B;
+    --color-danger-200: #B91C1C;
+    --color-danger-300: #DC2626;
+    --color-danger-400: #EF4444;
+    --color-danger-500: #F87171;
+    --color-danger-600: #FCA5A5;
+    --color-danger-700: #FECACA;
+    --color-danger-800: #FEE2E2;
+    --color-danger-900: #FEF2F2;
+  }
+}
+
+/* 手动暗色模式类 */
+.dark {
+  /* 语义化颜色 - 暗色模式 */
   --color-background: oklch(0.145 0 0);
   --color-foreground: oklch(0.985 0 0);
   --color-card: oklch(0.205 0 0);
   --color-card-foreground: oklch(0.985 0 0);
   --color-popover: oklch(0.205 0 0);
   --color-popover-foreground: oklch(0.985 0 0);
-  --color-primary: oklch(0.922 0 0);
-  --color-primary-foreground: oklch(0.205 0 0);
+  --color-primary: oklch(0.726 0.139 237.695);
+  --color-primary-foreground: oklch(0.145 0 0);
   --color-secondary: oklch(0.269 0 0);
   --color-secondary-foreground: oklch(0.985 0 0);
   --color-muted: oklch(0.269 0 0);
@@ -309,29 +265,128 @@
   --color-accent: oklch(0.269 0 0);
   --color-accent-foreground: oklch(0.985 0 0);
   --color-destructive: oklch(0.704 0.191 22.216);
+  --color-destructive-foreground: oklch(0.985 0 0);
   --color-border: oklch(1 0 0 / 10%);
   --color-input: oklch(1 0 0 / 15%);
   --color-ring: oklch(0.556 0 0);
-  --color-chart-1: oklch(0.488 0.243 264.376);
-  --color-chart-2: oklch(0.696 0.17 162.48);
-  --color-chart-3: oklch(0.769 0.188 70.08);
-  --color-chart-4: oklch(0.627 0.265 303.9);
-  --color-chart-5: oklch(0.645 0.246 16.439);
-  --color-sidebar: oklch(0.205 0 0);
-  --color-sidebar-foreground: oklch(0.985 0 0);
-  --color-sidebar-primary: oklch(0.488 0.243 264.376);
-  --color-sidebar-primary-foreground: oklch(0.985 0 0);
-  --color-sidebar-accent: oklch(0.269 0 0);
-  --color-sidebar-accent-foreground: oklch(0.985 0 0);
-  --color-sidebar-border: oklch(1 0 0 / 10%);
-  --color-sidebar-ring: oklch(0.556 0 0);
+
+  /* HeroUI 语义颜色 - 暗色模式 */
+  --color-default-50: #111827;
+  --color-default-100: #1F2937;
+  --color-default-200: #374151;
+  --color-default-300: #4B5563;
+  --color-default-400: #6B7280;
+  --color-default-500: #9CA3AF;
+  --color-default-600: #D1D5DB;
+  --color-default-700: #E5E7EB;
+  --color-default-800: #F3F4F6;
+  --color-default-900: #F9FAFB;
+
+  --color-success-50: #14532D;
+  --color-success-100: #166534;
+  --color-success-200: #15803D;
+  --color-success-300: #16A34A;
+  --color-success-400: #22C55E;
+  --color-success-500: #4ADE80;
+  --color-success-600: #86EFAC;
+  --color-success-700: #BBF7D0;
+  --color-success-800: #DCFCE7;
+  --color-success-900: #F0FDF4;
+
+  --color-warning-50: #78350F;
+  --color-warning-100: #92400E;
+  --color-warning-200: #B45309;
+  --color-warning-300: #D97706;
+  --color-warning-400: #F59E0B;
+  --color-warning-500: #FBBF24;
+  --color-warning-600: #FCD34D;
+  --color-warning-700: #FDE68A;
+  --color-warning-800: #FEF3C7;
+  --color-warning-900: #FFFBEB;
+
+  --color-danger-50: #7F1D1D;
+  --color-danger-100: #991B1B;
+  --color-danger-200: #B91C1C;
+  --color-danger-300: #DC2626;
+  --color-danger-400: #EF4444;
+  --color-danger-500: #F87171;
+  --color-danger-600: #FCA5A5;
+  --color-danger-700: #FECACA;
+  --color-danger-800: #FEE2E2;
+  --color-danger-900: #FEF2F2;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+/* 自定义工具类 */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+  width: 100%;
+  max-width: 100%;
+
+  @media (width >= 640px) {
+    max-width: 640px;
   }
+
+  @media (width >= 768px) {
+    max-width: 768px;
+  }
+
+  @media (width >= 1024px) {
+    max-width: 1024px;
+  }
+
+  @media (width >= 1280px) {
+    max-width: 1280px;
+  }
+
+  @media (width >= 1536px) {
+    max-width: 1536px;
+  }
+}
+
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 基础样式层 */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  html {
+    color-scheme: light;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* 确保焦点状态可见 */
+  *:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /* 动态设置 color-scheme */
+  .dark {
+    color-scheme: dark;
+  }
+
+  .light {
+    color-scheme: light;
   }
 }

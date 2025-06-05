@@ -20,7 +20,6 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetClose,
@@ -103,10 +102,10 @@ export function CustomNavbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-md h-16 flex items-center border-b ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 backdrop-blur-xl h-16 flex items-center border-b ${
           scrolled
-            ? "bg-white/80 dark:bg-gray-950/80 border-gray-200 dark:border-gray-800 shadow-sm"
-            : "bg-white/50 dark:bg-gray-950/50 border-transparent"
+            ? "bg-white/90 dark:bg-gray-950/90 border-gray-200/50 dark:border-gray-800/50 shadow-lg shadow-black/5 dark:shadow-black/20"
+            : "bg-white/70 dark:bg-gray-950/70 border-white/20 dark:border-gray-800/20"
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
@@ -120,12 +119,15 @@ export function CustomNavbar() {
 
               <Link
                 href="/"
-                className="flex items-center gap-2 font-bold text-xl"
+                className="flex items-center gap-3 font-bold text-xl group transition-all duration-300 hover:scale-105"
               >
-                <span className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-primary-500 to-primary-700 text-white shadow-md">
-                  T
-                </span>
-                <span className="text-primary-700 dark:text-primary-300 bg-gradient-to-r from-primary-700 to-primary-500 dark:from-primary-300 dark:to-primary-500 bg-clip-text">
+                <div className="relative hidden sm:flex">
+                  <span className="h-9 w-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 dark:shadow-blue-500/40 ring-1 ring-white/20 backdrop-blur-sm transition-all duration-300 group-hover:shadow-xl group-hover:shadow-blue-500/30 group-hover:-rotate-3">
+                    T
+                  </span>
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-400/20 to-purple-500/20 blur-lg transition-all duration-300 group-hover:blur-xl" />
+                </div>
+                <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-700 dark:from-gray-100 dark:via-blue-200 dark:to-purple-300 bg-clip-text text-transparent font-extrabold tracking-tight transition-all duration-300 group-hover:from-blue-600 group-hover:to-purple-600">
                   {t("appName")}
                 </span>
               </Link>
@@ -140,15 +142,20 @@ export function CustomNavbar() {
                         href={item.href}
                         className={cn(
                           navigationMenuTriggerStyle(),
-                          "text-sm font-medium",
+                          "text-sm font-medium transition-all duration-300 relative group",
                           item.active
-                            ? "bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
-                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/30",
-                          "rounded-full px-3 py-2",
+                            ? "bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-blue-950/50 dark:via-purple-950/50 dark:to-blue-950/50 text-blue-700 dark:text-blue-300 shadow-md shadow-blue-500/10 dark:shadow-blue-500/20 ring-1 ring-blue-200/50 dark:ring-blue-800/50 backdrop-blur-sm"
+                            : "text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:via-blue-50/50 hover:to-gray-50 dark:hover:from-gray-800/30 dark:hover:via-blue-900/20 dark:hover:to-gray-800/30 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-sm hover:ring-1 hover:ring-gray-200/50 dark:hover:ring-gray-700/50",
+                          "rounded-2xl px-4 py-2.5 backdrop-blur-sm",
                         )}
                         asChild
                       >
-                        <Link href={item.href}>{item.label}</Link>
+                        <Link href={item.href} className="relative">
+                          {item.label}
+                          {item.active && (
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-400/10 dark:to-purple-400/10 blur-sm -z-10" />
+                          )}
+                        </Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
                   ))}
@@ -160,23 +167,26 @@ export function CustomNavbar() {
 
             <SheetContent
               side="left"
-              className="w-72 p-0 flex flex-col bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-r border-gray-200 dark:border-gray-800"
+              className="w-80 p-0 flex flex-col bg-white/95 dark:bg-gray-950/95 backdrop-blur-2xl border-r border-gray-200/50 dark:border-gray-800/50 shadow-2xl shadow-black/10 dark:shadow-black/30"
             >
-              <SheetHeader className="p-4 border-b border-gray-200 dark:border-gray-800">
+              <SheetHeader className="p-6 border-b border-gray-200/60 dark:border-gray-800/60 bg-gradient-to-r from-gray-50/50 to-blue-50/30 dark:from-gray-900/50 dark:to-blue-950/30">
                 <div className="flex justify-between items-center">
                   <Link
                     href="/"
-                    className="flex items-center gap-2 font-bold text-xl"
+                    className="flex items-center gap-3 font-bold text-xl group"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-primary-500 to-primary-700 text-white shadow-md">
-                      T
-                    </span>
-                    <span className="text-primary-700 dark:text-primary-300">
+                    <div className="relative">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 dark:shadow-blue-500/40 ring-1 ring-white/20 backdrop-blur-sm transition-all duration-300 group-hover:scale-105 group-hover:-rotate-6">
+                        T
+                      </span>
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-400/30 to-purple-500/30 blur-lg transition-all duration-300 group-hover:blur-xl -z-10" />
+                    </div>
+                    <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-700 dark:from-gray-100 dark:via-blue-200 dark:to-purple-300 bg-clip-text text-transparent font-extrabold tracking-tight">
                       {t("appName")}
                     </span>
                   </Link>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <TooltipProvider delayDuration={100}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -186,16 +196,19 @@ export function CustomNavbar() {
                             }
                             variant="ghost"
                             size="icon"
-                            className="rounded-full w-8 h-8"
+                            className="rounded-xl w-9 h-9 bg-gradient-to-br from-gray-100 to-blue-50 dark:from-gray-800 dark:to-blue-900/50 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/50 dark:hover:to-purple-900/50 transition-all duration-300 shadow-sm hover:shadow-md border border-gray-200/50 dark:border-gray-700/50"
                           >
                             {theme === "dark" ? (
-                              <Sun size={16} />
+                              <Sun size={16} className="text-amber-500" />
                             ) : (
-                              <Moon size={16} />
+                              <Moon size={16} className="text-blue-600" />
                             )}
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">
+                        <TooltipContent
+                          side="bottom"
+                          className="bg-gray-900/90 text-white border-gray-700"
+                        >
                           <p>
                             {theme === "dark" ? t("lightMode") : t("darkMode")}
                           </p>
@@ -208,34 +221,42 @@ export function CustomNavbar() {
               </SheetHeader>
 
               <ScrollArea className="flex-1 overflow-y-auto">
-                <div className="p-4 space-y-4">
-                  <div className="relative">
+                <div className="p-6 space-y-6">
+                  <div className="relative group">
                     <Input
                       type="search"
                       placeholder={t("search")}
-                      className="h-9 rounded-full pl-8 pr-3 w-full bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 focus-visible:ring-primary-500"
+                      className="h-11 rounded-2xl pl-11 pr-4 w-full bg-gradient-to-r from-gray-50/90 via-blue-50/50 to-gray-50/90 dark:from-gray-800/90 dark:via-blue-900/30 dark:to-gray-800/90 border border-gray-200/50 dark:border-gray-700/50 focus-visible:ring-2 focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-blue-300 dark:focus-visible:border-blue-600 shadow-sm focus-visible:shadow-md transition-all duration-300 backdrop-blur-sm"
                       value={mobileSearchQuery}
                       onChange={handleMobileSearchChange}
                     />
-                    <Search
-                      size={16}
-                      className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400"
-                    />
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 transition-colors duration-300 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400">
+                      <Search size={18} />
+                    </div>
                   </div>
 
-                  <nav className="flex flex-col gap-1">
+                  <nav className="flex flex-col gap-2">
                     {navItems.map((item) => (
                       <SheetClose asChild key={item.href}>
                         <Link
                           href={item.href}
                           className={cn(
-                            "text-base font-medium py-3 px-4 rounded-xl transition-colors duration-200 block",
+                            "text-base font-medium py-4 px-5 rounded-2xl transition-all duration-300 block relative group overflow-hidden",
                             item.active
-                              ? "bg-primary-50 dark:bg-primary-800/30 text-primary-700 dark:text-primary-300 font-semibold"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/30",
+                              ? "bg-gradient-to-r from-blue-50 via-purple-50/80 to-blue-50 dark:from-blue-950/60 dark:via-purple-950/40 dark:to-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold shadow-lg shadow-blue-500/10 dark:shadow-blue-500/20 ring-1 ring-blue-200/50 dark:ring-blue-800/30 backdrop-blur-sm"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:via-blue-50/30 hover:to-gray-50 dark:hover:from-gray-800/50 dark:hover:via-blue-900/20 dark:hover:to-gray-800/50 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-md hover:ring-1 hover:ring-gray-200/30 dark:hover:ring-gray-700/30 hover:scale-[1.02]",
                           )}
                         >
-                          {item.label}
+                          <div className="relative z-10 flex items-center gap-3">
+                            {item.label}
+                            {item.active && (
+                              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-sm animate-pulse" />
+                            )}
+                          </div>
+                          {item.active && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 dark:from-blue-400/10 dark:via-purple-400/10 dark:to-blue-400/10 rounded-2xl blur-sm" />
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent dark:via-white/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                         </Link>
                       </SheetClose>
                     ))}
@@ -243,24 +264,27 @@ export function CustomNavbar() {
                 </div>
               </ScrollArea>
 
-              <Separator className="bg-gray-200 dark:bg-gray-800" />
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mx-6" />
 
-              <SheetFooter className="p-4 border-t border-gray-200 dark:border-gray-800">
-                <div className="flex items-center gap-3 mb-4 w-full">
-                  <ShadcnAvatar className="h-10 w-10 border border-gray-200 dark:border-gray-700">
-                    <AvatarImage
-                      src="/placeholder.svg?height=40&width=40"
-                      alt={t("admin")}
-                    />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {t("admin").charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </ShadcnAvatar>
+              <SheetFooter className="p-6 bg-gradient-to-br from-gray-50/30 via-blue-50/10 to-gray-50/30 dark:from-gray-900/30 dark:via-blue-950/10 dark:to-gray-900/30">
+                <div className="flex items-center gap-4 mb-6 w-full p-4 rounded-2xl bg-gradient-to-r from-white/60 via-blue-50/40 to-white/60 dark:from-gray-800/60 dark:via-blue-900/20 dark:to-gray-800/60 backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30 shadow-sm">
+                  <div className="relative">
+                    <ShadcnAvatar className="h-12 w-12 ring-2 ring-blue-200/50 dark:ring-blue-800/30 shadow-lg">
+                      <AvatarImage
+                        src="/placeholder.svg?height=48&width=48"
+                        alt={t("admin")}
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
+                        {t("admin").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </ShadcnAvatar>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full ring-2 ring-white dark:ring-gray-800 shadow-sm" />
+                  </div>
                   <div className="flex flex-col flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-50 truncate">
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-50 truncate">
                       {t("admin")}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate bg-gradient-to-r from-gray-600 to-blue-600 dark:from-gray-400 dark:to-blue-400 bg-clip-text ">
                       {t("adminEmail")}
                     </p>
                   </div>
@@ -268,9 +292,9 @@ export function CustomNavbar() {
                 <SheetClose asChild>
                   <Button
                     variant="destructive"
-                    className="w-full rounded-xl py-3 font-medium"
+                    className="w-full rounded-2xl py-4 font-semibold text-base bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 shadow-lg shadow-red-500/25 dark:shadow-red-500/40 ring-1 ring-red-400/20 dark:ring-red-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-95"
                   >
-                    <LogOut size={18} className="mr-2" />
+                    <LogOut size={20} className="mr-3" />
                     {t("logout")}
                   </Button>
                 </SheetClose>

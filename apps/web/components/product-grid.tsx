@@ -72,6 +72,37 @@ const SlickPrevArrow: React.FC<SlickArrowProps> = (props) => {
   );
 };
 
+// 内容块数据结构
+interface ProductGridBlockData {
+  title?: string;
+  subtitle?: string;
+  seeAllText?: string;
+  seeAllLink?: string;
+  productLimit?: number;
+  productGender?: 'women' | 'men';
+  productTag?: string;
+  productCategory?: string;
+  productBrand?: string;
+  showNewArrivalChip?: boolean;
+  showPriceDiscount?: boolean;
+}
+
+interface ProductGridContentBlock {
+  id: string;
+  identifier: string;
+  type: 'PRODUCT_GRID_CONFIGURABLE';
+  name: string;
+  data: ProductGridBlockData;
+  items: {
+    id: string;
+    itemIdentifier?: string | null;
+    type: string;
+    name: string;
+    data: unknown;
+    order: number;
+  }[];
+}
+
 interface ProductGridProps {
   gender?: 'women' | 'men';
 }
@@ -83,28 +114,87 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
   const [productsToDisplay, setProductsToDisplay] = useState<ProductTypeFromAppTypes[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [contentBlock, setContentBlock] = useState<ProductGridContentBlock | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    const fetchProducts = async () => {
+
+    const fetchContentBlock = async () => {
       setIsLoading(true);
       setError(null);
-      let apiUrl = '/api/public/products?limit=12';
-
-      if (gender) {
-        apiUrl += `&gender=${gender}`;
-      } else {
-        // 默认使用women分类
-        apiUrl += `&gender=women`;
-      }
 
       try {
-        const response = await fetch(apiUrl);
+        // 1. 先请求内容块配置
+        let contentBlockApiUrl =
+          '/api/public/content-blocks?type=PRODUCT_GRID_CONFIGURABLE&single=true';
 
-        if (!response.ok) {
+        if (gender) {
+          contentBlockApiUrl = `/api/public/content-blocks?categorySlug=${gender}&type=PRODUCT_GRID_CONFIGURABLE&single=true`;
+        } else {
+          // 默认使用women分类
+          contentBlockApiUrl = `/api/public/content-blocks?categorySlug=women&type=PRODUCT_GRID_CONFIGURABLE&single=true`;
+        }
+
+        const contentBlockResponse = await fetch(contentBlockApiUrl);
+
+        let blockData: ProductGridContentBlock | null = null;
+
+        if (contentBlockResponse.ok) {
+          blockData = await contentBlockResponse.json();
+          setContentBlock(blockData);
+        } else if (contentBlockResponse.status !== 404) {
+          // 如果不是404错误，则记录错误
+        }
+
+        // 2. 根据内容块配置构建产品API请求
+        let productApiUrl = '/api/public/products';
+        const params = new URLSearchParams();
+
+        if (blockData?.data) {
+          // 使用内容块配置
+          if (blockData.data.productLimit) {
+            params.append('limit', blockData.data.productLimit.toString());
+          } else {
+            params.append('limit', '12'); // 默认值
+          }
+
+          if (blockData.data.productGender || gender) {
+            params.append('gender', blockData.data.productGender || gender || 'women');
+          } else {
+            params.append('gender', 'women'); // 默认值
+          }
+
+          if (blockData.data.productTag) {
+            params.append('tag', blockData.data.productTag);
+          }
+
+          if (blockData.data.productCategory) {
+            params.append('category', blockData.data.productCategory);
+          }
+
+          if (blockData.data.productBrand) {
+            params.append('brand', blockData.data.productBrand);
+          }
+        } else {
+          // 回退到默认配置
+          params.append('limit', '12');
+          if (gender) {
+            params.append('gender', gender);
+          } else {
+            params.append('gender', 'women');
+          }
+        }
+
+        productApiUrl += '?' + params.toString();
+
+        // 3. 请求产品数据
+        const productResponse = await fetch(productApiUrl);
+
+        if (!productResponse.ok) {
           throw new Error(t('productGrid.errors.fetchProductsError'));
         }
-        const result = await response.json();
+
+        const result = await productResponse.json();
 
         setProductsToDisplay(result.data || []);
       } catch (err: unknown) {
@@ -117,7 +207,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
       }
     };
 
-    fetchProducts();
+    fetchContentBlock();
   }, [t, gender]);
 
   const handleProductClick = (product: ProductTypeFromAppTypes) => {
@@ -223,11 +313,18 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
     ],
   };
 
-  const displayTitle = gender
-    ? t(`productGrid.title_${gender}`, { defaultValue: t('productGrid.defaultTitle') })
-    : t('productGrid.defaultTitle');
-  const displaySeeAllText = t('productGrid.seeAllDefaultText');
-  const displaySeeAllLink = gender ? `/product/list?gender=${gender}` : '/product/list?tag=new';
+  // 从内容块获取显示配置，如果没有则使用默认值
+  const displayTitle =
+    contentBlock?.data?.title ||
+    (gender
+      ? t(`productGrid.title_${gender}`, { defaultValue: t('productGrid.defaultTitle') })
+      : t('productGrid.defaultTitle'));
+
+  const displaySeeAllText = contentBlock?.data?.seeAllText || t('productGrid.seeAllDefaultText');
+
+  const displaySeeAllLink =
+    contentBlock?.data?.seeAllLink ||
+    (gender ? `/product/list?gender=${gender}` : '/product/list?tag=new');
 
   if (!mounted || (isLoading && !productsToDisplay.length)) {
     return (
@@ -278,6 +375,11 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
         <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-text-primary-light dark:text-text-primary-dark">
           {displayTitle}
         </h2>
+        {contentBlock?.data?.subtitle && (
+          <p className="text-text-secondary-light dark:text-text-secondary-dark mb-6 text-center">
+            {contentBlock.data.subtitle}
+          </p>
+        )}
         <div className="flex flex-col gap-y-12">
           <div className="relative px-0 sm:px-2 md:px-4">
             {productsToDisplay.length > 0 && (
@@ -299,7 +401,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
                         }
                       }}
                     >
-                      {product.isNew && (
+                      {product.isNew && contentBlock?.data?.showNewArrivalChip !== false && (
                         <Chip
                           classNames={{
                             base: 'absolute top-5 left-5 z-20 bg-bg-primary-light dark:bg-bg-tertiary-dark backdrop-blur-xs dark:backdrop-blur-md shadow-xs',
@@ -351,15 +453,16 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
                           </p>
                           <div className="flex items-baseline gap-2">
                             <p
-                              className={`text-[11px] sm:text-sm font-medium ${product.discount ? 'text-red-600 dark:text-red-400' : 'text-text-primary-light dark:text-text-primary-dark'}`}
+                              className={`text-[11px] sm:text-sm font-medium ${product.discount && contentBlock?.data?.showPriceDiscount !== false ? 'text-red-600 dark:text-red-400' : 'text-text-primary-light dark:text-text-primary-dark'}`}
                             >
                               ¥{product.price.toLocaleString()}
                             </p>
-                            {product.originalPrice && (
-                              <p className="text-[10px] sm:text-xs line-through text-text-tertiary-light dark:text-text-tertiary-dark">
-                                ¥{product.originalPrice.toLocaleString()}
-                              </p>
-                            )}
+                            {product.originalPrice &&
+                              contentBlock?.data?.showPriceDiscount !== false && (
+                                <p className="text-[10px] sm:text-xs line-through text-text-tertiary-light dark:text-text-tertiary-dark">
+                                  ¥{product.originalPrice.toLocaleString()}
+                                </p>
+                              )}
                           </div>
                         </div>
                       </div>

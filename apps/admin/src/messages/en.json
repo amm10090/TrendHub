@@ -1405,7 +1405,42 @@
       "confirmRemoveTitle": "Confirm Removal",
       "confirmRemoveMessage": "Are you sure you want to remove this product from the selected list?",
       "maxSelectionReached": "Maximum selection limit reached ({maxCount} items).",
-      "confirmSelectionButton": "Confirm Selection"
+      "confirmSelectionButton": "Confirm Selection",
+      "unknownProduct": "Unknown Product",
+      "notApplicable": "N/A",
+      "unknownPrice": "0.00",
+      "useProductSelectorToModify": "Modify via product selector",
+      "selectedProduct": "Selected product:",
+      "unnamedProduct": "Unnamed product",
+      "notSet": "Not set",
+      "defaultImagePlaceholder": "Image URL"
+    },
+    "validation": {
+      "gridTitleRequired": "Grid title is required",
+      "invalidLinkUrl": "Invalid link URL",
+      "mustBePositiveInteger": "Must be a positive integer",
+      "productIdRequired": "Product ID is required",
+      "nameRequired": "Name is required",
+      "identifierRequired": "Identifier is required",
+      "identifierFormat": "Only lowercase letters, numbers and hyphens allowed",
+      "invalidPrimaryCategoryId": "Invalid primary category ID",
+      "formValidationFailed": "Form validation failed, please check required fields and URL format",
+      "validationError": "Error occurred during validation",
+      "saveFailed": "Save failed, please check form data"
+    },
+    "api": {
+      "errors": {
+        "fetchContentBlocksFailed": "Failed to fetch content blocks list",
+        "dataValidationFailed": "Data validation failed",
+        "createUniqueConstraintConflict": "Creation failed: unique constraint conflict. Field {fields} value already exists.",
+        "createContentBlockFailed": "Failed to create content block"
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "identifierRequired": "Identifier is required",
+        "identifierFormat": "Only lowercase letters, numbers and hyphens allowed",
+        "invalidPrimaryCategoryId": "Invalid primary category ID"
+      }
     }
   },
   "scraperManagement": {

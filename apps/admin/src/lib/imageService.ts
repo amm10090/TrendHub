@@ -44,32 +44,10 @@ export async function uploadImageToR2(
   originalFilename: string,
   contentType: string,
 ): Promise<string> {
-  console.log("uploadImageToR2 called with:", {
-    bufferSize: fileBuffer.length,
-    originalFilename,
-    contentType,
-    bucketName: R2_BUCKET_NAME,
-    publicUrl: R2_PUBLIC_URL,
-  });
-
   if (!R2_BUCKET_NAME || !R2_PUBLIC_URL) {
     const error =
       "Server configuration error: R2 bucket or public URL not set.";
-    console.error(error, {
-      bucketName: R2_BUCKET_NAME,
-      publicUrl: R2_PUBLIC_URL,
-      env: {
-        CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID
-          ? "set"
-          : "not set",
-        R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID ? "set" : "not set",
-        R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY
-          ? "set"
-          : "not set",
-        R2_BUCKET_NAME: process.env.R2_BUCKET_NAME ? "set" : "not set",
-        R2_PUBLIC_URL: process.env.R2_PUBLIC_URL ? "set" : "not set",
-      },
-    });
+
     throw new Error(error);
   }
 
@@ -81,41 +59,21 @@ export async function uploadImageToR2(
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const key = `images/${year}/${month}/${uniqueFilename}`;
 
-  console.log("Preparing upload with key:", key);
-
   try {
-    console.log("Sending PutObjectCommand to R2...");
-
     const command = new PutObjectCommand({
       Bucket: R2_BUCKET_NAME,
       Key: key,
       Body: fileBuffer,
       ContentType: contentType,
-      ACL: "public-read", // Make sure the bucket itself allows public read
-    });
-
-    console.log("Command created:", {
-      Bucket: R2_BUCKET_NAME,
-      Key: key,
-      ContentType: contentType,
-      BodySize: fileBuffer.length,
+      // 移除 ACL 参数，Cloudflare R2 不支持 AWS S3 的 ACL
     });
 
     await r2Client.send(command);
-    console.log("Upload successful to R2");
 
     const finalUrl = `${R2_PUBLIC_URL.replace(/\/$/, "")}/${key}`;
-    console.log("Generated final URL:", finalUrl);
 
     return finalUrl;
-  } catch (error) {
-    console.error("R2 upload failed:", error);
-    console.error("Error details:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : "No stack trace",
-    });
-
+  } catch {
     throw new Error("Image upload failed.");
   }
 }

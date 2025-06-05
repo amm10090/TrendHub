@@ -82,14 +82,18 @@ const ProductGridHeroDataSchema = z.object({
 
 // 新增：PRODUCT_GRID_CONFIGURABLE 的 data schema
 const ProductGridConfigurableBlockDataSchema = z.object({
-  title: z.string().min(1, "网格标题不能为空"),
+  title: z.string().min(1, "Grid title is required"),
   seeAllText: z.string().optional(),
-  seeAllLink: z.string().url("无效的链接URL").or(z.literal("")).optional(),
+  seeAllLink: z.string().url("Invalid link URL").or(z.literal("")).optional(),
   dataSourceType: z
     .enum(["MANUAL_SELECTION", "DYNAMIC_QUERY"])
     .default("MANUAL_SELECTION"),
-  // dynamicQueryConfig: z.any().optional(), // DYNAMIC_QUERY 暂时不实现
-  maxDisplayItems: z.coerce.number().int().positive("必须是正整数").optional(),
+  // dynamicQueryConfig: z.any().optional(), // DYNAMIC_QUERY not implemented yet
+  maxDisplayItems: z.coerce
+    .number()
+    .int()
+    .positive("Must be a positive integer")
+    .optional(),
 });
 
 // --- Specific Data Schemas for ContentItemType ---
@@ -143,19 +147,19 @@ const IntroductionGuaranteeItemDataSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-// 新增：PRODUCT_REFERENCE 的 data schema
+// PRODUCT_REFERENCE data schema
 const ProductReferenceItemDataSchema = z.object({
-  productId: z.string().min(1, "产品ID不能为空"),
-  // productName: z.string().optional(), // productName 用于UI展示，不直接存入 data
+  productId: z.string().min(1, "Product ID is required"),
+  // productName: z.string().optional(), // productName for UI display, not stored in data
 });
 
 export const ContentItemFormSchema = z
   .object({
-    id: z.string().optional(), // 用于更新时识别
-    itemIdentifier: z.string().optional().nullable(), // 允许 null
-    slotKey: z.string().optional().nullable(), // 新增 slotKey 字段
+    id: z.string().optional(), // for update identification
+    itemIdentifier: z.string().optional().nullable(), // allow null
+    slotKey: z.string().optional().nullable(), // slotKey field
     type: z.nativeEnum(ContentItemType),
-    name: z.string().min(1, "名称不能为空"),
+    name: z.string().min(1, "Name is required"),
     data: z.any(), // jsonSchema,
     order: z.number().int().default(0),
     isActive: z.boolean().default(true),
@@ -245,21 +249,24 @@ export const ContentItemFormSchema = z
 
 export type ContentItemFormValues = z.infer<typeof ContentItemFormSchema>;
 
-// 基础对象 Schema，不包含 superRefine，用于导出和被其他 Schema 组合或操作
+// Base object Schema without superRefine, for export and composition
 export const BaseContentBlockFormObjectSchema = z.object({
   id: z.string().optional(),
   identifier: z
     .string()
-    .min(1, "Identifier 不能为空")
-    .regex(/^[a-z0-9-]+$/, "只允许小写字母、数字和连字符"),
+    .min(1, "Identifier is required")
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Only lowercase letters, numbers and hyphens allowed",
+    ),
   type: z.nativeEnum(ContentBlockType),
-  name: z.string().min(1, "名称不能为空"),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional().nullable(),
   data: z.any().optional().nullable(),
   isActive: z.boolean().default(true),
   targetPrimaryCategoryId: z
     .string()
-    .cuid({ message: "无效的一级分类ID" })
+    .cuid({ message: "Invalid primary category ID" })
     .optional()
     .nullable(),
   targetPrimaryCategory: z
@@ -522,10 +529,10 @@ const ProductGridConfigurableFields: FC<{
       )
       .map((item) => ({
         id: item.data.productId as string,
-        name: item.name || "Unknown Product", // ContentItem 的 name 作为产品名
-        sku: "N/A", // SKU 和其他详细信息需要额外获取，或在ContentItem.data中也存储一些
-        images: [], // 图片也需要额外获取或存储
-        price: "0.00", // 价格也需要额外获取或存储
+        name: item.name || t("productSelector.unknownProduct"), // ContentItem name as product name
+        sku: t("productSelector.notApplicable"), // SKU and other details need additional fetching
+        images: [], // Images also need additional fetching or storage
+        price: t("productSelector.unknownPrice"), // Price also needs additional fetching or storage
         // 为了在选择器中正确显示，理想情况下 ContentItem.data 应包含更多产品信息
         // 或者 ProductSelectorModal 在初始化时根据ID列表批量获取产品详情
       }))
@@ -539,7 +546,7 @@ const ProductGridConfigurableFields: FC<{
 
         return orderA - orderB;
       });
-  }, [currentBlockItems]);
+  }, [currentBlockItems, t]);
 
   const handleOpenProductSelector = () => {
     setIsProductSelectorOpen(true);
@@ -551,16 +558,16 @@ const ProductGridConfigurableFields: FC<{
     const newItems: ContentItemFormValues[] = selectedModalProducts.map(
       (product, index) => ({
         type: ContentItemType.PRODUCT_REFERENCE,
-        name: product.name, // 使用从选择器返回的产品名
+        name: product.name, // Use product name returned from selector
         data: { productId: product.id },
-        order: index, // 根据选择器返回的顺序（已包含拖拽排序后的顺序）
+        order: index, // Based on order returned from selector (includes drag-sort order)
         isActive: true,
         itemIdentifier:
           currentBlockItems.find((ci) => ci.data?.productId === product.id)
             ?.itemIdentifier || `prod_ref_${product.id}_${Date.now()}`,
         slotKey: currentBlockItems.find(
           (ci) => ci.data?.productId === product.id,
-        )?.slotKey, // 保留原slotKey，如果适用
+        )?.slotKey, // Preserve original slotKey if applicable
       }),
     );
 
@@ -617,7 +624,7 @@ const ProductGridConfigurableFields: FC<{
         name="data.maxDisplayItems"
         label={t("maxDisplayItems")}
         control={control}
-        component={Input} // 可以考虑使用 Input type="number"
+        component={Input} // Could consider using Input type="number"
         placeholder={t("maxDisplayItemsPlaceholder")}
       />
 
@@ -652,18 +659,18 @@ const ProductGridConfigurableFields: FC<{
         </Card>
       )}
 
-      {/* ProductSelectorModal 定义 (暂时占位) */}
+      {/* ProductSelectorModal definition (placeholder) */}
       <ProductSelectorModal
         isOpen={isProductSelectorOpen}
         onClose={() => setIsProductSelectorOpen(false)}
-        initialSelectedProducts={initialModalProducts} // 传递转换后的已选产品
+        initialSelectedProducts={initialModalProducts} // Pass converted selected products
         onConfirmSelection={handleProductSelection}
       />
     </div>
   );
 };
 
-// 通用表单字段组件，简化代码
+// Generic form field component to simplify code
 interface FormFieldProps {
   name: string;
   label: string;
@@ -766,8 +773,8 @@ const FormField: React.FC<FormFieldProps> = ({
               <ImageUploadField
                 value={field.value}
                 onChange={field.onChange}
-                label="" // 主 Label 已由 FormField 提供
-                placeholder={placeholder || "图片URL"}
+                label="" // Main Label already provided by FormField
+                placeholder={placeholder || "Image URL"}
               />
             ) : (
               <Input id={name} placeholder={placeholder} {...field} />
@@ -835,7 +842,7 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
     };
 
     fetchPrimaryCategories();
-  }, [t]); // 添加 t 到依赖数组，因为 toast 中使用了它
+  }, [t]); // Add t to dependency array because toast uses it
 
   const form = useForm<ContentBlockFormValues>({
     resolver: zodResolver(ContentBlockFormSchema),
@@ -885,7 +892,7 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
     }
   }, [initialData, form]);
 
-  // 编辑模式下，当 initialData 或 primaryCategories 改变时，尝试设置 targetPrimaryCategoryId 的初始值
+  // In edit mode, try to set initial value of targetPrimaryCategoryId when initialData or primaryCategories change
   useEffect(() => {
     if (
       isEditMode &&
@@ -920,14 +927,14 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
 
   const handleFormSubmit = form.handleSubmit(
     async (data) => {
-      // 确保所有项目都有唯一的itemIdentifier
+      // Ensure all items have unique itemIdentifier
       if (data.items?.length) {
-        // 用于检查重复
+        // For duplicate checking
         const identifiers = new Set<string>();
         const updatedItems = [...data.items].map((item, index) => {
           let identifier = item.itemIdentifier;
 
-          // 如果为空或已存在（重复），生成新的唯一标识符
+          // If empty or already exists (duplicate), generate new unique identifier
           if (!identifier || identifiers.has(identifier)) {
             const timestamp = Date.now() + index;
             const slotPrefix = item.slotKey
@@ -943,7 +950,7 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
           return item;
         });
 
-        // 由于我们修改了数据，所以需要更新表单值
+        // Since we modified the data, we need to update form values
         form.setValue("items", updatedItems);
       }
 
@@ -959,8 +966,8 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
           });
         }
       } catch {
-        // JSON解析或序列化错误可以忽略，因为我们只是尝试克隆对象
-        // 如果失败，将使用原始对象
+        // JSON parsing or serialization errors can be ignored, as we're just trying to clone objects
+        // If it fails, the original object will be used
       }
       await onSubmit(data);
     },
@@ -1329,33 +1336,34 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
       );
     }
     if (itemType === ContentItemType.PRODUCT_REFERENCE) {
-      // 对于 PRODUCT_REFERENCE，可能不需要在抽屉中显示特定的 data 字段
-      // 因为主要信息是 productId，已经在 ProductSelectorModal 中管理
-      // 如果需要在抽屉中显示产品名或图片等预览信息，可以在这里添加只读字段
-      // 但通常 productId 是隐藏的，在 data 中
+      // For PRODUCT_REFERENCE, may not need to show specific data fields in drawer
+      // because main info is productId, already managed in ProductSelectorModal
+      // If need to show product name or image preview in drawer, can add readonly fields here
+      // but usually productId is hidden, in data
       const productId = form.getValues(`items.${itemIndex}.data.productId`);
-      const productName = form.getValues(`items.${itemIndex}.name`); // 产品名称在 item.name 中
+      const productName = form.getValues(`items.${itemIndex}.name`); // Product name in item.name
 
       return (
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            已选产品:
+            {t("productSelector.selectedProduct")}
           </p>
           <p className="text-sm text-gray-900 dark:text-gray-100">
-            {productName || "未命名产品"} (ID: {productId || "未设置"})
+            {productName || t("productSelector.unnamedProduct")} (ID:{" "}
+            {productId || t("productSelector.notSet")})
           </p>
           <Button
             variant="link"
             size="sm"
             type="button"
             onClick={() => {
-              // 此处逻辑需要重新考虑，直接在抽屉中编辑已选产品ID可能不是最佳UX
-              // 通常会通过再次打开ProductSelectorModal来修改选择
-              // alert("请通过产品选择器修改已选产品。");
-              // 为了简单起见，我们暂时允许在抽屉修改名称，但 productId 应通过选择器修改
+              // Logic here needs reconsideration, directly editing selected productId in drawer may not be optimal UX
+              // Usually would modify selection by reopening ProductSelectorModal
+              // alert("Please modify selected products via product selector.");
+              // For simplicity, we temporarily allow editing name in drawer, but productId should be modified via selector
             }}
           >
-            通过产品选择器修改
+            {t("productSelector.useProductSelectorToModify")}
           </Button>
         </div>
       );
@@ -1473,7 +1481,7 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
                 defaultData = { iconKey: "", title: "", description: "" };
               }
 
-              // 生成唯一的itemIdentifier，确保不重复
+              // Generate unique itemIdentifier to ensure no duplicates
               const slotPrefix = "guarantee_item";
               const uniqueIdentifier = `${slotPrefix}_${Date.now()}`;
 
@@ -1483,7 +1491,7 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
                 data: defaultData,
                 isActive: true,
                 order: fields.length,
-                itemIdentifier: uniqueIdentifier, // 设置为唯一标识符
+                itemIdentifier: uniqueIdentifier, // Set as unique identifier
                 slotKey: "",
               });
             }}
@@ -1760,7 +1768,7 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
                   </div>
                 </div>
 
-                {/* 3. 固定底部操作区域 */}
+                {/* 3. Fixed bottom action area */}
                 <DrawerFooter className="border-t shrink-0 bg-white mt-auto">
                   <div className="flex justify-between gap-2">
                     <Button
@@ -1794,14 +1802,14 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
                         onClick={async () => {
                           if (editingItemIndex === null) return;
 
-                          // 获取当前编辑项的数据和类型
+                          // Get current editing item data and type
                           const currentItem = form.getValues(
                             `items.${editingItemIndex}`,
                           );
 
-                          // 确保itemIdentifier是唯一的或为空
+                          // Ensure itemIdentifier is unique or empty
                           if (!currentItem.itemIdentifier) {
-                            // 如果为空，生成一个唯一值
+                            // If empty, generate a unique value
                             const uniqueIdentifier = `item_${currentItem.slotKey || ""}_${Date.now()}`;
 
                             form.setValue(
@@ -1810,17 +1818,17 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
                             );
                           }
 
-                          // 根据项目类型选择适当的验证Schema
+                          // Select appropriate validation Schema based on item type
                           let isValid = false;
                           let errorMessage = "";
 
                           try {
-                            // 清理URL字段 - 如果为空则设为空字符串
+                            // Clean URL fields - set to empty string if empty
                             if (
                               currentItem.data &&
                               typeof currentItem.data === "object"
                             ) {
-                              // 确保 currentItem.data 是对象
+                              // Ensure currentItem.data is an object
                               const dataFields = [
                                 "imageUrl",
                                 "href",
@@ -1838,30 +1846,31 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
                                 }
                               });
 
-                              // 更新表单数据
+                              // Update form data
                               form.setValue(
                                 `items.${editingItemIndex}.data`,
                                 currentItem.data,
                               );
                             }
 
-                            // 触发该项目字段的验证
+                            // Trigger validation for this item's fields
                             await form.trigger(`items.${editingItemIndex}`);
 
-                            // 检查是否有错误
+                            // Check for errors
                             const itemErrors =
                               form.formState.errors?.items?.[editingItemIndex];
 
                             if (itemErrors) {
-                              errorMessage =
-                                "表单验证失败，请检查必填字段和URL格式";
+                              errorMessage = t(
+                                "validation.formValidationFailed",
+                              );
 
                               return;
                             }
 
                             isValid = true;
                           } catch {
-                            errorMessage = "验证过程中出错";
+                            errorMessage = t("validation.validationError");
 
                             return;
                           }
@@ -1869,8 +1878,8 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
                           if (isValid) {
                             setIsEditDrawerOpen(false);
                           } else {
-                            // 这里可以显示错误提示，如果你有toast组件或者其他UI反馈机制
-                            alert(errorMessage || "保存失败，请检查表单数据");
+                            // Can show error notification here if you have toast component or other UI feedback
+                            alert(errorMessage || t("validation.saveFailed"));
                           }
                         }}
                         disabled={isLoading}

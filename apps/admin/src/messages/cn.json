@@ -1317,7 +1317,15 @@
         "priceLabel": "价格:",
         "inventoryLabel": "库存:"
       },
-      "confirmSelectionButton": "确认选择"
+      "confirmSelectionButton": "确认选择",
+      "unknownProduct": "未知产品",
+      "notApplicable": "不适用",
+      "unknownPrice": "0.00",
+      "useProductSelectorToModify": "通过产品选择器修改",
+      "selectedProduct": "已选产品:",
+      "unnamedProduct": "未命名产品",
+      "notSet": "未设置",
+      "defaultImagePlaceholder": "图片URL"
     },
     "visualEditor": {
       "previewDescription": "点击下方预览区域中的槽位来编辑或添加内容项。",
@@ -1328,6 +1336,33 @@
       "addItemToSlotPlaceholderNamed": "添加内容到 \"{slotName}\"",
       "noImage": "无图片",
       "addItemToSlotPlaceholder": "点击添加内容"
+    },
+    "validation": {
+      "gridTitleRequired": "网格标题不能为空",
+      "invalidLinkUrl": "无效的链接URL",
+      "mustBePositiveInteger": "必须是正整数",
+      "productIdRequired": "产品ID不能为空",
+      "nameRequired": "名称不能为空",
+      "identifierRequired": "Identifier 不能为空",
+      "identifierFormat": "只允许小写字母、数字和连字符",
+      "invalidPrimaryCategoryId": "无效的一级分类ID",
+      "formValidationFailed": "表单验证失败，请检查必填字段和URL格式",
+      "validationError": "验证过程中出错",
+      "saveFailed": "保存失败，请检查表单数据"
+    },
+    "api": {
+      "errors": {
+        "fetchContentBlocksFailed": "获取内容块列表失败",
+        "dataValidationFailed": "数据验证失败",
+        "createUniqueConstraintConflict": "创建失败：唯一约束冲突。字段 {fields} 的值已存在。",
+        "createContentBlockFailed": "创建内容块失败"
+      },
+      "validation": {
+        "nameRequired": "名称不能为空",
+        "identifierRequired": "标识符不能为空",
+        "identifierFormat": "只允许小写字母、数字和连字符",
+        "invalidPrimaryCategoryId": "无效的一级分类ID"
+      }
     }
   },
   "scraperManagement": {

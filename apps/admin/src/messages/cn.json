@@ -1332,10 +1332,12 @@
       "editItemTitle": "编辑内容项: {itemName}",
       "unnamedItem": "未命名项",
       "slotLabel": "槽位",
+      "slotKeyLabel": "槽位键",
       "editItemDescription": "修改此内容项的详细信息。",
       "addItemToSlotPlaceholderNamed": "添加内容到 \"{slotName}\"",
       "noImage": "无图片",
-      "addItemToSlotPlaceholder": "点击添加内容"
+      "addItemToSlotPlaceholder": "点击添加内容",
+      "selectSlot": "选择槽位 {slotName}"
     },
     "validation": {
       "gridTitleRequired": "网格标题不能为空",

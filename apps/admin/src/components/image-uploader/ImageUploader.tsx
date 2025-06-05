@@ -22,8 +22,8 @@ interface ImageUploaderProps {
 }
 
 /**
- * 图片上传组件 (Modal)
- * 用于选择、预览图片并将其上传到服务器。
+ * Image uploader component (Modal)
+ * Used to select, preview and upload images to the server.
  */
 export function ImageUploader({
   isOpen,
@@ -54,7 +54,7 @@ export function ImageUploader({
 
   const validateFile = useCallback(
     (selectedFile: File): boolean => {
-      // 验证文件类型
+      // Validate file type
       const validTypes = [
         "image/jpeg",
         "image/png",
@@ -64,14 +64,16 @@ export function ImageUploader({
       ];
 
       if (!validTypes.includes(selectedFile.type.toLowerCase())) {
-        setError(`图片格式无效。支持的格式: JPG, PNG, GIF, WebP, SVG`);
+        setError(
+          `Invalid image format. Supported formats: JPG, PNG, GIF, WebP, SVG`,
+        );
 
         return false;
       }
 
-      // 验证文件大小
+      // Validate file size
       if (selectedFile.size > maxSizeBytes) {
-        setError(`图片大小不能超过 ${maxSizeMb}MB`);
+        setError(`Image size cannot exceed ${maxSizeMb}MB`);
 
         return false;
       }
@@ -86,7 +88,7 @@ export function ImageUploader({
       if (validateFile(selectedFile)) {
         setFile(selectedFile);
         setError(null);
-        setAltText(selectedFile.name.split(".").slice(0, -1).join(".")); // 默认 alt 为文件名 (不含扩展名)
+        setAltText(selectedFile.name.split(".").slice(0, -1).join(".")); // Default alt text is filename without extension
 
         const reader = new FileReader();
 
@@ -106,7 +108,7 @@ export function ImageUploader({
       if (selectedFile) {
         processFile(selectedFile);
       }
-      e.target.value = ""; // 允许重复选择相同文件
+      e.target.value = ""; // Allow selecting the same file again
     },
     [processFile],
   );
@@ -147,12 +149,14 @@ export function ImageUploader({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "上传失败");
+        throw new Error(data.error || "Upload failed");
       }
       onImageUpload(data.url, altText || file.name);
-      handleClose(); // 成功后关闭并重置
+      handleClose(); // Close and reset after success
     } catch (err) {
-      setError(err instanceof Error ? err.message : "上传过程中发生错误");
+      setError(
+        err instanceof Error ? err.message : "An error occurred during upload",
+      );
     } finally {
       setUploading(false);
     }
@@ -162,7 +166,7 @@ export function ImageUploader({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>上传图片</DialogTitle>
+          <DialogTitle>Upload Image</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {preview ? (
@@ -170,7 +174,7 @@ export function ImageUploader({
               <div className="relative group w-full aspect-video flex items-center justify-center bg-muted rounded-md overflow-hidden">
                 <NextImage
                   src={preview}
-                  alt="图片预览"
+                  alt="Image preview"
                   fill
                   style={{ objectFit: "contain" }}
                   className="rounded-md"
@@ -178,9 +182,9 @@ export function ImageUploader({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={resetForm} // 只重置表单，不关闭弹窗
+                  onClick={resetForm} // Only reset form, don't close modal
                   className="absolute top-2 right-2 bg-background/70 text-foreground rounded-full p-1 opacity-50 group-hover:opacity-100 transition-opacity"
-                  title="移除图片"
+                  title="Remove image"
                   type="button"
                 >
                   <X className="h-4 w-4" />
@@ -188,17 +192,18 @@ export function ImageUploader({
               </div>
               <div>
                 <Label htmlFor="alt-text" className="text-sm font-medium">
-                  描述文本 (Alt Text)
+                  Alt Text
                 </Label>
                 <Input
                   id="alt-text"
                   value={altText}
                   onChange={(e) => setAltText(e.target.value)}
-                  placeholder="例如：一只可爱的猫咪"
+                  placeholder="e.g.: A beautiful landscape"
                   className="mt-1"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  为图片提供描述，有助于SEO和可访问性。
+                  Provide a description for the image to help with SEO and
+                  accessibility.
                 </p>
               </div>
             </div>
@@ -217,13 +222,15 @@ export function ImageUploader({
               }}
               role="button"
               tabIndex={0}
-              aria-label="点击或拖拽图片到此处上传"
+              aria-label="Click or drag image here to upload"
             >
               <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground" />
               <div className="mt-2">
-                <p className="text-sm text-foreground">点击或拖拽图片到此处</p>
+                <p className="text-sm text-foreground">
+                  Click or drag image here
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  支持 JPG, PNG, GIF, WebP, SVG (最大 {maxSizeMb}MB)
+                  Supports JPG, PNG, GIF, WebP, SVG (max {maxSizeMb}MB)
                 </p>
               </div>
               <Input
@@ -244,10 +251,10 @@ export function ImageUploader({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">取消</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button onClick={handleUpload} disabled={!file || uploading}>
-            {uploading ? "上传中..." : "上传"}
+            {uploading ? "Uploading..." : "Upload"}
           </Button>
         </DialogFooter>
       </DialogContent>

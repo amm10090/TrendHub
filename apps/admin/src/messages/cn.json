@@ -1341,6 +1341,27 @@
       "defaultImagePlaceholder": "图片URL"
     },
     "visualEditor": {
+      "title": "热门内容布局编辑器",
+      "description": "可视化编辑热门内容区块的布局结构",
+      "editMode": "编辑模式",
+      "previewMode": "预览模式",
+      "editModeDescription": "点击任意区域编辑内容，拖拽调整布局",
+      "previewModeDescription": "预览实际前端效果",
+      "trendingPreviewTitle": "热门内容预览",
+      "clickToAddContent": "点击添加内容",
+      "editingTips": {
+        "title": "编辑提示",
+        "addNew": "点击空白区域添加新内容项",
+        "editExisting": "点击已有内容进行编辑",
+        "togglePreview": "切换到预览模式查看实际效果",
+        "autoSave": "所有更改将实时保存"
+      },
+      "status": {
+        "active": "激活",
+        "inactive": "禁用"
+      },
+      "textAreaPlaceholder": "文本内容将显示在此处",
+      "clickToAddImage": "点击添加图片",
       "previewDescription": "点击下方预览区域中的槽位来编辑或添加内容项。",
       "editItemTitle": "编辑内容项: {itemName}",
       "unnamedItem": "未命名项",
@@ -1378,6 +1399,9 @@
         "identifierFormat": "只允许小写字母、数字和连字符",
         "invalidPrimaryCategoryId": "无效的一级分类ID"
       }
+    },
+    "trending": {
+      "discover_more": "了解更多"
     }
   },
   "scraperManagement": {

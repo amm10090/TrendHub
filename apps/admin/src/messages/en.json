@@ -1393,6 +1393,27 @@
       "fetchPrimaryCategoriesFailed": "Failed to fetch primary categories"
     },
     "visualEditor": {
+      "title": "Trending Content Layout Editor",
+      "description": "Visually edit the layout structure of trending content blocks",
+      "editMode": "Edit Mode",
+      "previewMode": "Preview Mode",
+      "editModeDescription": "Click any area to edit content, drag to adjust layout",
+      "previewModeDescription": "Preview the actual frontend effect",
+      "trendingPreviewTitle": "Trending Content Preview",
+      "clickToAddContent": "Click to add content",
+      "editingTips": {
+        "title": "Editing Tips",
+        "addNew": "Click empty areas to add new content items",
+        "editExisting": "Click existing content to edit",
+        "togglePreview": "Switch to preview mode to see actual effect",
+        "autoSave": "All changes will be saved automatically"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "textAreaPlaceholder": "Text content will be displayed here",
+      "clickToAddImage": "Click to add image",
       "previewDescription": "Click on a slot in the preview area below to edit or add content items.",
       "editItemTitle": "Edit Content Item: {itemName}",
       "unnamedItem": "Unnamed Item",
@@ -1453,6 +1474,9 @@
         "identifierFormat": "Only lowercase letters, numbers and hyphens allowed",
         "invalidPrimaryCategoryId": "Invalid primary category ID"
       }
+    },
+    "trending": {
+      "discover_more": "Discover More"
     }
   },
   "scraperManagement": {

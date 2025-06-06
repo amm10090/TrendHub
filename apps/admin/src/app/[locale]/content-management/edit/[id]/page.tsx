@@ -147,28 +147,3 @@ export default function EditContentBlockPage() {
     </div>
   );
 }
-
-// 缺失的翻译 (需要添加到对应的 i18n json 文件中)
-/*
-// in contentManagement.json
-{
-  "edit": {
-    "title": "编辑内容块",
-    "messages": {
-      "fetchErrorNotFound": "无法加载内容块数据，可能已被删除。", // Hook会处理这个
-      "fetchErrorGeneric": "加载内容块数据时出错。", // Hook会处理这个
-      "invalidId": "无效的内容块 ID。",
-      "loadFailed": "内容块数据加载失败或未找到。",
-      "updateSuccess": "内容块 \"{name}\" 已成功更新。",
-      "updateError": "更新内容块失败: {error}" // Hook会处理这个
-    }
-  }
-}
-
-// in common.json
-{
-   "actions": {
-     "backToList": "返回列表"
-   }
-}
-*/

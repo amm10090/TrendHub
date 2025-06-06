@@ -79,24 +79,3 @@ export default function CreateContentBlockPage() {
     </div>
   );
 }
-
-// 缺失的翻译 (需要添加到对应的 i18n json 文件中)
-/*
-// in contentManagement.json
-{
-  "create": {
-    "title": "创建新内容块",
-    "messages": {
-      "createSuccess": "内容块 \"{name}\" 已成功创建。",
-      "createError": "创建内容块失败: {error}"
-    }
-  }
-}
-
-// in common.json
-{
-   "errors": {
-     "unknownError": "发生未知错误"
-   }
-}
-*/

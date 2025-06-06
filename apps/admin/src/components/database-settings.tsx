@@ -100,7 +100,9 @@ export function DatabaseSettings({
 
         // 显示连接状态提示
         addToast({
-          title: data.data.isConnected ? "连接成功" : "连接失败",
+          title: data.data.isConnected
+            ? t("database.testConnectionSuccess")
+            : t("database.testConnectionFailed"),
           description: data.data.message,
           variant: "solid",
           color: "success",
@@ -111,8 +113,9 @@ export function DatabaseSettings({
       }
     } catch (error) {
       addToast({
-        title: "连接测试失败",
-        description: error instanceof Error ? error.message : "未知错误",
+        title: t("database.testConnectionError"),
+        description:
+          error instanceof Error ? error.message : t("common.unknownError"),
         variant: "solid",
         color: "danger",
         timeout: 3000,
@@ -281,7 +284,11 @@ export function DatabaseSettings({
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
-            <span>上次连接成功，延迟：{connectionStatus.latency}ms</span>
+            <span>
+              {t("database.lastConnectionSuccess", {
+                latency: connectionStatus.latency,
+              })}
+            </span>
           </div>
         )}
 
@@ -290,7 +297,7 @@ export function DatabaseSettings({
           connectionStatus.error && (
             <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
               <h3 className="text-sm font-medium text-red-700 dark:text-red-400">
-                错误详情：
+                {t("database.errorDetails")}
               </h3>
               <pre className="mt-1 text-xs text-red-600 dark:text-red-300 overflow-auto max-h-32">
                 {connectionStatus.error}

@@ -338,6 +338,7 @@
       "backToList": "Back to List"
     },
     "errors": {
+      "error": "Error",
       "unknownApiError": "An unknown API error occurred. Please try again later or contact support."
     },
     "pagination": {
@@ -384,6 +385,8 @@
     "dashboard": {
       "title": "Dashboard"
     },
+    "subtitle": "Manage your business with powerful insights and analytics",
+    "viewAllProducts": "View All Products",
     "overview": "Overview",
     "recentActivities": "Recent Activities",
     "recentActivitiesDescription": "Recent operations and activity records in the system",
@@ -484,8 +487,10 @@
     "dashboard": "Dashboard",
     "email": "Email",
     "language": "Language",
+    "languageChinese": "Chinese",
     "lightMode": "Light Mode",
     "logout": "Logout",
+    "login": "Login",
     "logs": "Logs",
     "navigation": "Navigation",
     "notifications": "Notifications",
@@ -1015,12 +1020,19 @@
       "title": "Appearance Settings"
     },
     "database": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
       "description": "Manage database connection settings",
+      "errorDetails": "Error Details:",
       "host": "Database Host",
+      "lastConnectionSuccess": "Last successful connection, latency: {latency}ms",
       "name": "Database Name",
       "password": "Database Password",
       "port": "Database Port",
       "testConnection": "Test Connection",
+      "testConnectionError": "Connection test failed",
+      "testConnectionFailed": "Connection failed",
+      "testConnectionSuccess": "Connection successful",
       "testingConnection": "Testing connection...",
       "title": "Database Configuration",
       "useSSL": "Use SSL Connection",

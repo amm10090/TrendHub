@@ -12,162 +12,48 @@ export default {
     // HeroUI 主题文件 - 确保指向根目录的 node_modules
     "../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        // 将 CSS 变量映射到 Tailwind 颜色
+        // 使用 Tailwind V4 兼容的 CSS 变量格式
         background: "var(--color-background)",
+        "background-secondary": "var(--color-background-secondary)",
+        "background-tertiary": "var(--color-background-tertiary)",
         foreground: "var(--color-foreground)",
+        "foreground-secondary": "var(--color-foreground-secondary)",
+        "foreground-tertiary": "var(--color-foreground-tertiary)",
+
         card: "var(--color-card)",
+        "card-secondary": "var(--color-card-secondary)",
         "card-foreground": "var(--color-card-foreground)",
+
         popover: "var(--color-popover)",
         "popover-foreground": "var(--color-popover-foreground)",
+
         primary: "var(--color-primary)",
         "primary-foreground": "var(--color-primary-foreground)",
+
         secondary: "var(--color-secondary)",
         "secondary-foreground": "var(--color-secondary-foreground)",
+
         muted: "var(--color-muted)",
         "muted-foreground": "var(--color-muted-foreground)",
+
         accent: "var(--color-accent)",
         "accent-foreground": "var(--color-accent-foreground)",
+
         destructive: "var(--color-destructive)",
         "destructive-foreground": "var(--color-destructive-foreground)",
+
         border: "var(--color-border)",
+        "border-secondary": "var(--color-border-secondary)",
         input: "var(--color-input)",
         ring: "var(--color-ring)",
-        // 标准颜色调色板
-        red: {
-          50: "var(--color-red-50)",
-          100: "var(--color-red-100)",
-          200: "var(--color-red-200)",
-          300: "var(--color-red-300)",
-          400: "var(--color-red-400)",
-          500: "var(--color-red-500)",
-          600: "var(--color-red-600)",
-          700: "var(--color-red-700)",
-          800: "var(--color-red-800)",
-          900: "var(--color-red-900)",
-          950: "var(--color-red-950)",
-        },
-        blue: {
-          50: "var(--color-blue-50)",
-          100: "var(--color-blue-100)",
-          200: "var(--color-blue-200)",
-          300: "var(--color-blue-300)",
-          400: "var(--color-blue-400)",
-          500: "var(--color-blue-500)",
-          600: "var(--color-blue-600)",
-          700: "var(--color-blue-700)",
-          800: "var(--color-blue-800)",
-          900: "var(--color-blue-900)",
-          950: "var(--color-blue-950)",
-        },
-        green: {
-          50: "var(--color-green-50)",
-          100: "var(--color-green-100)",
-          200: "var(--color-green-200)",
-          300: "var(--color-green-300)",
-          400: "var(--color-green-400)",
-          500: "var(--color-green-500)",
-          600: "var(--color-green-600)",
-          700: "var(--color-green-700)",
-          800: "var(--color-green-800)",
-          900: "var(--color-green-900)",
-          950: "var(--color-green-950)",
-        },
-        yellow: {
-          50: "var(--color-yellow-50)",
-          100: "var(--color-yellow-100)",
-          200: "var(--color-yellow-200)",
-          300: "var(--color-yellow-300)",
-          400: "var(--color-yellow-400)",
-          500: "var(--color-yellow-500)",
-          600: "var(--color-yellow-600)",
-          700: "var(--color-yellow-700)",
-          800: "var(--color-yellow-800)",
-          900: "var(--color-yellow-900)",
-          950: "var(--color-yellow-950)",
-        },
-        purple: {
-          50: "var(--color-purple-50)",
-          100: "var(--color-purple-100)",
-          200: "var(--color-purple-200)",
-          300: "var(--color-purple-300)",
-          400: "var(--color-purple-400)",
-          500: "var(--color-purple-500)",
-          600: "var(--color-purple-600)",
-          700: "var(--color-purple-700)",
-          800: "var(--color-purple-800)",
-          900: "var(--color-purple-900)",
-          950: "var(--color-purple-950)",
-        },
-        gray: {
-          50: "var(--color-gray-50)",
-          100: "var(--color-gray-100)",
-          200: "var(--color-gray-200)",
-          300: "var(--color-gray-300)",
-          400: "var(--color-gray-400)",
-          500: "var(--color-gray-500)",
-          600: "var(--color-gray-600)",
-          700: "var(--color-gray-700)",
-          800: "var(--color-gray-800)",
-          900: "var(--color-gray-900)",
-          950: "var(--color-gray-950)",
-        },
-        // HeroUI 语义颜色
-        default: {
-          50: "var(--color-default-50)",
-          100: "var(--color-default-100)",
-          200: "var(--color-default-200)",
-          300: "var(--color-default-300)",
-          400: "var(--color-default-400)",
-          500: "var(--color-default-500)",
-          600: "var(--color-default-600)",
-          700: "var(--color-default-700)",
-          800: "var(--color-default-800)",
-          900: "var(--color-default-900)",
-        },
-        success: {
-          50: "var(--color-success-50)",
-          100: "var(--color-success-100)",
-          200: "var(--color-success-200)",
-          300: "var(--color-success-300)",
-          400: "var(--color-success-400)",
-          500: "var(--color-success-500)",
-          600: "var(--color-success-600)",
-          700: "var(--color-success-700)",
-          800: "var(--color-success-800)",
-          900: "var(--color-success-900)",
-        },
-        warning: {
-          50: "var(--color-warning-50)",
-          100: "var(--color-warning-100)",
-          200: "var(--color-warning-200)",
-          300: "var(--color-warning-300)",
-          400: "var(--color-warning-400)",
-          500: "var(--color-warning-500)",
-          600: "var(--color-warning-600)",
-          700: "var(--color-warning-700)",
-          800: "var(--color-warning-800)",
-          900: "var(--color-warning-900)",
-        },
-        danger: {
-          50: "var(--color-danger-50)",
-          100: "var(--color-danger-100)",
-          200: "var(--color-danger-200)",
-          300: "var(--color-danger-300)",
-          400: "var(--color-danger-400)",
-          500: "var(--color-danger-500)",
-          600: "var(--color-danger-600)",
-          700: "var(--color-danger-700)",
-          800: "var(--color-danger-800)",
-          900: "var(--color-danger-900)",
-        },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+
+        surface: "var(--color-surface)",
+        "surface-hover": "var(--color-surface-hover)",
+        "surface-pressed": "var(--color-surface-pressed)",
       },
       fontFamily: {
         sans: [
@@ -188,87 +74,158 @@ export default {
           "Noto Color Emoji",
         ],
       },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 2px)",
+        "2xl": "calc(var(--radius) + 6px)",
+        "3xl": "calc(var(--radius) + 10px)",
+      },
+      spacing: {
+        18: "4.5rem",
+        88: "22rem",
+        128: "32rem",
+      },
+      backdropBlur: {
+        xs: "2px",
+      },
       keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+        "slide-in": {
+          "0%": { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "scale-in": {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(4px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "slide-down": {
+          "0%": { transform: "translateY(-4px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        glow: {
+          "0%, 100%": { boxShadow: "0 0 5px var(--color-primary)" },
+          "50%": {
+            boxShadow:
+              "0 0 20px var(--color-primary), 0 0 30px var(--color-primary)",
+          },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
+        "slide-in": "slide-in 0.3s ease-out",
+        "scale-in": "scale-in 0.2s ease-out",
+        "slide-up": "slide-up 0.2s ease-out",
+        "slide-down": "slide-down 0.2s ease-out",
+        glow: "glow 2s ease-in-out infinite alternate",
+        "fade-in-delay": "fade-in 0.5s ease-out 0.2s both",
+      },
+      boxShadow: {
+        glass: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+        card: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        "card-hover":
+          "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "dark-card":
+          "0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2)",
+        "dark-card-hover":
+          "0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3)",
+        "elevation-1": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "elevation-2":
+          "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        "elevation-3":
+          "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        "elevation-4":
+          "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "elevation-5":
+          "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+        "elevation-6": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
+        // 暗色模式特定阴影
+        "dark-elevation-1": "0 1px 2px 0 rgb(0 0 0 / 0.3)",
+        "dark-elevation-2":
+          "0 4px 8px -2px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.3)",
+        "dark-elevation-3":
+          "0 8px 16px -4px rgb(0 0 0 / 0.6), 0 4px 8px -4px rgb(0 0 0 / 0.4)",
+        "dark-elevation-4":
+          "0 20px 35px -5px rgb(0 0 0 / 0.6), 0 8px 15px -6px rgb(0 0 0 / 0.4)",
+        "dark-elevation-5":
+          "0 30px 60px -12px rgb(0 0 0 / 0.8), 0 18px 36px -18px rgb(0 0 0 / 0.6)",
+      },
+      transitionTimingFunction: {
+        fluid: "cubic-bezier(0.4, 0, 0.2, 1)",
+        snappy: "cubic-bezier(0.2, 0, 0, 1)",
+        smooth: "cubic-bezier(0.4, 0, 0.6, 1)",
+        bouncy: "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
       },
     },
   },
-  darkMode: "class",
   plugins: [
+    tailwindcssAnimate,
     heroui({
-      prefix: "heroui",
-      addCommonColors: false, // 避免与 Tailwind 默认颜色冲突
+      addCommonColors: true,
       defaultTheme: "light",
-      layout: {
-        // 全局布局配置
-        disabledOpacity: "0.5",
-        radius: {
-          small: "4px",
-          medium: "6px",
-          large: "8px",
-        },
-        borderWidth: {
-          small: "1px",
-          medium: "2px",
-          large: "3px",
-        },
-      },
+      defaultExtendTheme: "light",
       themes: {
         light: {
           colors: {
-            // 亮色主题使用默认 HeroUI 颜色
-            background: "#ffffff",
-            foreground: "#11181c",
+            background: "var(--color-background)",
+            foreground: "var(--color-foreground)",
             primary: {
-              50: "#e6f1fe",
-              100: "#cce3fd",
-              200: "#99c7fb",
-              300: "#66aaf9",
-              400: "#338ef7",
-              500: "#006fee",
-              600: "#005bc4",
-              700: "#004493",
-              800: "#002e62",
-              900: "#001731",
-              DEFAULT: "#006fee",
-              foreground: "#ffffff",
+              DEFAULT: "var(--color-primary)",
+              foreground: "var(--color-primary-foreground)",
+            },
+            secondary: {
+              DEFAULT: "var(--color-secondary)",
+              foreground: "var(--color-secondary-foreground)",
+            },
+            default: {
+              50: "var(--color-default-50)",
+              100: "var(--color-default-100)",
+              200: "var(--color-default-200)",
+              300: "var(--color-default-300)",
+              400: "var(--color-default-400)",
+              500: "var(--color-default-500)",
+              600: "var(--color-default-600)",
+              700: "var(--color-default-700)",
+              800: "var(--color-default-800)",
+              900: "var(--color-default-900)",
             },
           },
         },
         dark: {
           colors: {
-            // 暗色主题使用默认 HeroUI 颜色
-            background: "#000000",
-            foreground: "#ecedee",
+            background: "var(--color-background)",
+            foreground: "var(--color-foreground)",
             primary: {
-              50: "#001731",
-              100: "#002e62",
-              200: "#004493",
-              300: "#005bc4",
-              400: "#006fee",
-              500: "#338ef7",
-              600: "#66aaf9",
-              700: "#99c7fb",
-              800: "#cce3fd",
-              900: "#e6f1fe",
-              DEFAULT: "#006fee",
-              foreground: "#ffffff",
+              DEFAULT: "var(--color-primary)",
+              foreground: "var(--color-primary-foreground)",
+            },
+            secondary: {
+              DEFAULT: "var(--color-secondary)",
+              foreground: "var(--color-secondary-foreground)",
+            },
+            default: {
+              50: "var(--color-default-50)",
+              100: "var(--color-default-100)",
+              200: "var(--color-default-200)",
+              300: "var(--color-default-300)",
+              400: "var(--color-default-400)",
+              500: "var(--color-default-500)",
+              600: "var(--color-default-600)",
+              700: "var(--color-default-700)",
+              800: "var(--color-default-800)",
+              900: "var(--color-default-900)",
             },
           },
         },
       },
     }),
-    tailwindcssAnimate,
   ],
 };

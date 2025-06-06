@@ -123,49 +123,54 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     loadThemeSettings();
   }, []);
 
-  // 优化系统主题检测
+  // 应用颜色模式 - 优化的主题切换逻辑
   useEffect(() => {
+    const root = document.documentElement;
+
+    // 移除之前的主题类
+    root.classList.remove("light", "dark");
+
     if (theme.colorMode === "system") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-      const handleChange = (e: MediaQueryListEvent) => {
+      const applySystemTheme = (isDark: boolean) => {
         requestAnimationFrame(() => {
-          document.documentElement.classList.toggle("dark", e.matches);
+          root.classList.toggle("dark", isDark);
+          root.classList.toggle("light", !isDark);
         });
+      };
+
+      // 立即应用当前系统主题
+      applySystemTheme(mediaQuery.matches);
+
+      // 监听系统主题变化
+      const handleChange = (e: MediaQueryListEvent) => {
+        applySystemTheme(e.matches);
       };
 
       mediaQuery.addEventListener("change", handleChange);
 
-      requestAnimationFrame(() => {
-        document.documentElement.classList.toggle("dark", mediaQuery.matches);
-      });
-
       return () => mediaQuery.removeEventListener("change", handleChange);
+    } else {
+      // 手动主题模式
+      requestAnimationFrame(() => {
+        root.classList.add(theme.colorMode);
+      });
     }
   }, [theme.colorMode]);
 
-  // 应用主题设置 - 添加过渡动画
+  // 应用其他主题设置
   useEffect(() => {
     const root = document.documentElement;
 
-    // 添加过渡效果
+    // 添加平滑过渡效果
     if (!theme.reducedMotion) {
       root.style.setProperty(
-        "transition",
-        "background-color 0.3s ease, color 0.3s ease",
+        "--theme-transition",
+        "background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       );
     } else {
-      root.style.removeProperty("transition");
-    }
-
-    // 颜色模式
-    root.classList.remove("light", "dark");
-    if (theme.colorMode === "system") {
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-      root.classList.add(isDark ? "dark" : "light");
-    } else {
-      root.classList.add(theme.colorMode);
+      root.style.removeProperty("--theme-transition");
     }
 
     // 主题色
@@ -176,7 +181,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       );
       root.style.setProperty(
         "--color-primary-foreground",
-        `var(--color-${theme.primaryColor}-50)`,
+        theme.primaryColor === "yellow" || theme.primaryColor === "green"
+          ? `var(--color-${theme.primaryColor}-950)`
+          : `var(--color-${theme.primaryColor}-50)`,
       );
     });
 
@@ -203,7 +210,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.dataset.width = theme.contentWidth;
 
     return () => {
-      root.style.removeProperty("transition");
+      root.style.removeProperty("--theme-transition");
     };
   }, [theme]);
 

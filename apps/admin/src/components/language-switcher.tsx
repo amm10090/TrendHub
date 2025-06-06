@@ -28,7 +28,8 @@ export function LanguageSwitcher() {
   };
 
   const currentLanguageLabel = locale === "en" ? "🇺🇸" : "🇨🇳";
-  const currentLanguageDesc = locale === "en" ? "English" : "中文";
+  const currentLanguageDesc =
+    locale === "en" ? "English" : t("languageChinese");
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -64,7 +65,7 @@ export function LanguageSwitcher() {
               >
                 <span className="text-lg mr-2">🇨🇳</span>
                 <div className="flex flex-col">
-                  <span>中文</span>
+                  <span>{t("languageChinese")}</span>
                   <span className="text-xs text-muted-foreground">Chinese</span>
                 </div>
               </DropdownMenuItem>

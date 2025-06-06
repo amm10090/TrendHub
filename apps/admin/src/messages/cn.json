@@ -271,8 +271,10 @@
       "backToList": "返回列表"
     },
     "errors": {
+      "error": "错误",
       "unknownApiError": "发生未知API错误，请稍后重试或联系管理员。"
     },
+    "unknownError": "未知错误",
     "pagination": {
       "items": "项",
       "next": "下一页",
@@ -297,6 +299,8 @@
     "dashboard": {
       "title": "仪表盘"
     },
+    "subtitle": "通过强大的洞察和分析管理您的业务",
+    "viewAllProducts": "查看所有产品",
     "overview": "概览",
     "recentActivities": "最近活动",
     "recentActivitiesDescription": "查看最近的系统活动记录",
@@ -396,7 +400,9 @@
     "dashboard": "仪表盘",
     "email": "邮箱",
     "language": "语言",
+    "languageChinese": "中文",
     "lightMode": "亮色模式",
+    "login": "登录",
     "logout": "退出登录",
     "logs": "日志管理",
     "navigation": "导航",
@@ -930,12 +936,19 @@
       "title": "外观设置"
     },
     "database": {
+      "connected": "已连接",
+      "disconnected": "未连接",
       "description": "管理数据库连接设置",
+      "errorDetails": "错误详情：",
       "host": "数据库主机",
+      "lastConnectionSuccess": "上次连接成功，延迟：{latency}ms",
       "name": "数据库名称",
       "password": "数据库密码",
       "port": "数据库端口",
       "testConnection": "测试连接",
+      "testConnectionError": "连接测试失败",
+      "testConnectionFailed": "连接失败",
+      "testConnectionSuccess": "连接成功",
       "testingConnection": "测试连接中...",
       "title": "数据库配置",
       "useSSL": "使用SSL连接",

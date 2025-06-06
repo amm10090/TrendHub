@@ -39,6 +39,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  imagePlaceholderStyles,
+  priceStyles,
+  stockIndicatorStyles,
+  badgeStyles,
+  tableRowStyles,
+  expandButtonStyles,
+  textStyles,
+  filterPanelStyles,
+  toolbarStyles,
+  tableStyles,
+  tableHeaderStyles,
+  loadingStyles,
+  labelStyles,
+} from "@/lib/utils";
 
 function NavbarWrapper() {
   return <CustomNavbar />;
@@ -789,16 +804,14 @@ function PriceDisplay({
 
   return (
     <div className="flex flex-col">
-      <div className="font-medium">${price.toFixed(2)}</div>
+      <div className={priceStyles("current")}>${price.toFixed(2)}</div>
       {hasDiscount && (
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 line-through">
+          <span className={priceStyles("original")}>
             ${originalPrice.toFixed(2)}
           </span>
           {discountPercent && (
-            <span className="text-xs px-1.5 py-0.5 bg-red-100 text-red-800 rounded">
-              -{discountPercent}%
-            </span>
+            <span className={priceStyles("discount")}>-{discountPercent}%</span>
           )}
         </div>
       )}
@@ -817,8 +830,8 @@ function ProductImage({ src, alt, fallbackText }: ProductImageProps) {
 
   if (!src) {
     return (
-      <div className="w-10 h-10 bg-gray-100 flex items-center justify-center rounded">
-        <span className="text-xs text-gray-500">
+      <div className={imagePlaceholderStyles("md")}>
+        <span className={`text-xs ${textStyles("tertiary")}`}>
           {fallbackText || t("noImage")}
         </span>
       </div>
@@ -826,7 +839,7 @@ function ProductImage({ src, alt, fallbackText }: ProductImageProps) {
   }
 
   return (
-    <div className="w-10 h-10 relative rounded overflow-hidden">
+    <div className={imagePlaceholderStyles("md")}>
       <Image
         src={src}
         alt={alt || t("productImage")}
@@ -933,28 +946,32 @@ function InventoryStatus({
   const t = useTranslations("products");
 
   if (inventory === undefined) {
-    return <div className="text-sm text-gray-500">{t("noInventory")}</div>;
+    return (
+      <div className={`text-sm ${textStyles("tertiary")}`}>
+        {t("noInventory")}
+      </div>
+    );
   }
 
-  let statusColor = "bg-green-500";
+  let statusColor: "in-stock" | "low-stock" | "out-of-stock" = "in-stock";
   let statusText = t("inStock");
 
   if (inventory <= 0) {
-    statusColor = "bg-red-500";
+    statusColor = "out-of-stock";
     statusText = t("outOfStock");
   } else if (inventory <= lowStockThreshold) {
-    statusColor = "bg-yellow-500";
+    statusColor = "low-stock";
     statusText = t("lowStock");
   }
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="text-sm">
+      <div className={`text-sm ${textStyles("primary")}`}>
         {inventory} {t("units")}
       </div>
       <div className="flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${statusColor}`} />
-        <div className="text-xs text-gray-600">{statusText}</div>
+        <div className={stockIndicatorStyles(statusColor)} />
+        <div className={`text-xs ${textStyles("secondary")}`}>{statusText}</div>
       </div>
     </div>
   );
@@ -972,7 +989,7 @@ function CouponBadge({ hasCoupon, couponCode, couponValue }: CouponBadgeProps) {
   if (!hasCoupon) return null;
 
   return (
-    <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+    <div className={badgeStyles("info")}>
       {couponCode && couponValue
         ? `${couponCode}: ${couponValue}%`
         : t("hasCoupon")}
@@ -988,11 +1005,7 @@ function ProductStatusBadge({ isActive }: ProductStatusBadgeProps) {
   const t = useTranslations("products");
 
   return (
-    <div
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-        isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-      }`}
-    >
+    <div className={badgeStyles(isActive ? "success" : "neutral")}>
       {isActive ? t("status.active") : t("status.inactive")}
     </div>
   );
@@ -1053,7 +1066,7 @@ function ProductRow({
 
   return (
     <>
-      <tr className="border-b hover:bg-gray-50">
+      <tr className={tableRowStyles(isSelected ? "selected" : "hover")}>
         <td className="pl-4 py-3">
           <div className="flex items-center gap-3">
             <input
@@ -1063,19 +1076,19 @@ function ProductRow({
               className="rounded"
               aria-label={t("selectProduct")}
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 h-7 w-7"
+            <button
+              className={expandButtonStyles()}
               onClick={() => setIsExpanded(!isExpanded)}
             >
               {isExpanded ? "-" : "+"}
-            </Button>
+            </button>
             <ProductImage src={product.image} alt={product.name} />
             <div className="flex flex-col">
-              <div className="font-medium">{product.name}</div>
+              <div className={`font-medium ${textStyles("primary")}`}>
+                {product.name}
+              </div>
               {product.sku && (
-                <div className="text-xs text-gray-500">
+                <div className={`text-xs ${textStyles("tertiary")}`}>
                   {t("sku")}: {product.sku}
                 </div>
               )}
@@ -1131,12 +1144,14 @@ function ProductRow({
         </td>
       </tr>
       {isExpanded && (
-        <tr className="border-b bg-gray-50">
-          <td colSpan={7} className="p-4">
+        <tr className={tableRowStyles("default")}>
+          <td colSpan={7} className="p-4 bg-muted/20">
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">{t("productDetails")}</h4>
-                <div className="text-sm">
+                <h4 className={`text-sm font-medium ${textStyles("primary")}`}>
+                  {t("productDetails")}
+                </h4>
+                <div className={`text-sm ${textStyles("secondary")}`}>
                   <div>
                     <span className="font-medium">{t("id")}:</span> {product.id}
                   </div>
@@ -1148,8 +1163,10 @@ function ProductRow({
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">{t("pricing")}</h4>
-                <div className="text-sm">
+                <h4 className={`text-sm font-medium ${textStyles("primary")}`}>
+                  {t("pricing")}
+                </h4>
+                <div className={`text-sm ${textStyles("secondary")}`}>
                   <div>
                     <span className="font-medium">{t("currentPrice")}:</span> $
                     {product.price}
@@ -1170,8 +1187,10 @@ function ProductRow({
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">{t("inventory")}</h4>
-                <div className="text-sm">
+                <h4 className={`text-sm font-medium ${textStyles("primary")}`}>
+                  {t("inventory")}
+                </h4>
+                <div className={`text-sm ${textStyles("secondary")}`}>
                   <div>
                     <span className="font-medium">{t("stock")}:</span>{" "}
                     {product.inventory ?? t("notSet")}
@@ -1334,11 +1353,13 @@ function ProductFilter({
   };
 
   return (
-    <div className="bg-white rounded-md border p-4 mb-4">
+    <div className={filterPanelStyles()}>
       <div className="flex flex-col space-y-4">
         {/* 搜索栏 */}
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+          <Search
+            className={`absolute left-2.5 top-2.5 h-4 w-4 ${textStyles("tertiary")}`}
+          />
           <Input
             type="search"
             placeholder={t("search")}
@@ -1352,7 +1373,7 @@ function ProductFilter({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 状态筛选 */}
           <div className="space-y-1">
-            <label className="text-sm font-medium">{t("columns.status")}</label>
+            <label className={labelStyles()}>{t("columns.status")}</label>
             <Select
               value={activeFilters.status || "all"}
               onValueChange={(value) =>
@@ -1378,7 +1399,7 @@ function ProductFilter({
 
           {/* 品牌筛选 */}
           <div className="space-y-1">
-            <label className="text-sm font-medium">{t("columns.brand")}</label>
+            <label className={labelStyles()}>{t("columns.brand")}</label>
             <Select
               value={activeFilters.brandId || "_all"}
               onValueChange={(value) =>
@@ -1404,9 +1425,7 @@ function ProductFilter({
 
           {/* 分类筛选 */}
           <div className="space-y-1">
-            <label className="text-sm font-medium">
-              {t("columns.category")}
-            </label>
+            <label className={labelStyles()}>{t("columns.category")}</label>
             <Select
               value={activeFilters.categoryId || "_all"}
               onValueChange={(value) =>
@@ -1442,10 +1461,10 @@ function ProductFilter({
 
         {/* 高级筛选项 */}
         {isExpanded && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-border">
             {/* 价格范围筛选 */}
             <div className="space-y-1">
-              <label className="text-sm font-medium">{tCommon("price")}</label>
+              <label className={labelStyles()}>{tCommon("price")}</label>
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
@@ -1478,9 +1497,12 @@ function ProductFilter({
                       hasDiscount: e.target.checked,
                     })
                   }
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-border"
                 />
-                <label htmlFor="hasDiscount" className="text-sm">
+                <label
+                  htmlFor="hasDiscount"
+                  className={`text-sm ${textStyles("primary")}`}
+                >
                   {tCommon("filter.hasDiscount")}
                 </label>
               </div>
@@ -1496,9 +1518,12 @@ function ProductFilter({
                       hasCoupon: e.target.checked,
                     })
                   }
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-border"
                 />
-                <label htmlFor="hasCoupon" className="text-sm">
+                <label
+                  htmlFor="hasCoupon"
+                  className={`text-sm ${textStyles("primary")}`}
+                >
                   {tCommon("filter.hasCoupon")}
                 </label>
               </div>
@@ -1535,8 +1560,10 @@ function BulkActionToolbar({
   if (count === 0) return null;
 
   return (
-    <div className="bg-gray-100 p-2 rounded-md mb-4 flex items-center justify-between">
-      <div className="text-sm">{t("selectedItems", { count })}</div>
+    <div className={toolbarStyles()}>
+      <div className={`text-sm ${textStyles("primary")}`}>
+        {t("selectedItems", { count })}
+      </div>
       <div className="flex gap-2">
         <Button
           variant="outline"
@@ -1646,8 +1673,8 @@ function ProductTable({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className={loadingStyles()}>
+        <Loader2 className={`h-8 w-8 animate-spin ${textStyles("tertiary")}`} />
       </div>
     );
   }
@@ -1669,9 +1696,9 @@ function ProductTable({
         />
       )}
 
-      <div className="border rounded-md overflow-hidden">
+      <div className={tableStyles("default")}>
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className={tableHeaderStyles()}>
             <tr>
               <th className="pl-4 py-3 text-left">
                 <div className="flex items-center gap-3">

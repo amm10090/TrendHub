@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { DbConnectionStatus } from "@/lib/services/settings-service";
 
 interface DatabaseConnectionStatusProps {
@@ -7,6 +9,8 @@ interface DatabaseConnectionStatusProps {
 export function DatabaseConnectionStatus({
   status,
 }: DatabaseConnectionStatusProps) {
+  const t = useTranslations("settings");
+
   if (!status) return null;
 
   return (
@@ -24,7 +28,11 @@ export function DatabaseConnectionStatus({
             : "bg-danger-500 dark:bg-danger-400"
         }`}
       />
-      <span>{status.isConnected ? "已连接" : "未连接"}</span>
+      <span>
+        {status.isConnected
+          ? t("database.connected")
+          : t("database.disconnected")}
+      </span>
       {status.isConnected && status.latency && (
         <span className="text-xs opacity-80 whitespace-nowrap">
           {status.latency}ms

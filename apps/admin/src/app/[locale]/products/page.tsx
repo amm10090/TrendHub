@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
+import { emptyStateStyles, textStyles } from "@/lib/utils";
 
 import { CategoryTable } from "./category-table";
 import { ProductsClient } from "./products-client";
@@ -193,7 +194,9 @@ export default function ProductsPage() {
   if (error) {
     return (
       <div className="flex h-[400px] items-center justify-center">
-        <p className="text-red-500">{t("fetchError")}</p>
+        <p className={`${textStyles("secondary")} text-red-500`}>
+          {t("fetchError")}
+        </p>
       </div>
     );
   }
@@ -201,7 +204,11 @@ export default function ProductsPage() {
   return (
     <ProductsClient.PageWrapper>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
+        <h2
+          className={`text-3xl font-bold tracking-tight ${textStyles("primary")}`}
+        >
+          {t("title")}
+        </h2>
         <div className="flex items-center space-x-2">
           {selectedTab === "products" ? (
             <ProductsClient.AddButton
@@ -215,15 +222,23 @@ export default function ProductsPage() {
       </div>
 
       <div className="mt-4">
-        <div className="flex border-b">
+        <div className="flex border-b border-border">
           <button
-            className={`px-4 py-2 font-medium ${selectedTab === "products" ? "border-b-2 border-primary" : ""}`}
+            className={`px-4 py-2 font-medium transition-colors ${
+              selectedTab === "products"
+                ? `border-b-2 border-primary ${textStyles("primary")}`
+                : textStyles("secondary")
+            }`}
             onClick={() => setSelectedTab("products")}
           >
             {t("productList")}
           </button>
           <button
-            className={`px-4 py-2 font-medium ${selectedTab === "categories" ? "border-b-2 border-primary" : ""}`}
+            className={`px-4 py-2 font-medium transition-colors ${
+              selectedTab === "categories"
+                ? `border-b-2 border-primary ${textStyles("primary")}`
+                : textStyles("secondary")
+            }`}
             onClick={() => setSelectedTab("categories")}
           >
             {t("categoryManagement")}
@@ -325,7 +340,7 @@ export default function ProductsPage() {
 
                 <div className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
+                    <span className={`text-sm ${textStyles("secondary")}`}>
                       {t("pagination.rowsPerPage")}:
                     </span>
                     <Select
@@ -350,11 +365,15 @@ export default function ProductsPage() {
                     <button
                       onClick={() => handlePageChange(page > 1 ? page - 1 : 1)}
                       disabled={page <= 1}
-                      className="px-3 py-1 border rounded disabled:opacity-50"
+                      className={`px-3 py-1 border border-border rounded transition-colors disabled:opacity-50 ${
+                        page <= 1
+                          ? textStyles("tertiary")
+                          : `${textStyles("primary")} hover:bg-muted`
+                      }`}
                     >
                       {t("pagination.prev")}
                     </button>
-                    <span className="text-sm">
+                    <span className={`text-sm ${textStyles("primary")}`}>
                       {page} / {totalPages}
                     </span>
                     <button
@@ -364,7 +383,11 @@ export default function ProductsPage() {
                         )
                       }
                       disabled={page >= totalPages}
-                      className="px-3 py-1 border rounded disabled:opacity-50"
+                      className={`px-3 py-1 border border-border rounded transition-colors disabled:opacity-50 ${
+                        page >= totalPages
+                          ? textStyles("tertiary")
+                          : `${textStyles("primary")} hover:bg-muted`
+                      }`}
                     >
                       {t("pagination.next")}
                     </button>
@@ -373,10 +396,12 @@ export default function ProductsPage() {
 
                 {/* 空状态处理 */}
                 {products.length === 0 && !isLoading && (
-                  <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-md mt-4">
+                  <div className={emptyStateStyles()}>
                     {areFiltersApplied(currentFilters) ? (
                       <div className="text-center">
-                        <p className="text-gray-500 text-lg mb-2">
+                        <p
+                          className={`${textStyles("secondary")} text-lg mb-2`}
+                        >
                           {t("noResultsWithFilters")}
                         </p>
                         <Button
@@ -388,17 +413,17 @@ export default function ProductsPage() {
                       </div>
                     ) : (
                       <div className="text-center">
-                        <p className="text-gray-500 text-lg">
+                        <p className={`${textStyles("secondary")} text-lg`}>
                           {t("noProducts")}
                         </p>
-                        <p className="text-gray-400 text-sm">
+                        <p className={`${textStyles("tertiary")} text-sm mt-1`}>
                           {t("addProductPrompt")}
                         </p>
                         {/* 可以添加一个直接跳转到添加商品页面的链接按钮 */}
                         <Button
                           onClick={handleNavigateToNew}
                           disabled={navigatingToNew}
-                          className="mt-2"
+                          className="mt-4"
                         >
                           {navigatingToNew && (
                             <Spinner className="mr-2 h-4 w-4" />

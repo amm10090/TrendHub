@@ -152,15 +152,18 @@ const TrendingCardPreview: React.FC<{
             </div>
           )}
 
-          {/* 渐变遮罩 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-80" />
+          {/* 高端渐变遮罩 - 更细腻的层次感 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-85" />
+
+          {/* 微妙的边框高光效果 */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700" />
 
           {/* 内容覆盖 */}
-          <div className="relative z-10 flex flex-col h-full p-4 sm:p-6">
+          <div className="relative z-10 flex flex-col h-full p-6 sm:p-8 lg:p-10">
             {/* Top Label */}
             {topLabel && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 text-center w-auto max-w-[calc(100%-2rem)]">
-                <span className="text-[10px] sm:text-xs uppercase tracking-wider text-white bg-black/50 px-2.5 py-1 rounded-full whitespace-nowrap">
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center w-auto max-w-[calc(100%-3rem)]">
+                <span className="text-[9px] sm:text-[10px] lg:text-xs uppercase tracking-[0.25em] text-white bg-gradient-to-r from-black/80 to-black/70 backdrop-blur-md px-4 py-1.5 rounded-full whitespace-nowrap font-medium border border-white/30 shadow-lg shadow-black/50">
                   {topLabel}
                 </span>
               </div>
@@ -169,42 +172,75 @@ const TrendingCardPreview: React.FC<{
             {/* 根据 textPosition 定位内容 */}
             {textPosition === "center" ? (
               <div className="flex items-center justify-center h-full">
-                <div className="text-center text-white bg-black/30 p-4 sm:p-6 rounded-sm backdrop-blur-sm">
-                  <h3 className="text-xl md:text-2xl font-bold mb-2 drop-shadow-md">
-                    {displayTitle}
-                  </h3>
-                  {displaySubtitle && (
-                    <p className="text-sm opacity-90 mb-4 drop-shadow-sm">
-                      {displaySubtitle}
-                    </p>
+                <div className="text-center text-white max-w-lg mx-auto">
+                  {/* 高端排版设计 */}
+                  <div className="mb-6 sm:mb-8">
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-light tracking-tight leading-[1.1] mb-4 sm:mb-6">
+                      <span className="block bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-transparent">
+                        {displayTitle}
+                      </span>
+                    </h3>
+                    {displaySubtitle && (
+                      <div className="relative">
+                        <div className="w-12 h-[1px] bg-white/40 mx-auto mb-4" />
+                        <p className="text-sm sm:text-base font-light opacity-90 tracking-wide leading-relaxed">
+                          {displaySubtitle}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {!hideDescription && data.description && (
+                    <div className="mb-6 sm:mb-8">
+                      <p className="text-xs sm:text-sm font-light opacity-80 tracking-wide leading-relaxed line-clamp-3 max-w-md mx-auto">
+                        {data.description}
+                      </p>
+                    </div>
                   )}
-                  <span className="text-sm font-medium hover:opacity-70 inline-block mt-2 border-b border-white/50 pb-0.5 drop-shadow-sm">
-                    {t("trending.discover_more")}
+
+                  {/* 精致的CTA按钮 */}
+                  <span className="inline-flex items-center gap-2 text-xs sm:text-sm font-light uppercase tracking-[0.2em] text-white/90 border border-white/30 px-6 sm:px-8 py-3 sm:py-4 rounded-none backdrop-blur-sm">
+                    <span>{t("trending.discover_more")}</span>
+                    <span className="text-[10px]">→</span>
                   </span>
                 </div>
               </div>
             ) : (
               <>
                 <div className="flex-grow" />
-                <div className="flex flex-col items-center text-white text-center">
-                  <h3 className="text-xl sm:text-2xl font-bold mb-1 drop-shadow-md">
-                    {displayTitle}
-                  </h3>
-                  {displaySubtitle && (
-                    <p className="text-sm opacity-90 mb-2 drop-shadow-sm">
-                      {displaySubtitle}
-                    </p>
-                  )}
+                <div className="flex flex-col items-center text-white text-center p-0">
+                  <div className="w-full text-center mb-4 sm:mb-6">
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl font-light tracking-tight leading-[1.1] mb-3 sm:mb-4">
+                      <span className="block bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-transparent">
+                        {displayTitle}
+                      </span>
+                    </h3>
+
+                    {displaySubtitle && (
+                      <div className="flex flex-col items-center">
+                        <div className="w-8 h-[1px] bg-white/40 mb-3" />
+                        <p className="text-sm sm:text-base font-light opacity-85 tracking-wide leading-relaxed max-w-sm">
+                          {displaySubtitle}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
                   {!hideDescription && data.description && (
-                    <>
-                      <p className="text-xs sm:text-sm opacity-90 line-clamp-2 mt-2 drop-shadow-sm">
+                    <div className="w-full text-center mb-6 sm:mb-8">
+                      <p className="text-xs sm:text-sm font-light opacity-75 tracking-wide leading-relaxed line-clamp-2 max-w-md mx-auto">
                         {data.description}
                       </p>
-                      <span className="text-xs sm:text-sm font-medium hover:opacity-70 drop-shadow-sm border-b border-white/30 hover:border-white/70 pb-px mt-3">
-                        {t("trending.discover_more")}
-                      </span>
-                    </>
+                    </div>
                   )}
+
+                  {/* 底部CTA按钮 - 更精致的设计 */}
+                  <div className="w-full text-center">
+                    <span className="inline-flex items-center gap-2 text-xs font-light uppercase tracking-[0.2em] text-white/80 border-b border-white/30 pb-1">
+                      <span>{t("trending.discover_more")}</span>
+                      <span className="text-[10px]">→</span>
+                    </span>
+                  </div>
                 </div>
               </>
             )}
@@ -260,7 +296,7 @@ const TrendingCardPreview: React.FC<{
           )}
           {topLabel && textPlacement !== "above-image" && (
             <div className="absolute top-4 left-0 right-0 text-center">
-              <span className="text-xs uppercase tracking-wider text-white bg-black/50 px-3 py-1 rounded-full">
+              <span className="text-xs uppercase tracking-wider text-white bg-gradient-to-r from-black/80 to-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/30 shadow-lg shadow-black/50">
                 {topLabel}
               </span>
             </div>
@@ -303,18 +339,13 @@ export const TrendingSectionAdminPreview: React.FC<
     const topResult = findItemBySlotKey(topSlotKey, items);
     const bottomResult = findItemBySlotKey(bottomSlotKey, items);
 
-    const labelText =
-      topResult?.item?.data?.labelText || topResult?.item?.data?.dataLabelText;
-    const labelLink =
-      topResult?.item?.data?.labelLinkUrl ||
-      topResult?.item?.data?.dataLabelLinkUrl;
-    const titleText =
-      topResult?.item?.data?.itemTitleText ||
-      topResult?.item?.data?.dataItemTitleText;
-    const titleLink =
-      topResult?.item?.data?.itemTitleLinkUrl ||
-      topResult?.item?.data?.dataItemTitleLinkUrl ||
-      bottomResult?.item?.data?.href;
+    // 标签文字来自上方卡片的标题
+    const labelText = topResult?.item?.data?.title;
+    const labelLink = topResult?.item?.data?.href;
+
+    // 主标题文字来自下方卡片的标题
+    const titleText = bottomResult?.item?.data?.title;
+    const titleLink = bottomResult?.item?.data?.href;
 
     return { labelText, labelLink, titleText, titleLink };
   };
@@ -409,21 +440,23 @@ export const TrendingSectionAdminPreview: React.FC<
     const { labelText, titleText } = getTextAreaData(topSlotKey, bottomSlotKey);
 
     if (previewMode === "preview" && !labelText && !titleText) {
-      return <div className="h-[100px] sm:h-[130px]" />;
+      return (
+        <div className="min-h-[100px] sm:min-h-[130px] max-h-[100px] sm:max-h-[130px]" />
+      );
     }
 
     return (
-      <div className="flex flex-col justify-center items-center text-center h-[100px] sm:h-[130px] bg-background rounded-xl p-4">
+      <div className="flex flex-col justify-center items-center text-center min-h-[100px] sm:min-h-[130px] max-h-[100px] sm:max-h-[130px] bg-background rounded-xl p-4 overflow-hidden">
         {labelText && (
-          <div className="mb-2 sm:mb-3">
-            <span className="text-xs sm:text-sm uppercase tracking-wider text-muted-foreground font-semibold">
+          <div className="mb-1 sm:mb-2 flex-shrink-0">
+            <span className="text-xs sm:text-sm uppercase tracking-wider text-muted-foreground font-semibold line-clamp-1">
               {labelText}
             </span>
           </div>
         )}
         {titleText && (
-          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
-            {titleText}
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight line-clamp-2 flex-grow flex items-center">
+            <span className="text-center w-full">{titleText}</span>
           </h3>
         )}
         {!labelText && !titleText && previewMode === "edit" && (

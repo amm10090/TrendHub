@@ -1039,16 +1039,20 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
 
       if (selectedSlotKey.includes("_large_")) {
         defaultItemType = ContentItemType.TRENDING_CARD_LARGE;
+        defaultData = {
+          title: "",
+          description: "",
+          imageUrl: "",
+          href: "",
+          textPosition: "bottom",
+        };
       } else if (selectedSlotKey.includes("_image")) {
         defaultItemType = ContentItemType.TRENDING_CARD_STANDALONE;
+        // 根据槽位位置设置默认数据
         defaultData = {
           title: "",
           imageUrl: "",
           href: "",
-          labelText: "",
-          labelLinkUrl: "",
-          itemTitleText: "",
-          itemTitleLinkUrl: "",
         };
       }
 
@@ -1110,107 +1114,55 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
             control={form.control}
             component={Input}
           />
-          <FormField
-            name={`items.${itemIndex}.data.topLabel`}
-            label={t("formFields.trendingCard.topLabel")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.subtitle`}
-            label={t("formFields.trendingCard.subtitle")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.labelText`}
-            label={t("formFields.trendingCard.labelText")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.labelLinkUrl`}
-            label={t("formFields.trendingCard.labelLinkUrl")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.itemTitleText`}
-            label={t("formFields.trendingCard.itemTitleText")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.itemTitleLinkUrl`}
-            label={t("formFields.trendingCard.itemTitleLinkUrl")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.size`}
-            label={t("formFields.trendingCard.size")}
-            control={form.control}
-            component={Select}
-            options={[
-              { value: "normal", label: itemTypes("sizes.normal") || "Normal" },
-              { value: "large", label: itemTypes("sizes.large") || "Large" },
-              {
-                value: "vertical",
-                label: itemTypes("sizes.vertical") || "Vertical",
-              },
-              {
-                value: "horizontal",
-                label: itemTypes("sizes.horizontal") || "Horizontal",
-              },
-              { value: "small", label: itemTypes("sizes.small") || "Small" },
-            ]}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.textPosition`}
-            label={t("formFields.trendingCard.textPosition")}
-            control={form.control}
-            component={Select}
-            options={[
-              {
-                value: "bottom",
-                label: itemTypes("textPositions.bottom") || "Bottom",
-              },
-              {
-                value: "center",
-                label: itemTypes("textPositions.center") || "Center",
-              },
-            ]}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.textPlacement`}
-            label={t("formFields.trendingCard.textPlacement")}
-            control={form.control}
-            component={Select}
-            options={[
-              {
-                value: "overlay",
-                label: itemTypes("textPlacements.overlay") || "Overlay",
-              },
-              {
-                value: "below-image",
-                label: itemTypes("textPlacements.belowImage") || "Below Image",
-              },
-              {
-                value: "above-image",
-                label: itemTypes("textPlacements.aboveImage") || "Above Image",
-              },
-              {
-                value: "standalone",
-                label:
-                  itemTypes("textPlacements.standalone") ||
-                  "Standalone (Image Only)",
-              },
-            ]}
-          />
+
+          {/* 可选的高级设置 */}
+          <div className="border-t pt-4 mt-4">
+            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg mb-4">
+              <p className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">
+                💡 大卡片显示说明
+              </p>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                大卡片使用<strong>标题</strong>作为主要显示内容，
+                <strong>描述</strong>作为辅助说明文字。
+              </p>
+            </div>
+
+            <FormField
+              name={`items.${itemIndex}.data.topLabel`}
+              label={t("formFields.trendingCard.topLabel") + " (可选)"}
+              control={form.control}
+              component={Input}
+            />
+            <FormField
+              name={`items.${itemIndex}.data.textPosition`}
+              label={t("formFields.trendingCard.textPosition")}
+              control={form.control}
+              component={Select}
+              options={[
+                {
+                  value: "bottom",
+                  label: itemTypes("textPositions.bottom") || "底部",
+                },
+                {
+                  value: "center",
+                  label: itemTypes("textPositions.center") || "居中",
+                },
+              ]}
+            />
+          </div>
         </>
       );
     }
     if (itemType === ContentItemType.TRENDING_CARD_STANDALONE) {
+      // 获取当前项的 slotKey 来判断应该显示哪些字段
+      const currentSlotKey = form.watch(`items.${itemIndex}.slotKey`) || "";
+      const isTopSlot =
+        currentSlotKey.includes("_top_") ||
+        currentSlotKey.includes("_next_top_");
+      const isBottomSlot =
+        currentSlotKey.includes("_bottom_") ||
+        currentSlotKey.includes("_next_bottom_");
+
       return (
         <>
           <FormField
@@ -1232,30 +1184,32 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
             control={form.control}
             component={Input}
           />
-          <FormField
-            name={`items.${itemIndex}.data.labelText`}
-            label={t("formFields.trendingCard.labelText")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.labelLinkUrl`}
-            label={t("formFields.trendingCard.labelLinkUrl")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.itemTitleText`}
-            label={t("formFields.trendingCard.itemTitleText")}
-            control={form.control}
-            component={Input}
-          />
-          <FormField
-            name={`items.${itemIndex}.data.itemTitleLinkUrl`}
-            label={t("formFields.trendingCard.itemTitleLinkUrl")}
-            control={form.control}
-            component={Input}
-          />
+
+          {/* 显示文本区域用途说明 */}
+          <div className="border-t pt-4 mt-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+                📍 文本区域显示说明
+              </p>
+              {isTopSlot && (
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  此图片的<strong>标题</strong>将显示在中间文本区域的
+                  <strong>上方</strong>（作为标签文字）
+                </p>
+              )}
+              {isBottomSlot && (
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  此图片的<strong>标题</strong>将显示在中间文本区域的
+                  <strong>下方</strong>（作为主标题）
+                </p>
+              )}
+              {!isTopSlot && !isBottomSlot && (
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  请选择正确的槽位以查看文本区域显示效果
+                </p>
+              )}
+            </div>
+          </div>
         </>
       );
     }

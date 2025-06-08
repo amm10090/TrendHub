@@ -50,10 +50,6 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
     isHoverable = true,
     isPressable = true,
     itemIdentifier,
-    dataLabelText,
-    dataLabelLinkUrl,
-    dataItemTitleText,
-    dataItemTitleLinkUrl,
   } = props;
 
   const t = useTranslations('trending');
@@ -72,22 +68,27 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
             : 'aspect-[680/930] h-auto', // 默认normal
   };
 
+  // 如果指定了 customSize，确保使用它
+  const finalCardSizes = {
+    width: customSize?.width || cardSizes.width,
+    height: customSize?.height || cardSizes.height,
+  };
+
   const isHorizontal = size === 'horizontal';
   const isSmallCard = size === 'small'; // 更新 small card 判断
   const isCenterText = textPosition === 'center';
 
-  // 优先使用传入的组合文本作为卡片的主标题和副标题
-  const displayTitle = dataItemTitleText || title;
-  const displaySubtitle = dataLabelText || subtitle;
-  // 链接也对应调整
-  const titleHref = dataItemTitleLinkUrl || href; // 主标题的链接
+  // 简化：直接使用 title 作为主标题，description 作为副标题/描述
+  const displayTitle = title;
+  const displaySubtitle = subtitle; // 保留 subtitle 用于兼容
+  const titleHref = href;
 
   if (textPlacement === 'standalone') {
     return (
       <Card
         isHoverable={isHoverable}
         isPressable={isPressable}
-        className={`${cardSizes.width} ${cardSizes.height} bg-transparent border-none shadow-none ${className}`}
+        className={`${finalCardSizes.width} ${finalCardSizes.height} bg-transparent border-none shadow-none ${className}`}
         onPress={() => router.push(href)}
         data-item-identifier={itemIdentifier}
       >
@@ -102,7 +103,7 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
             />
             {labelText && (
               <div className="absolute top-4 left-0 right-0 text-center">
-                <span className="text-xs uppercase tracking-wider text-white bg-black/50 px-3 py-1 rounded-full">
+                <span className="text-xs uppercase tracking-wider text-white bg-gradient-to-r from-black/80 to-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/30 shadow-lg shadow-black/50">
                   {labelText}
                 </span>
               </div>
@@ -118,7 +119,7 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
       <Card
         isHoverable={isHoverable}
         isPressable={isPressable}
-        className={`${cardSizes.width} ${cardSizes.height} bg-bg-secondary-light dark:bg-bg-secondary-dark border-border-primary-light dark:border-border-primary-dark flex flex-col ${className}`}
+        className={`${finalCardSizes.width} ${finalCardSizes.height} bg-bg-secondary-light dark:bg-bg-secondary-dark border-border-primary-light dark:border-border-primary-dark flex flex-col ${className}`}
         onPress={() => router.push(href)}
         data-item-identifier={itemIdentifier}
       >
@@ -135,7 +136,7 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
             />
             {topLabel && textPlacement !== 'above-image' && (
               <div className="absolute top-4 left-0 right-0 text-center">
-                <span className="text-xs uppercase tracking-wider text-white bg-black/50 px-3 py-1 rounded-full">
+                <span className="text-xs uppercase tracking-wider text-white bg-gradient-to-r from-black/80 to-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/30 shadow-lg shadow-black/50">
                   {topLabel}
                 </span>
               </div>
@@ -148,19 +149,11 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
               <h3 className={`${size === 'large' ? 'text-2xl' : 'text-lg'} font-bold mb-1`}>
                 {displayTitle}
               </h3>
-              {displaySubtitle &&
-                (dataLabelLinkUrl ? (
-                  <Link
-                    href={dataLabelLinkUrl}
-                    className="text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                  >
-                    {displaySubtitle}
-                  </Link>
-                ) : (
-                  <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
-                    {displaySubtitle}
-                  </p>
-                ))}
+              {displaySubtitle && (
+                <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
+                  {displaySubtitle}
+                </p>
+              )}
               {!hideDescription && description && (
                 <>
                   <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-2 line-clamp-3">
@@ -186,7 +179,7 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
     <Card
       isHoverable={isHoverable}
       isPressable={isPressable}
-      className={`${cardSizes.width} ${cardSizes.height} bg-bg-secondary-light dark:bg-bg-secondary-dark border-border-primary-light dark:border-border-primary-dark ${className} relative overflow-hidden`}
+      className={`${finalCardSizes.width} ${finalCardSizes.height} bg-bg-secondary-light dark:bg-bg-secondary-dark border-border-primary-light dark:border-border-primary-dark ${className} relative overflow-hidden`}
       onPress={() => router.push(href)}
       data-item-identifier={itemIdentifier}
     >
@@ -197,12 +190,16 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
         className="absolute top-0 left-0 z-0 w-full h-full object-cover"
         src={imageUrl || '/images/placeholder.png'}
       />
-      <div className="absolute inset-0 z-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+      {/* 高端渐变遮罩 - 更细腻的层次感 */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-85 group-hover:opacity-95 transition-all duration-500" />
 
-      <div className="relative z-10 flex flex-col h-full p-4 sm:p-6">
+      {/* 微妙的边框高光效果 */}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700" />
+
+      <div className="relative z-10 flex flex-col h-full p-6 sm:p-8 lg:p-10">
         {topLabel && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-center w-auto max-w-[calc(100%-2rem)]">
-            <span className="text-[10px] sm:text-xs uppercase tracking-wider text-white bg-black/50 px-2.5 py-1 rounded-full whitespace-nowrap">
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center w-auto max-w-[calc(100%-3rem)]">
+            <span className="text-[9px] sm:text-[10px] lg:text-xs uppercase tracking-[0.25em] text-white bg-gradient-to-r from-black/80 to-black/70 backdrop-blur-md px-4 py-1.5 rounded-full whitespace-nowrap font-medium border border-white/30 shadow-lg shadow-black/50">
               {topLabel}
             </span>
           </div>
@@ -210,104 +207,102 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ ...props }) => {
 
         {isCenterText ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center text-white bg-black/30 dark:bg-black/50 p-4 sm:p-6 rounded-sm backdrop-blur-sm">
-              <h3 className="text-xl md:text-2xl font-bold mb-2 drop-shadow-md">{displayTitle}</h3>
-              {displaySubtitle &&
-                (dataLabelLinkUrl ? (
-                  <Link
-                    href={dataLabelLinkUrl}
-                    className="text-sm opacity-90 mb-4 drop-shadow-sm hover:underline"
-                  >
-                    {displaySubtitle}
-                  </Link>
-                ) : (
-                  <p className="text-sm opacity-90 mb-4 drop-shadow-sm">{displaySubtitle}</p>
-                ))}
+            <div className="text-center text-white max-w-lg mx-auto">
+              {/* 高端排版设计 */}
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-light tracking-tight leading-[1.1] mb-4 sm:mb-6">
+                  <span className="block bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-transparent">
+                    {displayTitle}
+                  </span>
+                </h3>
+                {displaySubtitle && (
+                  <div className="relative">
+                    <div className="w-12 h-[1px] bg-white/40 mx-auto mb-4" />
+                    <p className="text-sm sm:text-base font-light opacity-90 tracking-wide leading-relaxed">
+                      {displaySubtitle}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {!hideDescription && description && (
+                <div className="mb-6 sm:mb-8">
+                  <p className="text-xs sm:text-sm font-light opacity-80 tracking-wide leading-relaxed line-clamp-3 max-w-md mx-auto">
+                    {description}
+                  </p>
+                </div>
+              )}
+
+              {/* 精致的CTA按钮 */}
               <Link
-                className="text-sm font-medium hover:opacity-70 inline-block mt-2 border-b border-white/50 pb-0.5 drop-shadow-sm"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-light uppercase tracking-[0.2em] text-white/90 hover:text-white border border-white/30 hover:border-white/60 px-6 sm:px-8 py-3 sm:py-4 rounded-none backdrop-blur-sm hover:backdrop-blur-md transition-all duration-300 hover:bg-white/10 group/btn"
                 href={titleHref}
               >
-                {t('discover_more')}
+                <span>{t('discover_more')}</span>
+                <span className="text-[10px] transform group-hover/btn:translate-x-1 transition-transform duration-300">
+                  →
+                </span>
               </Link>
             </div>
           </div>
         ) : (
           <>
             <div className={`flex-grow ${isHorizontal ? 'basis-1/2' : 'basis-2/3 sm:basis-3/5'}`} />
-            <CardFooter className={`flex-shrink-0 flex flex-col items-start text-white w-full`}>
+            <CardFooter className="flex-shrink-0 flex flex-col items-start text-white w-full p-0">
               {isSmallCard ? (
                 <div className="w-full text-center">
-                  <h3 className="text-base sm:text-lg font-bold mb-0.5 drop-shadow-md">
-                    {displayTitle}
+                  <h3 className="text-lg sm:text-xl font-light tracking-tight leading-tight mb-2">
+                    <span className="block bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-transparent">
+                      {displayTitle}
+                    </span>
                   </h3>
-                  {displaySubtitle &&
-                    (dataLabelLinkUrl ? (
-                      <Link
-                        href={dataLabelLinkUrl}
-                        className="text-xs sm:text-sm opacity-90 mb-1 drop-shadow-sm hover:underline"
-                      >
-                        {displaySubtitle}
-                      </Link>
-                    ) : (
-                      <p className="text-xs sm:text-sm opacity-90 mb-1 drop-shadow-sm">
-                        {displaySubtitle}
-                      </p>
-                    ))}
+                  {displaySubtitle && (
+                    <p className="text-xs sm:text-sm font-light opacity-85 tracking-wide">
+                      {displaySubtitle}
+                    </p>
+                  )}
                 </div>
               ) : (
-                <h3
-                  className={`${size === 'large' || size === 'horizontal' ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'} font-bold text-center w-full mb-1 sm:mb-1.5 drop-shadow-md`}
-                >
-                  {displayTitle}
-                </h3>
+                <div className="w-full text-center mb-4 sm:mb-6">
+                  <h3
+                    className={`${size === 'large' || size === 'horizontal' ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-xl sm:text-2xl lg:text-3xl'} font-light tracking-tight leading-[1.1] mb-3 sm:mb-4`}
+                  >
+                    <span className="block bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-transparent">
+                      {displayTitle}
+                    </span>
+                  </h3>
+
+                  {displaySubtitle && (
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-[1px] bg-white/40 mb-3" />
+                      <p className="text-sm sm:text-base font-light opacity-85 tracking-wide leading-relaxed max-w-sm">
+                        {displaySubtitle}
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
 
-              {displaySubtitle &&
-                !isSmallCard &&
-                (dataLabelLinkUrl ? (
-                  <Link
-                    href={dataLabelLinkUrl}
-                    className="text-sm opacity-90 text-center w-full mb-2 drop-shadow-sm hover:underline"
-                  >
-                    {displaySubtitle}
-                  </Link>
-                ) : (
-                  <p className="text-sm opacity-90 text-center w-full mb-2 drop-shadow-sm">
-                    {displaySubtitle}
-                  </p>
-                ))}
-
-              {!hideDescription && description && (
-                <>
-                  <Spacer y={isSmallCard ? 1 : 2} />
-                  <p className="text-xs sm:text-sm opacity-90 line-clamp-2 text-center w-full drop-shadow-sm">
+              {!hideDescription && description && !isSmallCard && (
+                <div className="w-full text-center mb-6 sm:mb-8">
+                  <p className="text-xs sm:text-sm font-light opacity-75 tracking-wide leading-relaxed line-clamp-2 max-w-md mx-auto">
                     {description}
                   </p>
-                  <Spacer y={isSmallCard ? 2 : 3} />
-                  <div className="w-full text-center">
-                    <Link
-                      className="text-xs sm:text-sm font-medium hover:opacity-70 drop-shadow-sm border-b border-white/30 hover:border-white/70 pb-px"
-                      href={titleHref}
-                    >
-                      {t('discover_more')}
-                    </Link>
-                  </div>
-                </>
+                </div>
               )}
-              {/* 如果没有描述，但有副标题且是小卡片，确保有发现更多按钮 */}
-              {hideDescription && isSmallCard && displaySubtitle && (
-                <>
-                  <Spacer y={2} />
-                  <div className="w-full text-center">
-                    <Link
-                      className="text-xs sm:text-sm font-medium hover:opacity-70 drop-shadow-sm border-b border-white/30 hover:border-white/70 pb-px"
-                      href={titleHref}
-                    >
-                      {t('discover_more')}
-                    </Link>
-                  </div>
-                </>
-              )}
+
+              {/* 底部CTA按钮 - 更精致的设计 */}
+              <div className="w-full text-center">
+                <Link
+                  className="inline-flex items-center gap-2 text-xs font-light uppercase tracking-[0.2em] text-white/80 hover:text-white border-b border-white/30 hover:border-white/60 pb-1 transition-all duration-300 group/btn"
+                  href={titleHref}
+                >
+                  <span>{t('discover_more')}</span>
+                  <span className="text-[10px] transform group-hover/btn:translate-x-1 transition-transform duration-300">
+                    →
+                  </span>
+                </Link>
+              </div>
             </CardFooter>
           </>
         )}
@@ -570,7 +565,10 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({ gender }) => {
   const mainLeftProps = createCardProps(
     mainLeftCardData,
     'trending_main_large_left',
-    defaultCardProps
+    defaultCardProps,
+    {
+      customSize: { width: 'w-full', height: 'h-full' },
+    }
   );
   const mainRightProps = createCardProps(
     mainRightCardData,
@@ -631,40 +629,24 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({ gender }) => {
                   </Link>
                 </div>
               )}
-              <div className="flex flex-col justify-center items-center text-center py-4">
-                {(topRightImageData?.dataLabelText || topRightImageData?.labelText) && (
-                  <div className="mb-2 sm:mb-3">
+              <div className="flex flex-col justify-center items-center text-center py-4 min-h-[100px] sm:min-h-[130px] max-h-[100px] sm:max-h-[130px] overflow-hidden">
+                {topRightImageData?.title && (
+                  <div className="mb-1 sm:mb-2 flex-shrink-0">
                     <Link
-                      href={
-                        topRightImageData.dataLabelLinkUrl ||
-                        topRightImageData.labelLinkUrl ||
-                        topRightImageData.href ||
-                        '#'
-                      }
-                      className={`text-xs sm:text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-600 dark:hover:text-primary-400 transition-colors ${
-                        topRightImageData.styleHint === 'slot-label' ? 'font-semibold' : ''
-                      }`}
+                      href={topRightImageData.href || '#'}
+                      className="text-xs sm:text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-semibold line-clamp-1"
                     >
-                      {topRightImageData.dataLabelText || topRightImageData.labelText}
+                      {topRightImageData.title}
                     </Link>
                   </div>
                 )}
-                {(topRightImageData?.dataItemTitleText || topRightImageData?.itemTitleText) && (
-                  <h3
-                    className={`text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary-light dark:text-text-primary-dark ${
-                      topRightImageData.styleHint === 'slot-title' ? 'tracking-tight' : ''
-                    }`}
-                  >
+                {bottomRightImageData?.title && (
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-text-primary-light dark:text-text-primary-dark tracking-tight line-clamp-2 flex-grow flex items-center">
                     <Link
-                      href={
-                        topRightImageData.dataItemTitleLinkUrl ||
-                        topRightImageData.itemTitleLinkUrl ||
-                        bottomRightImageData?.href ||
-                        '#'
-                      }
-                      className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                      href={bottomRightImageData.href || '#'}
+                      className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-center w-full"
                     >
-                      {topRightImageData.dataItemTitleText || topRightImageData.itemTitleText}
+                      {bottomRightImageData.title}
                     </Link>
                   </h3>
                 )}
@@ -712,41 +694,24 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({ gender }) => {
                   </Link>
                 </div>
               )}
-              <div className="flex flex-col justify-center items-center text-center py-4">
-                {(nextTopLeftImageData?.dataLabelText || nextTopLeftImageData?.labelText) && (
-                  <div className="mb-2 sm:mb-3">
+              <div className="flex flex-col justify-center items-center text-center py-4 min-h-[100px] sm:min-h-[130px] max-h-[100px] sm:max-h-[130px] overflow-hidden">
+                {nextTopLeftImageData?.title && (
+                  <div className="mb-1 sm:mb-2 flex-shrink-0">
                     <Link
-                      href={
-                        nextTopLeftImageData.dataLabelLinkUrl ||
-                        nextTopLeftImageData.labelLinkUrl ||
-                        nextTopLeftImageData.href ||
-                        '#'
-                      }
-                      className={`text-xs sm:text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-600 dark:hover:text-primary-400 transition-colors ${
-                        nextTopLeftImageData.styleHint === 'slot-label' ? 'font-semibold' : ''
-                      }`}
+                      href={nextTopLeftImageData.href || '#'}
+                      className="text-xs sm:text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-semibold line-clamp-1"
                     >
-                      {nextTopLeftImageData.dataLabelText || nextTopLeftImageData.labelText}
+                      {nextTopLeftImageData.title}
                     </Link>
                   </div>
                 )}
-                {(nextTopLeftImageData?.dataItemTitleText ||
-                  nextTopLeftImageData?.itemTitleText) && (
-                  <h3
-                    className={`text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary-light dark:text-text-primary-dark ${
-                      nextTopLeftImageData.styleHint === 'slot-title' ? 'tracking-tight' : ''
-                    }`}
-                  >
+                {nextBottomLeftImageData?.title && (
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-text-primary-light dark:text-text-primary-dark tracking-tight line-clamp-2 flex-grow flex items-center">
                     <Link
-                      href={
-                        nextTopLeftImageData.dataItemTitleLinkUrl ||
-                        nextTopLeftImageData.itemTitleLinkUrl ||
-                        nextBottomLeftImageData?.href ||
-                        '#'
-                      }
-                      className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                      href={nextBottomLeftImageData.href || '#'}
+                      className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-center w-full"
                     >
-                      {nextTopLeftImageData.dataItemTitleText || nextTopLeftImageData.itemTitleText}
+                      {nextBottomLeftImageData.title}
                     </Link>
                   </h3>
                 )}

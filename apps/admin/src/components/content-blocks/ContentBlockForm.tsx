@@ -2,8 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ContentBlockType, ContentItemType } from "@prisma/client"; // 假设 Prisma 类型已正确生成并可用
+import {
+  IconSelector,
+  englishTranslations,
+  chineseTranslations,
+} from "@repo/ui";
 import { Loader2, PlusCircle, Trash2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useEffect, FC, ReactNode, useState, useMemo } from "react";
 import {
   useFieldArray,
@@ -802,6 +807,11 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
   const placeholders = useTranslations("contentManagement.placeholders");
   const blockTypes = useTranslations("contentManagement.blockTypes");
   const itemTypes = useTranslations("contentManagement.itemTypes");
+  const locale = useLocale();
+
+  // 根据当前语言选择图标选择器的翻译
+  const iconSelectorTranslations =
+    locale === "en" ? englishTranslations : chineseTranslations;
 
   const [editingSlotKey, setEditingSlotKey] = useState<string | null>(null);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -1267,12 +1277,30 @@ export const ContentBlockForm: React.FC<ContentBlockFormProps> = ({
     if (itemType === ContentItemType.INTRODUCTION_GUARANTEE_ITEM) {
       return (
         <>
-          <FormField
-            name={`items.${itemIndex}.data.iconKey`}
-            label={t("formFields.guaranteeItem.iconKey")}
-            control={form.control}
-            component={Input}
-          />
+          <div className="space-y-2">
+            <Label htmlFor={`items.${itemIndex}.data.iconKey`}>
+              {t("formFields.guaranteeItem.iconKey")}
+            </Label>
+            <Controller
+              name={`items.${itemIndex}.data.iconKey`}
+              control={form.control}
+              render={({ field, fieldState: { error } }) => (
+                <>
+                  <IconSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder={t(
+                      "formFields.guaranteeItem.iconKeyPlaceholder",
+                    )}
+                    translations={iconSelectorTranslations}
+                  />
+                  {error && (
+                    <p className="text-sm text-red-500 mt-1">{error.message}</p>
+                  )}
+                </>
+              )}
+            />
+          </div>
           <FormField
             name={`items.${itemIndex}.data.title`}
             label={t("formFields.guaranteeItem.title")}

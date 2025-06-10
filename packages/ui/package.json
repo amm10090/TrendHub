@@ -9,6 +9,13 @@
     "build": "echo 'Build script for @repo/ui not implemented yet. If UI components need building, implement here.'",
     "clean": "rm -rf .turbo node_modules dist"
   },
+  "dependencies": {
+    "@tabler/icons-react": "^3.33.0",
+    "lucide-react": "^0.511.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.2.0"
+  },
   "devDependencies": {
     "@repo/types": "workspace:*",
     "typescript": "^5.8.3",

@@ -1317,6 +1317,7 @@
       },
       "guaranteeItem": {
         "iconKey": "Icon Key",
+        "iconKeyPlaceholder": "Select an icon",
         "title": "Title",
         "description": "Description"
       },

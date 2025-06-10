@@ -1236,6 +1236,7 @@
       },
       "guaranteeItem": {
         "iconKey": "图标键",
+        "iconKeyPlaceholder": "选择一个图标",
         "title": "标题",
         "description": "描述"
       },

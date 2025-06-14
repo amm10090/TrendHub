@@ -1,10 +1,20 @@
 "use client";
+import { LayoutGrid, List, Search, Filter, Plus, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -12,17 +22,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
-import { emptyStateStyles, textStyles } from "@/lib/utils";
 
 import { CategoryTable } from "./category-table";
 import { ProductsClient } from "./products-client";
 
-// 添加本地存储工具函数
+// 本地存储工具函数
 const STORAGE_KEY = "productTableLimit";
+const VIEW_MODE_KEY = "productViewMode";
 
 const saveToLocalStorage = (key: string, value: unknown) => {
   if (typeof window !== "undefined") {
@@ -48,8 +59,7 @@ const getFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   return defaultValue;
 };
 
-// ProductFilters 可能需要从 products-client.tsx 导入，或者在此处定义
-// 为了清晰，我们在此处重新定义，确保与 products-client.tsx 中的一致
+// 产品筛选接口
 interface ProductFilters {
   search?: string;
   categoryId?: string;
@@ -67,24 +77,35 @@ interface ProductFilters {
     | "outOfStock";
 }
 
+type ViewMode = "table" | "card";
+
 export default function ProductsPage() {
   const t = useTranslations("products");
+  const tCommon = useTranslations("common");
   const router = useRouter();
+
+  // 基础状态
   const [page, setPage] = useState(1);
-  // 从localStorage读取初始limit值，默认为10
   const [limit, setLimit] = useState(() =>
     getFromLocalStorage<number>(STORAGE_KEY, 10),
   );
   const [selectedTab, setSelectedTab] = useState("products");
+  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+    getFromLocalStorage<ViewMode>(VIEW_MODE_KEY, "table"),
+  );
+  const [showFilters, setShowFilters] = useState(false);
+
+  // 筛选和搜索状态
   const [currentFilters, setCurrentFilters] = useState<ProductFilters>({
-    status: "all", // 默认筛选状态为 "all"
+    status: "all",
   });
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // 导航状态
   const [navigatingToEdit, setNavigatingToEdit] = useState<string | null>(null);
   const [navigatingToNew, setNavigatingToNew] = useState(false);
 
-  // 这些hooks和函数虽然可能在新UI中看起来未使用，但它们被ProductsClient.ProductTable内部组件使用
-  // 它们提供了产品数据的加载、删除、更新等核心功能
-
+  // 数据获取hooks
   const {
     products,
     totalPages,
@@ -95,46 +116,62 @@ export default function ProductsPage() {
   } = useProducts({
     page,
     limit,
-    ...currentFilters, // 将 currentFilters 直接展开传递
+    ...currentFilters,
   });
 
-  // 获取所有品牌和分类，用于表格中的展示和编辑
-  // 这些数据在ProductTable内部使用
   const { brands } = useBrands();
-  const { categories } = useCategories({
-    limit: 999,
-  });
+  const { categories } = useCategories({ limit: 999 });
 
+  // 分页处理
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
 
-  // 更新handleLimitChange函数，保存用户选择到localStorage
+  // 限制条数变更处理
   const handleLimitChange = (newLimit: string) => {
     const limitValue = Number(newLimit);
 
     setLimit(limitValue);
-    setPage(1); // 当改变每页数量时，重置到第一页
+    setPage(1);
     saveToLocalStorage(STORAGE_KEY, limitValue);
   };
 
+  // 视图模式切换
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    saveToLocalStorage(VIEW_MODE_KEY, mode);
+  };
+
+  // 筛选变更处理
   const handleFiltersChange = useCallback(
     (newFilters: ProductFilters) => {
-      // 修复：只有在筛选条件真正改变时才重置页面
       const filtersChanged =
         JSON.stringify(currentFilters) !== JSON.stringify(newFilters);
 
       if (filtersChanged) {
-        setPage(1); // 当筛选条件改变时，重置到第一页
+        setPage(1);
         setCurrentFilters(newFilters);
       }
     },
     [currentFilters],
   );
 
-  // 辅助函数判断是否应用了筛选 (除了默认的 status: 'all')
+  // 搜索处理
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    // 防抖处理搜索
+    const debounceTimer = setTimeout(() => {
+      handleFiltersChange({
+        ...currentFilters,
+        search: value.trim() || undefined,
+      });
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  };
+
+  // 判断是否应用了筛选
   const areFiltersApplied = (filters: ProductFilters): boolean => {
-    // 检查除 status 外是否有任何筛选条件，或者 status 不是 'all'
     return !!(
       filters.search ||
       filters.categoryId ||
@@ -147,7 +184,23 @@ export default function ProductsPage() {
     );
   };
 
-  // 下面的处理函数被ProductTable中的内联函数或子组件使用
+  // 获取激活筛选器数量
+  const getActiveFiltersCount = () => {
+    let count = 0;
+
+    if (currentFilters.search) count++;
+    if (currentFilters.categoryId) count++;
+    if (currentFilters.brandId) count++;
+    if (currentFilters.minPrice !== undefined) count++;
+    if (currentFilters.maxPrice !== undefined) count++;
+    if (currentFilters.hasDiscount) count++;
+    if (currentFilters.hasCoupon) count++;
+    if (currentFilters.status && currentFilters.status !== "all") count++;
+
+    return count;
+  };
+
+  // 产品操作处理
   const handleDelete = async (id: string) => {
     try {
       await deleteProduct(id);
@@ -158,23 +211,16 @@ export default function ProductsPage() {
   };
 
   const handleEdit = (id: string) => {
-    // 设置加载状态
     setNavigatingToEdit(id);
-    // 使用 Next.js router 进行导航
     router.push(`/products/edit/${id}`);
   };
 
   const handleToggleStatus = async (id: string, currentStatus: string) => {
     try {
-      // 切换商品状态
       const newStatus =
         currentStatus === "In Stock" ? "Out of Stock" : "In Stock";
 
-      await updateProduct({
-        id,
-        data: { status: newStatus },
-      });
-
+      await updateProduct({ id, data: { status: newStatus } });
       toast.success(
         newStatus === "In Stock"
           ? t("statusActiveSuccess")
@@ -185,245 +231,408 @@ export default function ProductsPage() {
     }
   };
 
-  // 处理新建商品导航
   const handleNavigateToNew = () => {
     setNavigatingToNew(true);
     router.push("/products/new");
   };
 
+  // 清空筛选
+  const handleClearFilters = () => {
+    setCurrentFilters({ status: "all" });
+    setSearchQuery("");
+  };
+
   if (error) {
     return (
       <div className="flex h-[400px] items-center justify-center">
-        <p className={`${textStyles("secondary")} text-red-500`}>
-          {t("fetchError")}
-        </p>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              {t("error.title")}
+            </CardTitle>
+            <CardDescription>{t("fetchError")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              {tCommon("retry")}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
     <ProductsClient.PageWrapper>
-      <div className="flex items-center justify-between space-y-2">
-        <h2
-          className={`text-3xl font-bold tracking-tight ${textStyles("primary")}`}
-        >
-          {t("title")}
-        </h2>
+      {/* 页面头部 */}
+      <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {t("title")}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
+        </div>
+
         <div className="flex items-center space-x-2">
-          {selectedTab === "products" ? (
-            <ProductsClient.AddButton
-              onClick={handleNavigateToNew}
-              isLoading={navigatingToNew}
-            />
-          ) : (
-            <ProductsClient.AddCategoryButton />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setSelectedTab(
+                selectedTab === "products" ? "categories" : "products",
+              )
+            }
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            {selectedTab === "products"
+              ? t("categoryManagement")
+              : t("productList")}
+          </Button>
+
+          {selectedTab === "products" && (
+            <Button onClick={handleNavigateToNew} disabled={navigatingToNew}>
+              {navigatingToNew ? (
+                <Spinner className="h-4 w-4 mr-2" />
+              ) : (
+                <Plus className="h-4 w-4 mr-2" />
+              )}
+              {t("addProduct")}
+            </Button>
           )}
         </div>
       </div>
 
-      <div className="mt-4">
-        <div className="flex border-b border-border">
+      {/* 标签页导航 */}
+      <div className="border-b border-border">
+        <nav className="flex space-x-8">
           <button
-            className={`px-4 py-2 font-medium transition-colors ${
+            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               selectedTab === "products"
-                ? `border-b-2 border-primary ${textStyles("primary")}`
-                : textStyles("secondary")
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
             onClick={() => setSelectedTab("products")}
           >
             {t("productList")}
+            {selectedTab === "products" && (
+              <Badge variant="secondary" className="ml-2">
+                {products?.length || 0}
+              </Badge>
+            )}
           </button>
           <button
-            className={`px-4 py-2 font-medium transition-colors ${
+            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               selectedTab === "categories"
-                ? `border-b-2 border-primary ${textStyles("primary")}`
-                : textStyles("secondary")
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
             onClick={() => setSelectedTab("categories")}
           >
             {t("categoryManagement")}
           </button>
-        </div>
+        </nav>
+      </div>
 
-        {selectedTab === "products" ? (
-          <>
-            {isLoading ? (
-              <div className="flex h-[400px] items-center justify-center">
-                <Spinner />
-              </div>
-            ) : (
-              <>
-                <ProductsClient.ProductTable
-                  products={products.map((product) => ({
-                    id: product.id,
-                    name: product.name,
-                    price: Number(product.price),
-                    originalPrice: product.originalPrice
-                      ? Number(product.originalPrice)
-                      : undefined,
-                    discount:
-                      product.originalPrice &&
-                      Number(product.price) < Number(product.originalPrice)
-                        ? Math.round(
-                            ((Number(product.originalPrice) -
-                              Number(product.price)) /
-                              Number(product.originalPrice)) *
-                              100,
-                          )
-                        : undefined,
-                    image:
-                      product.images && product.images.length > 0
-                        ? product.images[0]
-                        : undefined,
-                    sku: product.sku,
-                    inventory: product.inventory
-                      ? Number(product.inventory)
-                      : undefined,
-                    isActive:
-                      product.status === "In Stock" ||
-                      product.status === "Active", // 确保 Active 也算 isActive
-                    hasCoupon: !!product.coupon, // 确保从 product 数据映射
-                    couponCode: product.coupon,
-                    // couponValue: product.couponValue, // 假设 couponValue 在 product 对象中，如果 Prisma schema 里有的话
-                    categoryId: product.category?.id,
-                    categoryPath: product.category?.name,
-                    brandId: product.brand?.id,
-                    brandName: product.brand?.name,
-                  }))}
-                  categories={categories}
-                  brands={brands}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onToggleStatus={(id, isActive) =>
-                    handleToggleStatus(
-                      id,
-                      isActive ? "Out of Stock" : "In Stock",
-                    )
-                  }
-                  activeFilters={currentFilters}
-                  onFiltersChange={handleFiltersChange}
-                  navigatingToEdit={navigatingToEdit}
-                  onBulkDelete={async (ids) => {
-                    try {
-                      // 实现批量删除
-                      for (const id of ids) {
-                        await deleteProduct(id);
-                      }
-                      toast.success(
-                        t("bulkDeleteSuccess", { count: ids.length }),
-                      );
-                    } catch {
-                      toast.error(t("bulkDeleteError"));
-                    }
-                  }}
-                  onBulkToggleStatus={async (ids, setActive) => {
-                    try {
-                      // 实现批量状态更改
-                      const newStatus = setActive ? "In Stock" : "Out of Stock";
-
-                      for (const id of ids) {
-                        await updateProduct({
-                          id,
-                          data: { status: newStatus },
-                        });
-                      }
-                      toast.success(
-                        setActive
-                          ? t("bulkActivateSuccess", { count: ids.length })
-                          : t("bulkDeactivateSuccess", { count: ids.length }),
-                      );
-                    } catch {
-                      toast.error(t("bulkUpdateError"));
-                    }
-                  }}
+      {/* 内容区域 */}
+      {selectedTab === "products" ? (
+        <div className="space-y-4">
+          {/* 工具栏 */}
+          <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+            {/* 搜索和筛选 */}
+            <div className="flex items-center space-x-2 flex-1 max-w-md">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t("searchPlaceholder")}
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-9"
                 />
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="relative"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                {t("filters")}
+                {getActiveFiltersCount() > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                  >
+                    {getActiveFiltersCount()}
+                  </Badge>
+                )}
+              </Button>
+            </div>
 
-                <div className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm ${textStyles("secondary")}`}>
-                      {t("pagination.rowsPerPage")}:
-                    </span>
-                    <Select
-                      value={limit.toString()}
-                      onValueChange={handleLimitChange}
-                    >
-                      <SelectTrigger className="w-[70px]">
-                        <SelectValue placeholder={limit.toString()} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5">5</SelectItem>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="30">30</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            {/* 视图切换和设置 */}
+            <div className="flex items-center space-x-2">
+              {/* 视图模式切换 */}
+              <div className="flex items-center border rounded-md">
+                <Button
+                  variant={viewMode === "table" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => handleViewModeChange("table")}
+                  className="rounded-r-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "card" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => handleViewModeChange("card")}
+                  className="rounded-l-none"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+              </div>
 
-                  <div className="flex items-center gap-2 self-center md:self-auto">
-                    <button
-                      onClick={() => handlePageChange(page > 1 ? page - 1 : 1)}
-                      disabled={page <= 1}
-                      className={`px-3 py-1 border border-border rounded transition-colors disabled:opacity-50 ${
-                        page <= 1
-                          ? textStyles("tertiary")
-                          : `${textStyles("primary")} hover:bg-muted`
-                      }`}
-                    >
-                      {t("pagination.prev")}
-                    </button>
-                    <span className={`text-sm ${textStyles("primary")}`}>
-                      {page} / {totalPages}
-                    </span>
-                    <button
-                      onClick={() =>
-                        handlePageChange(
-                          page < totalPages ? page + 1 : totalPages,
+              <Separator orientation="vertical" className="h-6" />
+
+              {/* 每页条数 */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  {t("pagination.rowsPerPage")}:
+                </span>
+                <Select
+                  value={limit.toString()}
+                  onValueChange={handleLimitChange}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* 激活筛选器标签 */}
+          {areFiltersApplied(currentFilters) && (
+            <div className="flex items-center space-x-2 flex-wrap">
+              <span className="text-sm text-muted-foreground">
+                {t("activeFilters")}:
+              </span>
+              {currentFilters.search && (
+                <Badge variant="secondary" className="gap-1">
+                  {t("search")}: {currentFilters.search}
+                  <button
+                    onClick={() =>
+                      handleFiltersChange({
+                        ...currentFilters,
+                        search: undefined,
+                      })
+                    }
+                    className="ml-1 hover:bg-muted-foreground/20 rounded-full"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              {currentFilters.status && currentFilters.status !== "all" && (
+                <Badge variant="secondary" className="gap-1">
+                  {t("status")}: {t(`status.${currentFilters.status}`)}
+                  <button
+                    onClick={() =>
+                      handleFiltersChange({ ...currentFilters, status: "all" })
+                    }
+                    className="ml-1 hover:bg-muted-foreground/20 rounded-full"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="h-6 px-2 text-xs"
+              >
+                {t("clearAll")}
+              </Button>
+            </div>
+          )}
+
+          {/* 产品列表 */}
+          {isLoading ? (
+            <div className="flex h-[400px] items-center justify-center">
+              <div className="text-center space-y-4">
+                <Spinner className="h-8 w-8 mx-auto" />
+                <p className="text-muted-foreground">{t("loading")}</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <ProductsClient.ProductTable
+                products={products.map((product) => ({
+                  id: product.id,
+                  name: product.name,
+                  price: Number(product.price),
+                  originalPrice: product.originalPrice
+                    ? Number(product.originalPrice)
+                    : undefined,
+                  discount:
+                    product.originalPrice &&
+                    Number(product.price) < Number(product.originalPrice)
+                      ? Math.round(
+                          ((Number(product.originalPrice) -
+                            Number(product.price)) /
+                            Number(product.originalPrice)) *
+                            100,
                         )
-                      }
-                      disabled={page >= totalPages}
-                      className={`px-3 py-1 border border-border rounded transition-colors disabled:opacity-50 ${
-                        page >= totalPages
-                          ? textStyles("tertiary")
-                          : `${textStyles("primary")} hover:bg-muted`
-                      }`}
-                    >
-                      {t("pagination.next")}
-                    </button>
-                  </div>
+                      : undefined,
+                  image:
+                    product.images && product.images.length > 0
+                      ? product.images[0]
+                      : undefined,
+                  sku: product.sku,
+                  inventory: product.inventory
+                    ? Number(product.inventory)
+                    : undefined,
+                  isActive:
+                    product.status === "In Stock" ||
+                    product.status === "Active",
+                  hasCoupon: !!product.coupon,
+                  couponCode: product.coupon,
+                  categoryId: product.category?.id,
+                  categoryPath: product.category?.name,
+                  brandId: product.brand?.id,
+                  brandName: product.brand?.name,
+                }))}
+                categories={categories}
+                brands={brands}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onToggleStatus={(id, isActive) =>
+                  handleToggleStatus(id, isActive ? "Out of Stock" : "In Stock")
+                }
+                activeFilters={currentFilters}
+                onFiltersChange={handleFiltersChange}
+                navigatingToEdit={navigatingToEdit}
+                showFilters={showFilters}
+                viewMode={viewMode}
+                onBulkDelete={async (ids) => {
+                  try {
+                    for (const id of ids) {
+                      await deleteProduct(id);
+                    }
+                    toast.success(
+                      t("bulkDeleteSuccess", { count: ids.length }),
+                    );
+                  } catch {
+                    toast.error(t("bulkDeleteError"));
+                  }
+                }}
+                onBulkToggleStatus={async (ids, setActive) => {
+                  try {
+                    const newStatus = setActive ? "In Stock" : "Out of Stock";
+
+                    for (const id of ids) {
+                      await updateProduct({ id, data: { status: newStatus } });
+                    }
+                    toast.success(
+                      setActive
+                        ? t("bulkActivateSuccess", { count: ids.length })
+                        : t("bulkDeactivateSuccess", { count: ids.length }),
+                    );
+                  } catch {
+                    toast.error(t("bulkUpdateError"));
+                  }
+                }}
+              />
+
+              {/* 分页 */}
+              <div className="flex items-center justify-between pt-4">
+                <div className="text-sm text-muted-foreground">
+                  {t("pagination.showing", {
+                    start: (page - 1) * limit + 1,
+                    end: Math.min(page * limit, products.length),
+                    total: products.length,
+                  })}
                 </div>
 
-                {/* 空状态处理 */}
-                {products.length === 0 && !isLoading && (
-                  <div className={emptyStateStyles()}>
-                    {areFiltersApplied(currentFilters) ? (
-                      <div className="text-center">
-                        <p
-                          className={`${textStyles("secondary")} text-lg mb-2`}
-                        >
-                          {t("noResultsWithFilters")}
-                        </p>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(Math.max(1, page - 1))}
+                    disabled={page <= 1}
+                  >
+                    {t("pagination.prev")}
+                  </Button>
+
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const pageNum = i + 1;
+
+                      return (
                         <Button
-                          variant="link"
-                          onClick={() => handleFiltersChange({ status: "all" })}
+                          key={pageNum}
+                          variant={page === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          className="w-8 h-8 p-0"
                         >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      handlePageChange(Math.min(totalPages, page + 1))
+                    }
+                    disabled={page >= totalPages}
+                  >
+                    {t("pagination.next")}
+                  </Button>
+                </div>
+              </div>
+
+              {/* 空状态 */}
+              {products.length === 0 && !isLoading && (
+                <Card className="text-center py-12">
+                  <CardContent>
+                    {areFiltersApplied(currentFilters) ? (
+                      <div className="space-y-4">
+                        <div className="text-6xl">🔍</div>
+                        <div>
+                          <h3 className="text-lg font-semibold">
+                            {t("noResultsWithFilters")}
+                          </h3>
+                          <p className="text-muted-foreground mt-1">
+                            {t("noResultsWithFiltersDesc")}
+                          </p>
+                        </div>
+                        <Button onClick={handleClearFilters}>
                           {t("resetFiltersLink")}
                         </Button>
                       </div>
                     ) : (
-                      <div className="text-center">
-                        <p className={`${textStyles("secondary")} text-lg`}>
-                          {t("noProducts")}
-                        </p>
-                        <p className={`${textStyles("tertiary")} text-sm mt-1`}>
-                          {t("addProductPrompt")}
-                        </p>
-                        {/* 可以添加一个直接跳转到添加商品页面的链接按钮 */}
+                      <div className="space-y-4">
+                        <div className="text-6xl">📦</div>
+                        <div>
+                          <h3 className="text-lg font-semibold">
+                            {t("noProducts")}
+                          </h3>
+                          <p className="text-muted-foreground mt-1">
+                            {t("addProductPrompt")}
+                          </p>
+                        </div>
                         <Button
                           onClick={handleNavigateToNew}
                           disabled={navigatingToNew}
-                          className="mt-4"
                         >
                           {navigatingToNew && (
                             <Spinner className="mr-2 h-4 w-4" />
@@ -432,17 +641,17 @@ export default function ProductsPage() {
                         </Button>
                       </div>
                     )}
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        ) : (
-          <div className="mt-4">
-            <CategoryTable />
-          </div>
-        )}
-      </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="mt-6">
+          <CategoryTable />
+        </div>
+      )}
     </ProductsClient.PageWrapper>
   );
 }

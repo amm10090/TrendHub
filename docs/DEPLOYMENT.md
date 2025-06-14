@@ -155,7 +155,91 @@ cd ../.. # 返回项目根目录
 
 **1. 安装与基本配置 PostgreSQL：**
 
-这部分提供了在基于 Debian/Ubuntu 的 Linux 服务器上安装和基本配置 PostgreSQL 的通用指南。对于其他操作系统或特定版本，请参考官方 PostgreSQL 文档。
+### macOS 系统安装指南 (推荐)
+
+macOS 用户有多种安装 PostgreSQL 的方式，我们推荐使用 Homebrew 方式，因为它简单、易管理且能自动处理依赖关系。
+
+#### 方式一：使用 Homebrew 安装 (推荐)
+
+**前置条件：**
+
+- 确保已安装 Homebrew。如果未安装，可通过以下命令安装：
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  ```
+
+**安装步骤：**
+
+1. **更新 Homebrew 并安装 PostgreSQL：**
+
+   ```bash
+   brew update
+   brew install postgresql
+   ```
+
+2. **启动 PostgreSQL 服务：**
+
+   ```bash
+   brew services start postgresql
+   # 或者让其开机自启动
+   brew services start postgresql --enable
+   ```
+
+3. **验证安装：**
+
+   ```bash
+   postgres --version
+   psql --version
+   ```
+
+4. **初始化数据库并创建超级用户：**
+
+   ```bash
+   # Homebrew 通常会自动初始化数据库，但如果需要手动初始化：
+   initdb /opt/homebrew/var/postgresql --auth-host=scram-sha-256 --auth-local=peer --username=$(whoami)
+   ```
+
+5. **连接到 PostgreSQL：**
+   ```bash
+   # Homebrew 安装的 PostgreSQL 默认使用当前用户名作为数据库用户
+   psql postgres
+   ```
+
+#### 方式二：使用 Postgres.app (图形化管理)
+
+1. **下载并安装：**
+
+   - 访问 [Postgres.app](https://postgresapp.com/)
+   - 下载适合您系统的版本
+   - 将应用拖拽到 Applications 文件夹
+
+2. **启动应用：**
+
+   - 打开 Postgres.app，点击 "Initialize" 创建新的数据库集群
+   - 应用将在菜单栏显示，数据库服务已启动
+
+3. **配置命令行工具：**
+   ```bash
+   # 将 Postgres.app 的命令行工具添加到 PATH
+   echo 'export PATH="/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH"' >> ~/.zshrc
+   source ~/.zshrc
+   ```
+
+#### 方式三：使用 EDB 官方安装器
+
+1. **下载安装器：**
+
+   - 访问 [PostgreSQL 官方下载页面](https://www.postgresql.org/download/macosx/)
+   - 下载适合您系统的安装器
+
+2. **运行安装器：**
+   - 双击下载的 `.dmg` 文件
+   - 按照安装向导完成安装
+   - 设置超级用户 `postgres` 的密码
+
+### Linux 系统安装指南 (服务器部署参考)
+
+对于 Debian/Ubuntu 服务器部署，可参考以下步骤：
 
 - **更新软件包列表并安装 PostgreSQL：**
 
@@ -180,54 +264,314 @@ cd ../.. # 返回项目根目录
   psql                 # 打开 psql 交互式终端
   ```
 
-- **创建数据库用户：**
-  在 `psql` 终端中，为您的 TrendHub 应用创建一个专用的数据库用户。**请务必将 `'your_strong_password'` 替换为一个强密码。**
+### 通用配置步骤
 
-  ```sql
-  CREATE USER trendhub_user WITH PASSWORD 'xP!RfxewB1qltR7k';
+无论使用哪种安装方式，都需要进行以下配置：
+
+1. **连接到 PostgreSQL 数据库：**
+
+   根据您的安装方式连接到 PostgreSQL：
+
+   ```bash
+   # Homebrew 或 Postgres.app 安装方式
+   psql postgres
+
+   # EDB 安装器方式 (如果设置了 postgres 用户密码)
+   psql -U postgres
+   ```
+
+2. **创建 TrendHub 数据库用户：**
+
+   在 `psql` 终端中执行以下命令创建专用的数据库用户：
+
+   ```sql
+   -- 创建新用户，请替换为强密码
+   CREATE USER trendhub_user WITH PASSWORD 'your_strong_password_here';
+
+   -- 授予用户创建数据库的权限x
+   ALTER USER trendhub_user CREATEDB;
+   ```
+
+3. **创建 TrendHub 数据库：**
+
+   ```sql
+   -- 创建数据库并指定所有者
+   CREATE DATABASE trendhub_db OWNER trendhub_user;
+
+   -- 授予用户对数据库的完全权限
+   GRANT ALL PRIVILEGES ON DATABASE trendhub_db TO trendhub_user;
+
+   -- 退出 psql
+   \q
+   ```
+
+4. **验证数据库配置：**
+
+   使用新创建的用户连接到数据库进行测试：
+
+   ```bash
+   psql -U trendhub_user -d trendhub_db -h localhost
+   ```
+
+   成功连接后，可以运行一个简单的测试查询：
+
+   ```sql
+   SELECT version();
+   \q
+   ```
+
+### macOS 特殊配置说明
+
+#### 管理 PostgreSQL 服务
+
+- **启动服务：**
+
+  ```bash
+  # Homebrew 方式
+  brew services start postgresql@15
+
+  # 手动启动（临时）
+  pg_ctl -D /opt/homebrew/var/postgresql@15 start
   ```
 
-- **创建数据库：**
-  创建一个新的数据库，并指定其所有者为上一步创建的 `trendhub_user`。
+- **停止服务：**
 
-  ```sql
-  CREATE DATABASE trendhub_db OWNER trendhub_user;
+  ```bash
+  # Homebrew 方式
+  brew services stop postgresql@15
+
+  # 手动停止
+  pg_ctl -D /opt/homebrew/var/postgresql@15 stop
   ```
 
-- **(可选) 授予权限：**
-  通常，将数据库的 `OWNER` 设置为应用用户已经足够。如果需要更明确的权限授予，可以执行：
+- **重启服务：**
 
-  ```sql
-  GRANT ALL PRIVILEGES ON DATABASE trendhub_db TO trendhub_user;
+  ```bash
+  # Homebrew 方式
+  brew services restart postgresql@15
+
+  # 手动重启
+  pg_ctl -D /opt/homebrew/var/postgresql@15 restart
   ```
+
+#### 配置文件位置
+
+对于 Homebrew 安装的 PostgreSQL，配置文件通常位于：
+
+- **postgresql.conf**: `/opt/homebrew/var/postgresql@15/postgresql.conf`
+- **pg_hba.conf**: `/opt/homebrew/var/postgresql@15/pg_hba.conf`
+
+#### 日志文件位置
+
+- **日志文件**: `/opt/homebrew/var/log/postgresql@15.log`
+
+可以通过以下命令查看日志：
+
+```bash
+tail -f /opt/homebrew/var/log/postgresql@15.log
+```
+
+#### 卸载 PostgreSQL (如果需要)
+
+如果使用 Homebrew 安装，可以通过以下命令完全卸载：
+
+```bash
+# 停止服务
+brew services stop postgresql@15
+
+# 卸载软件包
+brew uninstall postgresql@15
+
+# 删除数据文件 (谨慎操作，会丢失所有数据)
+rm -rf /opt/homebrew/var/postgresql@15
+```
+
+### Linux 服务器配置参考
+
+对于 Linux 服务器部署，需要注意以下配置：
 
 - **退出 `psql` 和 `postgres` 用户：**
-  在 `psql` 中输入 `\q` (或 `exit`)，然后按 Enter。
-  在 `postgres`用户的 shell 中输入 `exit`，然后按 Enter 返回到您之前的用户。
+  在 `psql` 中输入 `\q`，然后在 `postgres` 用户的 shell 中输入 `exit` 返回到您之前的用户。
 
-- **配置远程连接 (按需并谨慎操作)：**
-  默认情况下，PostgreSQL 可能只允许来自本地主机的连接。如果您的应用程序和数据库在不同的服务器上，您需要配置 PostgreSQL 以允许远程连接。这通常涉及编辑两个文件：
+- **配置远程连接 (仅服务器部署需要)：**
 
-  1.  `postgresql.conf`: 修改 `listen_addresses` 指令。例如，设置为 `listen_addresses = '*'` 以监听所有 IP 地址 (请谨慎使用，并结合防火墙规则)。
-  2.  `pg_hba.conf`: 添加或修改条目以允许您的应用服务器 IP 地址通过指定的方法（例如 `md5` 或 `scram-sha-256` 进行密码验证）连接到数据库和用户。
+  如果应用程序和数据库在不同的服务器上，需要配置 PostgreSQL 允许远程连接：
 
-  **安全警告：** 将数据库端口直接暴露到公共互联网存在重大安全风险。强烈建议将数据库服务器与应用服务器置于同一私有网络中，并使用防火墙严格限制对 PostgreSQL 端口 (默认为 5432) 的访问。如果必须进行远程连接，请确保使用 SSL/TLS 加密连接，并配置非常强的密码和严格的防火墙规则。
+  1. **编辑 `postgresql.conf`**: 修改 `listen_addresses = 'localhost'` 为 `listen_addresses = '*'`
+  2. **编辑 `pg_hba.conf`**: 添加允许远程连接的规则
 
-  修改这些配置文件后，通常需要重启 PostgreSQL 服务才能使更改生效：`sudo systemctl restart postgresql`。
+  **安全警告：** 将数据库端口暴露到公网存在重大安全风险。建议将数据库服务器与应用服务器置于同一私有网络中，并使用防火墙严格限制访问。
+
+  修改配置文件后重启 PostgreSQL 服务：
+
+  ```bash
+  sudo systemctl restart postgresql
+  ```
+
+### macOS 常见问题解决
+
+#### 1. 连接失败问题
+
+如果遇到连接失败，可以尝试以下解决方案：
+
+```bash
+# 检查 PostgreSQL 服务状态
+brew services list | grep postgresql
+
+# 如果服务未启动，手动启动
+brew services start postgresql@15
+
+# 检查端口是否被占用
+lsof -i :5432
+```
+
+#### 2. 权限问题
+
+如果遇到权限错误，可能需要重新初始化数据库：
+
+```bash
+# 停止服务
+brew services stop postgresql@15
+
+# 删除现有数据目录 (谨慎操作)
+rm -rf /opt/homebrew/var/postgresql@15
+
+# 重新初始化数据库
+initdb /opt/homebrew/var/postgresql@15 --auth-host=scram-sha-256 --auth-local=peer --username=$(whoami)
+
+# 重新启动服务
+brew services start postgresql@15
+```
+
+#### 3. 版本兼容性问题
+
+如果需要切换 PostgreSQL 版本：
+
+```bash
+# 查看可用版本
+brew search postgresql
+
+# 安装特定版本
+brew install postgresql@14
+
+# 切换版本 (停止当前版本，启动新版本)
+brew services stop postgresql@15
+brew services start postgresql@14
+```
+
+#### 4. 性能调优建议
+
+对于开发环境，可以调整以下配置以提高性能：
+
+```bash
+# 编辑配置文件
+nano /opt/homebrew/var/postgresql@15/postgresql.conf
+
+# 建议的开发环境配置：
+# shared_buffers = 256MB
+# wal_buffers = 16MB
+# checkpoint_segments = 32
+# checkpoint_completion_target = 0.9
+# effective_cache_size = 1GB
+```
 
 **2. 设置 `DATABASE_URL` 环境变量：**
 
-Prisma 通过 `DATABASE_URL` 环境变量连接到您的数据库。其标准格式如下：
+Prisma 通过 `DATABASE_URL` 环境变量连接到您的数据库。根据您的PostgreSQL安装方式，连接字符串会有所不同。
 
+### macOS 连接字符串示例
+
+#### 使用 Homebrew 或 Postgres.app 安装
+
+```bash
+# 标准格式
+DATABASE_URL="postgresql://trendhub_user:your_strong_password_here@localhost:5432/trendhub_db?schema=public"
+
+# 如果使用当前系统用户（无密码认证）
+DATABASE_URL="postgresql://$(whoami)@localhost:5432/trendhub_db?schema=public"
 ```
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+
+#### 使用 EDB 安装器
+
+```bash
+DATABASE_URL="postgresql://trendhub_user:your_strong_password_here@localhost:5432/trendhub_db?schema=public"
 ```
 
-请将 `USER`, `PASSWORD`, `HOST`, `PORT`, 和 `DATABASE` 替换为您的实际 PostgreSQL凭据和数据库名称。
+### 设置环境变量的方法
 
-您可以在以下位置设置此环境变量：- **项目根目录的 `.env` 文件**: (例如 `TrendHub/.env`) Next.js (`apps/admin`) 会自动加载此文件。这是推荐的方式之一。- **应用目录的 `.env` 文件**: (例如 `apps/admin/.env`) - **PM2 `ecosystem.config.js` 文件**: 如果您使用此文件管理应用，可以在其中为 `@trend-hub/admin` 应用指定 `env`。- **操作系统级别**: 例如，在 `~/.bashrc` 或 `/etc/environment` 中。PM2 进程通常会继承这些变量。
+您可以在以下位置设置 `DATABASE_URL` 环境变量：
 
-**重要**: 请勿将包含敏感数据库凭据的 `.env` 文件直接提交到版本控制系统 (Git)。应使用项目中的 `.env.example` 文件作为模板，并在服务器上创建实际的 `.env` 文件，确保该文件被 `.gitignore` 排除。
+#### 方法一：项目根目录的 `.env` 文件 (推荐)
+
+在 `TrendHub/.env` 文件中添加：
+
+```bash
+# 数据库连接字符串
+DATABASE_URL="postgresql://trendhub_user:your_strong_password_here@localhost:5432/trendhub_db?schema=public"
+
+# 其他必要的环境变量
+NEXTAUTH_SECRET="your-nextauth-secret-key"
+NEXTAUTH_URL="http://localhost:3001"
+```
+
+#### 方法二：应用目录的 `.env` 文件
+
+在 `apps/admin/.env` 文件中添加相同的配置。
+
+#### 方法三：Shell 配置文件 (macOS)
+
+对于 macOS，可以将环境变量添加到 shell 配置文件中：
+
+```bash
+# 对于 zsh (macOS 默认)
+echo 'export DATABASE_URL="postgresql://trendhub_user:your_strong_password_here@localhost:5432/trendhub_db?schema=public"' >> ~/.zshrc
+source ~/.zshrc
+
+# 对于 bash
+echo 'export DATABASE_URL="postgresql://trendhub_user:your_strong_password_here@localhost:5432/trendhub_db?schema=public"' >> ~/.bash_profile
+source ~/.bash_profile
+```
+
+#### 验证环境变量设置
+
+```bash
+# 检查环境变量是否正确设置
+echo $DATABASE_URL
+
+# 或者在项目目录中
+cd /path/to/TrendHub
+pnpm --filter=@trend-hub/admin exec prisma db push --dry-run
+```
+
+### 安全注意事项
+
+**重要安全提醒：**
+
+1. **不要提交 `.env` 文件到版本控制系统**：
+
+   ```bash
+   # 确保 .env 文件在 .gitignore 中
+   echo ".env" >> .gitignore
+   echo ".env.local" >> .gitignore
+   echo ".env.*.local" >> .gitignore
+   ```
+
+2. **使用强密码**：
+
+   ```bash
+   # 生成强密码的示例命令
+   openssl rand -base64 32
+   ```
+
+3. **开发环境和生产环境分离**：
+
+   ```bash
+   # 开发环境
+   DATABASE_URL="postgresql://trendhub_user:dev_password@localhost:5432/trendhub_dev?schema=public"
+
+   # 生产环境
+   DATABASE_URL="postgresql://trendhub_user:prod_strong_password@prod-server:5432/trendhub_prod?schema=public"
+   ```
 
 **3. 初始化数据库 Schema / 应用迁移：**
 

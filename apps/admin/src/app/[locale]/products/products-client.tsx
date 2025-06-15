@@ -369,7 +369,7 @@ function EnhancedFilter({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 状态筛选 */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">{t("status")}</Label>
+              <Label className="text-sm font-medium">{t("statusLabel")}</Label>
               <Select
                 value={activeFilters.status || "all"}
                 onValueChange={(value) =>
@@ -859,7 +859,7 @@ function ProductTable({
                     {t("inventory")}
                   </th>
                   <th className="p-3 text-left text-sm font-medium">
-                    {t("status")}
+                    {t("statusLabel")}
                   </th>
                   <th className="p-3 text-left text-sm font-medium">
                     {t("actions")}

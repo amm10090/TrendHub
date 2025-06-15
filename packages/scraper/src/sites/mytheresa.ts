@@ -23,6 +23,147 @@ interface MytheresaUserData {
   originUrl?: string; // 新增：获取原始URL
 }
 
+// 新增：User-Agent 池 - 使用最新的真实浏览器标识
+const USER_AGENTS = [
+  // Chrome on Windows
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+
+  // Chrome on macOS
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+
+  // Edge on Windows
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0",
+
+  // Firefox on Windows
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+
+  // Safari on macOS
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+];
+
+// 新增：随机延迟函数
+function getRandomDelay(min: number = 2000, max: number = 8000): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// 新增：随机选择User-Agent
+function getRandomUserAgent(): string {
+  return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+}
+
+// 新增：模拟人类行为的随机操作
+async function simulateHumanBehavior(page: Page, log: Log): Promise<void> {
+  try {
+    // 随机滚动
+    const scrollDelay = getRandomDelay(1000, 3000);
+    await page.waitForTimeout(scrollDelay);
+
+    // 模拟渐进式滚动
+    const viewportSize = await page.viewportSize();
+    if (viewportSize) {
+      const scrollDistance = Math.random() * viewportSize.height * 0.5;
+      await page.evaluate((distance) => {
+        window.scrollBy(0, distance);
+      }, scrollDistance);
+    }
+
+    // 随机暂停
+    const pauseDelay = getRandomDelay(500, 2000);
+    await page.waitForTimeout(pauseDelay);
+
+    // 偶尔模拟鼠标移动
+    if (Math.random() < 0.3) {
+      const x = Math.random() * (viewportSize?.width || 1920);
+      const y = Math.random() * (viewportSize?.height || 1080);
+      await page.mouse.move(x, y);
+    }
+
+    log.debug("Simulated human behavior - scrolling and random actions");
+  } catch (error) {
+    log.warning(`Error simulating human behavior: ${(error as Error).message}`);
+  }
+}
+
+// 新增：增强的浏览器指纹隐藏
+function getEnhancedBrowserArgs(): string[] {
+  return [
+    // 基础安全参数
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+
+    // 窗口设置
+    "--window-size=1920,1080",
+    "--start-maximized",
+
+    // 反检测参数 - 更强的隐藏
+    "--disable-blink-features=AutomationControlled",
+    "--disable-features=VizDisplayCompositor",
+    "--disable-ipc-flooding-protection",
+    "--disable-renderer-backgrounding",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-background-timer-throttling",
+    "--disable-features=TranslateUI",
+    "--disable-component-extensions-with-background-pages",
+    "--disable-default-apps",
+    "--disable-extensions",
+    "--disable-plugins",
+    "--disable-popup-blocking",
+    "--disable-hang-monitor",
+    "--disable-prompt-on-repost",
+    "--disable-sync",
+    "--disable-translate",
+    "--disable-web-security",
+    "--disable-features=VizDisplayCompositor",
+    "--disable-breakpad",
+    "--disable-client-side-phishing-detection",
+    "--disable-component-update",
+    "--disable-domain-reliability",
+    "--disable-logging",
+    "--disable-speech-api",
+    "--disable-background-networking",
+    "--disable-background-sync",
+    "--disable-permissions-api",
+    "--disable-notifications",
+
+    // 性能优化 - 移除禁用图片，因为这可能被检测
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--no-pings",
+    "--no-zygote",
+    "--single-process",
+
+    // 语言和地区设置
+    "--lang=en-US",
+    "--accept-lang=en-US,en;q=0.9",
+
+    // 新增：更真实的浏览器行为
+    "--enable-automation", // 反直觉，但有时这样反而不会被检测
+    "--disable-blink-features=AutomationControlled",
+    "--exclude-switches=enable-automation",
+    "--disable-extensions-file-access-check",
+    "--disable-extensions-http-throttling",
+    "--aggressive-cache-discard",
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-client-side-phishing-detection",
+    "--disable-crash-reporter",
+    "--disable-oopr-debug-crash-dump",
+    "--no-crash-upload",
+    "--disable-low-res-tiling",
+    "--log-level=3",
+    "--silent",
+  ];
+}
+
 function ensureDirectoryExists(
   dirPath: string,
   logger: Log = crawleeLog,
@@ -67,11 +208,12 @@ export default async function scrapeMytheresa(
     await sendLogToBackend(
       executionId,
       LocalScraperLogLevel.INFO,
-      `${siteName} scraper started.`,
+      `${siteName} scraper started with enhanced anti-detection.`,
       {
         startUrls: Array.isArray(startUrls) ? startUrls : [startUrls],
         options,
         inferredBatchGender: batchGender,
+        userAgentPool: USER_AGENTS.length,
       },
     );
   }
@@ -137,6 +279,11 @@ export default async function scrapeMytheresa(
     {
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,
+      // 新增：减少并发数量以降低检测风险
+      maxConcurrency: options.maxConcurrency || 1, // 单线程爬取
+      // 新增：请求间隔
+      minConcurrency: 1,
+      maxRequestRetries: 3,
       async requestHandler(
         context: PlaywrightCrawlingContext<MytheresaUserData>,
       ) {
@@ -152,12 +299,19 @@ export default async function scrapeMytheresa(
         const currentBatchGender = request.userData?.batchGender; // Get gender from request
         const originUrl = request.userData?.originUrl; // 新增：获取原始URL
 
+        // 新增：每个请求开始时的随机延迟
+        const initialDelay = getRandomDelay(3000, 8000);
+        await page.waitForTimeout(initialDelay);
+        localCrawlerLog.info(
+          `Waited ${initialDelay}ms before processing ${request.url}`,
+        );
+
         if (currentExecutionId) {
           await sendLogToBackend(
             currentExecutionId,
             LocalScraperLogLevel.INFO,
             `Processing URL: ${request.url}`,
-            { label: requestLabel },
+            { label: requestLabel, delay: initialDelay },
           );
         }
         localCrawlerLog.info(
@@ -165,6 +319,9 @@ export default async function scrapeMytheresa(
         );
 
         try {
+          // 新增：模拟人类行为
+          await simulateHumanBehavior(page, localCrawlerLog);
+
           if (requestLabel === "DETAIL") {
             // 获取当前URL对应的计数器
             const urlCounters = originUrl
@@ -215,6 +372,10 @@ export default async function scrapeMytheresa(
                 `Mytheresa: Could not parse SKU from URL ${request.url}: ${(e as Error).message}`,
               );
             }
+
+            // 新增：等待页面完全加载
+            await page.waitForLoadState("networkidle");
+
             product.brand =
               (
                 await page
@@ -227,6 +388,9 @@ export default async function scrapeMytheresa(
                   .locator(".product__area__branding__name")
                   .textContent()
               )?.trim() || product.name;
+
+            // 新增：随机延迟后再继续
+            await page.waitForTimeout(getRandomDelay(1000, 3000));
 
             // 抓取描述、材质、颜色等详细信息
             const detailsAccordionContent = page.locator(
@@ -446,8 +610,52 @@ export default async function scrapeMytheresa(
             localCrawlerLog.info(
               `Mytheresa: Identified as a LIST page: ${request.url}`,
             );
-            const productItemSelector = "div.item";
-            const productItems = await page.locator(productItemSelector).all();
+
+            // 新增：等待页面完全加载
+            await page.waitForLoadState("networkidle");
+
+            // 更新选择器策略：尝试多个可能的选择器
+            let productItems: Locator[] = [];
+            let usedSelector = "";
+            const possibleSelectors = [
+              "div.item",
+              'div[data-testid="product-card"]',
+              'div[class*="product"]',
+              "article",
+              ".product-card",
+              ".product-item",
+              'a[href*="/p"]',
+              "div.list__container div",
+              'div[class*="list"] div[class*="item"]',
+              '[data-cy*="product"]',
+            ];
+
+            for (const selector of possibleSelectors) {
+              try {
+                const items = await page.locator(selector).all();
+                if (items.length > 0) {
+                  localCrawlerLog.info(
+                    `Mytheresa: Found ${items.length} items with selector "${selector}"`,
+                  );
+                  productItems = items;
+                  usedSelector = selector;
+                  break;
+                }
+              } catch {
+                // 忽略选择器错误，继续尝试下一个
+              }
+            }
+
+            if (productItems.length === 0) {
+              localCrawlerLog.warning(
+                `Mytheresa: No products found with any selector. Page might be blocked or structure changed.`,
+              );
+              // 截图调试
+              await page.screenshot({
+                path: `mytheresa-no-products-${Date.now()}.png`,
+                fullPage: true,
+              });
+            }
             localCrawlerLog.info(
               `Mytheresa: Found ${productItems.length} product items initially on ${request.url}`,
             );
@@ -563,6 +771,12 @@ export default async function scrapeMytheresa(
                 localCrawlerLog.info(
                   `Mytheresa: Attempting to click "Load More". Click count: ${loadMoreClickedCount + 1}.`,
                 );
+
+                // 新增：点击前的随机延迟和人类行为模拟
+                await simulateHumanBehavior(page, localCrawlerLog);
+                const clickDelay = getRandomDelay(2000, 5000);
+                await page.waitForTimeout(clickDelay);
+
                 await loadMoreButton.click({ timeout: 20000 });
                 loadMoreClickedCount++;
 
@@ -616,7 +830,7 @@ export default async function scrapeMytheresa(
                   );
 
                 const newProductItems = await page
-                  .locator(productItemSelector)
+                  .locator(usedSelector || "div.item")
                   .all();
                 await processProductItems(
                   newProductItems,
@@ -692,22 +906,107 @@ export default async function scrapeMytheresa(
         launchOptions: {
           executablePath:
             process.env.CHROME_EXECUTABLE_PATH ||
-            "/root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome",
+            "/Users/amm10090/Library/Caches/ms-playwright/chromium-1169/chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+          headless: options.headless !== false, // 默认使用无头模式，除非明确设置为 false
+          args: getEnhancedBrowserArgs(), // 使用增强的浏览器参数
         },
         useChrome: true,
       } as PlaywrightLaunchContext,
       maxRequestsPerCrawl: maxRequests,
       preNavigationHooks: [
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        async (_crawlingContext, _gotoOptions) => {
-          // console.log('Pre-navigation hook for:', _crawlingContext.request.url, 'with executionId:', _crawlingContext.request.userData?.executionId);
+        async (crawlingContext) => {
+          const { page } = crawlingContext;
+
+          // 新增：为每个请求设置随机User-Agent
+          const randomUserAgent = getRandomUserAgent();
+          await page.context().addInitScript(`
+              Object.defineProperty(navigator, 'userAgent', {
+                get: () => '${randomUserAgent}'
+              });
+            `);
+
+          // 新增：设置随机视口大小
+          const viewportSizes = [
+            { width: 1920, height: 1080 },
+            { width: 1366, height: 768 },
+            { width: 1536, height: 864 },
+            { width: 1440, height: 900 },
+            { width: 1600, height: 900 },
+          ];
+          const randomViewport =
+            viewportSizes[Math.floor(Math.random() * viewportSizes.length)];
+          await page.setViewportSize(randomViewport);
+
+          // 新增：设置额外的请求头
+          await page.setExtraHTTPHeaders({
+            Accept:
+              "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            DNT: "1",
+            Connection: "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Cache-Control": "max-age=0",
+          });
+
+          // 新增：强化stealth模式隐藏
+          await page.context().addInitScript(() => {
+            // 删除webdriver标识
+            delete (window.navigator as unknown as Record<string, unknown>)
+              .webdriver;
+
+            // 重写navigator.webdriver属性
+            Object.defineProperty(navigator, "webdriver", {
+              get: () => undefined,
+            });
+
+            // 模拟真实插件
+            Object.defineProperty(navigator, "plugins", {
+              get: () => ({
+                length: 3,
+                0: { name: "Chrome PDF Plugin" },
+                1: { name: "Chrome PDF Viewer" },
+                2: { name: "Native Client" },
+              }),
+            });
+
+            // 模拟语言
+            Object.defineProperty(navigator, "languages", {
+              get: () => ["en-US", "en"],
+            });
+
+            // 隐藏自动化框架痕迹
+            const automationProps = [
+              "__playwright",
+              "__puppeteer",
+              "__selenium",
+              "__webdriver_evaluate",
+              "__webdriver_script_function",
+              "__fxdriver_evaluate",
+              "__driver_unwrapped",
+            ];
+
+            automationProps.forEach((prop) => {
+              delete (window as unknown as Record<string, unknown>)[prop];
+            });
+          });
+
+          crawleeLog.debug(`Set User-Agent: ${randomUserAgent}`);
+          crawleeLog.debug(
+            `Set Viewport: ${randomViewport.width}x${randomViewport.height}`,
+          );
         },
       ],
     },
     config,
   );
 
-  crawleeLog.info("Mytheresa: Crawler setup complete. Starting crawl...");
+  crawleeLog.info(
+    "Mytheresa: Enhanced anti-detection crawler setup complete. Starting crawl...",
+  );
   const initialRequests = (
     Array.isArray(startUrls) ? startUrls : [startUrls]
   ).map((url) => {

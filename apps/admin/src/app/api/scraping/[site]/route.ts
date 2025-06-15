@@ -329,6 +329,7 @@ export async function POST(
     maxProducts:
       typeof body.maxProducts === "number" ? body.maxProducts : undefined,
     storageDir: path.resolve(process.cwd(), "storage"), // 添加：确保传递正确的存储路径
+    headless: true, // 新增：强制使用无头模式
   };
 
   // 新增：提取默认库存参数

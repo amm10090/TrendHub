@@ -85,7 +85,7 @@ export function ProductModal({
   return (
     <Modal
       classNames={{
-        base: 'max-w-3xl',
+        base: 'max-w-sm sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-4xl mx-4 max-h-[90vh]',
         backdrop: 'bg-black/40 backdrop-blur-sm',
         body: 'p-0',
         closeButton:
@@ -95,25 +95,25 @@ export function ProductModal({
       scrollBehavior="inside"
       onClose={onClose}
     >
-      <ModalContent className="shadow-xl shadow-primary/10 dark:shadow-2xl transition-all duration-300 scrollbar-hide">
-        <ModalHeader className="flex flex-col gap-1 bg-bg-primary-light dark:bg-bg-primary-dark rounded-t-xl px-6 py-5">
-          <h2 className="text-xl font-medium text-default-900 dark:text-default-50">
+      <ModalContent className="shadow-xl shadow-primary/10 dark:shadow-2xl transition-all duration-300 scrollbar-hide max-h-[90vh] flex flex-col">
+        <ModalHeader className="flex-shrink-0 flex flex-col gap-1 bg-bg-primary-light dark:bg-bg-primary-dark rounded-t-xl px-4 sm:px-6 py-2 sm:py-4">
+          <h2 className="text-lg sm:text-xl font-medium text-default-900 dark:text-default-50">
             {product.name}
           </h2>
           <p className="text-sm text-default-600 dark:text-default-400">{product.brand.name}</p>
         </ModalHeader>
-        <ModalBody>
-          <Card className="border-none shadow-none bg-bg-primary-light dark:bg-bg-primary-dark rounded-b-xl scrollbar-hide">
-            <CardBody className="p-0 scrollbar-hide">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
+        <ModalBody className="flex-1 min-h-0">
+          <Card className="border-none shadow-none bg-bg-primary-light dark:bg-bg-primary-dark rounded-b-xl scrollbar-hide h-full">
+            <CardBody className="p-0 scrollbar-hide h-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4 h-full">
                 {/* 产品图片区域 */}
-                <div className="aspect-3/4 relative overflow-hidden rounded-xl shadow-sm">
+                <div className="aspect-3/4 lg:aspect-[4/5] relative overflow-hidden rounded-lg sm:rounded-xl shadow-sm max-h-[45vh] lg:max-h-[50vh] xl:max-h-[55vh]">
                   <Image
                     isZoomed
                     alt={product.name}
                     classNames={{
                       wrapper: 'w-full h-full transition-opacity duration-300',
-                      img: 'w-full h-full object-cover object-center transition-transform duration-500 rounded-xl',
+                      img: 'w-full h-full object-cover object-center transition-transform duration-500 rounded-lg sm:rounded-xl',
                       zoomedWrapper: 'transition-all duration-500',
                     }}
                     src={product.images?.[0] || '/images/products/placeholder.jpg'}
@@ -121,12 +121,12 @@ export function ProductModal({
                 </div>
 
                 {/* 产品信息卡片 */}
-                <Card className="border border-default-200 dark:border-default-700 shadow-sm dark:shadow-md bg-bg-secondary-light dark:bg-bg-secondary-dark rounded-xl">
-                  <CardHeader className="pb-0 pt-5 px-6 flex flex-col gap-1">
+                <Card className="border border-default-200 dark:border-default-700 shadow-sm dark:shadow-md bg-bg-secondary-light dark:bg-bg-secondary-dark rounded-lg sm:rounded-xl flex flex-col h-full">
+                  <CardHeader className="flex-shrink-0 pb-0 pt-3 sm:pt-4 px-3 sm:px-6 flex flex-col gap-1">
                     <div className="flex items-baseline justify-between">
                       <div className="flex flex-col gap-y-1">
                         <p
-                          className={`text-2xl font-medium ${product.discount ? 'text-danger-500 dark:text-danger-400' : 'text-default-900 dark:text-default-50'}`}
+                          className={`text-xl sm:text-2xl font-medium ${product.discount ? 'text-danger-500 dark:text-danger-400' : 'text-default-900 dark:text-default-50'}`}
                         >
                           ¥{Number(product.price).toLocaleString()}
                         </p>
@@ -160,22 +160,24 @@ export function ProductModal({
                     </div>
                   </CardHeader>
 
-                  <CardBody className="py-4 px-6">
+                  <CardBody className="flex-1 py-3 sm:py-4 px-3 sm:px-6 overflow-y-auto min-h-0">
                     <div className="prose prose-sm dark:prose-invert text-default-900 dark:text-default-50">
-                      <p>{product.description}</p>
+                      <p className="text-sm sm:text-base leading-relaxed line-clamp-4">
+                        {product.description}
+                      </p>
                     </div>
                   </CardBody>
 
-                  <CardFooter className="px-6 pt-0 pb-6 flex flex-col gap-3">
+                  <CardFooter className="flex-shrink-0 px-3 sm:px-6 pt-2 pb-3 sm:pb-5 flex flex-col gap-1 sm:gap-2 border-t border-default-200 dark:border-default-700">
                     {/* 购买和收藏按钮 */}
-                    <div className="w-full flex gap-3 mt-3">
+                    <div className="w-full flex gap-2 sm:gap-3">
                       {showRedirectButton ? (
                         <Link
                           isBlock
                           isExternal
                           showAnchorIcon
-                          anchorIcon={<ExternalLink className="ml-1 h-4 w-4" />}
-                          className="flex-1 py-3.5 px-5 font-medium bg-primary-500 text-white dark:bg-primary-600 dark:text-white rounded-lg hover:bg-primary-600 dark:hover:bg-primary-700 hover:scale-102 shadow-md shadow-primary/10 transition-all duration-200 text-center"
+                          anchorIcon={<ExternalLink className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />}
+                          className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 font-medium bg-primary-500 text-white dark:bg-primary-600 dark:text-white rounded-md sm:rounded-lg hover:bg-primary-600 dark:hover:bg-primary-700 hover:scale-102 shadow-md shadow-primary/10 transition-all duration-200 text-center text-sm sm:text-base"
                           isDisabled={product.availableQuantity === 0}
                           onPress={handleOpenInNewTab}
                         >
@@ -184,7 +186,7 @@ export function ProductModal({
                       ) : null}
                       <Button
                         aria-label={isFavorite ? t('remove_from_favorites') : t('add_to_favorites')}
-                        className={`p-0 min-w-14 w-14 h-14 flex items-center justify-center rounded-lg shadow-md shadow-primary/10 hover:scale-105 transition-all duration-200 ${
+                        className={`p-0 min-w-10 w-10 h-10 sm:min-w-14 sm:w-14 sm:h-14 flex items-center justify-center rounded-md sm:rounded-lg shadow-md shadow-primary/10 hover:scale-105 transition-all duration-200 ${
                           isFavorite
                             ? 'bg-danger-500 text-white hover:bg-danger-600 dark:bg-danger-600 dark:hover:bg-danger-700'
                             : 'bg-default-100 dark:bg-default-800 text-default-900 dark:text-default-50 hover:bg-default-200 dark:hover:bg-default-700'
@@ -192,7 +194,10 @@ export function ProductModal({
                         variant="flat"
                         onPress={toggleFavorite}
                       >
-                        <Heart className="h-6 w-6" fill={isFavorite ? 'currentColor' : 'none'} />
+                        <Heart
+                          className="h-4 w-4 sm:h-6 sm:w-6"
+                          fill={isFavorite ? 'currentColor' : 'none'}
+                        />
                       </Button>
                     </div>
                   </CardFooter>

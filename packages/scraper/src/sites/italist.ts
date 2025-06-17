@@ -27,49 +27,60 @@ interface ItalistUserData {
   originUrl?: string; // 新增：获取原始URL
 }
 
-// 基于 README.md 和初步分析的预估选择器
+// 基于最新网站结构分析更新的选择器
 const SELECTORS = {
-  // PLP - 产品列表页
-  PRODUCT_LIST_CONTAINER: "div#product-list-pagination-container", // README: div#product-list-pagination-container (已验证)
-  PRODUCT_CARD: "div.product-grid-container > a", // 优化：更通用的卡片选择器
-  PRODUCT_LINK: "div.product-grid-container > a[href*='/us/']", // 优化：确保链接有效
-  PLP_BRAND: "div.brand, div[class*='brand']", // 更新：精确匹配品牌元素
-  PLP_NAME: "div.productName", // 优化：直接子元素选择器
-  PLP_ORIGINAL_PRICE: "span.old-price", // 优化：直接子元素选择器
-  PLP_CURRENT_PRICE_WITH_DISCOUNT: "span.sales-price", // 优化：直接子元素选择器
-  PLP_CURRENT_PRICE_NO_DISCOUNT: "div.price > div > span.price", // 保持不变，但需验证其上下文
-  PLP_TAG: "div.season", // 优化：直接子元素选择器
-  PLP_IMAGE: "img.firstImage", // 优化：直接子元素选择器
-  PAGINATION_LINK:
-    "div.pagination-wrapper div.navigation-next > a[href], div.pagination-wrapper a[data-testid='next-pagination-arrow']", // 优化：确保链接有效并包含两种模式
-  PLP_TOTAL_COUNT: "span[data-cy='total-count'] span.result-count",
+  // PLP - 产品列表页 (基于实际运行日志的HTML结构)
+  PRODUCT_LIST_CONTAINER:
+    ".product-grid-container:not(.display-none), .products-container, main", // 更新：排除隐藏的product-grid-container
+  PRODUCT_CARD: ".product-grid-container:not(.display-none) > a", // 更新：直接选择容器内的<a>标签，因为卡片本身就是链接
+  PRODUCT_LINK: "", // 更新：卡片本身就是链接，不需要在内部查找
+  PLP_BRAND: ".brand", // 更新：根据HTML结构，品牌在.brand类中
+  PLP_NAME: ".model", // 更新：产品名称在.model类中
+  PLP_PRICE: ".price", // 更新：价格在.price类中
+  PLP_ORIGINAL_PRICE: ".product-info p", // 价格字符串中的第二个价格（原价）
+  PLP_CURRENT_PRICE_WITH_DISCOUNT: ".product-info p", // 价格字符串中的第一个价格（现价）
+  PLP_CURRENT_PRICE_NO_DISCOUNT: ".product-info p", // 单一价格情况
+  PLP_TAG: ".product-tag, .badge, .label", // 更新：产品标签选择器
+  PLP_IMAGE: "img", // 更新：产品卡片内的任何图片
+  PAGINATION_LINK: ".pagination a", // 更新：分页链接在.pagination容器内
+  PLP_TOTAL_COUNT: ".results-count, .total-count", // 更新：总数统计选择器
 
-  // PDP - 产品详情页
-  PDP_BREADCRUMBS_CONTAINER: '.breadcrumbs-row, div[class*="breadcrumbs"]', // 基于实际HTML更新
-  PDP_BREADCRUMB_ITEM: 'a.breadcrumbs-link, a[data-cy^="link-breadcrumb-"]', // 基于实际HTML更新
-  PDP_BRAND: '[data-test="product-brand-name"], h1 + div, .product-info-brand', // 更新品牌选择器
-  PDP_NAME:
-    '[data-test="product-name"], h1.product-name, h1[data-cy="product-name"]', // 更新产品名称选择器
+  // 筛选器选择器 (基于firecrawl分析)
+  FILTER_CATEGORY: ".filter-category",
+  FILTER_SIZE: ".filter-size",
+  FILTER_COLOR: ".filter-color",
+  FILTER_PRICE: ".filter-price",
+  FILTER_DESIGNER: ".filter-designer",
+
+  // 导航选择器
+  MAIN_NAVIGATION: ".main-navigation",
+  BREADCRUMB_NAVIGATION: ".breadcrumb, nav[aria-label='breadcrumb']",
+
+  // PDP - 产品详情页 (基于推测和常见模式)
+  PDP_BREADCRUMBS_CONTAINER:
+    "div.breadcrumbs-row, .breadcrumb, nav[aria-label='breadcrumb'], .navigation-breadcrumb", // 更新：面包屑容器
+  PDP_BREADCRUMB_ITEM:
+    "a.breadcrumbs-link, .breadcrumb a, .breadcrumb-item a, nav[aria-label='breadcrumb'] a", // 更新：面包屑项目
+  PDP_BRAND: "h2.brand, .product-brand, .brand-name, h1 .brand", // 更新：产品品牌
+  PDP_NAME: "h1.model, .product-name, .product-title, h1", // 更新：产品名称
   PDP_CURRENT_PRICE:
-    '[data-test="product-price-final"], .sales-price, .product-price', // 更新当前价格选择器
+    ".price .sales-price, .current-price, .price-now, .sale-price", // 更新：当前价格
   PDP_ORIGINAL_PRICE:
-    '[data-test="product-price-original"], .old-price, .product-price-original', // 更新原价选择器
-  PDP_IMAGE_CONTAINER:
-    '.product-gallery, div[class*="gallery"], div[class*="carousel"]', // 更新图片容器选择器
-  PDP_MAIN_IMAGE: 'img[class*="main-image"], .product-image-main, picture img', // 更新主图选择器
-  PDP_THUMBNAIL_IMAGE: 'img[class*="thumbnail"], .product-thumbnail img', // 更新缩略图选择器
+    ".price .old-price, .original-price, .price-was, .old-price", // 更新：原价
+  PDP_IMAGE_CONTAINER: ".product-gallery, .product-images, .image-gallery", // 更新：图片容器
+  PDP_MAIN_IMAGE: ".product-gallery img, .main-image img, .primary-image img", // 更新：主图
+  PDP_THUMBNAIL_IMAGE: ".thumbnail img, .gallery-thumb img, .product-thumb img", // 更新：缩略图
   PDP_DESCRIPTION_AREA:
-    '.description-container, div[class*="description"], .accordion-content', // 更新描述区域选择器
-  PDP_COLOR:
-    '.description-container p:contains("Color:"), span:contains("Color:")', // 基于实际HTML更新颜色选择器
+    "div.expanded-section-text, .accordion-content, .product-description, .description, .product-details", // 更新：描述区域
+  PDP_COLOR: ".product-color, .color-info", // 更新：颜色信息
   PDP_MATERIAL:
-    '.description-container:contains("Composition:"), div:contains("Composition:")', // 基于实际HTML更新材质选择器
+    ".description-container, .product-material, .material-info, .composition", // 更新：材质信息
   PDP_SKU:
-    'p:contains("Model number:"), [data-test="product-sku"], p:contains("Product Code:")', // 更新SKU选择器
+    "p:has-text('Model number:'), .product-sku, .model-number, .item-code", // 更新：SKU选择器
   PDP_SIZE_SELECTOR:
-    'div[data-testid="size-selector"], div[class*="size-selector"]', // 更新尺寸选择器
-  PDP_SIZE_OPTIONS: "ul.dropdown li .size-option, .size-option", // 新增：尺寸选项
-  PDP_MODEL_NUMBER: 'p:contains("Model number:")', // 新增：型号
+    "div[data-testid='size-selector'], .size-selector, .sizes, .size-options", // 更新：尺寸选择器
+  PDP_SIZE_OPTIONS: ".size-option, .size-button, .size-variant", // 更新：尺寸选项
+  PDP_MODEL_NUMBER: "p:has-text('Model number:'), .model-number, .product-code", // 更新：型号
 };
 
 function inferGenderFromItalistUrl(
@@ -141,6 +152,44 @@ async function processProductCardsOnPlpItalist(
   const plpItemsToBatchCheck: { url: string; plpData: Partial<Product> }[] = [];
 
   try {
+    // 添加调试信息：显示页面上所有可能的产品容器
+    const availableContainers = await page.evaluate(() => {
+      const containers: Array<{
+        selector: string;
+        testid: string | null;
+        className: string;
+        childCount: number;
+      }> = [];
+      // 查找所有可能的容器元素
+      const possibleSelectors = [
+        'div[data-testid*="product"]',
+        'div[class*="product"]',
+        'div[class*="list"]',
+        'div[class*="grid"]',
+        'div[class*="container"]',
+      ];
+
+      possibleSelectors.forEach((selector) => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach((el) => {
+          if (el.getAttribute("data-testid") || el.className) {
+            containers.push({
+              selector: selector,
+              testid: el.getAttribute("data-testid"),
+              className: el.className,
+              childCount: el.children.length,
+            });
+          }
+        });
+      });
+      return containers;
+    });
+
+    localCrawlerLog.info(
+      `[${siteNameForLog}] 页面上发现的容器元素:`,
+      availableContainers.slice(0, 10), // 只显示前10个
+    );
+
     await page.waitForSelector(SELECTORS.PRODUCT_LIST_CONTAINER, {
       state: "visible",
       timeout: 60000, // 增加超时时间
@@ -227,6 +276,33 @@ async function processProductCardsOnPlpItalist(
     const productCardElements = await page.$$(SELECTORS.PRODUCT_CARD);
     const cardsToProcess = productCardElements.slice(0, neededProducts);
 
+    // 添加调试信息：显示找到的产品卡片的详细信息
+    if (productCardElements.length === 0) {
+      const alternativeSelectors = [
+        ".product-card",
+        'div[class*="product"]',
+        "article",
+        ".product-item",
+      ];
+
+      for (const altSelector of alternativeSelectors) {
+        const altElements = await page.$$(altSelector);
+        localCrawlerLog.info(
+          `[${siteNameForLog}] 使用选择器 "${altSelector}" 找到 ${altElements.length} 个元素`,
+        );
+        if (altElements.length > 0) {
+          // 显示前几个元素的信息
+          for (let i = 0; i < Math.min(3, altElements.length); i++) {
+            const innerHTML = await altElements[i].innerHTML();
+            localCrawlerLog.info(
+              `[${siteNameForLog}] 元素 ${i + 1}: ${innerHTML.substring(0, 200)}...`,
+            );
+          }
+          break;
+        }
+      }
+    }
+
     localCrawlerLog.info(
       `[${siteNameForLog}] 在 ${request.url} 找到 ${productCardElements.length} 个商品卡片元素，将处理其中 ${cardsToProcess.length} 个。`,
     );
@@ -254,11 +330,11 @@ async function processProductCardsOnPlpItalist(
         await card.scrollIntoViewIfNeeded();
         await page.waitForTimeout(200); // 短暂等待
 
-        const linkElement = card; // PRODUCT_CARD 本身就是 <a> 标签
-        const href = await linkElement.getAttribute("href");
+        // 卡片本身就是链接，直接获取href属性
+        const href = await card.getAttribute("href");
         if (!href) {
           localCrawlerLog.warning(
-            `[${siteNameForLog}] 商品卡片链接元素缺少 href 属性。`,
+            `[${siteNameForLog}] 商品卡片缺少 href 属性。`,
           );
           continue;
         }
@@ -288,101 +364,62 @@ async function processProductCardsOnPlpItalist(
           metadata: { executionId },
         };
 
-        // 更精确地提取品牌名称
+        // 更新后的品牌名称提取逻辑 - 基于实际HTML结构
         try {
-          // 方法1: 使用明确的类名组合（针对提供的HTML示例）
-          const specificBrandEl = await card.$("div.jsx-4016361043.brand");
-          if (specificBrandEl) {
-            const brandText = (await specificBrandEl.textContent())?.trim();
-            // 验证提取的不是价格（价格通常以货币符号或货币代码开头）
-            if (brandText && !brandText.match(/^(USD|EUR|GBP|JPY|CNY)\s*\d/)) {
+          // 方法1: 从.brand元素中提取品牌
+          const brandEl = await card.$(SELECTORS.PLP_BRAND); // .brand
+          if (brandEl) {
+            const brandText = (await brandEl.textContent())?.trim();
+            if (
+              brandText &&
+              !brandText.match(/^(USD|EUR|GBP|JPY|CNY|\$)\s*\d/)
+            ) {
               plpData.brand = brandText;
               localCrawlerLog.info(
-                `[${siteNameForLog}] 使用精确选择器提取到品牌: ${plpData.brand}`,
-              );
-            } else {
-              localCrawlerLog.warning(
-                `[${siteNameForLog}] 精确选择器提取到的可能是价格而非品牌: "${brandText}"`,
+                `[${siteNameForLog}] 提取到品牌: ${plpData.brand}`,
               );
             }
           }
 
-          // 如果没有找到品牌或提取的是价格，尝试备选方法
+          // 方法2: 从.model元素中提取产品名称
+          const nameEl = await card.$(SELECTORS.PLP_NAME); // .model
+          if (nameEl) {
+            const nameText = (await nameEl.textContent())?.trim();
+            if (nameText && !nameText.match(/^(USD|EUR|GBP|JPY|CNY|\$)\s*\d/)) {
+              plpData.name = nameText;
+              localCrawlerLog.info(
+                `[${siteNameForLog}] 提取到产品名: ${plpData.name}`,
+              );
+            }
+          }
+
+          // 方法2: 从URL提取品牌作为备用方案
           if (!plpData.brand) {
-            // 方法2: 使用更通用但仍然精确的选择器（排除包含价格相关类名的元素）
-            const betterBrandEl = await card.$(
-              "div[class*='brand']:not([class*='price'])",
-            );
-            if (betterBrandEl) {
-              const brandText = (await betterBrandEl.textContent())?.trim();
-              // 额外验证：不是以货币代码开头
-              if (
-                brandText &&
-                !brandText.match(/^(USD|EUR|GBP|JPY|CNY)\s*\d/)
-              ) {
-                plpData.brand = brandText;
+            try {
+              const urlParts = productUrl.split("/");
+              const lastPart = urlParts[urlParts.length - 2]; // 通常品牌在URL倒数第二部分
+              if (lastPart && lastPart.length > 1 && lastPart !== "us") {
+                // 转换为品牌格式（首字母大写，连字符替换为空格）
+                const brandFromUrl = lastPart
+                  .split("-")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ");
+
+                plpData.brand = brandFromUrl;
                 localCrawlerLog.info(
-                  `[${siteNameForLog}] 使用通用精确选择器提取到品牌: ${plpData.brand}`,
+                  `[${siteNameForLog}] 从URL推断品牌: ${plpData.brand}`,
                 );
               }
+            } catch (urlError) {
+              localCrawlerLog.debug(
+                `[${siteNameForLog}] 从URL推断品牌失败: ${(urlError as Error).message}`,
+              );
             }
-          }
-
-          // 方法3: 根据位置或上下文推断（通常品牌位于产品名称上方）
-          if (!plpData.brand) {
-            // 尝试通过评估多个元素的内容来确定哪个可能是品牌
-            const potentialElements = await card.$$("div");
-            for (const el of potentialElements) {
-              const text = (await el.textContent())?.trim() || "";
-              // 品牌名称通常较短，不包含价格，不是"New season"标签
-              if (
-                text &&
-                text.length > 1 &&
-                text.length < 30 &&
-                !text.match(/^(USD|EUR|GBP|JPY|CNY)\s*\d/) &&
-                !text.includes("season") &&
-                !text.includes("季") &&
-                !text.toLowerCase().includes("sale")
-              ) {
-                // 检查此元素是否有上述其他方法已处理过的类名
-                const className = await el.evaluate((node) => node.className);
-                if (
-                  !className.includes("price") &&
-                  (className.includes("brand") ||
-                    // 如果没有明确的brand类名，判断位置（通常在产品名称之前）
-                    (await el.evaluate((node) => {
-                      const next = node.nextElementSibling;
-                      return (
-                        next &&
-                        (next.className.includes("productName") ||
-                          next.className.includes("product-name"))
-                      );
-                    })))
-                ) {
-                  plpData.brand = text;
-                  localCrawlerLog.info(
-                    `[${siteNameForLog}] 通过上下文分析提取到品牌: ${plpData.brand}`,
-                  );
-                  break;
-                }
-              }
-            }
-          }
-
-          // 验证最终结果不是价格
-          if (
-            plpData.brand &&
-            plpData.brand.match(/^(USD|EUR|GBP|JPY|CNY)\s*\d/)
-          ) {
-            localCrawlerLog.warning(
-              `[${siteNameForLog}] 最终提取到的品牌似乎是价格，清除: "${plpData.brand}"`,
-            );
-            plpData.brand = undefined;
           }
 
           if (!plpData.brand) {
             localCrawlerLog.warning(
-              `[${siteNameForLog}] 未能从商品卡片中提取到品牌名称`,
+              `[${siteNameForLog}] 未能从商品卡片中提取到品牌名称，URL: ${productUrl}`,
             );
           }
         } catch (brandError) {
@@ -391,37 +428,66 @@ async function processProductCardsOnPlpItalist(
           );
         }
 
-        const nameEl = await card.$(SELECTORS.PLP_NAME);
-        if (nameEl) {
-          plpData.name = (await nameEl.textContent())?.trim();
-        }
+        // 产品名称已在品牌提取逻辑中一起处理了
 
-        let currentPriceEl = await card.$(
-          SELECTORS.PLP_CURRENT_PRICE_WITH_DISCOUNT,
-        );
-        if (!currentPriceEl) {
-          currentPriceEl = await card.$(
-            SELECTORS.PLP_CURRENT_PRICE_NO_DISCOUNT,
+        // 更新后的价格提取逻辑 - 基于实际HTML结构
+        try {
+          const priceContainer = await card.$(SELECTORS.PLP_PRICE); // .price
+          if (priceContainer) {
+            // 检查是否有销售价格和原价
+            const salesPriceEl = await priceContainer.$(".sales-price");
+            const oldPriceEl = await priceContainer.$(".old-price");
+
+            if (salesPriceEl && oldPriceEl) {
+              // 有折扣的情况：销售价 • 原价
+              const salesPriceText = (await salesPriceEl.textContent())?.trim();
+              const oldPriceText = (await oldPriceEl.textContent())?.trim();
+
+              if (salesPriceText && oldPriceText) {
+                const currentAmount = cleanPrice(salesPriceText);
+                const originalAmount = cleanPrice(oldPriceText);
+
+                plpData.currentPrice = {
+                  amount: currentAmount,
+                  currency: "USD",
+                };
+                plpData.originalPrice = {
+                  amount: originalAmount,
+                  currency: "USD",
+                };
+
+                localCrawlerLog.info(
+                  `[${siteNameForLog}] 提取折扣价格: 现价 ${currentAmount}, 原价 ${originalAmount}`,
+                );
+              }
+            } else {
+              // 单一价格情况，查找 .price span
+              const singlePriceEl = await priceContainer.$("span.price");
+              if (singlePriceEl) {
+                const priceText = (await singlePriceEl.textContent())?.trim();
+                if (priceText) {
+                  const amount = cleanPrice(priceText);
+                  plpData.currentPrice = { amount, currency: "USD" };
+                  plpData.originalPrice = { amount, currency: "USD" };
+
+                  localCrawlerLog.info(
+                    `[${siteNameForLog}] 单一价格: ${amount}`,
+                  );
+                }
+              }
+            }
+          } else {
+            localCrawlerLog.warning(
+              `[${siteNameForLog}] 未找到价格容器，URL: ${productUrl}`,
+            );
+          }
+        } catch (priceError) {
+          localCrawlerLog.error(
+            `[${siteNameForLog}] 提取价格时发生错误: ${(priceError as Error).message}`,
           );
         }
 
-        if (currentPriceEl) {
-          const priceText = (await currentPriceEl.textContent())?.trim();
-          if (priceText) {
-            const amount = cleanPrice(priceText);
-            plpData.currentPrice = { amount, currency: "USD" }; // 假设货币为USD
-          }
-        }
-
-        const originalPriceEl = await card.$(SELECTORS.PLP_ORIGINAL_PRICE);
-        if (originalPriceEl) {
-          const priceText = (await originalPriceEl.textContent())?.trim();
-          if (priceText) {
-            const amount = cleanPrice(priceText);
-            plpData.originalPrice = { amount, currency: "USD" }; // 假设货币为USD
-          }
-        }
-
+        // 计算折扣
         if (
           plpData.originalPrice &&
           plpData.currentPrice &&
@@ -1009,6 +1075,9 @@ const scrapeItalist: ScraperFunction = async (
 
             // 处理性别选择弹窗（如果存在）
             try {
+              // 等待弹窗动画完成
+              await page.waitForTimeout(2000);
+
               // 检查是否有性别选择弹窗
               const genderButtons = [
                 'button[id="el_7YnBwnzfFp"]', // 女装按钮
@@ -1040,17 +1109,41 @@ const scrapeItalist: ScraperFunction = async (
 
               // 尝试点击选定的性别按钮
               if (targetGenderButton) {
-                const genderBtnExists = await page.$(targetGenderButton);
-                if (genderBtnExists) {
-                  localCrawlerLog.info(
-                    `[${siteName}] 找到性别选择按钮: ${targetGenderButton}`,
-                  );
-                  await page.click(targetGenderButton, {
-                    force: true,
-                    timeout: 3000,
+                try {
+                  // 等待按钮变为可见且可点击
+                  await page.waitForSelector(targetGenderButton, {
+                    state: "visible",
+                    timeout: 5000,
                   });
-                  await page.waitForTimeout(1000); // 等待页面响应
-                  localCrawlerLog.info(`[${siteName}] 已点击性别选择按钮`);
+
+                  // 检查按钮是否真的可见
+                  const isVisible = await page.isVisible(targetGenderButton);
+                  if (isVisible) {
+                    localCrawlerLog.info(
+                      `[${siteName}] 性别选择按钮已可见: ${targetGenderButton}`,
+                    );
+
+                    // 滚动到按钮位置并点击
+                    await page
+                      .locator(targetGenderButton)
+                      .scrollIntoViewIfNeeded();
+                    await page.waitForTimeout(500);
+
+                    await page.locator(targetGenderButton).click({
+                      timeout: 3000,
+                    });
+
+                    await page.waitForTimeout(1000); // 等待页面响应
+                    localCrawlerLog.info(`[${siteName}] 已点击性别选择按钮`);
+                  } else {
+                    localCrawlerLog.info(
+                      `[${siteName}] 性别选择按钮存在但不可见，跳过点击`,
+                    );
+                  }
+                } catch (btnError) {
+                  localCrawlerLog.info(
+                    `[${siteName}] 性别选择按钮点击失败，可能弹窗已消失: ${(btnError as Error).message}`,
+                  );
                 }
               }
 
@@ -1591,9 +1684,15 @@ const scrapeItalist: ScraperFunction = async (
               );
             }
 
-            // 4. 提取SKU (PDP优先)
+            // 4. 提取SKU/Model Number (PDP优先) - 更新后的逻辑
             try {
-              const skuEl = await page.$(SELECTORS.PDP_SKU);
+              // 方法1: 使用选择器查找SKU/型号元素
+              let skuEl = await page.$(SELECTORS.PDP_SKU);
+              if (!skuEl) {
+                // 尝试查找model number选择器
+                skuEl = await page.$(SELECTORS.PDP_MODEL_NUMBER);
+              }
+
               if (skuEl) {
                 const skuTextContent = (await skuEl.textContent())?.trim();
                 if (skuTextContent && skuTextContent.length > 0) {
@@ -1603,6 +1702,12 @@ const scrapeItalist: ScraperFunction = async (
                   ) {
                     processedSku = skuTextContent
                       .substring("product code:".length)
+                      .trim();
+                  } else if (
+                    skuTextContent.toLowerCase().startsWith("model number:")
+                  ) {
+                    processedSku = skuTextContent
+                      .substring("model number:".length)
                       .trim();
                   } else {
                     processedSku = skuTextContent;
@@ -1614,13 +1719,49 @@ const scrapeItalist: ScraperFunction = async (
                       `[${siteName}] PDP SKU: ${product.sku}`,
                     );
                   }
-                } else {
-                  localCrawlerLog.warning(
-                    `[${siteName}] PDP SKU element found but text content is empty or undefined for ${product.url}`,
+                }
+              }
+
+              // 方法2: 通用DOM搜索 - 查找包含model number的文本
+              if (!product.sku) {
+                try {
+                  const modelNumberText = await page.evaluate(() => {
+                    // 查找包含model number模式的文本
+                    const allElements = Array.from(
+                      document.querySelectorAll("*"),
+                    );
+                    for (const el of allElements) {
+                      const text = el.textContent || "";
+                      if (
+                        text.includes("Model number") ||
+                        text.includes("Product Code")
+                      ) {
+                        // 提取冒号后的内容
+                        const match = text.match(
+                          /(?:Model number|Product Code):\s*([A-Z0-9]+)/i,
+                        );
+                        if (match && match[1]) {
+                          return match[1].trim();
+                        }
+                      }
+                    }
+                    return null;
+                  });
+
+                  if (modelNumberText) {
+                    product.sku = modelNumberText;
+                    localCrawlerLog.info(
+                      `[${siteName}] 通用搜索提取到SKU: ${product.sku}`,
+                    );
+                  }
+                } catch (evalError) {
+                  localCrawlerLog.debug(
+                    `[${siteName}] 通用SKU搜索失败: ${(evalError as Error).message}`,
                   );
                 }
               }
 
+              // 方法3: 从URL提取数字ID作为回退方案
               if (!product.sku && product.url) {
                 const urlParts = product.url.split("/");
                 const potentialSkuFromUrlPart =
@@ -1661,6 +1802,28 @@ const scrapeItalist: ScraperFunction = async (
 
             // 5. 提取颜色和材质
             try {
+              // 新增：展开描述区域以确保内容可见
+              try {
+                const accordionHeading = await page.$(
+                  "div.accordion-heading:has-text('Description')",
+                );
+                if (accordionHeading) {
+                  const content = await page.$(".accordion-content");
+                  const isVisible = content ? await content.isVisible() : false;
+                  if (!isVisible) {
+                    await accordionHeading.click({ timeout: 3000 });
+                    await page.waitForTimeout(500); // 等待展开动画
+                    localCrawlerLog.info(
+                      `[${siteName}] 已点击描述区域以展开内容。`,
+                    );
+                  }
+                }
+              } catch (accordionError) {
+                localCrawlerLog.warning(
+                  `[${siteName}] 展开描述区域时出错: ${(accordionError as Error).message}`,
+                );
+              }
+
               // 基于给定HTML结构，优化颜色和材质的提取逻辑
               const descriptionAreaEl = await page.$(
                 SELECTORS.PDP_DESCRIPTION_AREA,
@@ -1688,19 +1851,62 @@ const scrapeItalist: ScraperFunction = async (
 
               // 提取颜色信息
               if (descriptionTextForParsing || descriptionHtml) {
-                // 策略1: 使用更严格的正则从文本中查找颜色信息
-                const colorRegex = /Color:\s*([^<\n\r.,;]+)(?![^<>]*Size)/i;
-                const colorMatch = (
-                  descriptionTextForParsing || descriptionHtml
-                ).match(colorRegex);
+                // 策略1: 优先使用精确选择器
+                try {
+                  const colorElement = await page.$(
+                    "p:has-text('Color:') span",
+                  );
+                  if (colorElement) {
+                    const colorText = (
+                      await colorElement.textContent()
+                    )?.trim();
+                    if (
+                      colorText &&
+                      colorText.length > 0 &&
+                      colorText.length < 20
+                    ) {
+                      product.color = colorText;
+                      product.designerColorName = colorText;
+                      localCrawlerLog.info(
+                        `[${siteName}] 精确选择器提取到颜色: ${product.color}`,
+                      );
+                    }
+                  }
+                } catch {
+                  // 忽略错误，继续执行后续逻辑
+                }
 
-                // 尝试更精确的提取 - 寻找<span>标签中的颜色
-                if (!colorMatch) {
-                  const spanColorRegex = /Color:.*?<span[^>]*>(.*?)<\/span>/i;
-                  const spanMatch = descriptionHtml.match(spanColorRegex);
-                  if (spanMatch && spanMatch[1]) {
-                    // 直接从匹配中提取颜色值
-                    const extractedColor = spanMatch[1].trim();
+                // 策略1: 使用更严格的正则从文本中查找颜色信息
+                if (!product.color) {
+                  const colorRegex = /Color:\s*([^<\n\r.,;]+)(?![^<>]*Size)/i;
+                  const colorMatch = (
+                    descriptionTextForParsing || descriptionHtml
+                  ).match(colorRegex);
+
+                  // 尝试更精确的提取 - 寻找<span>标签中的颜色
+                  if (!colorMatch) {
+                    const spanColorRegex = /Color:.*?<span[^>]*>(.*?)<\/span>/i;
+                    const spanMatch = descriptionHtml.match(spanColorRegex);
+                    if (spanMatch && spanMatch[1]) {
+                      // 直接从匹配中提取颜色值
+                      const extractedColor = spanMatch[1].trim();
+                      if (
+                        extractedColor.length < 20 &&
+                        !extractedColor.includes("Size") &&
+                        !extractedColor.includes("Model")
+                      ) {
+                        product.color = extractedColor;
+                        product.designerColorName = extractedColor;
+                        localCrawlerLog.info(
+                          `[${siteName}] 从<span>标签中提取到颜色: ${product.color}`,
+                        );
+                      }
+                    }
+                  }
+
+                  if (colorMatch && colorMatch[1]) {
+                    const extractedColor = colorMatch[1].trim();
+                    // 验证提取的颜色是一个合理的值（不包含其他字段）
                     if (
                       extractedColor.length < 20 &&
                       !extractedColor.includes("Size") &&
@@ -1709,29 +1915,13 @@ const scrapeItalist: ScraperFunction = async (
                       product.color = extractedColor;
                       product.designerColorName = extractedColor;
                       localCrawlerLog.info(
-                        `[${siteName}] 从<span>标签中提取到颜色: ${product.color}`,
+                        `[${siteName}] 从描述中提取到颜色: ${product.color}`,
+                      );
+                    } else {
+                      localCrawlerLog.warning(
+                        `[${siteName}] 提取到的颜色值异常: "${extractedColor}"，尝试其他方法提取`,
                       );
                     }
-                  }
-                }
-
-                if (colorMatch && colorMatch[1]) {
-                  const extractedColor = colorMatch[1].trim();
-                  // 验证提取的颜色是一个合理的值（不包含其他字段）
-                  if (
-                    extractedColor.length < 20 &&
-                    !extractedColor.includes("Size") &&
-                    !extractedColor.includes("Model")
-                  ) {
-                    product.color = extractedColor;
-                    product.designerColorName = extractedColor;
-                    localCrawlerLog.info(
-                      `[${siteName}] 从描述中提取到颜色: ${product.color}`,
-                    );
-                  } else {
-                    localCrawlerLog.warning(
-                      `[${siteName}] 提取到的颜色值异常: "${extractedColor}"，尝试其他方法提取`,
-                    );
                   }
                 }
 
@@ -1889,80 +2079,107 @@ const scrapeItalist: ScraperFunction = async (
                   }
                 }
 
-                // 提取材质信息 (优先查找Composition:，然后是Material:)
-                const compositionRegex = /Composition:\s*([^<\n\r]+)/i;
-                const materialRegex = /Material:\s*([^<\n\r]+)/i;
+                // 提取材质信息 - 策略1：优先使用精确选择器
+                try {
+                  const materialElement = await page.$(SELECTORS.PDP_MATERIAL);
+                  if (materialElement) {
+                    const materialText = (
+                      await materialElement.textContent()
+                    )?.trim();
+                    if (materialText) {
+                      product.material = materialText.split(",")[0].trim();
+                      product.materialDetails = materialText
+                        .split(",")
+                        .map((m) => m.trim())
+                        .filter((m) => m.length > 0);
 
-                const compositionMatch = (
-                  descriptionTextForParsing || descriptionHtml
-                ).match(compositionRegex);
-                const materialMatch = (
-                  descriptionTextForParsing || descriptionHtml
-                ).match(materialRegex);
-
-                if (compositionMatch && compositionMatch[1]) {
-                  // 处理材质信息，通常是"100% Cotton"或"80% Wool, 20% Polyester"格式
-                  const materialText = compositionMatch[1].trim();
-                  product.material = materialText.split(",")[0].trim();
-                  product.materialDetails = materialText
-                    .split(",")
-                    .map((m) => m.trim())
-                    .filter((m) => m.length > 0);
-
-                  localCrawlerLog.info(
-                    `[${siteName}] 从Composition提取材质: ${product.material}`,
-                  );
-                } else if (materialMatch && materialMatch[1]) {
-                  // 处理Material字段
-                  const materialText = materialMatch[1].trim();
-                  product.material = materialText.split(",")[0].trim();
-                  product.materialDetails = materialText
-                    .split(",")
-                    .map((m) => m.trim())
-                    .filter((m) => m.length > 0);
-
-                  localCrawlerLog.info(
-                    `[${siteName}] 从Material提取材质: ${product.material}`,
-                  );
-                } else {
-                  // 尝试直接从页面中查找材质信息
-                  try {
-                    const materialElement = await page.$(
-                      '*:contains("Composition:"), *:contains("Material:")',
-                    );
-                    if (materialElement) {
-                      const materialText =
-                        (await materialElement.textContent()) || "";
-                      let extractedMaterial = "";
-
-                      if (materialText.includes("Composition:")) {
-                        extractedMaterial = materialText
-                          .split("Composition:")[1]
-                          .trim();
-                      } else if (materialText.includes("Material:")) {
-                        extractedMaterial = materialText
-                          .split("Material:")[1]
-                          .trim();
-                      }
-
-                      if (extractedMaterial) {
-                        product.material = extractedMaterial
-                          .split(",")[0]
-                          .trim();
-                        product.materialDetails = extractedMaterial
-                          .split(",")
-                          .map((m) => m.trim())
-                          .filter((m) => m.length > 0);
-
-                        localCrawlerLog.info(
-                          `[${siteName}] 从元素提取材质: ${product.material}`,
-                        );
-                      }
+                      localCrawlerLog.info(
+                        `[${siteName}] 从新选择器提取到材质: ${product.material}`,
+                      );
                     }
-                  } catch (materialError) {
-                    localCrawlerLog.debug(
-                      `[${siteName}] 查找材质元素出错: ${(materialError as Error).message}`,
+                  }
+                } catch (e) {
+                  localCrawlerLog.debug(
+                    `[${siteName}] 使用新材质选择器提取失败: ${(e as Error).message}`,
+                  );
+                }
+
+                // 提取材质信息 (优先查找Composition:，然后是Material:) - 策略2：回退到旧逻辑
+                if (!product.material) {
+                  const compositionRegex = /Composition:\s*([^<\n\r]+)/i;
+                  const materialRegex = /Material:\s*([^<\n\r]+)/i;
+
+                  const compositionMatch = (
+                    descriptionTextForParsing || descriptionHtml
+                  ).match(compositionRegex);
+                  const materialMatch = (
+                    descriptionTextForParsing || descriptionHtml
+                  ).match(materialRegex);
+
+                  if (compositionMatch && compositionMatch[1]) {
+                    // 处理材质信息，通常是"100% Cotton"或"80% Wool, 20% Polyester"格式
+                    const materialText = compositionMatch[1].trim();
+                    product.material = materialText.split(",")[0].trim();
+                    product.materialDetails = materialText
+                      .split(",")
+                      .map((m) => m.trim())
+                      .filter((m) => m.length > 0);
+
+                    localCrawlerLog.info(
+                      `[${siteName}] 从Composition提取材质: ${product.material}`,
                     );
+                  } else if (materialMatch && materialMatch[1]) {
+                    // 处理Material字段
+                    const materialText = materialMatch[1].trim();
+                    product.material = materialText.split(",")[0].trim();
+                    product.materialDetails = materialText
+                      .split(",")
+                      .map((m) => m.trim())
+                      .filter((m) => m.length > 0);
+
+                    localCrawlerLog.info(
+                      `[${siteName}] 从Material提取材质: ${product.material}`,
+                    );
+                  } else {
+                    // 尝试直接从页面中查找材质信息
+                    try {
+                      const materialElement = await page.$(
+                        '*:contains("Composition:"), *:contains("Material:")',
+                      );
+                      if (materialElement) {
+                        const materialText =
+                          (await materialElement.textContent()) || "";
+                        let extractedMaterial = "";
+
+                        if (materialText.includes("Composition:")) {
+                          extractedMaterial = materialText
+                            .split("Composition:")[1]
+                            .trim();
+                        } else if (materialText.includes("Material:")) {
+                          extractedMaterial = materialText
+                            .split("Material:")[1]
+                            .trim();
+                        }
+
+                        if (extractedMaterial) {
+                          product.material = extractedMaterial
+                            .split(",")[0]
+                            .trim();
+                          product.materialDetails = extractedMaterial
+                            .split(",")
+                            .map((m) => m.trim())
+                            .filter((m) => m.length > 0);
+
+                          localCrawlerLog.info(
+                            `[${siteName}] 从元素提取材质: ${product.material}`,
+                          );
+                        }
+                      }
+                    } catch (materialError) {
+                      localCrawlerLog.debug(
+                        `[${siteName}] 查找材质元素出错: ${(materialError as Error).message}`,
+                      );
+                    }
                   }
                 }
 
@@ -2002,7 +2219,23 @@ const scrapeItalist: ScraperFunction = async (
                   `[${siteName}] 找到尺码选择器容器: ${SELECTORS.PDP_SIZE_SELECTOR}`,
                 );
 
-                // 首先尝试使用新的专用尺码选项选择器
+                // 新增：尝试点击按钮以展开尺码下拉菜单
+                try {
+                  const sizeButton = await sizeSelectorContainer.$("button");
+                  if (sizeButton && (await sizeButton.isVisible())) {
+                    await sizeButton.click({ timeout: 5000 });
+                    await page.waitForTimeout(500); // 等待动画/选项加载
+                    localCrawlerLog.info(
+                      `[${siteName}] 已点击尺码选择按钮以显示选项。`,
+                    );
+                  }
+                } catch (clickError) {
+                  localCrawlerLog.warning(
+                    `[${siteName}] 点击尺码选择按钮失败: ${(clickError as Error).message}. 可能是尺码已直接显示。`,
+                  );
+                }
+
+                // 尝试使用新的专用尺码选项选择器
                 const sizeOptions = await page.$$(SELECTORS.PDP_SIZE_OPTIONS);
 
                 if (sizeOptions.length > 0) {
@@ -2011,24 +2244,27 @@ const scrapeItalist: ScraperFunction = async (
                   );
 
                   for (const option of sizeOptions) {
-                    const fullText = (await option.textContent())?.trim() || "";
+                    if (await option.isVisible()) {
+                      const fullText =
+                        (await option.textContent())?.trim() || "";
 
-                    // 处理可能带有 "Only X left" 文本的尺码
-                    let processedSizeText = fullText;
+                      // 处理可能带有 "Only X left" 文本的尺码
+                      let processedSizeText = fullText;
 
-                    // 尝试分离尺码信息和库存信息
-                    if (fullText.includes("Only")) {
-                      processedSizeText = fullText.split("Only")[0].trim();
-                    } else if (fullText.includes("left")) {
-                      processedSizeText = fullText.split("left")[0].trim();
-                    }
+                      // 尝试分离尺码信息和库存信息
+                      if (fullText.includes("Only")) {
+                        processedSizeText = fullText.split("Only")[0].trim();
+                      } else if (fullText.includes("left")) {
+                        processedSizeText = fullText.split("left")[0].trim();
+                      }
 
-                    if (
-                      processedSizeText &&
-                      processedSizeText.length > 0 &&
-                      processedSizeText.length < 20
-                    ) {
-                      availableSizes.push(processedSizeText);
+                      if (
+                        processedSizeText &&
+                        processedSizeText.length > 0 &&
+                        processedSizeText.length < 20
+                      ) {
+                        availableSizes.push(processedSizeText);
+                      }
                     }
                   }
                 } else {

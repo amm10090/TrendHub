@@ -1,7 +1,13 @@
 "use client";
 
 // 导入 Shadcn UI 组件 和 React Hooks - 清理未使用的，保留即将使用的
-import { ChevronDown, ChevronRight, Info, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Info,
+  Trash2,
+  HelpCircle,
+} from "lucide-react";
 import { useTranslations } from "next-intl"; // 添加 next-intl
 import { useCallback, useState } from "react"; // 移除 useEffect
 import { toast } from "sonner";
@@ -71,6 +77,7 @@ export function CategoryTable() {
   // 添加 useState 替换 useDisclosure
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -566,11 +573,28 @@ export function CategoryTable() {
             </TabsList>
           </Tabs>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)}>
-          {" "}
-          {/* 更新 onClick */}
-          {tCat("addCategory")} {/* 使用 tCat */}
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button onClick={() => setIsAddModalOpen(true)}>
+            {tCat("addCategory")}
+          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsHelpModalOpen(true)}
+                  className="h-10 w-10"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{tCat("help.title")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -1034,6 +1058,127 @@ export function CategoryTable() {
             >
               {tCommon("confirm")}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 分类逻辑帮助 Dialog */}
+      <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <HelpCircle className="h-5 w-5 text-primary" />
+              <span>{tCat("help.title")}</span>
+            </DialogTitle>
+            <p className="text-muted-foreground">{tCat("help.description")}</p>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* 分类层级结构 */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-primary">
+                {tCat("help.hierarchyTitle")}
+              </h3>
+
+              <div className="space-y-4">
+                {/* 一级分类 */}
+                <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Badge variant="default" className="bg-blue-600">
+                      Level 1
+                    </Badge>
+                    <h4 className="font-semibold">
+                      {tCat("help.level1Description")}
+                    </h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {tCat("help.level1Purpose")}
+                  </p>
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                    {tCat("help.level1Examples")}
+                  </p>
+                </div>
+
+                {/* 二级分类 */}
+                <div className="border rounded-lg p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Badge variant="default" className="bg-green-600">
+                      Level 2
+                    </Badge>
+                    <h4 className="font-semibold">
+                      {tCat("help.level2Description")}
+                    </h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {tCat("help.level2Purpose")}
+                  </p>
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                    {tCat("help.level2Examples")}
+                  </p>
+                </div>
+
+                {/* 三级分类 */}
+                <div className="border rounded-lg p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Badge variant="default" className="bg-purple-600">
+                      Level 3
+                    </Badge>
+                    <h4 className="font-semibold">
+                      {tCat("help.level3Description")}
+                    </h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {tCat("help.level3Purpose")}
+                  </p>
+                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                    {tCat("help.level3Examples")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 分类示例 */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-primary">
+                {tCat("help.exampleTitle")}
+              </h3>
+              <div className="bg-muted/50 rounded-lg p-4">
+                <pre className="whitespace-pre-line text-sm font-mono">
+                  {tCat("help.exampleStructure")}
+                </pre>
+              </div>
+            </div>
+
+            {/* 导航栏显示说明 */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-primary">
+                {tCat("help.navbarVisibilityTitle")}
+              </h3>
+              <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  {tCat("help.navbarVisibilityDesc")}
+                </p>
+              </div>
+            </div>
+
+            {/* 最佳实践 */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-primary">
+                {tCat("help.bestPracticesTitle")}
+              </h3>
+              <div className="space-y-2">
+                <p className="text-sm">{tCat("help.bestPractice1")}</p>
+                <p className="text-sm">{tCat("help.bestPractice2")}</p>
+                <p className="text-sm">{tCat("help.bestPractice3")}</p>
+                <p className="text-sm">{tCat("help.bestPractice4")}</p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">{tCommon("close")}</Button>
+            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

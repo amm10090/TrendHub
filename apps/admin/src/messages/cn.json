@@ -115,6 +115,29 @@
       "parentRequiredTitle": "需要父分类",
       "slugRequiredDesc": "分类 Slug 不能为空。",
       "slugRequiredTitle": "需要 Slug"
+    },
+    "help": {
+      "title": "分类逻辑说明",
+      "description": "了解我们的三级分类体系，帮助您更好地组织商品",
+      "hierarchyTitle": "分类层级结构",
+      "level1Description": "一级分类（性别分类）",
+      "level1Examples": "例如：男装、女装、童装、中性",
+      "level1Purpose": "用于区分不同性别或年龄群体的商品",
+      "level2Description": "二级分类（商品大类）",
+      "level2Examples": "例如：上衣、下装、鞋履、配饰、包包",
+      "level2Purpose": "需要选择所属的一级分类，用于商品的大类划分",
+      "level3Description": "三级分类（商品细分类）",
+      "level3Examples": "例如：T恤、衬衫、牛仔裤、运动鞋、手表",
+      "level3Purpose": "需要选择所属的一级和二级分类，用于商品的精细分类",
+      "exampleTitle": "分类示例",
+      "exampleStructure": "男装 > 上衣 > T恤\n女装 > 鞋履 > 高跟鞋\n童装 > 下装 > 牛仔裤",
+      "bestPracticesTitle": "最佳实践",
+      "bestPractice1": "• 确保分类名称简洁明了，易于理解",
+      "bestPractice2": "• Slug 使用小写字母和连字符，便于URL友好",
+      "bestPractice3": "• 二级分类可以设置是否在导航栏显示",
+      "bestPractice4": "• 建议先创建一级分类，再逐步创建二三级分类",
+      "navbarVisibilityTitle": "导航栏显示",
+      "navbarVisibilityDesc": "二级分类可以设置在网站前台导航栏中显示，帮助用户快速找到商品"
     }
   },
   "codeSnippets": {

@@ -186,6 +186,29 @@
       "parentRequiredTitle": "Parent category is required",
       "slugRequiredDesc": "Category slug cannot be empty.",
       "slugRequiredTitle": "Slug is required"
+    },
+    "help": {
+      "title": "Category Logic Guide",
+      "description": "Understand our three-tier category system to better organize your products",
+      "hierarchyTitle": "Category Hierarchy",
+      "level1Description": "Level 1 Categories (Gender/Demographic)",
+      "level1Examples": "Examples: Men's, Women's, Kids', Unisex",
+      "level1Purpose": "Used to distinguish products for different gender or age groups",
+      "level2Description": "Level 2 Categories (Product Types)",
+      "level2Examples": "Examples: Tops, Bottoms, Shoes, Accessories, Bags",
+      "level2Purpose": "Must select a parent Level 1 category, used for broad product classification",
+      "level3Description": "Level 3 Categories (Specific Products)",
+      "level3Examples": "Examples: T-Shirts, Shirts, Jeans, Sneakers, Watches",
+      "level3Purpose": "Must select both Level 1 and Level 2 categories, used for detailed product classification",
+      "exampleTitle": "Category Examples",
+      "exampleStructure": "Men's > Tops > T-Shirts\nWomen's > Shoes > High Heels\nKids' > Bottoms > Jeans",
+      "bestPracticesTitle": "Best Practices",
+      "bestPractice1": "• Ensure category names are concise and clear",
+      "bestPractice2": "• Use lowercase letters and hyphens for URL-friendly slugs",
+      "bestPractice3": "• Level 2 categories can be set to display in navigation bar",
+      "bestPractice4": "• Create Level 1 categories first, then gradually add Level 2 and 3",
+      "navbarVisibilityTitle": "Navbar Visibility",
+      "navbarVisibilityDesc": "Level 2 categories can be set to display in the website's main navigation bar to help users quickly find products"
     }
   },
   "codeSnippets": {

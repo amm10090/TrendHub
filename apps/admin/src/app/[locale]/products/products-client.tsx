@@ -275,12 +275,12 @@ function ProductCard({
           {/* 价格信息 */}
           <div className="flex items-center gap-2">
             <span className="font-semibold text-primary">
-              ¥{product.price.toFixed(2)}
+              ${product.price.toFixed(2)}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
               <>
                 <span className="text-xs text-muted-foreground line-through">
-                  ¥{product.originalPrice.toFixed(2)}
+                  ${product.originalPrice.toFixed(2)}
                 </span>
                 {product.discount && (
                   <Badge variant="destructive" className="text-xs px-1">
@@ -661,10 +661,10 @@ function SimpleProductRow({
       </td>
       <td className="p-3">
         <div className="text-sm">
-          <div className="font-medium">¥{product.price.toFixed(2)}</div>
+          <div className="font-medium">${product.price.toFixed(2)}</div>
           {product.originalPrice && product.originalPrice > product.price && (
             <div className="text-xs text-muted-foreground line-through">
-              ¥{product.originalPrice.toFixed(2)}
+              ${product.originalPrice.toFixed(2)}
             </div>
           )}
         </div>

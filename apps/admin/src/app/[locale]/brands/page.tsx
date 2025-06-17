@@ -1,5 +1,12 @@
 "use client";
-import { Plus } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Star,
+  StarOff,
+} from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
@@ -28,6 +35,16 @@ import {
   Switch,
   Spinner,
   Label,
+  Checkbox,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+  CustomPagination,
 } from "@/components/ui";
 import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { cn } from "@/lib/utils";
@@ -71,12 +88,29 @@ export default function BrandsPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 分页相关状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  // 多选相关状态
+  const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
+  const [isSelectAll, setIsSelectAll] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isBulkOperating, setIsBulkOperating] = useState(false);
+
   // 获取品牌列表
   useEffect(() => {
     const fetchBrands = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch("/api/brands");
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: limit.toString(),
+        });
+
+        const response = await fetch(`/api/brands?${params}`);
 
         if (!response.ok) {
           throw new Error(t("fetchError"));
@@ -84,6 +118,8 @@ export default function BrandsPage() {
         const data = await response.json();
 
         setBrands(data.items || []);
+        setTotalPages(data.totalPages || 1);
+        setTotalItems(data.totalItems || 0);
         setError(null);
       } catch (error) {
         setError(error instanceof Error ? error.message : t("fetchError"));
@@ -95,7 +131,152 @@ export default function BrandsPage() {
 
     fetchBrands();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage, limit]);
+
+  // 更新全选状态
+  useEffect(() => {
+    if (brands.length > 0) {
+      const allSelected = brands.every((brand) => selectedBrands.has(brand.id));
+
+      setIsSelectAll(allSelected);
+    }
+  }, [selectedBrands, brands]);
+
+  // 处理分页变更
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedBrands(new Set()); // 清除选择
+  };
+
+  // 处理每页条数变更
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setCurrentPage(1); // 重置到第一页
+    setSelectedBrands(new Set()); // 清除选择
+  };
+
+  // 处理单个选择
+  const handleSelectBrand = (brandId: string, checked: boolean) => {
+    const newSelected = new Set(selectedBrands);
+
+    if (checked) {
+      newSelected.add(brandId);
+    } else {
+      newSelected.delete(brandId);
+    }
+    setSelectedBrands(newSelected);
+  };
+
+  // 处理全选/取消全选
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allBrandIds = new Set(brands.map((brand) => brand.id));
+
+      setSelectedBrands(allBrandIds);
+    } else {
+      setSelectedBrands(new Set());
+    }
+    setIsSelectAll(checked);
+  };
+
+  // 批量操作处理
+  const handleBulkOperation = async (action: string) => {
+    if (selectedBrands.size === 0) {
+      toast.error(t("bulkActions.noSelection"));
+
+      return;
+    }
+
+    if (action === "delete") {
+      setShowDeleteDialog(true);
+
+      return;
+    }
+
+    try {
+      setIsBulkOperating(true);
+      const response = await fetch("/api/brands", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action,
+          ids: Array.from(selectedBrands),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(t("bulkActions.bulkUpdateError"));
+      }
+
+      const result = await response.json();
+
+      // 刷新品牌列表
+      const updatedResponse = await fetch("/api/brands");
+
+      if (updatedResponse.ok) {
+        const data = await updatedResponse.json();
+
+        setBrands(data.items || []);
+      }
+
+      // 清除选择
+      setSelectedBrands(new Set());
+
+      // 显示成功消息
+      const successKey = `bulkActions.bulk${action.charAt(0).toUpperCase() + action.slice(1)}Success`;
+
+      toast.success(t(successKey, { count: result.count }));
+    } catch (error) {
+      console.error("Bulk operation error:", error);
+      toast.error(t("bulkActions.bulkUpdateError"));
+    } finally {
+      setIsBulkOperating(false);
+    }
+  };
+
+  // 确认批量删除
+  const handleConfirmBulkDelete = async () => {
+    try {
+      setIsBulkOperating(true);
+      const response = await fetch("/api/brands", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "delete",
+          ids: Array.from(selectedBrands),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(t("bulkActions.bulkDeleteError"));
+      }
+
+      const result = await response.json();
+
+      // 从列表中移除删除的品牌
+      setBrands((prev) =>
+        prev.filter((brand) => !selectedBrands.has(brand.id)),
+      );
+
+      // 清除选择
+      setSelectedBrands(new Set());
+      setShowDeleteDialog(false);
+
+      // 显示成功消息
+      toast.success(
+        t("bulkActions.bulkDeleteSuccess", { count: result.count }),
+      );
+    } catch (error) {
+      console.error("Bulk delete error:", error);
+      toast.error(t("bulkActions.bulkDeleteError"));
+    } finally {
+      setIsBulkOperating(false);
+    }
+  };
 
   // 处理品牌状态切换
   const handleToggleBrandStatus = async (
@@ -348,6 +529,64 @@ export default function BrandsPage() {
           </div>
         </div>
 
+        {/* 批量操作工具栏 */}
+        {selectedBrands.size > 0 && (
+          <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                {t("bulkActions.selectedCount", { count: selectedBrands.size })}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkOperation("activate")}
+                disabled={isBulkOperating}
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                {t("bulkActions.activate")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkOperation("deactivate")}
+                disabled={isBulkOperating}
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                {t("bulkActions.deactivate")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkOperation("set_popular")}
+                disabled={isBulkOperating}
+              >
+                <Star className="mr-2 h-4 w-4" />
+                {t("bulkActions.setPopular")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkOperation("unset_popular")}
+                disabled={isBulkOperating}
+              >
+                <StarOff className="mr-2 h-4 w-4" />
+                {t("bulkActions.unsetPopular")}
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => handleBulkOperation("delete")}
+                disabled={isBulkOperating}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t("bulkActions.delete")}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* 品牌列表表格 */}
         <div className="rounded-md border">
           {isLoading ? (
@@ -362,6 +601,17 @@ export default function BrandsPage() {
             <Table aria-label={t("title")}>
               <TableHeader>
                 <TableRow>
+                  <TableColumn>
+                    <Checkbox
+                      checked={isSelectAll}
+                      onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                      aria-label={
+                        isSelectAll
+                          ? t("bulkActions.deselectAll")
+                          : t("bulkActions.selectAll")
+                      }
+                    />
+                  </TableColumn>
                   <TableColumn>{t("columns.brand")}</TableColumn>
                   <TableColumn>{t("columns.products")}</TableColumn>
                   <TableColumn>{t("columns.website")}</TableColumn>
@@ -376,6 +626,15 @@ export default function BrandsPage() {
               <TableBody>
                 {brands.map((brand) => (
                   <TableRow key={brand.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedBrands.has(brand.id)}
+                        onCheckedChange={(checked) =>
+                          handleSelectBrand(brand.id, !!checked)
+                        }
+                        aria-label={`Select ${brand.name}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <div className="h-10 w-10 rounded-md bg-gray-100 p-1 mr-3">
@@ -485,6 +744,20 @@ export default function BrandsPage() {
             </Table>
           )}
         </div>
+
+        {/* 分页组件 */}
+        {!isLoading && brands.length > 0 && (
+          <CustomPagination
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            totalItems={totalItems}
+            pageSize={limit}
+            onPageSizeChange={handleLimitChange}
+            showPageSizeSelector={true}
+            showPaginationInfo={true}
+          />
+        )}
       </div>
 
       {/* 添加/编辑品牌抽屉 */}
@@ -660,6 +933,41 @@ export default function BrandsPage() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* 批量删除确认对话框 */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("bulkActions.confirmDelete", { count: selectedBrands.size })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("bulkActions.confirmDeleteMessage", {
+                count: selectedBrands.size,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkOperating}>
+              {t("drawer.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmBulkDelete}
+              disabled={isBulkOperating}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isBulkOperating ? (
+                <span className="flex items-center">
+                  <Spinner className="mr-2 h-4 w-4" />
+                  {t("common.deleting")}
+                </span>
+              ) : (
+                t("actions.delete")
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

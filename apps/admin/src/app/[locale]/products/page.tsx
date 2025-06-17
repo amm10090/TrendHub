@@ -30,6 +30,7 @@ import { useProducts } from "@/hooks/use-products";
 
 import { CategoryTable } from "./category-table";
 import { ProductsClient } from "./products-client";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 
 // 本地存储工具函数
 const STORAGE_KEY = "productTableLimit";
@@ -109,6 +110,7 @@ export default function ProductsPage() {
   const {
     products,
     totalPages,
+    total: totalItems,
     isLoading,
     error,
     deleteProduct,
@@ -550,55 +552,18 @@ export default function ProductsPage() {
               />
 
               {/* 分页 */}
-              <div className="flex items-center justify-between pt-4">
-                <div className="text-sm text-muted-foreground">
-                  {t("pagination.showing", {
-                    start: (page - 1) * limit + 1,
-                    end: Math.min(page * limit, products.length),
-                    total: products.length,
-                  })}
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(Math.max(1, page - 1))}
-                    disabled={page <= 1}
-                  >
-                    {t("pagination.prev")}
-                  </Button>
-
-                  <div className="flex items-center space-x-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      const pageNum = i + 1;
-
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={page === pageNum ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handlePageChange(pageNum)}
-                          className="w-8 h-8 p-0"
-                        >
-                          {pageNum}
-                        </Button>
-                      );
-                    })}
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      handlePageChange(Math.min(totalPages, page + 1))
-                    }
-                    disabled={page >= totalPages}
-                  >
-                    {t("pagination.next")}
-                  </Button>
-                </div>
-              </div>
+              <CustomPagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                totalItems={totalItems}
+                pageSize={limit}
+                onPageSizeChange={(newLimit) =>
+                  handleLimitChange(String(newLimit))
+                }
+                showPaginationInfo
+                showPageSizeSelector
+              />
 
               {/* 空状态 */}
               {products.length === 0 && !isLoading && (

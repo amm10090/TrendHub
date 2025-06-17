@@ -354,6 +354,45 @@ class BrandService {
 
     return result.count;
   }
+
+  // 批量删除品牌
+  async deleteBrands(ids: string[]): Promise<number> {
+    try {
+      // 检查是否有关联的商品
+      const relatedProducts = await this.prisma.product.findFirst({
+        where: { brandId: { in: ids } },
+      });
+
+      if (relatedProducts) {
+        throw new Error("无法删除已关联商品的品牌");
+      }
+
+      // 批量删除品牌
+      const result = await this.prisma.brand.deleteMany({
+        where: { id: { in: ids } },
+      });
+
+      return result.count;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "批量删除品牌失败";
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  // 批量更新品牌流行度状态
+  async updateBrandsPopularity(
+    ids: string[],
+    popularity: boolean,
+  ): Promise<number> {
+    const result = await this.prisma.brand.updateMany({
+      where: { id: { in: ids } },
+      data: { popularity },
+    });
+
+    return result.count;
+  }
 }
 
 // 导出单例实例

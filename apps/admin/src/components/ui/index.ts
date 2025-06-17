@@ -23,6 +23,7 @@ export * from "./tooltip";
 export * from "./command";
 export * from "./custom-pagination"; // 导出 CustomPagination
 export * from "./tabs"; // 添加 Tabs 导出
+export * from "./checkbox"; // 添加 Checkbox 导出
 
 export {
   Dialog,

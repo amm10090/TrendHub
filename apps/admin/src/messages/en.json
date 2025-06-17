@@ -14,6 +14,27 @@
       "title": "Actions"
     },
     "addBrand": "Add Brand",
+    "bulkActions": {
+      "title": "Bulk Actions",
+      "activate": "Bulk Activate",
+      "deactivate": "Bulk Deactivate",
+      "delete": "Bulk Delete",
+      "setPopular": "Set Popular",
+      "unsetPopular": "Unset Popular",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "selectedCount": "{count} items selected",
+      "confirmDelete": "Confirm Delete {count} Brands?",
+      "confirmDeleteMessage": "Are you sure you want to delete the selected {count} brands? This action cannot be undone.",
+      "bulkActivateSuccess": "Successfully activated {count} brands",
+      "bulkDeactivateSuccess": "Successfully deactivated {count} brands",
+      "bulkDeleteSuccess": "Successfully deleted {count} brands",
+      "bulkSetPopularSuccess": "Successfully set {count} brands as popular",
+      "bulkUnsetPopularSuccess": "Successfully removed popular status from {count} brands",
+      "bulkUpdateError": "Bulk operation failed",
+      "bulkDeleteError": "Bulk delete failed",
+      "noSelection": "Please select brands to operate on first"
+    },
     "addToWishlist": "",
     "breadcrumb": {
       "brands": "",
@@ -370,8 +391,8 @@
       "next": "Next",
       "of": "of",
       "previous": "Previous",
-      "prev": "Prev",
-      "showing": "Showing",
+      "prev": "Previous",
+      "showing": "Showing {start} to {end} of {total} results",
       "rowsPerPage": "Rows per page",
       "pageInfo": "Page {currentPage} of {totalPages}"
     },

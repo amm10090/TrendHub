@@ -7,6 +7,7 @@ import { ECommerceSite, Product as ScrapedProductType } from "@repo/types";
 import { NextResponse, NextRequest } from "next/server";
 
 import { db } from "@/lib/db";
+import { monetizeUrl } from "@/lib/services/sovrn.service";
 
 // 新增：从URL推断性别分类
 function inferGenderFromUrl(url: string): string | null {
@@ -420,6 +421,30 @@ export async function POST(
           }
           // --- Gender Determination Logic --- END ---
 
+          // --- Monetize URL with Sovrn API --- START ---
+          let monetizedUrl: string | null = null;
+
+          if (productData.url) {
+            const monetizationResult = await monetizeUrl({
+              url: productData.url,
+              utm_source: "trendhub",
+              utm_medium: "scraper",
+              utm_campaign: site.toLowerCase(),
+            });
+
+            if (monetizationResult.success && monetizationResult.monetizedUrl) {
+              monetizedUrl = monetizationResult.monetizedUrl;
+            } else {
+              return NextResponse.json(
+                {
+                  error: `Failed to monetize URL ${productData.url}: ${monetizationResult.error}`,
+                },
+                { status: 500 },
+              );
+            }
+          }
+          // --- Monetize URL with Sovrn API --- END ---
+
           // Process breadcrumbs (this existing logic can remain,
           // but gender from breadcrumbs is now a lower priority for direct gender field)
           let breadcrumbsForCategoryCreation = productData.breadcrumbs || [];
@@ -655,6 +680,7 @@ export async function POST(
             couponDescription: null,
             couponExpirationDate: null,
             cautions: null,
+            adurl: monetizedUrl,
           };
 
           if (productPayload.sku === "") {

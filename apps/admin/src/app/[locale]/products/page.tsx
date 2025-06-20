@@ -1,10 +1,19 @@
 "use client";
-import { LayoutGrid, List, Search, Filter, Plus, Settings } from "lucide-react";
+import {
+  LayoutGrid,
+  List,
+  Search,
+  Filter,
+  Plus,
+  Settings,
+  DollarSign,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
+import { MonetizationPanel } from "@/components/products/monetization-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +24,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CustomPagination } from "@/components/ui/custom-pagination";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -95,6 +105,7 @@ export default function ProductsPage() {
     getFromLocalStorage<ViewMode>(VIEW_MODE_KEY, "table"),
   );
   const [showFilters, setShowFilters] = useState(false);
+  const [isMonetizationModalOpen, setIsMonetizationModalOpen] = useState(false);
 
   // 筛选和搜索状态
   const [currentFilters, setCurrentFilters] = useState<ProductFilters>({
@@ -105,6 +116,9 @@ export default function ProductsPage() {
   // 导航状态
   const [navigatingToEdit, setNavigatingToEdit] = useState<string | null>(null);
   const [navigatingToNew, setNavigatingToNew] = useState(false);
+
+  // 选中的产品ID
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
 
   // 数据获取hooks
   const {
@@ -292,14 +306,24 @@ export default function ProductsPage() {
           </Button>
 
           {selectedTab === "products" && (
-            <Button onClick={handleNavigateToNew} disabled={navigatingToNew}>
-              {navigatingToNew ? (
-                <Spinner className="h-4 w-4 mr-2" />
-              ) : (
-                <Plus className="h-4 w-4 mr-2" />
-              )}
-              {t("addProduct")}
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsMonetizationModalOpen(true)}
+              >
+                <DollarSign className="h-4 w-4 mr-2" />
+                {t("monetization.title")}
+              </Button>
+              <Button onClick={handleNavigateToNew} disabled={navigatingToNew}>
+                {navigatingToNew ? (
+                  <Spinner className="h-4 w-4 mr-2" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                {t("addProduct")}
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -338,285 +362,317 @@ export default function ProductsPage() {
       {/* 内容区域 */}
       {selectedTab === "products" ? (
         <div className="space-y-4">
-          {/* 工具栏 */}
-          <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
-            {/* 搜索和筛选 */}
-            <div className="flex items-center space-x-2 flex-1 max-w-md">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t("searchPlaceholder")}
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-9"
-                />
+          {/* 左侧：产品列表区域 (占2列) */}
+          <div className="space-y-4">
+            {/* 工具栏 */}
+            <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+              {/* 搜索和筛选 */}
+              <div className="flex items-center space-x-2 flex-1 max-w-md">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t("searchPlaceholder")}
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="relative"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  {t("filters")}
+                  {getActiveFiltersCount() > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                    >
+                      {getActiveFiltersCount()}
+                    </Badge>
+                  )}
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="relative"
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                {t("filters")}
-                {getActiveFiltersCount() > 0 && (
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+
+              {/* 视图切换和设置 */}
+              <div className="flex items-center space-x-2">
+                {/* 视图模式切换 */}
+                <div className="flex items-center border rounded-md">
+                  <Button
+                    variant={viewMode === "table" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => handleViewModeChange("table")}
+                    className="rounded-r-none"
                   >
-                    {getActiveFiltersCount()}
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "card" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => handleViewModeChange("card")}
+                    className="rounded-l-none"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <Separator orientation="vertical" className="h-6" />
+
+                {/* 每页条数 */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">
+                    {t("pagination.rowsPerPage")}:
+                  </span>
+                  <Select
+                    value={limit.toString()}
+                    onValueChange={handleLimitChange}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* 激活筛选器标签 */}
+            {areFiltersApplied(currentFilters) && (
+              <div className="flex items-center space-x-2 flex-wrap">
+                <span className="text-sm text-muted-foreground">
+                  {t("activeFilters")}:
+                </span>
+                {currentFilters.search && (
+                  <Badge variant="secondary" className="gap-1">
+                    {t("search")}: {currentFilters.search}
+                    <button
+                      onClick={() =>
+                        handleFiltersChange({
+                          ...currentFilters,
+                          search: undefined,
+                        })
+                      }
+                      className="ml-1 hover:bg-muted-foreground/20 rounded-full"
+                    >
+                      ×
+                    </button>
                   </Badge>
                 )}
-              </Button>
-            </div>
-
-            {/* 视图切换和设置 */}
-            <div className="flex items-center space-x-2">
-              {/* 视图模式切换 */}
-              <div className="flex items-center border rounded-md">
+                {currentFilters.status && currentFilters.status !== "all" && (
+                  <Badge variant="secondary" className="gap-1">
+                    {t("status")}: {t(`status.${currentFilters.status}`)}
+                    <button
+                      onClick={() =>
+                        handleFiltersChange({
+                          ...currentFilters,
+                          status: "all",
+                        })
+                      }
+                      className="ml-1 hover:bg-muted-foreground/20 rounded-full"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
                 <Button
-                  variant={viewMode === "table" ? "default" : "ghost"}
+                  variant="ghost"
                   size="sm"
-                  onClick={() => handleViewModeChange("table")}
-                  className="rounded-r-none"
+                  onClick={handleClearFilters}
+                  className="h-6 px-2 text-xs"
                 >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "card" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => handleViewModeChange("card")}
-                  className="rounded-l-none"
-                >
-                  <LayoutGrid className="h-4 w-4" />
+                  {t("clearAll")}
                 </Button>
               </div>
+            )}
 
-              <Separator orientation="vertical" className="h-6" />
-
-              {/* 每页条数 */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {t("pagination.rowsPerPage")}:
-                </span>
-                <Select
-                  value={limit.toString()}
-                  onValueChange={handleLimitChange}
-                >
-                  <SelectTrigger className="w-20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* 产品列表 */}
+            {isLoading ? (
+              <div className="flex h-[400px] items-center justify-center">
+                <div className="text-center space-y-4">
+                  <Spinner className="h-8 w-8 mx-auto" />
+                  <p className="text-muted-foreground">{t("loading")}</p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <ProductsClient.ProductTable
+                  products={products.map((product) => ({
+                    id: product.id,
+                    name: product.name,
+                    price: Number(product.price),
+                    originalPrice: product.originalPrice
+                      ? Number(product.originalPrice)
+                      : undefined,
+                    discount:
+                      product.originalPrice &&
+                      Number(product.price) < Number(product.originalPrice)
+                        ? Math.round(
+                            ((Number(product.originalPrice) -
+                              Number(product.price)) /
+                              Number(product.originalPrice)) *
+                              100,
+                          )
+                        : undefined,
+                    image:
+                      product.images && product.images.length > 0
+                        ? product.images[0]
+                        : undefined,
+                    sku: product.sku,
+                    inventory: product.inventory
+                      ? Number(product.inventory)
+                      : undefined,
+                    isActive:
+                      product.status === "In Stock" ||
+                      product.status === "Active",
+                    hasCoupon: !!product.coupon,
+                    couponCode: product.coupon,
+                    categoryId: product.category?.id,
+                    categoryPath: product.category?.name,
+                    brandId: product.brand?.id,
+                    brandName: product.brand?.name,
+                  }))}
+                  categories={categories}
+                  brands={brands}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onToggleStatus={(id, isActive) =>
+                    handleToggleStatus(
+                      id,
+                      isActive ? "Out of Stock" : "In Stock",
+                    )
+                  }
+                  activeFilters={currentFilters}
+                  onFiltersChange={handleFiltersChange}
+                  navigatingToEdit={navigatingToEdit}
+                  showFilters={showFilters}
+                  viewMode={viewMode}
+                  selectedIds={selectedProductIds}
+                  onSelectedIdsChange={setSelectedProductIds}
+                  onBulkDelete={async (ids) => {
+                    try {
+                      for (const id of ids) {
+                        await deleteProduct(id);
+                      }
+                      toast.success(
+                        t("bulkDeleteSuccess", { count: ids.length }),
+                      );
+                    } catch {
+                      toast.error(t("bulkDeleteError"));
+                    }
+                  }}
+                  onBulkToggleStatus={async (ids, setActive) => {
+                    try {
+                      const newStatus = setActive ? "In Stock" : "Out of Stock";
+
+                      for (const id of ids) {
+                        await updateProduct({
+                          id,
+                          data: { status: newStatus },
+                        });
+                      }
+                      toast.success(
+                        setActive
+                          ? t("bulkActivateSuccess", { count: ids.length })
+                          : t("bulkDeactivateSuccess", { count: ids.length }),
+                      );
+                    } catch {
+                      toast.error(t("bulkUpdateError"));
+                    }
+                  }}
+                />
+
+                {/* 分页 */}
+                <CustomPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={totalItems}
+                  pageSize={limit}
+                  onPageSizeChange={(newLimit) =>
+                    handleLimitChange(String(newLimit))
+                  }
+                  showPaginationInfo
+                  showPageSizeSelector
+                />
+
+                {/* 空状态 */}
+                {products.length === 0 && !isLoading && (
+                  <Card className="text-center py-12">
+                    <CardContent>
+                      {areFiltersApplied(currentFilters) ? (
+                        <div className="space-y-4">
+                          <div className="text-6xl">🔍</div>
+                          <div>
+                            <h3 className="text-lg font-semibold">
+                              {t("noResultsWithFilters")}
+                            </h3>
+                            <p className="text-muted-foreground mt-1">
+                              {t("noResultsWithFiltersDesc")}
+                            </p>
+                          </div>
+                          <Button onClick={handleClearFilters}>
+                            {t("resetFiltersLink")}
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="text-6xl">📦</div>
+                          <div>
+                            <h3 className="text-lg font-semibold">
+                              {t("noProducts")}
+                            </h3>
+                            <p className="text-muted-foreground mt-1">
+                              {t("addProductPrompt")}
+                            </p>
+                          </div>
+                          <Button
+                            onClick={handleNavigateToNew}
+                            disabled={navigatingToNew}
+                          >
+                            {navigatingToNew && (
+                              <Spinner className="mr-2 h-4 w-4" />
+                            )}
+                            {t("addProduct")}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
           </div>
-
-          {/* 激活筛选器标签 */}
-          {areFiltersApplied(currentFilters) && (
-            <div className="flex items-center space-x-2 flex-wrap">
-              <span className="text-sm text-muted-foreground">
-                {t("activeFilters")}:
-              </span>
-              {currentFilters.search && (
-                <Badge variant="secondary" className="gap-1">
-                  {t("search")}: {currentFilters.search}
-                  <button
-                    onClick={() =>
-                      handleFiltersChange({
-                        ...currentFilters,
-                        search: undefined,
-                      })
-                    }
-                    className="ml-1 hover:bg-muted-foreground/20 rounded-full"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-              {currentFilters.status && currentFilters.status !== "all" && (
-                <Badge variant="secondary" className="gap-1">
-                  {t("status")}: {t(`status.${currentFilters.status}`)}
-                  <button
-                    onClick={() =>
-                      handleFiltersChange({ ...currentFilters, status: "all" })
-                    }
-                    className="ml-1 hover:bg-muted-foreground/20 rounded-full"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClearFilters}
-                className="h-6 px-2 text-xs"
-              >
-                {t("clearAll")}
-              </Button>
-            </div>
-          )}
-
-          {/* 产品列表 */}
-          {isLoading ? (
-            <div className="flex h-[400px] items-center justify-center">
-              <div className="text-center space-y-4">
-                <Spinner className="h-8 w-8 mx-auto" />
-                <p className="text-muted-foreground">{t("loading")}</p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <ProductsClient.ProductTable
-                products={products.map((product) => ({
-                  id: product.id,
-                  name: product.name,
-                  price: Number(product.price),
-                  originalPrice: product.originalPrice
-                    ? Number(product.originalPrice)
-                    : undefined,
-                  discount:
-                    product.originalPrice &&
-                    Number(product.price) < Number(product.originalPrice)
-                      ? Math.round(
-                          ((Number(product.originalPrice) -
-                            Number(product.price)) /
-                            Number(product.originalPrice)) *
-                            100,
-                        )
-                      : undefined,
-                  image:
-                    product.images && product.images.length > 0
-                      ? product.images[0]
-                      : undefined,
-                  sku: product.sku,
-                  inventory: product.inventory
-                    ? Number(product.inventory)
-                    : undefined,
-                  isActive:
-                    product.status === "In Stock" ||
-                    product.status === "Active",
-                  hasCoupon: !!product.coupon,
-                  couponCode: product.coupon,
-                  categoryId: product.category?.id,
-                  categoryPath: product.category?.name,
-                  brandId: product.brand?.id,
-                  brandName: product.brand?.name,
-                }))}
-                categories={categories}
-                brands={brands}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onToggleStatus={(id, isActive) =>
-                  handleToggleStatus(id, isActive ? "Out of Stock" : "In Stock")
-                }
-                activeFilters={currentFilters}
-                onFiltersChange={handleFiltersChange}
-                navigatingToEdit={navigatingToEdit}
-                showFilters={showFilters}
-                viewMode={viewMode}
-                onBulkDelete={async (ids) => {
-                  try {
-                    for (const id of ids) {
-                      await deleteProduct(id);
-                    }
-                    toast.success(
-                      t("bulkDeleteSuccess", { count: ids.length }),
-                    );
-                  } catch {
-                    toast.error(t("bulkDeleteError"));
-                  }
-                }}
-                onBulkToggleStatus={async (ids, setActive) => {
-                  try {
-                    const newStatus = setActive ? "In Stock" : "Out of Stock";
-
-                    for (const id of ids) {
-                      await updateProduct({ id, data: { status: newStatus } });
-                    }
-                    toast.success(
-                      setActive
-                        ? t("bulkActivateSuccess", { count: ids.length })
-                        : t("bulkDeactivateSuccess", { count: ids.length }),
-                    );
-                  } catch {
-                    toast.error(t("bulkUpdateError"));
-                  }
-                }}
-              />
-
-              {/* 分页 */}
-              <CustomPagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                totalItems={totalItems}
-                pageSize={limit}
-                onPageSizeChange={(newLimit) =>
-                  handleLimitChange(String(newLimit))
-                }
-                showPaginationInfo
-                showPageSizeSelector
-              />
-
-              {/* 空状态 */}
-              {products.length === 0 && !isLoading && (
-                <Card className="text-center py-12">
-                  <CardContent>
-                    {areFiltersApplied(currentFilters) ? (
-                      <div className="space-y-4">
-                        <div className="text-6xl">🔍</div>
-                        <div>
-                          <h3 className="text-lg font-semibold">
-                            {t("noResultsWithFilters")}
-                          </h3>
-                          <p className="text-muted-foreground mt-1">
-                            {t("noResultsWithFiltersDesc")}
-                          </p>
-                        </div>
-                        <Button onClick={handleClearFilters}>
-                          {t("resetFiltersLink")}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="text-6xl">📦</div>
-                        <div>
-                          <h3 className="text-lg font-semibold">
-                            {t("noProducts")}
-                          </h3>
-                          <p className="text-muted-foreground mt-1">
-                            {t("addProductPrompt")}
-                          </p>
-                        </div>
-                        <Button
-                          onClick={handleNavigateToNew}
-                          disabled={navigatingToNew}
-                        >
-                          {navigatingToNew && (
-                            <Spinner className="mr-2 h-4 w-4" />
-                          )}
-                          {t("addProduct")}
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
         </div>
       ) : (
         <div className="mt-6">
           <CategoryTable />
         </div>
       )}
+
+      <Dialog
+        open={isMonetizationModalOpen}
+        onOpenChange={setIsMonetizationModalOpen}
+      >
+        <DialogContent className="p-0 sm:max-w-[750px] border-0">
+          <MonetizationPanel
+            selectedProductIds={selectedProductIds}
+            onRefresh={() => {
+              // 刷新产品列表
+              window.location.reload(); // 简单的刷新方式，或者您可以调用 refetch 函数
+              // 清空选中的产品
+              setSelectedProductIds([]);
+              setIsMonetizationModalOpen(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </ProductsClient.PageWrapper>
   );
 }

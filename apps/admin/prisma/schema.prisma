@@ -167,6 +167,8 @@ model Product {
   tags                  String[]  @default([])
   /// 适用性别 (例如：男, 女, 通用)
   gender                String?
+  /// Sovrn货币化URL (广告联盟跟踪链接)
+  adurl                 String?
   /// 所属品牌关联
   brand                 Brand     @relation(fields: [brandId], references: [id])
   /// 所属分类关联

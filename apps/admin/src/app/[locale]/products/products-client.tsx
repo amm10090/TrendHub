@@ -608,6 +608,8 @@ interface ProductTableProps {
   navigatingToEdit?: string | null;
   showFilters?: boolean;
   viewMode?: "table" | "card";
+  selectedIds?: string[];
+  onSelectedIdsChange?: (ids: string[]) => void;
 }
 
 // 简化的表格行组件（用于表格视图）
@@ -754,17 +756,32 @@ function ProductTable({
   navigatingToEdit,
   showFilters = false,
   viewMode = "table",
+  selectedIds: externalSelectedIds,
+  onSelectedIdsChange,
 }: ProductTableProps) {
   const t = useTranslations("products");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>([]);
+
+  // 使用外部或内部的 selectedIds
+  const selectedIds =
+    externalSelectedIds !== undefined
+      ? externalSelectedIds
+      : internalSelectedIds;
+  const setSelectedIds = (ids: string[]) => {
+    if (onSelectedIdsChange) {
+      onSelectedIdsChange(ids);
+    } else {
+      setInternalSelectedIds(ids);
+    }
+  };
 
   const handleSelectAll = (checked: boolean) => {
     setSelectedIds(checked ? products.map((p) => p.id) : []);
   };
 
   const handleSelectOne = (id: string, checked: boolean) => {
-    setSelectedIds((prev) =>
-      checked ? [...prev, id] : prev.filter((i) => i !== id),
+    setSelectedIds(
+      checked ? [...selectedIds, id] : selectedIds.filter((i) => i !== id),
     );
   };
 

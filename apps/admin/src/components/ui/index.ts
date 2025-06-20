@@ -28,6 +28,7 @@ export * from "./skeleton"; // 添加 Skeleton 导出
 export * from "./toggle-group"; // 添加 ToggleGroup 导出
 export * from "./alert"; // 添加 Alert 导出
 export * from "./collapsible"; // 添加 Collapsible 导出
+export * from "./progress"; // 添加 Progress 导出
 
 export {
   Dialog,

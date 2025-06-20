@@ -3,45 +3,65 @@ import { Decimal } from "@prisma/client/runtime/library";
 
 import { db } from "@/lib/db";
 
-// 定义Product类型
+// 定义Product类型，使用内联类型定义
 export type Product = {
   id: string;
   name: string;
-  brandId: string;
-  categoryId: string;
-  brand?: {
-    id: string;
-    name: string;
-  };
-  category?: {
-    id: string;
-    name: string;
-  };
-  price: number | Decimal;
-  originalPrice?: number | Decimal | null;
-  discount?: number | Decimal | null;
-  status: string;
-  description?: string;
-  images?: string[];
-  videos?: string[];
-  inventory: number;
+  description: string | null;
+  price: number; // 转换为 number 类型以便前端使用
+  originalPrice: number | null;
+  discount: number | null;
   sku: string;
-  source?: string;
+  inventory: number;
+  status: string;
+  images: string[];
+  videos: string[];
   colors: string[];
   sizes: string[];
-  material?: string;
-  cautions?: string;
-  promotionUrl?: string;
-  coupon?: string | null;
-  couponDescription?: string | null;
-  couponExpirationDate?: Date | string | null;
-  tags?: string[];
-  gender?: "women" | "men" | "unisex" | string | null;
+  tags: string[];
+  material: string | null;
+  cautions: string | null;
+  promotionUrl: string | null;
+  source: string | null;
+  url: string | null;
+  adurl: string | null;
+  coupon: string | null;
+  couponDescription: string | null;
+  couponExpirationDate: Date | null;
+  gender: string | null;
+  isFeatured: boolean;
+  isOnSale: boolean;
   isDeleted: boolean;
-  isNew?: boolean;
-  updatedAt: Date;
   createdAt: Date;
+  updatedAt: Date;
+  categoryId: string;
+  brandId: string;
+  brand: {
+    id: string;
+    name: string;
+    description: string | null;
+    slug: string;
+    logo: string | null;
+    website: string | null;
+    isActive: boolean;
+    popularity: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  category: {
+    id: string;
+    name: string;
+    description: string | null;
+    slug: string;
+    parentId: string | null;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  };
 };
+
+// Base type for API, accepting numbers for prices
+type ProductApiData = Product;
 
 // 定义查询参数接口
 export interface ProductQueryParams {
@@ -59,58 +79,14 @@ export interface ProductQueryParams {
   hasDiscount?: boolean;
 }
 
-// 定义创建商品的数据接口
-export interface CreateProductData {
-  name: string;
-  brandId: string;
-  categoryId: string;
-  price: number;
-  status: string;
-  description?: string;
-  images?: string[];
-  inventory: number;
-  sku: string;
-  source: string;
-  colors?: string[];
-  sizes?: string[];
-  material?: string;
-  cautions?: string;
-  promotionUrl?: string;
-  tags?: string[];
-  originalPrice?: number | null;
-  discount?: number | null;
-  coupon?: string | null;
-  couponDescription?: string | null;
-  couponExpirationDate?: string | null;
-  gender?: "women" | "men" | "unisex" | null;
-}
+// Base type for creation, using number for price fields
+export type CreateProductData = Omit<
+  ProductApiData,
+  "id" | "brand" | "category" | "createdAt" | "updatedAt" | "isDeleted"
+>;
 
-// 定义更新商品的数据接口
-export interface UpdateProductData {
-  name?: string;
-  brandId?: string;
-  categoryId?: string;
-  price?: number;
-  status?: string;
-  description?: string;
-  images?: string[];
-  videos?: string[];
-  inventory?: number;
-  sku?: string;
-  source?: string;
-  colors?: string[];
-  sizes?: string[];
-  material?: string;
-  cautions?: string;
-  promotionUrl?: string;
-  tags?: string[];
-  originalPrice?: number | null;
-  discount?: number | null;
-  coupon?: string | null;
-  couponDescription?: string | null;
-  couponExpirationDate?: string | null;
-  gender?: "women" | "men" | "unisex" | null;
-}
+// Update type is partial and also uses number for price fields
+export type UpdateProductData = Partial<CreateProductData>;
 
 // 定义分页响应接口
 export interface PaginatedResponse<T> {
@@ -128,6 +104,31 @@ class ProductService {
     this.prisma = db;
   }
 
+  // 辅助方法：将 Prisma 对象转换为 Product 类型
+  private convertPrismaToProduct(
+    prismaProduct: Record<string, unknown>,
+  ): Product {
+    return {
+      ...prismaProduct,
+      price:
+        typeof prismaProduct.price === "object"
+          ? parseFloat((prismaProduct.price as Decimal).toString())
+          : (prismaProduct.price as number),
+      originalPrice: prismaProduct.originalPrice
+        ? typeof prismaProduct.originalPrice === "object"
+          ? parseFloat((prismaProduct.originalPrice as Decimal).toString())
+          : (prismaProduct.originalPrice as number)
+        : null,
+      discount: prismaProduct.discount
+        ? typeof prismaProduct.discount === "object"
+          ? parseFloat((prismaProduct.discount as Decimal).toString())
+          : (prismaProduct.discount as number)
+        : null,
+      isFeatured: (prismaProduct.isFeatured as boolean) ?? false,
+      isOnSale: (prismaProduct.isOnSale as boolean) ?? false,
+    } as Product;
+  }
+
   // 获取商品列表，支持分页、搜索和筛选
   async getProducts(
     params: ProductQueryParams,
@@ -141,6 +142,8 @@ class ProductService {
       status,
       sortBy = "createdAt",
       sortOrder = "desc",
+      minPrice,
+      maxPrice,
     } = params;
 
     // 构建查询条件
@@ -149,12 +152,8 @@ class ProductService {
       ...(search && {
         OR: [
           { name: { contains: search, mode: "insensitive" } },
-          {
-            description: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
+          { sku: { contains: search, mode: "insensitive" } },
+          { brand: { name: { contains: search, mode: "insensitive" } } },
         ],
       }),
       ...(categoryId && { categoryId }),
@@ -162,29 +161,38 @@ class ProductService {
       ...(status && { status }),
     };
 
+    if (minPrice) {
+      where.price = {
+        ...(where.price as Prisma.DecimalFilter),
+        gte: new Prisma.Decimal(minPrice),
+      };
+    }
+    if (maxPrice) {
+      where.price = {
+        ...(where.price as Prisma.DecimalFilter),
+        lte: new Prisma.Decimal(maxPrice),
+      };
+    }
+
     // 执行查询
-    const [items, total] = await Promise.all([
+    const [products, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
+        include: {
+          brand: true,
+          category: true,
+        },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          category: true,
-          brand: true,
+        orderBy: {
+          [sortBy]: sortOrder,
         },
       }),
       this.prisma.product.count({ where }),
     ]);
 
     return {
-      items: items.map((item) => ({
-        ...item,
-        price:
-          typeof item.price === "object"
-            ? parseFloat(item.price.toString())
-            : item.price,
-      })),
+      items: products.map((item) => this.convertPrismaToProduct(item)),
       total,
       page,
       limit,
@@ -203,13 +211,7 @@ class ProductService {
     });
 
     if (product) {
-      return {
-        ...product,
-        price:
-          typeof product.price === "object"
-            ? parseFloat(product.price.toString())
-            : product.price,
-      };
+      return this.convertPrismaToProduct(product);
     }
 
     return null;
@@ -308,13 +310,7 @@ class ProductService {
         },
       });
 
-      return {
-        ...product,
-        price:
-          typeof product.price === "object"
-            ? parseFloat(product.price.toString())
-            : product.price,
-      };
+      return this.convertPrismaToProduct(product);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "创建商品失败";
@@ -373,14 +369,7 @@ class ProductService {
       },
     });
 
-    return {
-      ...updatedProduct,
-      price:
-        typeof updatedProduct.price === "object"
-          ? parseFloat(updatedProduct.price.toString())
-          : updatedProduct.price,
-      gender: updatedProduct.gender as Product["gender"],
-    };
+    return this.convertPrismaToProduct(updatedProduct);
   }
 
   // 删除商品（软删除）
@@ -391,7 +380,7 @@ class ProductService {
       throw new Error("Product not found");
     }
 
-    return this.prisma.product.update({
+    const deletedProduct = await this.prisma.product.update({
       where: { id },
       data: { isDeleted: true },
       include: {
@@ -399,6 +388,8 @@ class ProductService {
         brand: true,
       },
     });
+
+    return this.convertPrismaToProduct(deletedProduct);
   }
 
   // 批量删除商品

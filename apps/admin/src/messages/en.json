@@ -1168,7 +1168,88 @@
     "updateNameSuccess": "Name updated successfully",
     "updateOriginalPriceSuccess": "Original price updated successfully",
     "updatePriceSuccess": "Price updated successfully",
-    "updateSuccess": "Update successful"
+    "updateSuccess": "Update successful",
+    "monetization": {
+      "title": "Monetization Links",
+      "stats": {
+        "title": "Monetization Statistics",
+        "percentage": "Completion Rate",
+        "total": "Total Products",
+        "monetized": "Monetized",
+        "pending": "Pending",
+        "bySourceTitle": "Statistics by Source"
+      },
+      "actions": {
+        "refresh": "Refresh",
+        "confirmGenerate": "Confirm Generation"
+      },
+      "batchGenerate": "Batch Generate Monetization Links",
+      "batchGenerating": "Generating...",
+      "generateForSelected": "Generate for Selected",
+      "selectedCount": "Selected {count} products",
+      "messages": {
+        "generateSuccess": "Successfully generated {count} monetization links",
+        "generatePartial": "Generation completed: {success} successful, {failed} failed",
+        "generateError": "Error occurred while generating monetization links",
+        "confirmBatchGenerate": "Are you sure you want to generate monetization links for {count} products?",
+        "apiKeyRequired": "Please configure Sovrn API Key first",
+        "fetchApiKeyFailed": "Failed to fetch API Key",
+        "saveApiKeyFailed": "Failed to save API Key",
+        "apiKeySaved": "API Key saved",
+        "invalidApiKey": "Please enter a valid API Key",
+        "fixDoubleEncodedSuccess": "Fix completed: {successful} URLs fixed successfully, {failed} failed",
+        "noDoubleEncodedUrls": "No double-encoded URLs found to fix",
+        "fixDoubleEncodedError": "Error occurred while fixing double-encoded URLs"
+      },
+      "apiKey": {
+        "title": "API Key Configuration",
+        "description": "Configure your Sovrn Commerce API Key",
+        "label": "API Key",
+        "placeholder": "Enter your Sovrn API Key",
+        "current": "Current Configuration",
+        "notConfigured": "Not Configured",
+        "configured": "Configured",
+        "save": "Save Configuration",
+        "saving": "Saving...",
+        "getKeyLink": "Get API Key",
+        "status": {
+          "missing": "Sovrn API Key not configured yet",
+          "required": "API Key configuration required to generate monetization links"
+        }
+      },
+      "settings": {
+        "button": "API Settings",
+        "configureNow": "Configure Now"
+      },
+      "dialog": {
+        "apiConfig": {
+          "title": "Sovrn API Configuration",
+          "description": "Configure your Sovrn Commerce API Key to enable monetization functionality.",
+          "visitViglink": "Visit VigLink to get your API Key",
+          "currentStatus": "Current Configuration Status",
+          "showKey": "Show",
+          "hideKey": "Hide",
+          "maskedKey": "API Key: {start}...{end}"
+        },
+        "fixUrls": {
+          "title": "Fix Double Encoded URLs",
+          "description": "Found {count} URLs with double encoding issues, which can cause links to not work properly.",
+          "explanation": "The fix operation will regenerate monetization links for these URLs to ensure they work correctly.",
+          "fixNow": "Fix Now"
+        }
+      },
+      "warnings": {
+        "noApiKey": {
+          "title": "Sovrn API Key not configured yet",
+          "description": "API Key configuration required to generate monetization links"
+        },
+        "doubleEncodedUrls": {
+          "title": "Found {count} double-encoded URLs",
+          "description": "These URLs may not work properly, immediate fix recommended",
+          "fixButton": "Fix"
+        }
+      }
+    }
   },
   "settings": {
     "account": "Account Settings",

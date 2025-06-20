@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Loader2, X, CalendarIcon as LucideCalendarIcon } from "lucide-react";
+import { Loader2, X, CalendarIcon, Link2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
@@ -80,6 +80,9 @@ export function EditProductPage({ id }: { id: string }) {
   const [inventory, setInventory] = useState<string>("");
   const [sku, setSku] = useState("");
   const [source, setSource] = useState("");
+  const [url, setUrl] = useState("");
+  const [adurl, setAdurl] = useState("");
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [material, setMaterial] = useState("");
   const [cautions, setCautions] = useState("");
   const [promotionUrl, setPromotionUrl] = useState("");
@@ -141,6 +144,8 @@ export function EditProductPage({ id }: { id: string }) {
         setMaterial(product.material || "");
         setCautions(product.cautions || "");
         setPromotionUrl(product.promotionUrl || "");
+        setUrl(product.url || "");
+        setAdurl(product.adurl || "");
         setIsActive(
           product.status === "Active" || product.status === "In Stock",
         );
@@ -233,6 +238,47 @@ export function EditProductPage({ id }: { id: string }) {
     setSizeInput(e.target.value);
   };
 
+  const handleGenerateMonetizationLink = async () => {
+    if (!url) {
+      toast.error("原始URL为空，无法生成链接。");
+
+      return;
+    }
+    setIsGeneratingLink(true);
+    try {
+      const response = await fetch("/api/products/monetize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productIds: [productId] }),
+      });
+      const result = await response.json();
+
+      if (response.ok && result.successful > 0) {
+        const monetizedResult = result.results.successful.find(
+          (r: { productId: string; adurl: string }) =>
+            r.productId === productId,
+        );
+
+        if (monetizedResult && monetizedResult.adurl) {
+          setAdurl(monetizedResult.adurl);
+          toast.success("货币化链接已生成！");
+        } else {
+          toast.error("未能从此商品的API响应中找到货币化链接。");
+        }
+      } else {
+        throw new Error(result.error || "生成链接失败");
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "生成货币化链接时发生未知错误。",
+      );
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!name.trim()) {
       setErrorMsg(t("errorModal.emptyName"));
@@ -274,15 +320,12 @@ export function EditProductPage({ id }: { id: string }) {
           brandId,
           categoryId,
           price: parseFloat(price),
-          originalPrice:
-            originalPrice.trim() === "" ? null : parseFloat(originalPrice),
-          discount: discount.trim() === "" ? null : parseFloat(discount),
+          originalPrice: originalPrice ? parseFloat(originalPrice) : null,
+          discount: discount ? parseFloat(discount) : null,
           coupon: coupon.trim() === "" ? null : coupon,
           couponDescription:
             couponDescription.trim() === "" ? null : couponDescription,
-          couponExpirationDate: couponExpirationDate
-            ? couponExpirationDate.toISOString()
-            : null,
+          couponExpirationDate: couponExpirationDate || null,
           status: isActive ? "Active" : "Draft",
           inventory: parseInt(inventory, 10),
           source,
@@ -293,6 +336,8 @@ export function EditProductPage({ id }: { id: string }) {
           cautions,
           promotionUrl,
           gender,
+          url,
+          adurl,
         },
       });
 
@@ -539,6 +584,53 @@ export function EditProductPage({ id }: { id: string }) {
                   onChange={handleSizeInputChange}
                   onKeyDown={handleSizeInput}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>货币化</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-1.5">
+                <Label htmlFor="product-url">原始URL</Label>
+                <Input
+                  id="product-url"
+                  placeholder="产品原始链接"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  readOnly
+                />
+                <p className="text-sm text-muted-foreground">
+                  从爬虫获取的原始商品链接。
+                </p>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="product-adurl">货币化URL</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="product-adurl"
+                    placeholder="Sovrn 或其他联盟链接"
+                    value={adurl}
+                    onChange={(e) => setAdurl(e.target.value)}
+                  />
+                  <Button
+                    onClick={handleGenerateMonetizationLink}
+                    disabled={!url || isGeneratingLink}
+                    variant="outline"
+                    size="icon"
+                  >
+                    {isGeneratingLink ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  联盟营销链接，用于追踪销售。
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -927,7 +1019,7 @@ export function EditProductPage({ id }: { id: string }) {
                         !couponExpirationDate && "text-muted-foreground",
                       )}
                     >
-                      <LucideCalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-2 h-4 w-4" />
                       {couponExpirationDate ? (
                         format(couponExpirationDate, "PPP")
                       ) : (

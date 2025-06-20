@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Link2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ChangeEvent, KeyboardEvent, useState, useEffect } from "react";
@@ -88,6 +88,9 @@ export default function NewProductPage() {
   const [sizes, setSizes] = useState<string[]>([]);
   const [sizeInput, setSizeInput] = useState("");
   const [gender, setGender] = useState<"women" | "men" | "unisex" | null>(null);
+  const [url, setUrl] = useState("");
+  const [adurl, setAdurl] = useState("");
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -164,6 +167,44 @@ export default function NewProductPage() {
     setSizeInput(e.target.value);
   };
 
+  const handleGenerateMonetizationLink = async () => {
+    if (!url) {
+      toast.error("原始URL为空，无法生成链接。");
+
+      return;
+    }
+    setIsGeneratingLink(true);
+    try {
+      // For a new product, we can't link it to an ID yet.
+      // We'll call a different endpoint or modify the existing one
+      // to accept a URL directly. For now, let's assume we have
+      // a service that can take a URL and return a monetized one.
+      // This is a placeholder for the actual API call.
+      const response = await fetch(`/api/products/monetize/generate-from-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.monetizedUrl) {
+        setAdurl(result.monetizedUrl);
+        toast.success("货币化链接已生成！");
+      } else {
+        throw new Error(result.error || "生成链接失败");
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "生成货币化链接时发生未知错误。",
+      );
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
+
   const addVariantRow = () => {
     setVariantRows([...variantRows, variantRows.length]);
   };
@@ -221,11 +262,10 @@ export default function NewProductPage() {
         coupon: coupon.trim() === "" ? null : coupon,
         couponDescription:
           couponDescription.trim() === "" ? null : couponDescription,
-        couponExpirationDate: couponExpirationDate
-          ? couponExpirationDate.toISOString()
-          : null,
+        couponExpirationDate: couponExpirationDate || null,
         status: isActive ? "Active" : "Draft",
         images: [],
+        videos: [],
         inventory: parseInt(inventory, 10),
         sku: productSku,
         source,
@@ -236,6 +276,10 @@ export default function NewProductPage() {
         cautions,
         promotionUrl,
         gender,
+        url,
+        adurl,
+        isFeatured,
+        isOnSale,
       });
 
       toast.success(t("toast.createSuccess"));
@@ -470,6 +514,52 @@ export default function NewProductPage() {
                   onChange={handleSizeInputChange}
                   onKeyDown={handleSizeInput}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>货币化</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-1.5">
+                <Label htmlFor="product-url">原始URL</Label>
+                <Input
+                  id="product-url"
+                  placeholder="产品原始链接"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                />
+                <p className="text-sm text-muted-foreground">
+                  手动添加或从爬虫获取的原始商品链接。
+                </p>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="product-adurl">货币化URL</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="product-adurl"
+                    placeholder="Sovrn 或其他联盟链接"
+                    value={adurl}
+                    onChange={(e) => setAdurl(e.target.value)}
+                  />
+                  <Button
+                    onClick={handleGenerateMonetizationLink}
+                    disabled={!url || isGeneratingLink}
+                    variant="outline"
+                    size="icon"
+                  >
+                    {isGeneratingLink ? (
+                      <Spinner className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  联盟营销链接，用于追踪销售。
+                </p>
               </div>
             </CardContent>
           </Card>

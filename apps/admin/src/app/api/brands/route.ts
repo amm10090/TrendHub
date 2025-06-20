@@ -81,10 +81,10 @@ export async function PATCH(request: NextRequest) {
       case "delete":
         result = await brandService.deleteBrands(ids);
         break;
-      case "set_popular":
+      case "setPopular":
         result = await brandService.updateBrandsPopularity(ids, true);
         break;
-      case "unset_popular":
+      case "unsetPopular":
         result = await brandService.updateBrandsPopularity(ids, false);
         break;
       default:

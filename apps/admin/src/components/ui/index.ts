@@ -24,6 +24,10 @@ export * from "./command";
 export * from "./custom-pagination"; // 导出 CustomPagination
 export * from "./tabs"; // 添加 Tabs 导出
 export * from "./checkbox"; // 添加 Checkbox 导出
+export * from "./skeleton"; // 添加 Skeleton 导出
+export * from "./toggle-group"; // 添加 ToggleGroup 导出
+export * from "./alert"; // 添加 Alert 导出
+export * from "./collapsible"; // 添加 Collapsible 导出
 
 export {
   Dialog,
@@ -105,3 +109,5 @@ export {
   CommandShortcut,
   CommandSeparator,
 } from "./command";
+export { Skeleton } from "./skeleton";
+export { ToggleGroup, ToggleGroupItem } from "./toggle-group";

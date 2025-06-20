@@ -1,27 +1,51 @@
 "use client";
 
-// 导入 Shadcn UI 组件 和 React Hooks - 清理未使用的，保留即将使用的
 import {
   ChevronDown,
   ChevronRight,
+  Edit2,
+  Eye,
+  EyeOff,
+  Folder,
+  FolderOpen,
+  FolderTree,
+  Home,
   Info,
+  Layers,
+  MoreVertical,
+  Package2,
+  Plus,
+  Search,
+  ShoppingBag,
+  Tag,
   Trash2,
-  HelpCircle,
+  Users,
 } from "lucide-react";
-import { useTranslations } from "next-intl"; // 添加 next-intl
-import { useCallback, useState } from "react"; // 移除 useEffect
+import { useTranslations } from "next-intl";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
+  Alert,
+  AlertDescription,
   Badge,
   Button,
-  CustomPagination,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
   Dialog,
-  DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Input,
   Label,
   Select,
@@ -29,76 +53,288 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-  SheetClose,
-  Spinner,
+  Skeleton,
+  Switch,
   Tabs,
   TabsList,
   TabsTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-  Switch,
 } from "@/components/ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useCategories } from "@/hooks/use-categories";
 import type { Category } from "@/lib/services/category.service";
-import { cn } from "@/lib/utils"; // 确保导入 cn
+import { cn } from "@/lib/utils";
 
-// 扩展分类表单类型，添加临时字段
 interface CategoryForm {
   name: string;
   slug: string;
   description: string;
   level: number;
   parentId: string;
-  tempGenderId?: string;
-  showInNavbar?: boolean; // 添加 showInNavbar
+  showInNavbar?: boolean;
+}
+
+// 扩展Category类型以包含children属性
+interface CategoryWithChildren extends Category {
+  children: CategoryWithChildren[];
+}
+
+// 树形节点组件
+interface TreeNodeProps {
+  category: CategoryWithChildren;
+  level: number;
+  expandedCategories: Set<string>;
+  onToggleExpand: (id: string) => void;
+  onEdit: (category: Category) => void;
+  onDelete: (id: string) => void;
+  onToggleStatus: (id: string, isActive: boolean) => void;
+  onToggleNavbar?: (id: string, showInNavbar: boolean) => void;
+  searchQuery: string;
+}
+
+function TreeNode({
+  category,
+  level,
+  expandedCategories,
+  onToggleExpand,
+  onEdit,
+  onDelete,
+  onToggleStatus,
+  onToggleNavbar,
+  searchQuery,
+}: TreeNodeProps) {
+  const hasChildren = category.children && category.children.length > 0;
+  const tCat = useTranslations("categories");
+  const isExpanded = expandedCategories.has(category.id);
+
+  // 高亮搜索关键词
+  const highlightText = (text: string) => {
+    if (!searchQuery) return text;
+    const parts = text.split(new RegExp(`(${searchQuery})`, "gi"));
+
+    return parts.map((part, i) =>
+      part.toLowerCase() === searchQuery.toLowerCase() ? (
+        <mark
+          key={i}
+          className="bg-yellow-200 dark:bg-yellow-800 px-0.5 rounded"
+        >
+          {part}
+        </mark>
+      ) : (
+        part
+      ),
+    );
+  };
+
+  // 根据层级选择图标和颜色
+  const getIconAndColor = () => {
+    switch (category.level) {
+      case 1:
+        return {
+          icon: isExpanded ? FolderOpen : Folder,
+          color: "text-blue-600 dark:text-blue-400",
+          bgColor: "bg-blue-50 dark:bg-blue-950/30",
+        };
+      case 2:
+        return {
+          icon: Package2,
+          color: "text-emerald-600 dark:text-emerald-400",
+          bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
+        };
+      case 3:
+        return {
+          icon: Tag,
+          color: "text-purple-600 dark:text-purple-400",
+          bgColor: "bg-purple-50 dark:bg-purple-950/30",
+        };
+      default:
+        return {
+          icon: Folder,
+          color: "text-gray-600",
+          bgColor: "bg-gray-50",
+        };
+    }
+  };
+
+  const { icon: Icon, color, bgColor } = getIconAndColor();
+
+  return (
+    <div className="select-none">
+      <div
+        className={cn(
+          "group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50 transition-colors",
+          searchQuery && "animate-in fade-in-0 slide-in-from-left-1",
+        )}
+        style={{ paddingLeft: `${level * 24 + 8}px` }}
+      >
+        {/* 展开/折叠按钮 */}
+        {hasChildren ? (
+          <button
+            onClick={() => onToggleExpand(category.id)}
+            className="p-0.5 hover:bg-muted rounded"
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
+        ) : (
+          <div className="w-5" />
+        )}
+
+        {/* 图标和名称 */}
+        <div
+          role="button"
+          tabIndex={0}
+          className={cn("flex items-center gap-2 flex-1 cursor-pointer")}
+          onClick={() => onEdit(category)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") onEdit(category);
+          }}
+        >
+          <div className={cn("p-1.5 rounded", bgColor)}>
+            <Icon className={cn("h-4 w-4", color)} />
+          </div>
+          <span className="font-medium text-sm">
+            {highlightText(category.name)}
+          </span>
+
+          {/* 状态标签 */}
+          <div className="flex items-center gap-1 ml-2">
+            {!category.isActive && (
+              <Badge variant="secondary" className="text-xs h-5">
+                {tCat("tree.badgeDisabled")}
+              </Badge>
+            )}
+            {category.level === 2 && category.showInNavbar && (
+              <Badge variant="outline" className="text-xs h-5">
+                <Eye className="h-3 w-3 mr-1" />
+                {tCat("tree.badgeNavbar")}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* 操作菜单 */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7">
+                <MoreVertical className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit(category)}>
+                <Edit2 className="h-4 w-4 mr-2" />
+                {tCat("tree.menuEdit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onToggleStatus(category.id, !category.isActive)}
+              >
+                {category.isActive ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    {tCat("tree.menuDisable")}
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    {tCat("tree.menuEnable")}
+                  </>
+                )}
+              </DropdownMenuItem>
+              {category.level === 2 && onToggleNavbar && (
+                <DropdownMenuItem
+                  onClick={() =>
+                    onToggleNavbar(category.id, !category.showInNavbar)
+                  }
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  {category.showInNavbar
+                    ? tCat("tree.menuRemoveFromNavbar")
+                    : tCat("tree.menuAddToNavbar")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => onDelete(category.id)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {tCat("tree.menuDelete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* 子节点 */}
+      {hasChildren && isExpanded && (
+        <div className="relative">
+          {/* 连接线 */}
+          {category.children.map((child) => (
+            <div key={child.id} className="relative">
+              {/* 垂直连接线 */}
+              <div
+                className="absolute left-0 top-0 bottom-0 w-px bg-border"
+                style={{ left: `${(level + 1) * 24 - 4}px` }}
+              />
+              {/* 水平连接线 */}
+              <div
+                className="absolute top-4 h-px bg-border"
+                style={{
+                  left: `${(level + 1) * 24 - 4}px`,
+                  width: "20px",
+                }}
+              />
+              <TreeNode
+                category={child}
+                level={level + 1}
+                expandedCategories={expandedCategories}
+                onToggleExpand={onToggleExpand}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onToggleStatus={onToggleStatus}
+                onToggleNavbar={onToggleNavbar}
+                searchQuery={searchQuery}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function CategoryTable() {
-  // const { t } = useTranslation(); // 移除旧的 t
   const tCat = useTranslations("categories");
   const tProd = useTranslations("products");
   const tCommon = useTranslations("common");
-  const tActions = useTranslations("actions");
-  // 移除 useDisclosure
-  // const { isOpen, onOpen, onClose } = useDisclosure();
-  // const {
-  //   isOpen: isDrawerOpen,
-  //   onOpen: onDrawerOpen,
-  //   onClose: onDrawerClose,
-  // } = useDisclosure();
 
-  // 添加 useState 替换 useDisclosure
+  // 状态管理
+  const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
-  const [genderFilter, setGenderFilter] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null,
-  );
-  const [deletingCategoryIds, setDeletingCategoryIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const [updatingStatusCategoryIds, setUpdatingStatusCategoryIds] = useState<
-    Set<string>
-  >(new Set());
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(),
   );
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
+  const [deleteCandidateId, setDeleteCandidateId] = useState<string | null>(
+    null,
+  );
 
-  // 获取所有分类
+  // 获取分类数据
   const {
     categories,
-    totalPages,
     isLoading,
     isError,
     isCreating,
@@ -108,26 +344,8 @@ export function CategoryTable() {
     updateCategory,
     mutateCategories,
   } = useCategories({
-    page,
-    limit,
-    familyPaging: genderFilter ? true : false, // 只在性别标签页下启用家族分页
-    ...(genderFilter ? { parentId: genderFilter, getAllRelated: true } : {}),
-  });
-
-  // 获取所有分类用于父分类选择和标签显示
-  const {
-    categories: allCategories,
-    isLoading: isLoadingAll,
-    mutateCategories: mutateAllCategories, // 使用正确的mutateCategories方法
-  } = useCategories({
     limit: 999,
   });
-
-  // 根据层级获取分类
-  const genderCategories =
-    allCategories?.filter((cat) => cat.level === 1) || [];
-  const productTypeCategories =
-    allCategories?.filter((cat) => cat.level === 2) || [];
 
   const [newCategory, setNewCategory] = useState<CategoryForm>({
     name: "",
@@ -135,1053 +353,679 @@ export function CategoryTable() {
     description: "",
     level: 1,
     parentId: "",
-    showInNavbar: false, // 初始化
+    showInNavbar: false,
   });
 
-  // 处理分类点击，打开抽屉展示详细信息
-  const handleCategoryClick = useCallback(
-    (category: Category, e: React.MouseEvent) => {
-      e.stopPropagation();
-      setSelectedCategory(category);
-      // onDrawerOpen(); // 替换为:
-      setIsDetailSheetOpen(true);
-    },
-    [], // 移除 onDrawerOpen 依赖
-  );
+  // 构建分类树
+  const categoryTree = useMemo(() => {
+    if (!categories) return [];
 
-  // 获取分类的子分类
-  const getChildCategories = useCallback(
-    (parentId: string) => {
-      return allCategories?.filter((cat) => cat.parentId === parentId) || [];
-    },
-    [allCategories],
-  );
+    const level1Categories = categories
+      .filter((cat) => cat.level === 1)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const buildTree = (parent: Category): CategoryWithChildren => {
+      const children = categories
+        .filter(
+          (cat) => cat.level === parent.level + 1 && cat.parentId === parent.id,
+        )
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((child) => buildTree(child));
+
+      return { ...parent, children };
+    };
+
+    return level1Categories.map((parent) => buildTree(parent));
+  }, [categories]);
+
+  // 过滤分类树
+  const filteredTree = useMemo(() => {
+    if (!searchQuery && !selectedLevel) return categoryTree;
+
+    const filterTree = (
+      nodes: CategoryWithChildren[],
+    ): CategoryWithChildren[] => {
+      return nodes.reduce((acc: CategoryWithChildren[], node) => {
+        const matchesSearch =
+          !searchQuery ||
+          node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          node.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesLevel = !selectedLevel || node.level === selectedLevel;
+
+        const filteredChildren = filterTree(node.children);
+
+        if (matchesSearch || filteredChildren.length > 0) {
+          if (matchesLevel || filteredChildren.length > 0) {
+            acc.push({
+              ...node,
+              children: filteredChildren,
+            });
+          }
+        }
+
+        return acc;
+      }, []);
+    };
+
+    const filtered = filterTree(categoryTree);
+
+    // 展开所有包含搜索结果的分类
+    if (searchQuery) {
+      const expandAll = (nodes: CategoryWithChildren[]) => {
+        nodes.forEach((node) => {
+          if (node.children.length > 0) {
+            setExpandedCategories((prev) => new Set([...prev, node.id]));
+            expandAll(node.children);
+          }
+        });
+      };
+
+      expandAll(filtered);
+    }
+
+    return filtered;
+  }, [categoryTree, searchQuery, selectedLevel]);
+
+  // 统计信息
+  const stats = useMemo(() => {
+    if (!categories)
+      return {
+        total: 0,
+        level1: 0,
+        level2: 0,
+        level3: 0,
+        active: 0,
+        navbar: 0,
+      };
+
+    return {
+      total: categories.length,
+      level1: categories.filter((c) => c.level === 1).length,
+      level2: categories.filter((c) => c.level === 2).length,
+      level3: categories.filter((c) => c.level === 3).length,
+      active: categories.filter((c) => c.isActive).length,
+      navbar: categories.filter((c) => c.level === 2 && c.showInNavbar).length,
+    };
+  }, [categories]);
 
   // 处理展开/收缩
-  const handleToggleExpand = useCallback(
-    (categoryId: string, e: React.MouseEvent) => {
-      e.stopPropagation(); // 防止触发详情抽屉
-      setExpandedCategories((prev) => {
-        const newSet = new Set(prev);
+  const handleToggleExpand = useCallback((categoryId: string) => {
+    setExpandedCategories((prev) => {
+      const newSet = new Set(prev);
 
-        if (newSet.has(categoryId)) {
-          newSet.delete(categoryId);
-        } else {
-          newSet.add(categoryId);
-        }
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
 
-        return newSet;
-      });
-    },
-    [],
-  );
+      return newSet;
+    });
+  }, []);
 
-  // 处理删除分类
-  const handleDeleteCategory = useCallback(
-    async (id: string) => {
-      try {
-        // 将该分类ID添加到正在删除的集合中
-        setDeletingCategoryIds((prev) => new Set(prev).add(id));
+  // 处理编辑分类
+  const handleEdit = useCallback((category: Category) => {
+    setEditingCategory(category);
+    setNewCategory({
+      name: category.name,
+      slug: category.slug,
+      description: category.description || "",
+      level: category.level,
+      parentId: category.parentId || "",
+      showInNavbar: category.showInNavbar,
+    });
+    setIsAddModalOpen(true);
+  }, []);
 
-        const result = await deleteCategory(id);
-
-        if (result && result.success) {
-          toast.success(tCat("deleteSuccessTitle"), {
-            // 使用 tCat
-            description: tCat("deleteSuccessDesc"), // 使用 tCat
-            duration: 3000,
-          });
-        }
-      } catch (error) {
-        toast.error(tCat("deleteErrorTitle"), {
-          // 使用 tCat
-          description:
-            error instanceof Error ? error.message : tCat("deleteErrorDesc"), // 使用 tCat
-          duration: 5000,
+  // 处理创建/更新分类
+  const handleSaveCategory = useCallback(async () => {
+    try {
+      if (!newCategory.name.trim() || !newCategory.slug.trim()) {
+        toast.error(tCat("validation.nameRequiredTitle"), {
+          description: tCat("validation.nameRequiredDesc"),
         });
-      } finally {
-        // 删除操作完成后，从集合中移除该分类ID
-        setDeletingCategoryIds((prev) => {
-          const newSet = new Set(prev);
 
-          newSet.delete(id);
+        return;
+      }
 
-          return newSet;
+      if (newCategory.level > 1 && !newCategory.parentId) {
+        toast.error(tCat("validation.parentRequiredTitle"), {
+          description: tCat("validation.parentRequiredDesc"),
+        });
+
+        return;
+      }
+
+      const categoryData = {
+        name: newCategory.name,
+        slug: newCategory.slug,
+        description: newCategory.description,
+        level: Number(newCategory.level),
+        ...(newCategory.level > 1 ? { parentId: newCategory.parentId } : {}),
+        ...(newCategory.level === 2
+          ? { showInNavbar: newCategory.showInNavbar }
+          : {}),
+      };
+
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, categoryData);
+        toast.success(tCat("updateSuccessTitle"), {
+          description: tCat("updateSuccessDesc", { name: newCategory.name }),
+        });
+      } else {
+        await createCategory(categoryData);
+        toast.success(tCat("createSuccessTitle"), {
+          description: tCat("createSuccessDesc", { name: newCategory.name }),
         });
       }
-    },
-    [deleteCategory, tCat], // 重新添加 tCat 依赖
-  );
 
-  // 处理状态变更
-  const handleStatusChange = useCallback(
-    async (category: Category, e: React.MouseEvent) => {
-      e.stopPropagation(); // 阻止事件冒泡
-      try {
-        // 将该分类ID添加到正在更新状态的集合中
-        setUpdatingStatusCategoryIds((prev) => new Set(prev).add(category.id));
-
-        const result = await updateCategoryStatus(
-          category.id,
-          !category.isActive,
-        );
-
-        if (result) {
-          const statusKey = category.isActive ? "inactive" : "active"; // 根据当前状态确定目标状态 key
-
-          toast.success(tCat("statusUpdateSuccessTitle"), {
-            // 使用 tCat
-            description: tCat("statusUpdateSuccessDesc", {
-              // 使用 tCat 和插值
-              name: category.name,
-              status: tProd(statusKey), // 从 products 获取 active/inactive 翻译
-            }),
-            duration: 3000,
-          });
-        }
-      } catch (error) {
-        toast.error(tCat("statusUpdateErrorTitle"), {
-          // 使用 tCat
+      setIsAddModalOpen(false);
+      setEditingCategory(null);
+      setNewCategory({
+        name: "",
+        slug: "",
+        description: "",
+        level: 1,
+        parentId: "",
+        showInNavbar: false,
+      });
+      await mutateCategories();
+    } catch (error) {
+      toast.error(
+        editingCategory ? tCat("updateErrorTitle") : tCat("createErrorTitle"),
+        {
           description:
             error instanceof Error
               ? error.message
-              : tCat("statusUpdateErrorDesc"), // 使用 tCat
-          duration: 5000,
-        });
-      } finally {
-        // 更新操作完成后，从集合中移除该分类ID
-        setUpdatingStatusCategoryIds((prev) => {
-          const newSet = new Set(prev);
-
-          newSet.delete(category.id);
-
-          return newSet;
-        });
-      }
-    },
-    [updateCategoryStatus, tCat, tProd], // 重新添加 tCat, tProd 依赖
-  );
-
-  // 渲染分类树结构
-  const renderCategoryTree = useCallback(
-    (category: Category) => {
-      const children = getChildCategories(category.id);
-      const isDeleting = deletingCategoryIds.has(category.id);
-      const isUpdatingStatus = updatingStatusCategoryIds.has(category.id);
-      const isExpanded = expandedCategories.has(category.id);
-      const hasChildren = children.length > 0;
-      const parentCategory = category.parentId
-        ? allCategories?.find((cat) => cat.id === category.parentId)
-        : null;
-      const showParentBadge =
-        !genderFilter && category.level > 1 && parentCategory;
-      const statusKey = category.isActive ? "active" : "inactive";
-
-      // 根据层级选择不同的背景色，L1层级背景色更深或不同，子层级背景逐渐变浅或有明显区分
-      let rowBgClass = "hover:bg-gray-50/50"; // 默认hover效果
-
-      if (category.level === 1) {
-        rowBgClass = "bg-slate-50 hover:bg-slate-100/80"; // L1 特殊背景
-      } else if (category.level === 2) {
-        rowBgClass = "bg-sky-50/60 hover:bg-sky-100/70"; // L2 背景
-      } else {
-        rowBgClass = "bg-emerald-50/50 hover:bg-emerald-100/60"; // L3+ 背景
-      }
-
-      return (
-        <TooltipProvider key={`tp-${category.id}`} delayDuration={300}>
-          <div className="space-y-1 rounded-md overflow-hidden mb-1 last:mb-0">
-            <div
-              className={`flex items-center justify-between p-2.5 rounded-md transition-colors ${rowBgClass}`}
-            >
-              <div className="flex items-center space-x-2 flex-1 min-w-0">
-                {hasChildren && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 shrink-0"
-                    onClick={(e) => handleToggleExpand(category.id, e)}
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-gray-500" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-gray-500" />
-                    )}
-                  </Button>
-                )}
-                {!hasChildren && <div className="w-7 shrink-0" />}
-
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-x-2">
-                    <span
-                      className={`truncate ${category.level === 1 ? "font-semibold text-base" : "font-medium"}`}
-                      title={category.name}
-                    >
-                      {category.name}
-                    </span>
-                    {showParentBadge && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge
-                            variant="secondary"
-                            className="ml-1 text-xs px-1.5 py-0.5 truncate max-w-[120px] cursor-default shrink-0"
-                          >
-                            {parentCategory?.name}
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>
-                            {tCat("parentCategoryLabel")}:{" "}
-                            {parentCategory?.name}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-1 shrink-0 ml-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      variant={category.isActive ? "default" : "outline"}
-                      className={cn(
-                        "cursor-pointer text-xs px-2 py-1",
-                        category.isActive
-                          ? "bg-green-500 hover:bg-green-600 text-white border-green-500 dark:bg-green-600 dark:hover:bg-green-700 dark:text-white dark:border-green-600"
-                          : "border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800",
-                      )}
-                      onClick={(e) => handleStatusChange(category, e)}
-                    >
-                      {isUpdatingStatus ? (
-                        <Spinner className="h-3 w-3 text-current" />
-                      ) : (
-                        tProd(statusKey)
-                      )}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {category.isActive
-                        ? tActions("deactivate")
-                        : tActions("activate")}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-primary"
-                      onClick={(e) => handleCategoryClick(category, e)}
-                    >
-                      <Info className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{tActions("details")}</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDeleteCategory(category.id)}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? (
-                        <Spinner className="h-4 w-4" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{tActions("delete")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-            {hasChildren && isExpanded && (
-              <div className="ml-5 pl-5 border-l-2 border-slate-200 space-y-1 pb-1">
-                {children.map((child) => renderCategoryTree(child))}
-              </div>
-            )}
-          </div>
-        </TooltipProvider>
+              : editingCategory
+                ? tCat("updateErrorDesc", { name: newCategory.name })
+                : tCat("createErrorDesc"),
+        },
       );
+    }
+  }, [
+    createCategory,
+    updateCategory,
+    mutateCategories,
+    newCategory,
+    editingCategory,
+    tCat,
+  ]);
+
+  // 处理删除
+  const handleDelete = useCallback(
+    (id: string) => {
+      setDeleteCandidateId(id);
     },
-    [
-      allCategories,
-      deletingCategoryIds,
-      updatingStatusCategoryIds,
-      expandedCategories,
-      genderFilter,
-      getChildCategories,
-      handleCategoryClick,
-      handleDeleteCategory,
-      handleStatusChange,
-      handleToggleExpand,
-      tCat,
-      tProd,
-      tActions,
-    ],
+    [setDeleteCandidateId],
   );
 
-  // 过滤和排序显示的分类
-  const filteredCategories = genderFilter
-    ? categories
-    : (categories || []).sort((a, b) => {
-        // 在全部标签页下，按照创建时间倒序排列
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      });
+  const confirmDelete = useCallback(async () => {
+    if (!deleteCandidateId) return;
 
-  const handlePageChange = useCallback((page: number) => {
-    setPage(page);
-  }, []);
-
-  // 处理创建分类
-  const handleCreateCategory = useCallback(async () => {
     try {
-      // 表单验证
-      if (!newCategory.name.trim()) {
-        toast.error(tCat("validation.nameRequiredTitle"), {
-          // 使用 tCat
-          description: tCat("validation.nameRequiredDesc"), // 使用 tCat
-          duration: 4000,
-        });
-
-        return;
-      }
-      if (!newCategory.slug.trim()) {
-        toast.error(tCat("validation.slugRequiredTitle"), {
-          // 使用 tCat
-          description: tCat("validation.slugRequiredDesc"), // 使用 tCat
-          duration: 4000,
-        });
-
-        return;
-      }
-
-      // 如果不是一级分类，必须选择父分类
-      if (newCategory.level > 1 && !newCategory.parentId) {
-        toast.error(tCat("validation.parentRequiredTitle"), {
-          // 使用 tCat
-          description: tCat("validation.parentRequiredDesc"), // 使用 tCat
-          duration: 4000,
-        });
-
-        return;
-      }
-
-      // 创建时只传递需要的字段
-      const { name, slug, description, level, parentId, showInNavbar } =
-        newCategory;
-
-      const result = await createCategory({
-        name,
-        slug,
-        description,
-        level: Number(level),
-        ...(level > 1 ? { parentId } : {}),
-        ...(level === 2 && showInNavbar !== undefined ? { showInNavbar } : {}), // 仅当是二级分类且有明确值时传递
-      });
-
-      if (result) {
-        // onClose(); // 替换为:
-        setIsAddModalOpen(false);
-        // 成功创建后立即更新数据
-        await Promise.all([
-          mutateAllCategories(), // 更新所有分类数据，这会刷新顶部标签
-        ]);
-
-        toast.success(tCat("createSuccessTitle"), {
-          // 使用 tCat
-          description: tCat("createSuccessDesc", { name: newCategory.name }), // 使用 tCat 和插值
-          duration: 3000,
-        });
-        setNewCategory({
-          name: "",
-          slug: "",
-          description: "",
-          level: 1,
-          parentId: "",
-          showInNavbar: false, // 重置时也包含
-        });
-      }
-    } catch (error) {
-      toast.error(tCat("createErrorTitle"), {
-        // 使用 tCat
-        description:
-          error instanceof Error ? error.message : tCat("createErrorDesc"), // 使用 tCat
-        duration: 5000,
-      });
+      await deleteCategory(deleteCandidateId);
+      toast.success(tCat("deleteSuccessTitle"));
+    } catch {
+      toast.error(tCat("deleteErrorTitle"));
+    } finally {
+      setDeleteCandidateId(null);
     }
-  }, [createCategory, mutateAllCategories, newCategory, tCat]); // 确保包含 tCat 依赖
+  }, [deleteCandidateId, deleteCategory, tCat]);
 
-  // 在切换标签时重置展开状态
-  const handleTabChange = useCallback((key: string | number) => {
-    setGenderFilter(key === "all" ? null : key.toString());
-    setPage(1);
-    setExpandedCategories(new Set());
-  }, []);
+  // 处理状态切换
+  const handleToggleStatus = useCallback(
+    async (id: string, isActive: boolean) => {
+      const category = categories?.find((c) => c.id === id);
 
-  const isLoadingAny = isLoading || isLoadingAll;
+      if (!category) return;
 
-  if (isLoadingAny) {
+      try {
+        await updateCategoryStatus(id, isActive);
+        toast.success(tCat("statusUpdateSuccessTitle"), {
+          description: tCat("statusUpdateSuccessDesc", {
+            name: category.name,
+            status: tProd(isActive ? "active" : "inactive"),
+          }),
+        });
+      } catch {
+        toast.error(tCat("statusUpdateErrorTitle"));
+      }
+    },
+    [categories, updateCategoryStatus, tCat, tProd],
+  );
+
+  // 处理导航栏显示切换
+  const handleToggleNavbar = useCallback(
+    async (id: string, showInNavbar: boolean) => {
+      const category = categories?.find((c) => c.id === id);
+
+      if (!category) return;
+
+      try {
+        await updateCategory(id, { showInNavbar });
+        await mutateCategories();
+        toast.success(tCat("updateSuccessTitle"), {
+          description: tCat("navbarUpdateSuccessDesc", {
+            name: category.name,
+            action: showInNavbar ? tCat("navbarAdded") : tCat("navbarRemoved"),
+          }),
+        });
+      } catch {
+        toast.error(tCat("updateErrorTitle"));
+      }
+    },
+    [categories, updateCategory, mutateCategories, tCat],
+  );
+
+  if (isLoading) {
     return (
-      <div className="flex h-[400px] items-center justify-center">
-        <Spinner />
+      <div className="space-y-4">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-96 w-full" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex h-[400px] items-center justify-center">
-        <p className="text-red-500">{tCat("fetchError")}</p> {/* 使用 tCat */}
-      </div>
+      <Card className="border-destructive">
+        <CardContent className="flex items-center justify-center h-64">
+          <p className="text-destructive">{tCat("fetchError")}</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <>
-      <div className="flex justify-between mb-4">
-        <div>
-          <Tabs // 使用 Shadcn Tabs
-            value={genderFilter || "all"} // 使用 value
-            onValueChange={handleTabChange} // 使用 onValueChange
+      {/* 页面头部 */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FolderTree className="h-6 w-6 text-primary" />
+            <div>
+              <h2 className="text-2xl font-bold">{tCat("title")}</h2>
+              <p className="text-muted-foreground">{tCat("description")}</p>
+            </div>
+          </div>
+          <Button
+            onClick={() => {
+              setEditingCategory(null);
+              setNewCategory({
+                name: "",
+                slug: "",
+                description: "",
+                level: 1,
+                parentId: "",
+                showInNavbar: false,
+              });
+              setIsAddModalOpen(true);
+            }}
           >
-            <TabsList>
-              {" "}
-              {/* 使用 TabsList 包裹 */}
-              <TabsTrigger value="all">{tCommon("all")}</TabsTrigger>{" "}
-              {/* 使用 TabsTrigger 和 tCommon */}
-              {genderCategories.map((cat) => (
-                <TabsTrigger key={cat.id} value={cat.id}>
-                  {cat.name}
-                </TabsTrigger> // 使用 TabsTrigger
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
             {tCat("addCategory")}
           </Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsHelpModalOpen(true)}
-                  className="h-10 w-10"
-                >
-                  <HelpCircle className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{tCat("help.title")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
-      </div>
 
-      <div className="space-y-4">
-        {filteredCategories.map((category) => renderCategoryTree(category))}
-      </div>
-
-      <div className="mt-4 flex justify-center">
-        <CustomPagination
-          totalPages={totalPages || 1}
-          page={page}
-          onPageChange={handlePageChange}
-        />
-      </div>
-
-      {/* 分类详情抽屉 - 用 Sheet 替换 */}
-      <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-        <SheetContent className="sm:max-w-md p-0">
-          {" "}
-          {/* 修改 sm:max-w-sm 为 sm:max-w-md 并添加 p-0 */}
-          <SheetHeader className="p-6 pb-4 border-b">
-            {" "}
-            {/* 添加 relative 以便绝对定位关闭按钮 */}
-            <SheetTitle>
-              {selectedCategory
-                ? `${tCat("detailsTitle")}: ${selectedCategory.name}`
-                : tCat("detailsTitle")}
-            </SheetTitle>
-            {/* <SheetDescription>Optional description</SheetDescription> */}
-            {/* 移除 asChild, 直接将 IconX 作为 SheetClose 的子元素，并自定义样式 */}
-          </SheetHeader>
-          {/* Sheet Body - 使用 div 模拟 HerouiDrawerBody */}
-          {selectedCategory && (
-            <div className="p-6 space-y-4 text-sm">
-              <div>
-                <Label className="font-semibold">{tCommon("id")}:</Label>
-                <p className="text-muted-foreground">{selectedCategory.id}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">{tCat("nameLabel")}:</Label>
-                <p className="text-muted-foreground">{selectedCategory.name}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">{tCat("slugLabel")}:</Label>
-                <p className="text-muted-foreground">{selectedCategory.slug}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">
-                  {tCat("descriptionLabel")}:
-                </Label>
-                <p className="text-muted-foreground">
-                  {selectedCategory.description || tCat("noDescription")}
-                </p>
-              </div>
-              <div>
-                <Label className="font-semibold">{tCat("levelLabel")}:</Label>
-                <p className="text-muted-foreground">
-                  {selectedCategory.level === 1
-                    ? tCat("level1")
-                    : selectedCategory.level === 2
-                      ? tCat("level2")
-                      : tCat("level3")}
-                </p>
-              </div>
-              <div>
-                <Label className="font-semibold">
-                  {tCommon("columns.status")}:
-                </Label>
+        {/* 统计卡片 */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <Card>
+            <CardHeader className="p-4">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <Badge
-                    variant={selectedCategory.isActive ? "default" : "outline"}
-                    className={cn(
-                      selectedCategory.isActive
-                        ? "bg-green-500 hover:bg-green-600 text-white border-green-500 dark:bg-green-600 dark:hover:bg-green-700 dark:text-white dark:border-green-600"
-                        : "border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800",
-                    )}
-                  >
-                    {tProd(selectedCategory.isActive ? "active" : "inactive")}
-                  </Badge>
+                  <CardDescription className="text-xs">
+                    {tCat("stats.total")}
+                  </CardDescription>
+                  <CardTitle className="text-xl">{stats.total}</CardTitle>
                 </div>
               </div>
-              <div>
-                <Label className="font-semibold">
-                  {tCommon("auditing.createdAt", { ns: "common" })}:
-                </Label>
-                <p className="text-muted-foreground">
-                  {new Date(selectedCategory.createdAt).toLocaleString()}
-                </p>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="p-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-blue-600" />
+                <div>
+                  <CardDescription className="text-xs">
+                    {tCat("stats.level1")}
+                  </CardDescription>
+                  <CardTitle className="text-xl">{stats.level1}</CardTitle>
+                </div>
               </div>
-              <div>
-                <Label className="font-semibold">
-                  {tCommon("auditing.updatedAt", { ns: "common" })}:
-                </Label>
-                <p className="text-muted-foreground">
-                  {new Date(selectedCategory.updatedAt).toLocaleString()}
-                </p>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="p-4">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4 text-emerald-600" />
+                <div>
+                  <CardDescription className="text-xs">
+                    {tCat("stats.level2")}
+                  </CardDescription>
+                  <CardTitle className="text-xl">{stats.level2}</CardTitle>
+                </div>
               </div>
-
-              <hr className="my-4" />
-
-              <div>
-                <Label className="font-semibold">
-                  {tCat("parentCategoryLabel")}:
-                </Label>
-                {(() => {
-                  const parent = allCategories?.find(
-                    (cat) => cat.id === selectedCategory.parentId,
-                  );
-
-                  return (
-                    <p className="text-muted-foreground">
-                      {parent ? parent.name : tCat("noParentCategory")}
-                    </p>
-                  );
-                })()}
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="p-4">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-purple-600" />
+                <div>
+                  <CardDescription className="text-xs">
+                    {tCat("stats.level3")}
+                  </CardDescription>
+                  <CardTitle className="text-xl">{stats.level3}</CardTitle>
+                </div>
               </div>
-
-              <div>
-                <Label className="font-semibold">
-                  {tCat("childCategoriesLabel")}:
-                </Label>
-                {(() => {
-                  const children =
-                    allCategories?.filter(
-                      (cat) => cat.parentId === selectedCategory.id,
-                    ) || [];
-
-                  if (children.length > 0) {
-                    return (
-                      <ul className="list-disc list-inside pl-4 space-y-1 text-muted-foreground">
-                        {children.map((child) => (
-                          <li key={child.id}>{child.name}</li>
-                        ))}
-                      </ul>
-                    );
-                  }
-
-                  return (
-                    <p className="text-muted-foreground">
-                      {tCat("noChildCategories")}
-                    </p>
-                  );
-                })()}
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="p-4">
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-green-600" />
+                <div>
+                  <CardDescription className="text-xs">
+                    {tCat("stats.active")}
+                  </CardDescription>
+                  <CardTitle className="text-xl">{stats.active}</CardTitle>
+                </div>
               </div>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="p-4">
+              <div className="flex items-center gap-2">
+                <Home className="h-4 w-4 text-orange-600" />
+                <div>
+                  <CardDescription className="text-xs">
+                    {tCat("stats.navbar")}
+                  </CardDescription>
+                  <CardTitle className="text-xl">{stats.navbar}</CardTitle>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
 
-              {/* 新增：导航栏显示开关 (仅对二级分类) */}
-              {selectedCategory.level === 2 && (
-                <div className="space-y-1 pt-2">
-                  <div className="flex items-center space-x-2">
-                    <Label
-                      htmlFor="show-in-navbar-switch"
-                      className="font-semibold"
-                    >
-                      {tCat("showInNavbarLabel")}
-                    </Label>
-                    <TooltipProvider delayDuration={100}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <p className="max-w-xs">
-                            {tCat("showInNavbarTooltip")}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <Switch
-                    id="show-in-navbar-switch"
-                    checked={selectedCategory.showInNavbar || false}
-                    onCheckedChange={async (isChecked) => {
-                      if (selectedCategory && updateCategory) {
-                        // 确保 updateCategory 存在
-                        try {
-                          await updateCategory(selectedCategory.id, {
-                            showInNavbar: isChecked,
-                          });
-                          toast.success(tCat("statusUpdateSuccessTitle"), {
-                            description: tCat("showInNavbarUpdateSuccessDesc", {
-                              name: selectedCategory.name,
-                              status: isChecked
-                                ? tCommon("enabled")
-                                : tCommon("disabled"),
-                            }),
-                            duration: 3000,
-                          });
-                          setSelectedCategory((prev) =>
-                            prev ? { ...prev, showInNavbar: isChecked } : null,
-                          );
-                          await mutateCategories(); // 刷新列表数据
-                        } catch (error) {
-                          const errorMessage =
-                            error instanceof Error
-                              ? error.message
-                              : tCat("updateErrorDesc");
+        {/* 搜索和筛选 */}
+        <div className="flex gap-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={tCat("searchPlaceholder")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select
+            value={selectedLevel?.toString() || "all"}
+            onValueChange={(value) =>
+              setSelectedLevel(value === "all" ? null : Number(value))
+            }
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder={tCat("filter.placeholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{tCat("filter.allLevels")}</SelectItem>
+              <SelectItem value="1">{tCat("filter.level1only")}</SelectItem>
+              <SelectItem value="2">{tCat("filter.level2only")}</SelectItem>
+              <SelectItem value="3">{tCat("filter.level3only")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              if (expandedCategories.size === categoryTree.length) {
+                setExpandedCategories(new Set());
+              } else {
+                const allIds = new Set<string>();
 
-                          toast.error(tCat("statusUpdateErrorTitle"), {
-                            description: errorMessage,
-                            duration: 5000,
-                          });
-                          // 如果更新失败，将开关状态重置回原来的状态
-                          setSelectedCategory((prev) =>
-                            prev ? { ...prev, showInNavbar: !isChecked } : null,
-                          );
-                        }
-                      }
-                    }}
+                categoryTree.forEach((cat) => {
+                  allIds.add(cat.id);
+                  cat.children.forEach((child) => allIds.add(child.id));
+                });
+                setExpandedCategories(allIds);
+              }
+            }}
+          >
+            {expandedCategories.size === categoryTree.length ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+
+        {/* 提示信息 */}
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <span>
+              {tCat.rich("help.structureInfo", {
+                level1: (chunks) => (
+                  <span className="font-medium text-blue-600">{chunks}</span>
+                ),
+                level2: (chunks) => (
+                  <span className="font-medium text-emerald-600">{chunks}</span>
+                ),
+                level3: (chunks) => (
+                  <span className="font-medium text-purple-600">{chunks}</span>
+                ),
+              })}
+            </span>
+          </AlertDescription>
+        </Alert>
+      </div>
+
+      {/* 分类树 */}
+      <Card className="mt-4">
+        <CardContent className="p-0">
+          <div className="p-4">
+            {filteredTree.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                {searchQuery || selectedLevel
+                  ? tCat("table.noMatch")
+                  : tCat("table.noData")}
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {filteredTree.map((category) => (
+                  <TreeNode
+                    key={category.id}
+                    category={category}
+                    level={0}
+                    expandedCategories={expandedCategories}
+                    onToggleExpand={handleToggleExpand}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggleStatus={handleToggleStatus}
+                    onToggleNavbar={handleToggleNavbar}
+                    searchQuery={searchQuery}
                   />
-                </div>
-              )}
-            </div>
-          )}
-          {/* SheetFooter is removed as per plan */}
-          <SheetFooter className="p-6 mt-auto border-t">
-            <SheetClose asChild>
-              <Button variant="outline">{tCommon("close")}</Button>
-            </SheetClose>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* 添加分类 Modal - 用 Dialog 替换 */}
+      {/* 添加/编辑分类对话框 */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        {/* DialogTrigger can be added if the main Button should trigger it */}
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{tCat("addTitle")}</DialogTitle>
-            {/* <DialogDescription>Optional description</DialogDescription> */}
+            <DialogTitle>
+              {editingCategory ? tCat("editTitle") : tCat("addTitle")}
+            </DialogTitle>
+            <DialogDescription>
+              {editingCategory
+                ? tCat("editDescription")
+                : tCat("createDescription")}
+            </DialogDescription>
           </DialogHeader>
-          {/* Dialog Body */}
-          <div className="py-4">
-            <div className="space-y-4">
-              {/* --- Select 层级 --- */}
-              {/* <HerouiSelect ...> */}
-              <div className="grid gap-2">
-                <Label htmlFor="category-level">{tCat("levelLabel")}</Label>
-                <Select
-                  value={String(newCategory.level)} // 绑定 value
-                  onValueChange={(value) => {
-                    // 使用 onValueChange
-                    const level = Number(value);
 
+          <div className="space-y-4 py-4">
+            {/* 层级选择 */}
+            {!editingCategory && (
+              <div className="space-y-2">
+                <Label>{tCat("form.selectLevel")}</Label>
+                <Tabs
+                  value={String(newCategory.level)}
+                  onValueChange={(v) =>
                     setNewCategory({
                       ...newCategory,
-                      level,
+                      level: Number(v),
                       parentId: "",
-                      tempGenderId: "", // 重置 tempGenderId
-                    });
-                  }}
-                  // selectedKeys, onChange, label, isRequired 移除
+                    })
+                  }
                 >
-                  <SelectTrigger id="category-level">
-                    <SelectValue placeholder={tCat("levelPlaceholder")} />
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="1">
+                      <Users className="h-4 w-4 mr-2" />
+                      {tCat("form.level1Name")}
+                    </TabsTrigger>
+                    <TabsTrigger value="2">
+                      <ShoppingBag className="h-4 w-4 mr-2" />
+                      {tCat("form.level2Name")}
+                    </TabsTrigger>
+                    <TabsTrigger value="3">
+                      <Tag className="h-4 w-4 mr-2" />
+                      {tCat("form.level3Name")}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
+
+            {/* 父分类选择 */}
+            {newCategory.level > 1 && (
+              <div className="space-y-2">
+                <Label>{tCat("form.selectParent")}</Label>
+                <Select
+                  value={newCategory.parentId}
+                  onValueChange={(value) =>
+                    setNewCategory({ ...newCategory, parentId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={tCat("form.selectParentPlaceholder")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">{tCat("level1")}</SelectItem>
-                    <SelectItem value="2">{tCat("level2")}</SelectItem>
-                    <SelectItem value="3">{tCat("level3")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* --- Select 性别 (level 2) --- */}
-              {newCategory.level === 2 && (
-                // <HerouiSelect ...>
-                <div className="grid gap-2">
-                  <Label htmlFor="parent-gender-l2">
-                    {tCat("parentGenderLabel")}
-                  </Label>
-                  <Select
-                    value={newCategory.parentId} // 绑定 value
-                    onValueChange={(
-                      value, // 使用 onValueChange
-                    ) => setNewCategory({ ...newCategory, parentId: value })}
-                    // selectedKeys, onChange, label, isRequired 移除
-                  >
-                    <SelectTrigger id="parent-gender-l2">
-                      <SelectValue
-                        placeholder={tCat("parentGenderPlaceholder")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {genderCategories.map((cat) => (
+                    {categories
+                      ?.filter((cat) => cat.level === newCategory.level - 1)
+                      .map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {cat.name}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {/* --- Select 性别 & 大类 (level 3) --- */}
-              {newCategory.level === 3 && (
-                <>
-                  {/* --- Select 性别 (level 3) --- */}
-                  {/* <HerouiSelect ...> */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="parent-gender-l3">
-                      {tCat("parentGenderLabel")}
-                    </Label>
-                    <Select
-                      value={newCategory.tempGenderId} // 绑定到 tempGenderId
-                      onValueChange={(value) => {
-                        // 使用 onValueChange
-                        setNewCategory({
-                          ...newCategory,
-                          parentId: "", // 重置 parentId
-                          tempGenderId: value,
-                        });
-                      }}
-                      // onChange, label, isRequired 移除
-                    >
-                      <SelectTrigger id="parent-gender-l3">
-                        <SelectValue
-                          placeholder={tCat("parentGenderPlaceholder")}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {genderCategories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* --- Select 商品大类 (level 3) --- */}
-                  {newCategory.tempGenderId && (
-                    // <HerouiSelect ...>
-                    <div className="grid gap-2">
-                      <Label htmlFor="parent-type-l3">
-                        {tCat("parentProductTypeLabel")}
-                      </Label>
-                      <Select
-                        value={newCategory.parentId} // 绑定 value
-                        onValueChange={(
-                          value, // 使用 onValueChange
-                        ) =>
-                          setNewCategory({
-                            ...newCategory,
-                            parentId: value,
-                          })
-                        }
-                        // selectedKeys, onChange, label, isRequired 移除
-                      >
-                        <SelectTrigger id="parent-type-l3">
-                          <SelectValue
-                            placeholder={tCat("parentProductTypePlaceholder")}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {productTypeCategories
-                            .filter(
-                              (cat) =>
-                                cat.parentId === newCategory.tempGenderId,
-                            )
-                            .map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* --- Inputs --- */}
-              {/* <HerouiInput ... /> */}
-              <div className="grid gap-2">
-                <Label htmlFor="category-name">{tCat("nameLabel")}</Label>
-                <Input
-                  id="category-name"
-                  placeholder={tCat("namePlaceholder")}
-                  value={newCategory.name}
-                  onChange={(e) =>
-                    setNewCategory({ ...newCategory, name: e.target.value })
-                  }
-                  // label, isRequired 移除
-                />
+                  </SelectContent>
+                </Select>
               </div>
+            )}
 
-              {/* <HerouiInput ... /> */}
-              <div className="grid gap-2">
-                <Label htmlFor="category-slug">{tCat("slugLabel")}</Label>
-                <Input
-                  id="category-slug"
-                  placeholder={tCat("slugPlaceholder")}
-                  value={newCategory.slug}
-                  onChange={(e) =>
-                    setNewCategory({ ...newCategory, slug: e.target.value })
-                  }
-                  // label, isRequired 移除
-                />
-              </div>
-
-              {/* <HerouiInput ... /> */}
-              <div className="grid gap-2">
-                <Label htmlFor="category-description">
-                  {tCat("descriptionLabel")}
-                </Label>
-                <Input
-                  id="category-description"
-                  placeholder={tCat("descriptionPlaceholder")}
-                  value={newCategory.description}
-                  onChange={(e) =>
-                    setNewCategory({
-                      ...newCategory,
-                      description: e.target.value,
-                    })
-                  }
-                  // label 移除
-                />
-              </div>
-
-              {/* 新增：仅在创建二级分类时显示 Show in Navbar 开关 */}
-              {newCategory.level === 2 && (
-                <div className="grid gap-2 mt-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="category-showInNavbar"
-                      checked={newCategory.showInNavbar || false}
-                      onCheckedChange={(checked) =>
-                        setNewCategory({
-                          ...newCategory,
-                          showInNavbar: checked,
-                        })
-                      }
-                    />
-                    <Label htmlFor="category-showInNavbar">
-                      {tCat("showInNavbarLabel")}
-                    </Label>
-                    <TooltipProvider delayDuration={100}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <p className="max-w-xs">
-                            {tCat("showInNavbarTooltip")}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              )}
+            {/* 基本信息 */}
+            <div className="space-y-2">
+              <Label>{tCat("nameLabel")}</Label>
+              <Input
+                value={newCategory.name}
+                onChange={(e) =>
+                  setNewCategory({ ...newCategory, name: e.target.value })
+                }
+                placeholder={tCat("namePlaceholder")}
+              />
             </div>
+
+            <div className="space-y-2">
+              <Label>{tCat("slugLabel")}</Label>
+              <Input
+                value={newCategory.slug}
+                onChange={(e) =>
+                  setNewCategory({ ...newCategory, slug: e.target.value })
+                }
+                placeholder={tCat("slugPlaceholder")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{tCat("descriptionLabel")}</Label>
+              <Input
+                value={newCategory.description}
+                onChange={(e) =>
+                  setNewCategory({
+                    ...newCategory,
+                    description: e.target.value,
+                  })
+                }
+                placeholder={tCat("descriptionPlaceholder")}
+              />
+            </div>
+
+            {/* 导航栏显示开关 */}
+            {newCategory.level === 2 && (
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label>{tCat("showInNavbarLabel")}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {tCat("showInNavbarTooltip")}
+                  </p>
+                </div>
+                <Switch
+                  checked={newCategory.showInNavbar}
+                  onCheckedChange={(checked) =>
+                    setNewCategory({ ...newCategory, showInNavbar: checked })
+                  }
+                />
+              </div>
+            )}
           </div>
+
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">{tCommon("cancel")}</Button>
-            </DialogClose>
-            <Button
-              onClick={handleCreateCategory} // 使用 onClick
-              isLoading={isCreating}
-              // type="submit" // 可以考虑添加 type submit 如果用 form 包裹
-            >
-              {tCommon("confirm")}
+            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button onClick={handleSaveCategory} disabled={isCreating}>
+              {isCreating
+                ? `${tCommon("saving")}...`
+                : editingCategory
+                  ? tCommon("saveChanges")
+                  : tCommon("confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* 分类逻辑帮助 Dialog */}
-      <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <HelpCircle className="h-5 w-5 text-primary" />
-              <span>{tCat("help.title")}</span>
-            </DialogTitle>
-            <p className="text-muted-foreground">{tCat("help.description")}</p>
-          </DialogHeader>
-
-          <div className="space-y-6 py-4">
-            {/* 分类层级结构 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-primary">
-                {tCat("help.hierarchyTitle")}
-              </h3>
-
-              <div className="space-y-4">
-                {/* 一级分类 */}
-                <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Badge variant="default" className="bg-blue-600">
-                      Level 1
-                    </Badge>
-                    <h4 className="font-semibold">
-                      {tCat("help.level1Description")}
-                    </h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {tCat("help.level1Purpose")}
-                  </p>
-                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                    {tCat("help.level1Examples")}
-                  </p>
-                </div>
-
-                {/* 二级分类 */}
-                <div className="border rounded-lg p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Badge variant="default" className="bg-green-600">
-                      Level 2
-                    </Badge>
-                    <h4 className="font-semibold">
-                      {tCat("help.level2Description")}
-                    </h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {tCat("help.level2Purpose")}
-                  </p>
-                  <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                    {tCat("help.level2Examples")}
-                  </p>
-                </div>
-
-                {/* 三级分类 */}
-                <div className="border rounded-lg p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Badge variant="default" className="bg-purple-600">
-                      Level 3
-                    </Badge>
-                    <h4 className="font-semibold">
-                      {tCat("help.level3Description")}
-                    </h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {tCat("help.level3Purpose")}
-                  </p>
-                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                    {tCat("help.level3Examples")}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 分类示例 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-primary">
-                {tCat("help.exampleTitle")}
-              </h3>
-              <div className="bg-muted/50 rounded-lg p-4">
-                <pre className="whitespace-pre-line text-sm font-mono">
-                  {tCat("help.exampleStructure")}
-                </pre>
-              </div>
-            </div>
-
-            {/* 导航栏显示说明 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-primary">
-                {tCat("help.navbarVisibilityTitle")}
-              </h3>
-              <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  {tCat("help.navbarVisibilityDesc")}
-                </p>
-              </div>
-            </div>
-
-            {/* 最佳实践 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-primary">
-                {tCat("help.bestPracticesTitle")}
-              </h3>
-              <div className="space-y-2">
-                <p className="text-sm">{tCat("help.bestPractice1")}</p>
-                <p className="text-sm">{tCat("help.bestPractice2")}</p>
-                <p className="text-sm">{tCat("help.bestPractice3")}</p>
-                <p className="text-sm">{tCat("help.bestPractice4")}</p>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">{tCommon("close")}</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AlertDialog
+        open={!!deleteCandidateId}
+        onOpenChange={(open) => !open && setDeleteCandidateId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {tCat("deleteConfirmationTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {tCat("deleteConfirmation", {
+                name:
+                  categories?.find((c) => c.id === deleteCandidateId)?.name ??
+                  "",
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              {tCommon("confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

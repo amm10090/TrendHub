@@ -1,8 +1,8 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
-import * as React from "react";
 import { useTranslations } from "next-intl";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -65,6 +65,7 @@ function CustomPagination({
 
   const handlePageSizeChange = (value: string) => {
     const newPageSize = Number(value);
+
     onPageSizeChange?.(newPageSize);
   };
 

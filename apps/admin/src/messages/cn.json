@@ -213,7 +213,60 @@
       "bestPractice3": "• 二级分类可以设置是否在导航栏显示",
       "bestPractice4": "• 建议先创建一级分类，再逐步创建二三级分类",
       "navbarVisibilityTitle": "导航栏显示",
-      "navbarVisibilityDesc": "二级分类可以设置在网站前台导航栏中显示，帮助用户快速找到商品"
+      "navbarVisibilityDesc": "二级分类可以设置在网站前台导航栏中显示，帮助用户快速找到商品",
+      "structureInfo": "分类采用三级结构：<level1>性别分类</level1> → <level2>商品大类</level2> → <level3>商品细分</level3>。点击分类名称可编辑，鼠标悬停显示操作菜单。"
+    },
+    "title": "分类管理",
+    "description": "管理您的产品分类，支持多级结构",
+    "editTitle": "编辑分类",
+    "editDescription": "修改分类信息。",
+    "createDescription": "根据您的产品结构创建合适的分类层级。",
+    "deleteConfirmation": "您确定要删除分类 “{name}” 吗？此操作无法撤销。",
+    "deleteConfirmationTitle": "确认删除分类",
+    "updateSuccessTitle": "更新成功",
+    "updateSuccessDesc": "分类 \"{name}\" 已成功更新。",
+    "updateErrorTitle": "更新失败",
+    "updateErrorDesc": "更新分类 \"{name}\" 时出错。",
+    "navbarUpdateSuccessDesc": "分类 \"{name}\" 已{action}导航栏。",
+    "navbarAdded": "添加至",
+    "navbarRemoved": "从",
+    "stats": {
+      "total": "总分类",
+      "level1": "性别分类",
+      "level2": "商品大类",
+      "level3": "商品细分",
+      "active": "激活分类",
+      "navbar": "导航栏显示"
+    },
+    "tree": {
+      "badgeDisabled": "禁用",
+      "badgeNavbar": "导航栏",
+      "menuEdit": "编辑",
+      "menuDisable": "禁用",
+      "menuEnable": "启用",
+      "menuRemoveFromNavbar": "从导航栏移除",
+      "menuAddToNavbar": "添加到导航栏",
+      "menuDelete": "删除"
+    },
+    "searchPlaceholder": "搜索分类...",
+    "filter": {
+      "placeholder": "筛选层级",
+      "allLevels": "所有层级",
+      "level1only": "仅性别分类",
+      "level2only": "仅商品大类",
+      "level3only": "仅商品细分"
+    },
+    "table": {
+      "noMatch": "没有找到匹配的分类",
+      "noData": "暂无分类数据"
+    },
+    "form": {
+      "selectLevel": "选择分类层级",
+      "level1Name": "性别分类",
+      "level2Name": "商品大类",
+      "level3Name": "商品细分",
+      "selectParent": "选择父分类",
+      "selectParentPlaceholder": "选择父分类"
     }
   },
   "codeSnippets": {

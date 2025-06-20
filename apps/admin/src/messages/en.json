@@ -213,7 +213,60 @@
       "bestPractice3": "• Level 2 categories can be set to display in navigation bar",
       "bestPractice4": "• Create Level 1 categories first, then gradually add Level 2 and 3",
       "navbarVisibilityTitle": "Navbar Visibility",
-      "navbarVisibilityDesc": "Level 2 categories can be set to display in the website's main navigation bar to help users quickly find products"
+      "navbarVisibilityDesc": "Level 2 categories can be set to display in the website's main navigation bar to help users quickly find products",
+      "structureInfo": "Categories use a three-level structure: <level1>Gender</level1> → <level2>Product Type</level2> → <level3>Sub-type</level3>. Click category name to edit, hover to show actions."
+    },
+    "title": "Category Management",
+    "description": "Manage your product categories with multi-level support.",
+    "editTitle": "Edit Category",
+    "editDescription": "Modify the category information.",
+    "createDescription": "Create appropriate category levels for your product structure.",
+    "deleteConfirmation": "Are you sure you want to delete category \"{name}\"? This action cannot be undone.",
+    "deleteConfirmationTitle": "Confirm Category Deletion",
+    "updateSuccessTitle": "Update Successful",
+    "updateSuccessDesc": "Category \"{name}\" has been successfully updated.",
+    "updateErrorTitle": "Update Failed",
+    "updateErrorDesc": "Error updating category \"{name}\".",
+    "navbarUpdateSuccessDesc": "Category \"{name}\" has been {action} the navbar.",
+    "navbarAdded": "added to",
+    "navbarRemoved": "removed from",
+    "stats": {
+      "total": "Total Categories",
+      "level1": "Gender Categories",
+      "level2": "Product Types",
+      "level3": "Product Sub-types",
+      "active": "Active Categories",
+      "navbar": "Shown in Navbar"
+    },
+    "tree": {
+      "badgeDisabled": "Disabled",
+      "badgeNavbar": "Navbar",
+      "menuEdit": "Edit",
+      "menuDisable": "Disable",
+      "menuEnable": "Enable",
+      "menuRemoveFromNavbar": "Remove from Navbar",
+      "menuAddToNavbar": "Add to Navbar",
+      "menuDelete": "Delete"
+    },
+    "searchPlaceholder": "Search categories...",
+    "filter": {
+      "placeholder": "Filter by level",
+      "allLevels": "All Levels",
+      "level1only": "Gender Categories only",
+      "level2only": "Product Types only",
+      "level3only": "Product Sub-types only"
+    },
+    "table": {
+      "noMatch": "No matching categories found",
+      "noData": "No category data available"
+    },
+    "form": {
+      "selectLevel": "Select Category Level",
+      "level1Name": "Gender Category",
+      "level2Name": "Product Type",
+      "level3Name": "Product Sub-type",
+      "selectParent": "Select Parent Category",
+      "selectParentPlaceholder": "Select parent category"
     },
     "breadcrumb": {
       "brands": "",
@@ -334,7 +387,6 @@
     },
     "statusUpdateSuccess": "Brand has been {status}",
     "success": "Success",
-    "title": "Brand Management",
     "updateError": "Failed to update brand",
     "updateSuccess": "Brand updated successfully"
   },

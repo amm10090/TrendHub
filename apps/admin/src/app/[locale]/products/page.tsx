@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -30,7 +31,6 @@ import { useProducts } from "@/hooks/use-products";
 
 import { CategoryTable } from "./category-table";
 import { ProductsClient } from "./products-client";
-import { CustomPagination } from "@/components/ui/custom-pagination";
 
 // 本地存储工具函数
 const STORAGE_KEY = "productTableLimit";

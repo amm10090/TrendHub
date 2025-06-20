@@ -26,9 +26,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(result);
-  } catch (error) {
-    console.error("Error fetching brands:", error);
-
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch brands" },
       { status: 500 },
@@ -43,14 +41,9 @@ export async function POST(request: Request) {
     const brand = await brandService.createBrand(body);
 
     return NextResponse.json(brand, { status: 201 });
-  } catch (error) {
-    console.error("Error creating brand:", error);
-
+  } catch {
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to create brand",
-      },
+      { error: "Failed to create brand" },
       { status: 400 },
     );
   }
@@ -96,13 +89,9 @@ export async function PATCH(request: NextRequest) {
       count: result,
       message: `${result} brands ${action}d successfully`,
     });
-  } catch (error) {
-    console.error("Error in bulk operation:", error);
-
+  } catch {
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Bulk operation failed",
-      },
+      { error: "Bulk operation failed" },
       { status: 500 },
     );
   }

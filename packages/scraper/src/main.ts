@@ -24,11 +24,11 @@ export type ScraperFunction = (
 export * from "./sites/cettire.js";
 export * from "./sites/farfetch.js";
 export * from "./sites/italist.js";
-export * from "./sites/mytheresa.js";
+export * from "./sites/mytheresa/index.js";
 export * from "./sites/yoox.js";
 
 // 明确导出默认导出
-import mytheresaScraperDefault from "./sites/mytheresa.js";
+import mytheresaScraperDefault from "./sites/mytheresa/index.js";
 import italistScraperDefault from "./sites/italist.js";
 import yooxScraperDefault from "./sites/yoox.js";
 import farfetchScraperDefault from "./sites/farfetch.js";

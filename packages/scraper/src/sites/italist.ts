@@ -18,6 +18,7 @@ import {
   cleanPrice,
   ensureDirectoryExists,
 } from "../utils.js";
+import { createStealthCrawler } from "../crawler-setup.js";
 
 interface ItalistUserData {
   executionId?: string;
@@ -921,7 +922,7 @@ const scrapeItalist: ScraperFunction = async (
   // 根据 maxProducts 和其他因素估算 maxRequests
   const maxRequests = options.maxRequests || maxProducts + 50; // 初步估算，可能需要调整
 
-  const crawler = new PlaywrightCrawler(
+  const crawler = createStealthCrawler(
     {
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,

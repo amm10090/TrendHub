@@ -1,10 +1,10 @@
 // packages/scraper/src/sites/farfetch.ts
 import {
-  PlaywrightCrawler,
   Configuration,
   type Log,
   type Request as CrawleeRequest,
   log as crawleeLog,
+  PlaywrightCrawler,
 } from "crawlee";
 import type { Page, ElementHandle } from "playwright";
 import type { Product, ECommerceSite } from "@repo/types";
@@ -16,6 +16,7 @@ import {
   cleanPrice,
   ensureDirectoryExists,
 } from "../utils.js";
+import { createStealthCrawler } from "../crawler-setup.js";
 
 interface FarfetchUserData {
   executionId?: string;
@@ -909,7 +910,7 @@ const scrapeFarfetch: ScraperFunction = async (
   const maxProducts = options.maxProducts || 1000;
   const maxRequests = options.maxRequests || maxProducts + 50;
 
-  const crawler = new PlaywrightCrawler(
+  const crawler = createStealthCrawler(
     {
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,

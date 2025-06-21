@@ -1,4 +1,8 @@
-import { chromium, type Browser, type Page } from "playwright";
+import { chromium } from "playwright-extra";
+import type { Browser, Page } from "playwright";
+import stealth from "puppeteer-extra-plugin-stealth";
+
+chromium.use(stealth());
 
 async function testMytheresaPageStructure() {
   const browser: Browser = await chromium.launch({
@@ -18,7 +22,8 @@ async function testMytheresaPageStructure() {
     });
 
     console.log("📦 正在访问 Mytheresa 页面...");
-    const testUrl = "https://www.mytheresa.com/us/en/women/clothing";
+    const testUrl =
+      "https://www.mytheresa.com/us/en/women/new-arrivals/current-week";
 
     await page.goto(testUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import scrapeItalist from "./sites/italist.js";
+import scrapeItalist from "../sites/italist.js";
 import type { Product } from "@repo/types";
 
 async function testItalistUpdated() {

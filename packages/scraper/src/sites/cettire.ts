@@ -10,7 +10,13 @@ import {
 import type { ScraperOptions } from "../main.js";
 import * as fs from "fs";
 import * as path from "path";
-import { PlaywrightCrawler, Request, Log, Configuration } from "crawlee";
+import {
+  Configuration,
+  PlaywrightCrawler,
+  type Request,
+  type Log,
+} from "crawlee";
+import { createStealthCrawler } from "../crawler-setup.js";
 
 // 定义用于任务队列的用户数据接口
 interface CettireUserData {
@@ -381,7 +387,7 @@ export async function scrapeCettireWithCrawler(
     storageClientOptions: { storageDir: runSpecificStorageDir },
   });
 
-  const crawler = new PlaywrightCrawler(
+  const crawler = createStealthCrawler(
     {
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,
@@ -778,9 +784,7 @@ export async function scrapeCettireWithCrawler(
 
       launchContext: {
         launchOptions: {
-          executablePath:
-            process.env.CHROME_EXECUTABLE_PATH ||
-            "/root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome",
+          executablePath: process.env.CHROME_EXECUTABLE_PATH,
           headless: options.headless !== undefined ? options.headless : true,
           args: [
             "--disable-web-security",
@@ -790,7 +794,7 @@ export async function scrapeCettireWithCrawler(
             "--disable-dev-shm-usage", // 解决DevShm不足的问题
           ],
         },
-        useChrome: true,
+        useChrome: !!process.env.CHROME_EXECUTABLE_PATH,
       },
     },
     config,

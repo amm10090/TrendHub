@@ -1830,10 +1830,10 @@
         "runSuccess": "Task \"{name}\" (Execution ID: {executionId}) has been successfully queued.",
         "runError": "Failed to queue task \"{name}\": {error}",
         "runErrorFallback": "Could not queue task.",
-        "loadingNextPage": "Loading more data...",
-        "tooltips": {
-          "lastRunError": "Error: {errorMessage}"
-        }
+        "loadingNextPage": "Loading more data..."
+      },
+      "tooltips": {
+        "lastRunError": "Error: {errorMessage}"
       },
       "filters": {
         "filterByNamePlaceholder": "Filter by task name...",

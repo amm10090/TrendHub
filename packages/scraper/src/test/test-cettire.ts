@@ -2,7 +2,7 @@ console.log(
   `[DEBUG] Value of process.env.CHROME_EXECUTABLE_PATH at the start of test-cettire.ts: ${process.env.CHROME_EXECUTABLE_PATH}`,
 );
 
-import { scrapeCettire } from "./sites/cettire.js";
+import { scrapeCettire } from "../sites/cettire.js";
 import * as fs from "fs";
 import * as path from "path";
 

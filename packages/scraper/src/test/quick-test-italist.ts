@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import scrapeItalist from "./sites/italist.js";
+import scrapeItalist from "../sites/italist.js";
 
 async function quickTestItalist() {
   console.log("🔧 快速测试更新后的选择器...");

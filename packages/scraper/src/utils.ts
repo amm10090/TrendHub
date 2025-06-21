@@ -1,7 +1,7 @@
 // packages/scraper/src/utils.ts
 
 import * as fs from "fs";
-import { Log, log as crawleeLog } from "crawlee";
+import { log as crawleeLog, type Log } from "crawlee";
 
 // 本地 ScraperLogLevel 枚举, 与 Prisma 的 ScraperLogLevel 保持一致
 // 为了避免直接依赖 @prisma/client 在这个包中 (如果项目结构上不希望如此)
@@ -212,6 +212,11 @@ export function logError(message: string): void {
   console.error(`[ERROR] ${message}`);
 }
 
+/**
+ * Ensures that a directory exists, creating it recursively if it does not.
+ * @param dirPath The path to the directory.
+ * @param logger An optional logger instance.
+ */
 export function ensureDirectoryExists(
   dirPath: string,
   logger: Log = crawleeLog,

@@ -1,7 +1,7 @@
-import scrapeFarfetch from "./sites/farfetch.js"; // Corrected: Use default import
+import scrapeFarfetch from "../sites/farfetch.js"; // Corrected: Use default import
 import * as fs from "fs";
 import * as path from "path";
-import type { ScraperOptions } from "./main.js"; // Import ScraperOptions type
+import type { ScraperOptions } from "../main.js"; // Import ScraperOptions type
 
 // 定义产品类别映射
 const CATEGORY_PATHS: Record<string, string> = {

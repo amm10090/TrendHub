@@ -919,9 +919,7 @@ const scrapeFarfetch: ScraperFunction = async (
       launchContext: {
         launchOptions: {
           headless: options.headless !== undefined ? options.headless : true,
-          executablePath: process.env.CHROME_EXECUTABLE_PATH,
         },
-        useChrome: !!process.env.CHROME_EXECUTABLE_PATH,
       },
       async requestHandler({
         request,

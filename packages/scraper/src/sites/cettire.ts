@@ -784,7 +784,6 @@ export async function scrapeCettireWithCrawler(
 
       launchContext: {
         launchOptions: {
-          executablePath: process.env.CHROME_EXECUTABLE_PATH,
           headless: options.headless !== undefined ? options.headless : true,
           args: [
             "--disable-web-security",
@@ -794,7 +793,6 @@ export async function scrapeCettireWithCrawler(
             "--disable-dev-shm-usage", // 解决DevShm不足的问题
           ],
         },
-        useChrome: !!process.env.CHROME_EXECUTABLE_PATH,
       },
     },
     config,

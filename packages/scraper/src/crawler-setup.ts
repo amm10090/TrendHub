@@ -177,7 +177,6 @@ export function createStealthCrawler(
       ignoreDefaultArgs: ["--enable-automation"],
       ...restLaunchOptions,
     },
-    useChrome: !!process.env.CHROME_EXECUTABLE_PATH,
     ...options.launchContext,
   };
 

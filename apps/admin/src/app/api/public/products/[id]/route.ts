@@ -37,6 +37,7 @@ export async function GET(
       coupon: product.coupon,
       couponDescription: product.couponDescription,
       couponExpirationDate: product.couponExpirationDate?.toISOString() ?? null,
+      adUrl: product.adurl,
       brand: {
         // 只选择需要的品牌字段
         id: product.brand.id,

@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
       sizes: string[];
       colors: string[];
       metadata: Prisma.JsonValue | null;
-      promotionUrl: string | null;
+      adurl: string | null;
       cautions: string | null;
       inventory: number | null;
       brand: {
@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
         sizes: true,
         colors: true,
         metadata: true,
-        promotionUrl: true,
+        adurl: true,
         cautions: true,
         inventory: true,
         brand: {
@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
               value: colorName,
             })) || [],
           specifications: (p.metadata as Prisma.JsonObject) || undefined,
-          adUrl: p.promotionUrl || undefined,
+          adUrl: p.adurl || undefined,
           careInstructions: p.cautions ? [p.cautions] : [],
         };
       },

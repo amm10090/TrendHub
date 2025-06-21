@@ -2,6 +2,7 @@
 import { Button, Chip, Image } from '@heroui/react';
 import { Heart } from 'lucide-react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import * as React from 'react';
@@ -115,6 +116,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [contentBlock, setContentBlock] = useState<ProductGridContentBlock | null>(null);
+  const params = useParams();
+  const locale = (params?.locale as string) || 'zh';
 
   useEffect(() => {
     setMounted(true);
@@ -212,6 +215,11 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
 
   const handleProductClick = (product: ProductTypeFromAppTypes) => {
     if (!mounted) return;
+
+    // 1. 在新标签页打开中转页面
+    window.open(`/${locale}/track-redirect/product/${product.id}`, '_blank');
+
+    // 2. 在当前页面打开模态框
     const productDetailForModal: ProductModalDetailType = {
       id: product.id,
       name: product.name,

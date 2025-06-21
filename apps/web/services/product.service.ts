@@ -22,6 +22,7 @@ export interface ProductBasic {
   categorySlug?: string;
   categoryId?: string;
   inventory?: number; // ProductTypeFromAppTypes 有 inventory
+  adUrl?: string;
   // videos, currency, gender, categories, material, details, sizes, colors, specifications, adUrl, careInstructions 尚未在 ProductBasic 中
 }
 

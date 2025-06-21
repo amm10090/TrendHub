@@ -156,6 +156,13 @@ export function ProductModal({
     return window.location.pathname.split('/')[1] || 'zh';
   };
 
+  const buyNowUrl = useMemo(() => {
+    const currentLocale = getCurrentLocale();
+
+    // 总是使用中转页，以确保点击追踪
+    return `/${currentLocale}/track-redirect/product/${product.id}`;
+  }, [product.id]);
+
   /**
    * 切换收藏状态
    * 注意：这里只改变了本地状态，实际项目中需要与后端同步
@@ -173,9 +180,7 @@ export function ProductModal({
   const handleOpenInNewTab =
     onOpenInNewTab ||
     (() => {
-      const currentLocale = getCurrentLocale();
-
-      window.open(`/${currentLocale}/track-redirect/product/${product.id}`, '_blank');
+      window.open(buyNowUrl, '_blank');
       onClose();
     });
 
@@ -602,6 +607,7 @@ export function ProductModal({
                         isBlock
                         isExternal
                         showAnchorIcon
+                        href={buyNowUrl}
                         anchorIcon={<LucideExternalLink className="ml-1 h-3.5 w-3.5" />}
                         className="flex-1 py-2.5 px-4 font-medium bg-[#0080FF] text-[#ffffff] dark:bg-text-primary-dark dark:text-bg-primary-dark rounded-lg hover:bg-[#0062C3] dark:hover:bg-hover-text hover:scale-102 shadow-sm transition-all duration-200 text-center text-sm"
                         isDisabled={product.availableQuantity === 0}

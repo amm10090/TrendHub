@@ -1,18 +1,19 @@
 'use client';
 
-import { Button, Image, Link } from '@heroui/react';
+import { Button, Image } from '@heroui/react';
 import { Heart } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useState, useCallback } from 'react';
 import Slider from 'react-slick';
 
+import { useProductModal } from '@/contexts/product-modal-context';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-import { Product } from '@/types/product';
+import { type Product as ProductType, ProductDetail } from '@/types/product';
 
 interface RelatedProductsProps {
-  products: Product[];
+  products: ProductType[];
 }
 
 interface ArrowProps {
@@ -27,9 +28,33 @@ interface ArrowProps {
 export function RelatedProducts({ products }: RelatedProductsProps) {
   const t = useTranslations('product');
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const { openProductModal } = useProductModal();
+  const locale = useLocale();
+
+  const handleProductClick = useCallback(
+    async (product: ProductType) => {
+      // 1. 在新标签页打开中转页面
+      window.open(`/${locale}/track-redirect/product/${product.id}`, '_blank');
+      // 2. 在当前页面打开模态框，先获取完整数据
+      try {
+        const response = await fetch(`/api/public/products/${product.id}`);
+
+        if (!response.ok) {
+          return;
+        }
+        const fullProductDetails: ProductDetail = await response.json();
+
+        openProductModal(fullProductDetails);
+      } catch {
+        // console.error("Failed to fetch product details:", error);
+      }
+    },
+    [locale, openProductModal]
+  );
 
   // 切换收藏状态
-  const toggleFavorite = (productId: string) => {
+  const toggleFavorite = (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
     setFavorites((prev) => ({
       ...prev,
       [productId]: !prev[productId],
@@ -87,7 +112,15 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         <Slider {...settings} className="product-slider">
           {products.map((product) => (
             <div key={product.id} className="px-2 sm:px-3 md:px-4">
-              <div className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-xs dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => handleProductClick(product)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') handleProductClick(product);
+                }}
+                className="group relative p-3 sm:p-4 bg-bg-primary-light dark:bg-bg-secondary-dark rounded-xl shadow-xs dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-border-primary-light dark:border-border-primary-dark transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] block cursor-pointer"
+              >
                 {product.isNew && (
                   <div className="absolute top-5 left-5 z-20 bg-bg-primary-light dark:bg-bg-tertiary-dark backdrop-blur-xs dark:backdrop-blur-md shadow-xs px-2 py-1 rounded-md">
                     <span className="text-[10px] leading-none sm:text-xs font-medium text-text-primary-light dark:text-text-primary-dark">
@@ -110,31 +143,30 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                     }
                     className="absolute top-2 right-2 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-bg-primary-light/80 dark:bg-bg-tertiary-dark/90 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark backdrop-blur-xs shadow-xs p-0 min-w-0 w-7 h-7 sm:w-9 sm:h-9"
                     variant="flat"
-                    onPress={() => toggleFavorite(product.id)}
+                    onClick={(e) => toggleFavorite(e, product.id)}
                   >
                     <Heart
-                      className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-text-primary-light dark:text-text-primary-dark"
-                      fill={favorites[product.id] ? 'currentColor' : 'none'}
+                      className={`h-4 w-4 sm:h-5 sm:w-5 text-text-primary-light dark:text-text-primary-dark transition-colors duration-200 group-hover:text-red-500 ${
+                        favorites[product.id] ? 'fill-red-500 text-red-500' : ''
+                      }`}
                     />
                   </Button>
-                  <Link className="block" href={`/product/${product.id}`}>
-                    <div className="relative aspect-square">
-                      <Image
-                        alt={product.name}
-                        classNames={{
-                          wrapper: 'aspect-square overflow-hidden',
-                          img: 'w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105 dark:opacity-90 dark:group-hover:opacity-100',
-                        }}
-                        src={product.images?.[0]}
-                      />
-                    </div>
-                  </Link>
+                  <div className="relative aspect-square">
+                    <Image
+                      alt={product.name}
+                      classNames={{
+                        wrapper: 'aspect-square overflow-hidden',
+                        img: 'w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105 dark:opacity-90 dark:group-hover:opacity-100',
+                      }}
+                      src={product.images?.[0]}
+                    />
+                  </div>
                 </div>
                 <div className="mt-4 flex flex-col gap-y-2">
                   <h3 className="text-[11px] sm:text-sm font-semibold tracking-wide text-text-secondary-light dark:text-text-secondary-dark">
                     {product.brandName || 'Brand'}
                   </h3>
-                  <Link className="block  flex-col gap-y-1" href={`/product/${product.id}`}>
+                  <div className="flex flex-col gap-y-1">
                     <p className="text-[11px] sm:text-sm font-normal text-text-primary-light dark:text-text-primary-dark line-clamp-2 leading-relaxed">
                       {product.name}
                     </p>
@@ -150,7 +182,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                         </p>
                       )}
                     </div>
-                  </Link>
+                  </div>
                 </div>
               </div>
             </div>

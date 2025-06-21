@@ -35,11 +35,6 @@ export function ProductModalProvider({ children }: { children: ReactNode }) {
     if (!mounted) return;
     setSelectedProduct(product);
     setIsModalOpen(true);
-
-    // 在新标签页中打开中转页面
-    const currentLocale = getCurrentLocale();
-
-    window.open(`/${currentLocale}/track-redirect/product/${product.id}`, '_blank');
   };
 
   const closeProductModal = () => {

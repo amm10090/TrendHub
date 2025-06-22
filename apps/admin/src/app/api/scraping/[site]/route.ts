@@ -311,8 +311,7 @@ export async function POST(
     );
   }
 
-  const resolvedParams = await context.params;
-  const site = resolvedParams.site as ECommerceSite;
+  const { site } = await Promise.resolve(context.params);
   let body;
 
   try {

@@ -10,7 +10,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const { id } = await params;
+  const { id } = await Promise.resolve(params);
 
   try {
     const product = await db.product.findUnique({
@@ -51,7 +51,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { id } = await params;
+  const { id } = await Promise.resolve(params);
 
   try {
     const data = await request.json();
@@ -75,7 +75,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const { id } = await params;
+  const { id } = await Promise.resolve(params);
 
   try {
     // 检查产品是否存在
@@ -143,7 +143,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const { id } = await params;
+  const { id } = await Promise.resolve(params);
 
   try {
     const body = await request.json();

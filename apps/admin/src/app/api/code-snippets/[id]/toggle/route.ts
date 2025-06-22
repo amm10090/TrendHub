@@ -8,7 +8,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
+  const { id } = await Promise.resolve(params);
 
   try {
     // 检查片段是否存在

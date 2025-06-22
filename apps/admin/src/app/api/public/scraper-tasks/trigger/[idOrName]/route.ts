@@ -11,6 +11,7 @@ export async function POST(
   { params }: { params: { idOrName: string } },
 ) {
   try {
+    const { idOrName } = await Promise.resolve(params);
     // 1. Security Check: Verify secret header
     const providedSecret = request.headers.get(CRON_SECRET_HEADER);
     const expectedSecret = process.env.CRON_TRIGGER_SECRET;
@@ -28,13 +29,12 @@ export async function POST(
 
     if (providedSecret !== expectedSecret) {
       console.warn(
-        `[CRON_TRIGGER_POST] Invalid or missing secret for task trigger attempt on: ${params.idOrName}`,
+        `[CRON_TRIGGER_POST] Invalid or missing secret for task trigger attempt on: ${idOrName}`,
       );
       return NextResponse.json({ error: "未经授权的访问" }, { status: 401 });
     }
 
     // 2. Find Task Definition by ID or Name
-    const idOrName = params.idOrName;
     const taskDefinition = await db.scraperTaskDefinition.findFirst({
       where: {
         OR: [{ id: idOrName }, { name: idOrName }],

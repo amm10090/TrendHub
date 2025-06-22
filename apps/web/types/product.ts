@@ -30,6 +30,7 @@ export interface Product {
   adUrl?: string;
   careInstructions?: string[];
   relatedProducts?: Product[];
+  url?: string;
 }
 
 export interface ProductDetail
@@ -66,6 +67,7 @@ export interface ProductDetail
     | 'adUrl'
     | 'careInstructions'
     | 'relatedProducts'
+    | 'url'
   > {
   images: string[]; // 确保 images 是必须的数组
   description: string; // 确保 description 是必须的字符串
@@ -84,6 +86,7 @@ export interface ProductDetail
   availableQuantity: number; // 可用库存
   relatedProducts?: Product[]; // 相关商品
   adUrl?: string; // 广告联盟链接
+  url?: string;
   brand: {
     id: string;
     name: string;

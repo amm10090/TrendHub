@@ -51,8 +51,20 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
             const foundProduct: ProductDetail = await response.json();
 
             setProduct(foundProduct);
-            // 优先使用 adUrl，否则回退到商品详情页
-            const url = foundProduct.adUrl || `/${locale}/product/${foundProduct.id}`;
+            // 优先使用 adUrl，其次是商品的原始 url，最后回退到商品详情页
+            const url =
+              foundProduct.adUrl || foundProduct.url || `/${locale}/product/${foundProduct.id}`;
+
+            // 调试信息
+            console.log('TrackPageContent Debug:', {
+              productId: foundProduct.id,
+              productName: foundProduct.name,
+              adUrl: foundProduct.adUrl,
+              url: foundProduct.url,
+              selectedUrl: url,
+              adUrlType: typeof foundProduct.adUrl,
+              urlType: typeof foundProduct.url,
+            });
 
             setTargetUrl(url);
             setLoading(false);

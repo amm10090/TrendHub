@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const executionId = params.id;
+    const { id: executionId } = await Promise.resolve(params);
 
     if (!executionId) {
       return NextResponse.json(

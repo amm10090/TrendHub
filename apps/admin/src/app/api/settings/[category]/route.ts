@@ -15,7 +15,7 @@ export async function GET(
   { params }: { params: { category: string } },
 ) {
   try {
-    const { category } = params;
+    const { category } = await Promise.resolve(params);
 
     if (!category) {
       return NextResponse.json(
@@ -65,10 +65,11 @@ export async function DELETE(
   request: Request,
   { params }: { params: { category: string } },
 ) {
+  const { category } = await Promise.resolve(params);
   // 如果路径是 /api/settings/{key}，则删除特定设置
-  if (params.category && !params.category.includes("/")) {
+  if (category && !category.includes("/")) {
     try {
-      const key = params.category;
+      const key = category;
 
       // 删除设置
       await db.siteSetting.delete({

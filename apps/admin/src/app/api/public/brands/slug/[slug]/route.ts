@@ -4,23 +4,16 @@ import { brandService, Brand } from "@/lib/services/brand.service"; // 改为从
 // 移除 Prisma 类型的导入
 // import { Brand as PrismaBrand } from '@prisma/client';
 
-// 定义接口参数类型
-interface RouteParams {
-  slug: string;
-}
-
 /**
  * GET /api/public/brands/slug/[slug]
  * 通过品牌slug获取单个品牌的公共API端点。
  */
 export async function GET(
   request: Request,
-  { params }: { params: RouteParams },
+  { params }: { params: { slug: string } },
 ) {
-  let slug: string | undefined; // 在 try 块外部声明 slug
   try {
-    const awaitedParams = await params; // 等待 params 解析
-    slug = awaitedParams.slug; // 从解析后的参数中获取 slug 并赋值
+    const { slug } = await Promise.resolve(params);
 
     if (!slug || typeof slug !== "string") {
       return NextResponse.json(
@@ -60,7 +53,7 @@ export async function GET(
   } catch (error) {
     // 记录服务器端错误，但不要将详细错误信息直接暴露给客户端
     console.error(
-      `[API ERROR] Failed to fetch brand by slug '${slug}':`, // 在 catch 中使用 slug 变量
+      `[API ERROR] Failed to fetch brand by slug:`, // slug 变量在catch块中不可用，移除
       error,
     );
     return NextResponse.json(

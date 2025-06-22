@@ -7,7 +7,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
+  const { id } = await Promise.resolve(params);
 
   try {
     const product = await db.product.findUnique({
@@ -28,16 +28,17 @@ export async function GET(
       );
     }
 
-    // 转换 Decimal 为字符串，处理关联数据
+    // 转换 Decimal 为字符串，并显式构建响应对象以确保字段名正确
+    const { adurl, ...restOfProduct } = product;
     const productSerializable = {
-      ...product,
+      ...restOfProduct,
       price: product.price.toString(),
       originalPrice: product.originalPrice?.toString() ?? null,
       discount: product.discount?.toString() ?? null,
       coupon: product.coupon,
       couponDescription: product.couponDescription,
       couponExpirationDate: product.couponExpirationDate?.toISOString() ?? null,
-      adUrl: product.adurl,
+      adUrl: adurl, // 将 adurl (lowercase) 映射到 adUrl (camelCase)
       brand: {
         // 只选择需要的品牌字段
         id: product.brand.id,

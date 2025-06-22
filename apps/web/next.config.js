@@ -35,9 +35,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'www.mytheresa.com',
-        port: '',
-        pathname: '/media/**',
+        hostname: '**',
       },
     ],
   },

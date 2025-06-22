@@ -2,17 +2,11 @@ import { NextResponse } from "next/server";
 
 import { categoryService } from "@/lib/services/category.service";
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
 // 获取单个分类
-export async function GET(_: Request, { params }: RouteParams) {
+export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
-    const resolvedParams = await params;
-    const category = await categoryService.getCategory(resolvedParams.id);
+    const { id } = await Promise.resolve(params);
+    const category = await categoryService.getCategory(id);
 
     if (!category) {
       return NextResponse.json({ error: "分类不存在" }, { status: 404 });
@@ -25,14 +19,14 @@ export async function GET(_: Request, { params }: RouteParams) {
 }
 
 // 更新分类
-export async function PUT(request: Request, { params }: RouteParams) {
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } },
+) {
   try {
     const data = await request.json();
-    const resolvedParams = await params;
-    const category = await categoryService.updateCategory(
-      resolvedParams.id,
-      data,
-    );
+    const { id } = await Promise.resolve(params);
+    const category = await categoryService.updateCategory(id, data);
 
     return NextResponse.json(category);
   } catch {
@@ -41,11 +35,14 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 // 删除分类
-export async function DELETE(_: Request, { params }: RouteParams) {
+export async function DELETE(
+  _: Request,
+  { params }: { params: { id: string } },
+) {
   try {
-    const resolvedParams = await params;
+    const { id } = await Promise.resolve(params);
 
-    await categoryService.deleteCategory(resolvedParams.id);
+    await categoryService.deleteCategory(id);
 
     return NextResponse.json({ success: true });
   } catch {

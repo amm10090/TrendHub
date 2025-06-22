@@ -25,7 +25,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
+  const { id } = await Promise.resolve(params);
 
   try {
     const snippet = await prisma.codeSnippet.findUnique({
@@ -53,7 +53,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
+  const { id } = await Promise.resolve(params);
 
   try {
     const body = await request.json();
@@ -108,7 +108,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
+  const { id } = await Promise.resolve(params);
 
   try {
     // 检查片段是否存在

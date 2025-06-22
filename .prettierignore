@@ -1,0 +1,10 @@
+# Ignore compiled and minified files
+/packages/scraper/stealth.min.js
+
+# Ignore directories
+node_modules
+.turbo
+dist
+build
+.next
+coverage 

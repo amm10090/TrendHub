@@ -10,6 +10,8 @@ import {
   type Log,
 } from "crawlee";
 import type { Page, BrowserContext } from "playwright";
+import * as fs from "fs";
+import * as path from "path";
 
 // Apply stealth plugin to playwright-extra
 chromium.use(stealth());
@@ -31,6 +33,17 @@ export const USER_AGENTS = [
   // Safari on macOS - Most recent versions
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15",
 ];
+
+// 读取 stealth.min.js 文件内容
+let stealthScript: string | null = null;
+try {
+  const stealthPath = path.join(__dirname, "../stealth.min.js");
+  if (fs.existsSync(stealthPath)) {
+    stealthScript = fs.readFileSync(stealthPath, "utf8");
+  }
+} catch (error) {
+  console.warn("Failed to load stealth.min.js:", error);
+}
 
 /**
  * Generates a random delay within a given range, using a more natural distribution.
@@ -101,8 +114,9 @@ function getUltimateStealthBrowserArgs(): string[] {
     "--disable-dev-shm-usage",
     "--disable-blink-features=AutomationControlled",
     "--disable-infobars",
-    "--window-size=1920,1080",
+    "--window-size=2560,1547",
     "--start-maximized",
+    "--force-device-scale-factor=1",
     "--disable-web-security",
     "--disable-features=IsolateOrigins,site-per-process,BlockInsecurePrivateNetworkRequests",
     "--disable-default-apps",
@@ -138,9 +152,17 @@ function getUltimateStealthBrowserArgs(): string[] {
 async function injectUltimateStealthScripts(
   context: BrowserContext,
 ): Promise<void> {
+  // 首先注入 stealth.min.js 文件
+  if (stealthScript) {
+    await context.addInitScript(stealthScript);
+  }
+
+  // 然后添加其他自定义脚本
   await context.addInitScript(() => {
+    // 覆盖 webdriver 属性
     Object.defineProperty(navigator, "webdriver", { get: () => undefined });
 
+    // 修改权限查询
     const originalQuery = window.navigator.permissions.query;
     window.navigator.permissions.query = (parameters: PermissionDescriptor) => {
       if (parameters.name === "notifications") {
@@ -149,11 +171,106 @@ async function injectUltimateStealthScripts(
       return originalQuery.apply(window.navigator.permissions, [parameters]);
     };
 
+    // 修改插件数组
     Object.defineProperty(navigator, "plugins", { get: () => [1, 2, 3] });
+
+    // 修改语言
     Object.defineProperty(navigator, "languages", {
       get: () => ["en-US", "en"],
     });
+
+    // 修改 Chrome 对象
+    interface WindowWithChrome extends Window {
+      chrome?: Record<string, unknown>;
+    }
+    const windowWithChrome = window as WindowWithChrome;
+    if (!windowWithChrome.chrome) {
+      Object.defineProperty(window, "chrome", {
+        writable: true,
+        enumerable: true,
+        configurable: false,
+        value: {},
+      });
+    }
+
+    // 修改自动化相关属性
+    delete Object.getPrototypeOf(navigator).webdriver;
+
+    // 修改 navigator.platform
+    Object.defineProperty(navigator, "platform", {
+      get: () => "Win32",
+    });
+
+    // 修改时区
+    Date.prototype.getTimezoneOffset = function () {
+      return -480; // UTC+8
+    };
+
+    // 修改屏幕分辨率 - 使用桌面端尺寸 2560x1547
+    Object.defineProperty(screen, "availWidth", { get: () => 2560 });
+    Object.defineProperty(screen, "availHeight", { get: () => 1507 });
+    Object.defineProperty(screen, "width", { get: () => 2560 });
+    Object.defineProperty(screen, "height", { get: () => 1547 });
+    Object.defineProperty(window, "innerWidth", { get: () => 2560 });
+    Object.defineProperty(window, "innerHeight", { get: () => 1507 });
+    Object.defineProperty(window, "outerWidth", { get: () => 2560 });
+    Object.defineProperty(window, "outerHeight", { get: () => 1547 });
+
+    // 添加电池状态
+    if ("getBattery" in navigator) {
+      navigator.getBattery = async () => ({
+        charging: true,
+        chargingTime: 0,
+        dischargingTime: Infinity,
+        level: 1,
+      });
+    }
+
+    // 修改内存信息
+    if (performance && "memory" in performance) {
+      Object.defineProperty(performance, "memory", {
+        get: () => ({
+          jsHeapSizeLimit: 2147483648,
+          totalJSHeapSize: 35663951,
+          usedJSHeapSize: 20663951,
+        }),
+      });
+    }
+
+    // 修改 WebGL 信息
+    const getParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function (parameter) {
+      if (parameter === 37445) {
+        return "Intel Inc.";
+      }
+      if (parameter === 37446) {
+        return "Intel Iris OpenGL Engine";
+      }
+      return getParameter.apply(this, [parameter]);
+    };
+
+    const getParameter2 = WebGL2RenderingContext.prototype.getParameter;
+    WebGL2RenderingContext.prototype.getParameter = function (parameter) {
+      if (parameter === 37445) {
+        return "Intel Inc.";
+      }
+      if (parameter === 37446) {
+        return "Intel Iris OpenGL Engine";
+      }
+      return getParameter2.apply(this, [parameter]);
+    };
   });
+}
+
+/**
+ * Injects stealth scripts into a page
+ * @param page The Playwright Page object.
+ */
+export async function injectStealthIntoPage(page: Page): Promise<void> {
+  // 注入 stealth.min.js
+  if (stealthScript) {
+    await page.addInitScript(stealthScript);
+  }
 }
 
 /**
@@ -166,7 +283,7 @@ export function createStealthCrawler(
   options: PlaywrightCrawlerOptions,
   config?: Configuration,
 ) {
-  const { headless = true, ...restLaunchOptions } =
+  const { headless = false, ...restLaunchOptions } =
     options.launchContext?.launchOptions || {};
 
   const launchContext: PlaywrightLaunchContext = {
@@ -185,26 +302,48 @@ export function createStealthCrawler(
       const { page, log } = crawlingContext;
       const context = page.context();
 
+      // 在页面级别注入 stealth.min.js
+      if (stealthScript) {
+        await page.addInitScript(stealthScript);
+      }
+
+      // 注入其他反检测脚本到 context
       await injectUltimateStealthScripts(context);
 
       try {
-        const viewportSizes = [
-          { width: 1920, height: 1080 },
-          { width: 1366, height: 768 },
-          { width: 1536, height: 864 },
-        ];
-        const randomViewport =
-          viewportSizes[Math.floor(Math.random() * viewportSizes.length)];
-        await page.setViewportSize(randomViewport);
+        // 强制使用超大桌面端尺寸，确保得到桌面布局而非笔记本布局
+        const desktopViewport = { width: 2560, height: 1547 }; // 固定使用桌面端尺寸
+        await page.setViewportSize(desktopViewport);
+
+        // 等待一下确保viewport生效
+        await page.waitForTimeout(100);
+
+        // 强制刷新媒体查询
+        await page.evaluate(() => {
+          // 触发resize事件
+          window.dispatchEvent(new Event("resize"));
+        });
 
         const randomUserAgent = getRandomUserAgent();
         await page.setExtraHTTPHeaders({
           "User-Agent": randomUserAgent,
           "Accept-Language": "en-US,en;q=0.9",
           "Accept-Encoding": "gzip, deflate, br",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          "Sec-Ch-Ua":
+            '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+          "Sec-Ch-Ua-Mobile": "?0",
+          "Sec-Ch-Ua-Platform": '"Windows"',
+          "Sec-Fetch-Dest": "document",
+          "Sec-Fetch-Mode": "navigate",
+          "Sec-Fetch-Site": "none",
+          "Sec-Fetch-User": "?1",
+          "Upgrade-Insecure-Requests": "1",
           DNT: "1",
           Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
         });
 
         log.debug(`Set User-Agent: ${randomUserAgent}`);

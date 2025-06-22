@@ -30,7 +30,6 @@ export default async function scrapeMytheresa(
   executionId?: string,
 ): Promise<Product[]> {
   const siteName = "Mytheresa";
-  const homePageUrl = "https://www.mytheresa.com/";
 
   if (executionId) {
     await sendLogToBackend(
@@ -127,7 +126,7 @@ export default async function scrapeMytheresa(
       },
       launchContext: {
         launchOptions: {
-          headless: options.headless !== false,
+          headless: false, // 始终显示浏览器界面
         },
       },
       maxRequestsPerCrawl: maxRequests,
@@ -144,19 +143,60 @@ export default async function scrapeMytheresa(
   crawleeLog.info(
     "Mytheresa: Enhanced anti-detection crawler setup complete. Starting crawl...",
   );
-  const urlsToScrape = Array.isArray(startUrls) ? startUrls : [startUrls];
 
-  await crawler.run([
-    {
-      url: homePageUrl,
+  const womenUrls = startUrlsArray.filter(
+    (url) => inferGenderFromMytheresaUrl(url) === "women",
+  );
+  const menUrls = startUrlsArray.filter(
+    (url) => inferGenderFromMytheresaUrl(url) === "men",
+  );
+  const otherUrls = startUrlsArray.filter(
+    (url) => !inferGenderFromMytheresaUrl(url),
+  );
+
+  const initialRequests: {
+    url: string;
+    label: "HOMEPAGE";
+    userData: MytheresaUserData;
+  }[] = [];
+
+  if (womenUrls.length > 0) {
+    initialRequests.push({
+      url: "https://www.mytheresa.com/us/en/women",
       label: "HOMEPAGE",
       userData: {
         executionId,
         label: "HOMEPAGE",
-        urlsToScrape,
+        urlsToScrape: womenUrls,
       },
-    },
-  ]);
+    });
+  }
+
+  if (menUrls.length > 0) {
+    initialRequests.push({
+      url: "https://www.mytheresa.com/us/en/men",
+      label: "HOMEPAGE",
+      userData: {
+        executionId,
+        label: "HOMEPAGE",
+        urlsToScrape: menUrls,
+      },
+    });
+  }
+
+  if (otherUrls.length > 0) {
+    initialRequests.push({
+      url: "https://www.mytheresa.com/",
+      label: "HOMEPAGE",
+      userData: {
+        executionId,
+        label: "HOMEPAGE",
+        urlsToScrape: otherUrls,
+      },
+    });
+  }
+
+  await crawler.run(initialRequests);
 
   if (executionId) {
     await sendLogToBackend(

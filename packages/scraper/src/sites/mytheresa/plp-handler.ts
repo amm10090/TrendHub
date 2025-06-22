@@ -63,7 +63,7 @@ async function processProductItems(
         .locator(SELECTORS.PLP_PRODUCT_LINK)
         .getAttribute("href");
       if (relativeUrl) {
-        const fullUrl = new URL(relativeUrl, request.loadedUrl).toString();
+        const fullUrl = new URL(relativeUrl, request.url).toString();
         plpExtractedData.url = fullUrl;
 
         const sizeLocators = await item.locator(SELECTORS.PLP_SIZES).all();
@@ -216,6 +216,59 @@ export async function handlePlp(
   const { executionId, originUrl } = request.userData;
 
   localCrawlerLog.info(`Mytheresa: Identified as a LIST page: ${request.url}`);
+
+  // 等待页面加载完成前，先等待一段随机时间
+  await page.waitForTimeout(Math.random() * 3000 + 2000);
+
+  // 检查是否遇到反爬虫页面
+  const pageContent = await page.content();
+  if (
+    pageContent.includes("Access to this page has been denied") ||
+    pageContent.includes("blocked") ||
+    pageContent.includes("captcha") ||
+    pageContent.includes("Just a moment") ||
+    pageContent.includes("Checking your browser")
+  ) {
+    localCrawlerLog.warning(
+      `Mytheresa: Detected anti-bot page on ${request.url}.`,
+    );
+
+    // 尝试等待更长时间，让页面有机会自行解决
+    await page.waitForTimeout(Math.random() * 5000 + 10000);
+
+    // 尝试刷新页面
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(Math.random() * 3000 + 2000);
+
+    // 再次检查
+    const newContent = await page.content();
+    if (
+      newContent.includes("Access to this page has been denied") ||
+      newContent.includes("blocked") ||
+      newContent.includes("captcha")
+    ) {
+      localCrawlerLog.error(
+        `Mytheresa: Still blocked after refresh on ${request.url}.`,
+      );
+
+      // 保存截图用于调试
+      const screenshotPath = `mytheresa-blocked-${Date.now()}.png`;
+      await page.screenshot({ path: screenshotPath, fullPage: true });
+      localCrawlerLog.info(`Screenshot saved to: ${screenshotPath}`);
+
+      if (executionId) {
+        await sendLogToBackend(
+          executionId,
+          LocalScraperLogLevel.ERROR,
+          `Blocked by anti-bot protection on ${request.url}`,
+          { screenshotPath },
+        );
+      }
+
+      return; // 退出处理
+    }
+  }
+
   await page.waitForLoadState("networkidle");
 
   let productItems: Locator[] = [];

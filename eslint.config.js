@@ -17,6 +17,7 @@ export default [
       "**/dist/**",
       "**/build/**",
       "**/.next/**",
+      "packages/scraper/stealth.min.js",
     ],
   },
   {

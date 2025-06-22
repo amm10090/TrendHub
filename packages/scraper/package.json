@@ -29,10 +29,13 @@
     "start:prod": "node dist/main.js",
     "start:dev": "tsx src/main.ts",
     "build": "tsc --build tsconfig.json",
-    "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "test:cettire": "tsx src/test-cettire.ts",
     "test:farfetch": "tsx src/test-farfetch.ts",
     "test:italist": "tsx src/test-italist.ts",
-    "test:mytheresa": "tsx src/test/test-mytheresa.ts"
+    "test:mytheresa": "tsx src/test/test-mytheresa.ts",
+    "test:mytheresa-enhanced": "tsx src/test/test-mytheresa-enhanced.ts",
+    "test:viewport": "tsx src/test/test-viewport-debug.ts",
+    "test:yoox": "tsx src/test/test-yoox.ts"
   }
 }

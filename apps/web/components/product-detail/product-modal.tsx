@@ -17,28 +17,14 @@ import {
   Accordion,
   AccordionItem,
   Button,
-  Card,
-  CardBody,
   Image,
-  Link,
   Modal,
   ModalBody,
   ModalContent,
   ModalHeader,
 } from '@heroui/react';
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ExternalLink,
-  Heart,
-  Info,
-  Layers,
-  Palette,
-  Ruler,
-  Shirt,
-} from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+// import { useTranslations } from 'next-intl';
 import { useEffect, useState, useMemo } from 'react';
 
 import type { ProductDetail as SharedProductDetailType } from '@/types/product';
@@ -52,13 +38,6 @@ type LucideIconProps = {
 const LucideChevronLeft = ChevronLeft as React.ComponentType<LucideIconProps>;
 const LucideChevronRight = ChevronRight as React.ComponentType<LucideIconProps>;
 const LucideChevronDown = ChevronDown as React.ComponentType<LucideIconProps>;
-const LucideRuler = Ruler as React.ComponentType<LucideIconProps>;
-const LucidePalette = Palette as React.ComponentType<LucideIconProps>;
-const LucideInfo = Info as React.ComponentType<LucideIconProps>;
-const LucideLayers = Layers as React.ComponentType<LucideIconProps>;
-const LucideShirt = Shirt as React.ComponentType<LucideIconProps>;
-const LucideExternalLink = ExternalLink as React.ComponentType<LucideIconProps>;
-const LucideHeart = Heart as React.ComponentType<LucideIconProps>;
 
 /**
  * 产品模态框组件属性
@@ -68,6 +47,7 @@ const LucideHeart = Heart as React.ComponentType<LucideIconProps>;
  * @property {() => void} onClose - 关闭模态框的回调函数
  * @property {() => void} [onOpenInNewTab] - 可选的新标签页打开回调
  * @property {boolean} [showRedirectButton=true] - 是否显示跳转按钮，默认显示
+ * @property {SharedProductDetailType[]} [relatedProducts] - 相关产品列表
  */
 interface ProductModalProps {
   product: SharedProductDetailType; // 使用导入的共享类型
@@ -75,6 +55,7 @@ interface ProductModalProps {
   onClose: () => void;
   onOpenInNewTab?: () => void;
   showRedirectButton?: boolean;
+  relatedProducts?: SharedProductDetailType[];
 }
 
 export function ProductModal({
@@ -82,11 +63,11 @@ export function ProductModal({
   isOpen,
   onClose,
   onOpenInNewTab,
-  showRedirectButton = true,
+  relatedProducts = [],
 }: ProductModalProps) {
-  const t = useTranslations('product');
-  const trackT = useTranslations('track');
-  const [isFavorite, setIsFavorite] = useState(product.isFavorite || false);
+  // 暂时保留，未来用于国际化
+  // const t = useTranslations('product');
+  // const trackT = useTranslations('track');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   // activeImage 初始化使用 product.images[0] (如果存在)
   const [activeImage, setActiveImage] = useState(
@@ -164,463 +145,331 @@ export function ProductModal({
   }, [product.id]);
 
   /**
-   * 切换收藏状态
-   * 注意：这里只改变了本地状态，实际项目中需要与后端同步
+   * 处理新标签页打开商品详情
+   * 根据示例HTML的设计，立即打开新标签页而不关闭模态框
    */
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
+  const handleOpenInNewTab = () => {
+    // 立即在新标签页打开联盟链接
+    const newWindow = window.open(buyNowUrl, '_blank');
+
+    if (newWindow) {
+      newWindow.focus();
+    }
+    // 不关闭模态框，让用户可以继续浏览相关产品
   };
 
   /**
-   * 处理新标签页打开商品详情
-   * 如果没有提供自定义处理函数，则使用默认实现：
-   * - 根据当前语言和商品ID构建跳转URL
-   * - 新标签页打开并关闭当前模态框
+   * 处理购买按钮点击
    */
-  const handleOpenInNewTab =
-    onOpenInNewTab ||
-    (() => {
-      window.open(buyNowUrl, '_blank');
-      onClose();
-    });
+
+  const handleBuyNowClick = () => {
+    handleOpenInNewTab();
+    // 如果提供了自定义回调，也调用它
+    if (onOpenInNewTab) {
+      onOpenInNewTab();
+    }
+  };
 
   return (
     <Modal
       classNames={{
-        base: 'max-w-sm sm:max-w-lg md:max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-2 sm:mx-4 max-h-[90vh]',
-        backdrop: 'bg-black/40 backdrop-blur-sm',
-        body: 'p-0',
+        base: 'max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-2 sm:mx-4 h-[90vh] sm:h-[95vh]',
+        backdrop: 'bg-black/50 backdrop-blur-sm',
+        body: 'p-0 h-full',
         closeButton:
-          'top-1.5 right-1.5 text-text-tertiary-light dark:text-text-tertiary-dark hover:bg-bg-tertiary-light dark:hover:bg-bg-tertiary-dark transition-all duration-200 z-50 w-7 h-7',
+          'top-3 right-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 z-50 w-8 h-8',
       }}
       isOpen={isOpen}
       scrollBehavior="inside"
       onClose={onClose}
     >
-      <ModalContent className="shadow-xl dark:shadow-2xl transition-all duration-300 scrollbar-hide max-h-[90vh] flex flex-col">
-        <ModalHeader className="flex-shrink-0 flex flex-col gap-0.5 bg-[#EDF5FF] dark:bg-bg-primary-dark rounded-t-xl px-2 sm:px-3 lg:px-4 py-1.5">
-          <h2 className="text-sm sm:text-base lg:text-lg font-medium text-[#001833] dark:text-text-primary-dark truncate">
-            {product.name}
-          </h2>
-          {/* product.brand 现在是对象，需要访问其 name 属性 */}
-          <p className="text-xs text-[#004A94] dark:text-text-secondary-dark">
+      <ModalContent className="shadow-2xl transition-all duration-300 h-[90vh] sm:h-[95vh] flex flex-col bg-white">
+        <ModalHeader className="flex-shrink-0 flex flex-col gap-1 bg-white px-4 py-3 border-b border-gray-100">
+          <h2 className="text-lg sm:text-xl font-semibold text-black truncate">{product.name}</h2>
+          <p
+            className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer transition-colors"
+            onClick={() => {
+              const currentLocale = getCurrentLocale();
+
+              window.open(`/${currentLocale}/brands/${product.brand.slug}`, '_blank');
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const currentLocale = getCurrentLocale();
+
+                window.open(`/${currentLocale}/brands/${product.brand.slug}`, '_blank');
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            title={`View ${product.brand.name} brand page`}
+          >
             {product.brand.name}
           </p>
         </ModalHeader>
-        <ModalBody className="flex-1 min-h-0 max-h-[calc(90vh-80px)]">
-          <Card className="h-full border-none shadow-none bg-[#ffffff] dark:bg-bg-primary-dark rounded-b-xl scrollbar-hide">
-            <CardBody className="h-full p-0 scrollbar-hide">
-              <div className="flex flex-col lg:flex-row h-full gap-1.5 lg:gap-3 p-1.5 sm:p-2 lg:p-3">
-                {/* 产品图片轮播区域 - 更紧凑的尺寸 */}
-                <div className="flex flex-col gap-y-1 sm:gap-y-1.5 lg:w-[55%] lg:flex-shrink-0">
-                  <div className="relative w-full h-[500px] overflow-hidden rounded-lg shadow-sm flex items-center justify-center ">
-                    {/* 主图片 */}
-                    <Image
-                      isZoomed={false}
-                      alt={product.name}
-                      classNames={{
-                        wrapper: 'w-full h-full flex items-center justify-center',
-                        img: 'max-w-full max-h-full object-contain transition-transform duration-500 rounded-lg',
-                        zoomedWrapper: 'transition-all duration-500',
-                      }}
-                      src={activeImage}
-                    />
 
-                    {/* NEW标签 */}
-                    {product.isNew && (
-                      <span className="absolute top-2 left-2 px-1.5 py-0.5 text-xs font-medium text-[#ffffff] bg-[#0080FF] dark:bg-blue-700 rounded shadow-sm z-20">
-                        {t('tags.new')}
-                      </span>
-                    )}
+        <ModalBody className="p-0 flex-1 min-h-0 overflow-hidden">
+          <div className="flex flex-col lg:flex-row h-full">
+            {/* 左侧：产品图片区域 - 纯白色背景 */}
+            <div className="w-full lg:flex-1 bg-white relative flex items-center justify-center min-h-[250px] sm:min-h-[300px] lg:h-full lg:max-w-[50%]">
+              <div className="w-full h-full flex items-center justify-center p-6 lg:p-8">
+                <div className="relative w-full max-w-lg h-full max-h-[600px] flex items-center justify-center">
+                  {/* 主图片 */}
+                  <Image
+                    isZoomed={false}
+                    alt={product.name}
+                    classNames={{
+                      wrapper: 'w-full aspect-square flex items-center justify-center',
+                      img: 'max-w-full max-h-full object-contain',
+                    }}
+                    src={activeImage}
+                  />
 
-                    {/* 左右箭头导航 - 更小的设计 */}
-                    {allImages.length > 1 && (
-                      <>
-                        <Button
-                          isIconOnly
-                          aria-label="Previous image"
-                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-[#ffffff]/90 dark:bg-bg-tertiary-dark/90 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center z-10 shadow-md hover:bg-[#F3F4F6] hover:scale-105 dark:hover:bg-bg-tertiary-dark transition-all duration-200"
-                          onPress={prevImage}
-                          variant="flat"
-                        >
-                          <LucideChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#1a1a1a] dark:text-text-primary-dark" />
-                        </Button>
-                        <Button
-                          isIconOnly
-                          aria-label="Next image"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#ffffff]/90 dark:bg-bg-tertiary-dark/90 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center z-10 shadow-md hover:bg-[#F3F4F6] hover:scale-105 dark:hover:bg-bg-tertiary-dark transition-all duration-200"
-                          onPress={nextImage}
-                          variant="flat"
-                        >
-                          <LucideChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#1a1a1a] dark:text-text-primary-dark" />
-                        </Button>
-                      </>
-                    )}
-
-                    {/* 底部指示器 */}
-                    {allImages.length > 1 && (
-                      <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-x-1.5 z-10">
-                        {allImages.map((_, index) => (
-                          <Button
-                            isIconOnly
-                            key={index}
-                            aria-label={`Go to image ${index + 1}`}
-                            className={`transition-all duration-300 rounded-full ${
-                              selectedImageIndex === index
-                                ? 'w-6 h-1.5 bg-[#1a1a1a] dark:bg-text-primary-dark'
-                                : 'w-1.5 h-1.5 bg-[#999999]/40 dark:bg-text-tertiary-dark/60 hover:bg-[#666666]/60 dark:hover:bg-text-tertiary-dark/80'
-                            }`}
-                            onPress={() => setImageByIndex(index)}
-                            variant="flat"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 缩略图导航 - 更紧凑 */}
+                  {/* 左右箭头导航 */}
                   {allImages.length > 1 && (
-                    <div className="flex-shrink-0 overflow-x-auto flex gap-x-0.5 pb-0.5 scrollbar-hide">
-                      {allImages.map((image, index) => (
-                        <Button
+                    <>
+                      <Button
+                        isIconOnly
+                        aria-label="Previous image"
+                        className="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center z-10 shadow-lg hover:bg-white transition-all duration-200"
+                        onPress={prevImage}
+                        variant="flat"
+                      >
+                        <LucideChevronLeft className="h-4 w-4 lg:h-5 lg:w-5 text-gray-600" />
+                      </Button>
+                      <Button
+                        isIconOnly
+                        aria-label="Next image"
+                        className="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center z-10 shadow-lg hover:bg-white transition-all duration-200"
+                        onPress={nextImage}
+                        variant="flat"
+                      >
+                        <LucideChevronRight className="h-4 w-4 lg:h-5 lg:w-5 text-gray-600" />
+                      </Button>
+                    </>
+                  )}
+
+                  {/* 底部指示器 */}
+                  {allImages.length > 1 && (
+                    <div className="absolute bottom-2 lg:bottom-4 left-0 right-0 flex justify-center gap-x-2 z-10">
+                      {allImages.map((_, index) => (
+                        <button
                           key={index}
-                          aria-label={`选择图片 ${index + 1}`}
-                          className={`relative min-w-8 h-8 sm:min-w-9 sm:h-9 rounded overflow-hidden cursor-pointer transition-all duration-200 ${
-                            index === selectedImageIndex
-                              ? 'opacity-100 scale-105 shadow-md ring-1 ring-[#D0E4FF] dark:ring-border-primary-dark'
-                              : 'opacity-70 hover:opacity-100 hover:scale-102'
+                          aria-label={`Go to image ${index + 1}`}
+                          className={`transition-all duration-300 rounded-full ${
+                            selectedImageIndex === index
+                              ? 'w-6 h-2 lg:w-8 lg:h-2 bg-black'
+                              : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
                           }`}
-                          onPress={() => setImageByIndex(index)}
-                          variant="flat"
-                        >
-                          <Image
-                            alt={`Thumbnail ${index + 1}`}
-                            classNames={{
-                              wrapper: 'w-full h-full',
-                              img: 'w-full h-full object-cover object-center transition-all duration-300',
-                            }}
-                            src={image}
-                          />
-                        </Button>
+                          onClick={() => setImageByIndex(index)}
+                        />
                       ))}
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
 
-                {/* 产品信息卡片 - 灵活宽度 */}
-                <div className="flex flex-col lg:flex-1 lg:min-w-0 bg-[#faf9f6] dark:bg-bg-secondary-dark rounded-lg border border-[#e8e6e3] dark:border-border-primary-dark">
-                  {/* 头部信息区域 - 价格和收藏 */}
-                  <div className="flex-shrink-0 p-2.5 sm:p-3 border-b border-[#e8e6e3] dark:border-border-primary-dark">
-                    <div className="flex items-start justify-between mb-1.5">
-                      <div className="flex flex-col flex-1 gap-y-0.5">
-                        <div className="flex flex-col gap-y-0.5 sm:flex-row sm:items-center sm:gap-x-2">
-                          <p
-                            className={`text-lg sm:text-xl lg:text-2xl font-semibold ${product.discount ? 'text-[#EF4444] dark:text-red-400' : 'text-[#1a1a1a] dark:text-text-primary-dark'}`}
-                          >
-                            ¥{product.price.toLocaleString()}
-                          </p>
-                          {product.discount && (
-                            <span className="px-1.5 py-0.5 text-xs font-medium text-[#ffffff] bg-[#EF4444] dark:bg-red-700 rounded shadow-sm w-fit">
-                              -{product.discount}% {t('discount')}
-                            </span>
-                          )}
-                        </div>
-                        {product.originalPrice && product.discount && (
-                          <p className="text-sm line-through text-[#999999] dark:text-text-tertiary-dark">
-                            ¥{product.originalPrice.toLocaleString()}
-                          </p>
-                        )}
-                      </div>
-                      {/* 收藏按钮 */}
-                      <Button
-                        isIconOnly
-                        aria-label={isFavorite ? t('remove_from_favorites') : t('add_to_favorites')}
-                        className={`min-w-8 w-8 h-8 sm:min-w-9 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg shadow-sm hover:scale-105 transition-all duration-200 ${
-                          isFavorite
-                            ? 'bg-[#EF4444] text-[#ffffff] hover:bg-[#DC2626] dark:bg-red-600 dark:hover:bg-red-700'
-                            : 'bg-[#ffffff] dark:bg-bg-tertiary-dark text-[#1a1a1a] dark:text-text-primary-dark hover:bg-[#f5f5f2] dark:hover:bg-bg-secondary-dark'
-                        }`}
-                        variant="flat"
-                        onPress={toggleFavorite}
-                      >
-                        <LucideHeart
-                          className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                          fill={isFavorite ? 'currentColor' : 'none'}
-                        />
-                      </Button>
-                    </div>
+            {/* 右侧：产品详情区域 */}
+            <div className="w-full lg:flex-1 bg-white flex flex-col lg:max-w-[50%] lg:min-w-[400px] flex-1 lg:h-full">
+              {/* 滚动容器 */}
+              <div
+                className="flex-1 overflow-y-auto overscroll-contain scroll-smooth min-h-0"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#d1d5db transparent',
+                }}
+              >
+                {/* 产品基本信息 */}
+                <div className="flex-shrink-0 p-4 lg:p-6 sticky top-0 bg-white z-10 border-b border-gray-100 shadow-sm lg:shadow-none">
+                  {/* 品牌名称 */}
+                  <div className="mb-1">
+                    <h3
+                      className="text-lg font-semibold text-black hover:text-gray-600 cursor-pointer transition-colors"
+                      onClick={() => {
+                        const currentLocale = getCurrentLocale();
 
-                    {/* 库存状态 */}
-                    <div className="text-sm text-[#999999] dark:text-text-tertiary-dark">
-                      {product.availableQuantity > 0 ? (
-                        <>
-                          <span className="text-[#22C55E] dark:text-green-400 font-medium">
-                            {t('inStock')}
-                          </span>
-                          {' - '}
-                          {t('availableItems', { count: product.availableQuantity })}
-                        </>
-                      ) : (
-                        <span className="text-[#EF4444] dark:text-red-400 font-medium">
-                          {t('outOfStock')}
+                        window.open(`/${currentLocale}/brands/${product.brand.slug}`, '_blank');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          const currentLocale = getCurrentLocale();
+
+                          window.open(`/${currentLocale}/brands/${product.brand.slug}`, '_blank');
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      title={`View ${product.brand.name} brand page`}
+                    >
+                      {product.brand.name}
+                    </h3>
+                  </div>
+
+                  {/* 产品名称 */}
+                  <h2 className="text-lg sm:text-xl font-normal text-black mb-4 line-clamp-2">
+                    {product.name}
+                  </h2>
+
+                  {/* 价格信息 */}
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
+                    <span className="text-xl sm:text-2xl font-bold text-[#e74c3c]">
+                      ¥{product.price.toLocaleString()}
+                    </span>
+                    {product.originalPrice && product.discount && (
+                      <>
+                        <span className="text-lg text-gray-500 line-through">
+                          ¥{product.originalPrice.toLocaleString()}
                         </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 内容区域 - 描述和详情 */}
-                  <div className="flex-1 p-2.5 sm:p-3 overflow-y-auto scrollbar-hide">
-                    {/* 产品描述 */}
-                    <div className="mb-2">
-                      <p className="text-sm leading-relaxed text-[#1a1a1a] dark:text-text-primary-dark line-clamp-3">
-                        {product.description}
-                      </p>
-                    </div>
-
-                    {/* 产品详情手风琴 - 紧凑间距 */}
-                    <div className="space-y-0.5">
-                      {product.sizes && product.sizes.length > 0 && (
-                        <Accordion className="mb-1" variant="bordered">
-                          <AccordionItem
-                            key="sizes"
-                            aria-label={t('accordion.sizes')}
-                            classNames={{
-                              title:
-                                'font-medium text-sm text-[#1a1a1a] dark:text-text-primary-dark',
-                              trigger:
-                                'py-1.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded min-h-8',
-                              content: 'pb-1.5',
-                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded',
-                            }}
-                            indicator={({ isOpen }) => (
-                              <LucideChevronDown
-                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-                                size={14}
-                              />
-                            )}
-                            startContent={
-                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1 rounded">
-                                <LucideRuler
-                                  size={14}
-                                  className="text-[#1a1a1a] dark:text-text-primary-dark"
-                                />
-                              </div>
-                            }
-                            title={t('accordion.sizes')}
-                          >
-                            <div className="flex flex-wrap gap-1.5 py-1.5 px-1">
-                              {product.sizes.map((size, index) => (
-                                <Button
-                                  key={index}
-                                  className="min-w-10 h-7 bg-[#f5f5f2] dark:bg-bg-tertiary-dark text-[#1a1a1a] dark:text-text-primary-dark hover:bg-[#f5f5f2] dark:hover:bg-hover-background hover:scale-105 transition-all duration-200 text-xs"
-                                  variant="flat"
-                                  radius="sm"
-                                >
-                                  {size}
-                                </Button>
-                              ))}
-                            </div>
-                          </AccordionItem>
-                        </Accordion>
-                      )}
-
-                      {product.colors && product.colors.length > 0 && (
-                        <Accordion className="mb-1" variant="bordered">
-                          <AccordionItem
-                            key="colors"
-                            aria-label={t('accordion.colors')}
-                            classNames={{
-                              title:
-                                'font-medium text-sm text-[#1a1a1a] dark:text-text-primary-dark',
-                              trigger:
-                                'py-1.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded min-h-8',
-                              content: 'pb-1.5',
-                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded',
-                            }}
-                            indicator={({ isOpen }) => (
-                              <LucideChevronDown
-                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-                                size={14}
-                              />
-                            )}
-                            startContent={
-                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1 rounded">
-                                <LucidePalette
-                                  size={14}
-                                  className="text-[#1a1a1a] dark:text-text-primary-dark"
-                                />
-                              </div>
-                            }
-                            title={t('accordion.colors')}
-                          >
-                            <div className="flex flex-wrap gap-2 py-1.5 px-1">
-                              {product.colors.map((color, index) => {
-                                const isBlackOrDark =
-                                  color.value.toLowerCase() === '#000000' ||
-                                  color.value.toLowerCase() === '#000' ||
-                                  color.value.toLowerCase() === 'black' ||
-                                  color.value.toLowerCase().includes('rgb(0, 0, 0)') ||
-                                  color.value.toLowerCase().includes('rgba(0, 0, 0');
-
-                                return (
-                                  <Button
-                                    key={index}
-                                    className={`min-w-10 h-7 ${isBlackOrDark ? 'text-[#ffffff]' : 'text-[#1a1a1a]'} dark:text-text-primary-dark hover:scale-105 transition-all duration-200 shadow-sm text-xs`}
-                                    style={{ backgroundColor: color.value }}
-                                    variant="flat"
-                                    radius="sm"
-                                  >
-                                    {color.name}
-                                  </Button>
-                                );
-                              })}
-                            </div>
-                          </AccordionItem>
-                        </Accordion>
-                      )}
-
-                      {product.details && product.details.length > 0 && (
-                        <Accordion className="mb-1" variant="bordered">
-                          <AccordionItem
-                            key="details"
-                            aria-label={t('accordion.details')}
-                            classNames={{
-                              title:
-                                'font-medium text-sm text-[#1a1a1a] dark:text-text-primary-dark',
-                              trigger:
-                                'py-1.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded min-h-8',
-                              content: 'pb-1.5',
-                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded',
-                            }}
-                            indicator={({ isOpen }) => (
-                              <LucideChevronDown
-                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-                                size={14}
-                              />
-                            )}
-                            startContent={
-                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1 rounded">
-                                <LucideInfo
-                                  size={14}
-                                  className="text-[#1a1a1a] dark:text-text-primary-dark"
-                                />
-                              </div>
-                            }
-                            title={t('accordion.details')}
-                          >
-                            <ul className="list-disc pl-4 flex flex-col gap-y-1 text-[#1a1a1a] dark:text-text-primary-dark px-1 text-sm">
-                              {product.details.map((detail, index) => (
-                                <li key={index}>{detail}</li>
-                              ))}
-                            </ul>
-                          </AccordionItem>
-                        </Accordion>
-                      )}
-
-                      {product.material && (
-                        <Accordion className="mb-1" variant="bordered">
-                          <AccordionItem
-                            key="material"
-                            aria-label={t('accordion.material')}
-                            classNames={{
-                              title:
-                                'font-medium text-sm text-[#1a1a1a] dark:text-text-primary-dark',
-                              trigger:
-                                'py-1.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded min-h-8',
-                              content: 'pb-1.5',
-                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded',
-                            }}
-                            indicator={({ isOpen }) => (
-                              <LucideChevronDown
-                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-                                size={14}
-                              />
-                            )}
-                            startContent={
-                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1 rounded">
-                                <LucideLayers
-                                  size={14}
-                                  className="text-[#1a1a1a] dark:text-text-primary-dark"
-                                />
-                              </div>
-                            }
-                            title={t('accordion.material')}
-                          >
-                            <p className="text-[#1a1a1a] dark:text-text-primary-dark px-1 py-1 text-sm">
-                              {product.material}
-                            </p>
-                          </AccordionItem>
-                        </Accordion>
-                      )}
-
-                      {product.careInstructions && product.careInstructions.length > 0 && (
-                        <Accordion className="mb-1" variant="bordered">
-                          <AccordionItem
-                            key="care"
-                            aria-label={t('accordion.careInstructions')}
-                            classNames={{
-                              title:
-                                'font-medium text-sm text-[#1a1a1a] dark:text-text-primary-dark',
-                              trigger:
-                                'py-1.5 hover:bg-[#f5f5f2]/50 dark:hover:bg-bg-tertiary-dark/50 transition-colors duration-200 rounded min-h-8',
-                              content: 'pb-1.5',
-                              base: 'border-[#e8e6e3] dark:border-border-primary-dark rounded',
-                            }}
-                            indicator={({ isOpen }) => (
-                              <LucideChevronDown
-                                className={`text-[#999999] dark:text-text-tertiary-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-                                size={14}
-                              />
-                            )}
-                            startContent={
-                              <div className="bg-[#f5f5f2] dark:bg-bg-tertiary-dark p-1 rounded">
-                                <LucideShirt
-                                  size={14}
-                                  className="text-[#1a1a1a] dark:text-text-primary-dark"
-                                />
-                              </div>
-                            }
-                            title={t('accordion.careInstructions')}
-                          >
-                            <ul className="list-disc pl-4 flex flex-col gap-y-1 text-[#1a1a1a] dark:text-text-primary-dark px-1 text-sm">
-                              {product.careInstructions.map((instruction, index) => (
-                                <li key={index}>{instruction}</li>
-                              ))}
-                            </ul>
-                          </AccordionItem>
-                        </Accordion>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 底部操作区域 */}
-                  <div className="flex-shrink-0 p-2.5 sm:p-3 border-t border-[#e8e6e3] dark:border-border-primary-dark">
-                    {product.sku && (
-                      <div className="mb-1.5 text-xs text-[#999999] dark:text-text-tertiary-dark">
-                        {t('sku')}: {product.sku}
-                      </div>
+                        <span className="bg-[#e74c3c] text-white px-2 py-1 rounded text-sm font-semibold">
+                          -{product.discount}%
+                        </span>
+                      </>
                     )}
+                  </div>
 
-                    {/* 购买按钮 */}
-                    {showRedirectButton && (
-                      <Link
-                        isBlock
-                        isExternal
-                        showAnchorIcon
-                        href={buyNowUrl}
-                        anchorIcon={<LucideExternalLink className="ml-1 h-3.5 w-3.5" />}
-                        className="flex-1 py-2.5 px-4 font-medium bg-[#0080FF] text-[#ffffff] dark:bg-text-primary-dark dark:text-bg-primary-dark rounded-lg hover:bg-[#0062C3] dark:hover:bg-hover-text hover:scale-102 shadow-sm transition-all duration-200 text-center text-sm"
-                        isDisabled={product.availableQuantity === 0}
-                        onPress={handleOpenInNewTab}
+                  {/* Buy now 按钮 */}
+                  <Button
+                    className="w-full py-3 text-base font-semibold bg-black text-white hover:bg-gray-800 transition-all duration-200 mb-3 rounded-lg"
+                    onPress={handleBuyNowClick}
+                  >
+                    Buy now
+                  </Button>
+
+                  {/* 零售商信息 */}
+                  <div className="text-sm text-gray-600">
+                    From <strong>{product.brand.name.toUpperCase()}</strong>
+                  </div>
+                </div>
+
+                {/* 可滚动内容区域 */}
+                <div className="px-4 lg:px-6 pb-4">
+                  {/* 价格比较区域 */}
+                  <div className="bg-gray-50 p-4 rounded-lg text-center mb-6">
+                    <div className="text-sm font-semibold text-black mb-2">Compare 2 prices</div>
+                    <Button
+                      className="text-sm border border-black text-black hover:bg-black hover:text-white transition-all duration-200 px-4 py-2 rounded"
+                      variant="ghost"
+                    >
+                      Compare all prices
+                    </Button>
+                  </div>
+
+                  {/* 产品描述 */}
+                  <div className="mb-6">
+                    <p className="text-sm leading-relaxed text-gray-600">
+                      {product.description || 'Check out this amazing product.'}
+                    </p>
+                  </div>
+
+                  {/* 手风琴组件 */}
+                  <div className="mb-8">
+                    <Accordion
+                      variant="bordered"
+                      className="px-0"
+                      itemClasses={{
+                        base: 'border-gray-200 border-b border-t-0 border-l-0 border-r-0 rounded-none',
+                        title: 'font-semibold text-black text-sm',
+                        trigger: 'py-3 px-0 hover:bg-transparent',
+                        content: 'text-sm text-gray-600 pb-3',
+                        indicator: 'text-gray-400',
+                      }}
+                    >
+                      <AccordionItem
+                        key="size-fit"
+                        title="Size & fit"
+                        indicator={<LucideChevronDown className="w-4 h-4" />}
                       >
-                        {trackT('redirect_now')}
-                      </Link>
-                    )}
+                        For up-to-date size availability and fit information, please visit the
+                        retailer.
+                      </AccordionItem>
+
+                      <AccordionItem
+                        key="product-details"
+                        title="Product details"
+                        indicator={<LucideChevronDown className="w-4 h-4" />}
+                      >
+                        Detailed product information available on retailer website.
+                      </AccordionItem>
+                    </Accordion>
+                  </div>
+
+                  {/* 更多类似产品区域 */}
+                  <div className="border-t border-gray-200 pt-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-black">More like this</h3>
+                    </div>
+                    <div
+                      className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0"
+                      style={{
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                      }}
+                    >
+                      {relatedProducts.length > 0
+                        ? relatedProducts.slice(0, 6).map((relatedProduct) => {
+                            const relatedBuyNowUrl = `/${getCurrentLocale()}/track-redirect/product/${relatedProduct.id}`;
+
+                            return (
+                              <div
+                                key={relatedProduct.id}
+                                className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg border-2 border-transparent hover:border-black cursor-pointer transition-all duration-200 overflow-hidden"
+                                onClick={() => {
+                                  const newWindow = window.open(relatedBuyNowUrl, '_blank');
+
+                                  if (newWindow) {
+                                    newWindow.focus();
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    const newWindow = window.open(relatedBuyNowUrl, '_blank');
+
+                                    if (newWindow) {
+                                      newWindow.focus();
+                                    }
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                title={`${relatedProduct.brand.name} - ${relatedProduct.name}`}
+                              >
+                                {relatedProduct.images && relatedProduct.images.length > 0 ? (
+                                  <Image
+                                    alt={relatedProduct.name}
+                                    classNames={{
+                                      wrapper: 'w-full h-full',
+                                      img: 'w-full h-full object-cover object-center transition-all duration-300 hover:scale-110',
+                                    }}
+                                    src={relatedProduct.images[0]}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center text-xs text-gray-500 font-semibold">
+                                    {relatedProduct.brand.name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                        : [1, 2, 3, 4].map((item) => (
+                            <div
+                              key={item}
+                              className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg border-2 border-transparent cursor-not-allowed opacity-50"
+                            >
+                              <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center text-xs text-gray-500">
+                                •••
+                              </div>
+                            </div>
+                          ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </CardBody>
-          </Card>
+            </div>
+          </div>
         </ModalBody>
       </ModalContent>
     </Modal>

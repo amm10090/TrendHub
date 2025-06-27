@@ -146,7 +146,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ gender }) => {
           blockData = await contentBlockResponse.json();
           setContentBlock(blockData);
         } else if (contentBlockResponse.status !== 404) {
-          // 如果不是404错误，则记录错误
+          console.warn('Failed to fetch content block configuration:', contentBlockResponse.status);
         }
 
         // 2. 根据内容块配置构建产品API请求

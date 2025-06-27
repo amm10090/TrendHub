@@ -10,6 +10,7 @@
     "brands": "品牌",
     "guides": "购物指南",
     "popular_brands": "热门品牌",
+    "brands_with_products": "在售品牌",
     "brands_loading": "加载中",
     "brands_a_z": "品牌 A-Z",
     "viewAllCategories": "查看全部分类",
@@ -128,7 +129,10 @@
       "placeholder": "搜索商品、品牌",
       "label": "搜索",
       "close": "关闭搜索",
-      "clear": "导航.搜索.清除"
+      "clear": "导航.搜索.清除",
+      "loading": "正在搜索...",
+      "brand": "品牌",
+      "seeAllResults": "查看所有结果"
     },
     "account": "账户",
     "wishlist": "收藏夹",
@@ -682,7 +686,44 @@
     "back_to_top": "回到顶部",
     "results": "件商品",
     "from": "来自",
-    "partners": "个合作商家"
+    "partners": "个合作商家",
+    "compare_prices": "比较 {count} 个价格",
+    "compare_all_prices": "比较所有价格",
+    "size_fit": "尺寸与合身度",
+    "size_fit_description": "请访问零售商网站获取最新的尺寸供应和合身信息。",
+    "product_details": "产品详情",
+    "product_details_description": "详细产品信息请查看零售商网站。",
+    "more_like_this": "更多类似产品"
+  },
+  "featuredBrands": {
+    "title": "精选品牌",
+    "subtitle": "发现您喜爱的时尚品牌专属优惠",
+    "deals": "个优惠",
+    "errors": {
+      "fetchError": "加载精选品牌失败",
+      "unknown": "发生未知错误"
+    }
+  },
+  "liveDeals": {
+    "title": "实时优惠 & 优惠券",
+    "subtitle": "限时优惠和专属折扣码",
+    "featured": "精选",
+    "expires": "过期时间",
+    "clicks": "次点击",
+    "couponCode": "优惠券代码",
+    "copy": "复制",
+    "copied": "已复制！",
+    "close": "关闭",
+    "goToStore": "前往商店",
+    "sort": {
+      "newest": "最新",
+      "popular": "最热门",
+      "discount": "最优折扣",
+      "expires": "即将过期"
+    },
+    "errors": {
+      "unknown": "加载优惠失败"
+    }
   },
   "track": {
     "redirecting": "正在为您跳转...",

@@ -4,8 +4,10 @@ import { useParams } from 'next/navigation'; // Import useParams
 import { useTranslations } from 'next-intl';
 
 import { Banner } from '@/components/banner'; // Assuming these are general components for the homepage
+import { FeaturedBrands } from '@/components/featured-brands';
 import { IntroductionSection } from '@/components/introduction-section';
-import { ProductGrid } from '@/components/product-grid';
+import { LiveDealsRefined } from '@/components/live-deals-refined';
+import { ProductGridRefined } from '@/components/product-grid-refined';
 import { TrendingSection } from '@/components/trending-section';
 
 // You might want to create specific components for Women/Men sections
@@ -47,7 +49,9 @@ export default function CatchAllPage() {
       <div className="flex flex-col min-h-full">
         {/* Passing locale and other necessary props to Banner and other components might be needed */}
         <Banner />
-        <ProductGrid gender={undefined} /> {/* Pass undefined for home */}
+        <LiveDealsRefined />
+        <FeaturedBrands />
+        <ProductGridRefined gender={undefined} /> {/* Pass undefined for home */}
         <TrendingSection gender={undefined} /> {/* Pass undefined for home */}
         <IntroductionSection />
       </div>
@@ -60,7 +64,9 @@ export default function CatchAllPage() {
       <div className="flex flex-col min-h-full">
         {/* Banner might need to be gender-specific or be a different component */}
         <Banner gender={gender} />
-        <ProductGrid gender={gender} />
+        <LiveDealsRefined gender={gender} />
+        <FeaturedBrands gender={gender} />
+        <ProductGridRefined gender={gender} />
         <TrendingSection gender={gender} />
         {/* IntroductionSection might also need context or be different */}
         <IntroductionSection gender={gender} />

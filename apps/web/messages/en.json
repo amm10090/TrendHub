@@ -280,6 +280,7 @@
     "brands": "Brands",
     "guides": "Guides",
     "popular_brands": "Popular Brands",
+    "brands_with_products": "Available Brands",
     "brands_loading": "Loading...",
     "brands_a_z": "Brands A-Z",
     "viewAllCategories": "View All Categories",
@@ -398,7 +399,10 @@
       "placeholder": "Search for items and brands",
       "label": "Search",
       "close": "Close search",
-      "clear": "nav.search.clear"
+      "clear": "nav.search.clear",
+      "loading": "Searching...",
+      "brand": "Brand",
+      "seeAllResults": "See all results for"
     },
     "account": "Account",
     "wishlist": "Wishlist",
@@ -600,6 +604,13 @@
     "original_price": "Original Price",
     "outOfStock": "Out of Stock",
     "partners": "partners",
+    "compare_prices": "Compare {count} prices",
+    "compare_all_prices": "Compare all prices",
+    "size_fit": "Size & fit",
+    "size_fit_description": "For up-to-date size availability and fit information, please visit the retailer.",
+    "product_details": "Product details",
+    "product_details_description": "Detailed product information available on retailer website.",
+    "more_like_this": "More like this",
     "product_count": "{count} Products",
     "relatedProducts": "You May Also Like",
     "removeFromWishlist": "Remove from Wishlist",
@@ -664,6 +675,36 @@
     "redirecting_in": "Redirecting in {seconds} seconds",
     "security_notice": "For your account security, please confirm this is the website you want to visit",
     "taking_too_long": "Taking too long?"
+  },
+  "featuredBrands": {
+    "title": "Featured Brands",
+    "subtitle": "Discover exclusive deals from your favorite fashion brands",
+    "deals": "deals",
+    "errors": {
+      "fetchError": "Failed to load featured brands",
+      "unknown": "An unknown error occurred"
+    }
+  },
+  "liveDeals": {
+    "title": "Live Deals & Coupons",
+    "subtitle": "Limited-time offers and exclusive discount codes",
+    "featured": "FEATURED",
+    "expires": "Expires",
+    "clicks": "clicks",
+    "couponCode": "Coupon Code",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "close": "Close",
+    "goToStore": "Go to Store",
+    "sort": {
+      "newest": "Newest",
+      "popular": "Most Popular",
+      "discount": "Best Discount",
+      "expires": "Expiring Soon"
+    },
+    "errors": {
+      "unknown": "Failed to load deals"
+    }
   },
   "trending": {
     "title": "Trending Now",

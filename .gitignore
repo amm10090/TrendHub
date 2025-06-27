@@ -13,6 +13,7 @@ TrendHub_Scraper_Integration_Task.md
 .env
 .env.local
 .env.*.local
+dev/
 
 # logs
 *.log
@@ -181,3 +182,4 @@ gender_specific_content_plan.md
 packages/scraper/screenshots
 packages/scraper/test-results
 .cursorignore
+.claude/

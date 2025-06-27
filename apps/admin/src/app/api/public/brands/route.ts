@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { brandService } from "@/lib/services/brand.service";
+import { db } from "@/lib/db";
 
 // 公共获取品牌列表 API
 export async function GET(request: Request) {
@@ -17,6 +18,10 @@ export async function GET(request: Request) {
     const popularity = searchParams.has("popularity")
       ? searchParams.get("popularity") === "true"
       : undefined;
+    // 新增：只显示有商品的品牌
+    const withProducts = searchParams.has("withProducts")
+      ? searchParams.get("withProducts") === "true"
+      : false;
     const sortBy = searchParams.get("sortBy") || "name";
     const sortOrder = (searchParams.get("sortOrder") || "asc") as
       | "asc"
@@ -34,10 +39,101 @@ export async function GET(request: Request) {
       sortOrder,
     };
 
-    // 如果有letter参数，在search中加入首字母筛选逻辑
-    // 这里我们通过修改search参数来实现字母筛选，因为BrandQueryParams接口中没有letter字段
+    // 如果需要只显示有商品的品牌，使用直接数据库查询
     let brandsResult;
-    if (letter) {
+    if (withProducts) {
+      // 直接查询有商品的品牌
+      const brandsWithProducts = await db.brand.findMany({
+        where: {
+          isActive,
+          ...(popularity !== undefined ? { popularity } : {}),
+          ...(search
+            ? {
+                name: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              }
+            : {}),
+          ...(letter && letter.length === 1
+            ? {
+                name: {
+                  startsWith: letter.toUpperCase(),
+                  mode: "insensitive" as const,
+                },
+              }
+            : {}),
+          // 只包含有商品的品牌
+          products: {
+            some: {
+              isDeleted: false,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+          popularity: true,
+          _count: {
+            select: {
+              products: {
+                where: {
+                  isDeleted: false,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      const total = await db.brand.count({
+        where: {
+          isActive,
+          ...(popularity !== undefined ? { popularity } : {}),
+          ...(search
+            ? {
+                name: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              }
+            : {}),
+          ...(letter && letter.length === 1
+            ? {
+                name: {
+                  startsWith: letter.toUpperCase(),
+                  mode: "insensitive" as const,
+                },
+              }
+            : {}),
+          products: {
+            some: {
+              isDeleted: false,
+            },
+          },
+        },
+      });
+
+      brandsResult = {
+        items: brandsWithProducts.map((brand) => ({
+          id: brand.id,
+          name: brand.name,
+          slug: brand.slug,
+          logo: brand.logo,
+          popularity: brand.popularity,
+          productCount: brand._count.products,
+        })),
+        total,
+        totalPages: Math.ceil(total / limit),
+      };
+    } else if (letter) {
       // 当有字母筛选时，优先使用字母筛选
       brandsResult = await brandService.getBrands({
         ...queryParams,

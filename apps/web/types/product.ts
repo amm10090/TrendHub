@@ -31,6 +31,7 @@ export interface Product {
   careInstructions?: string[];
   relatedProducts?: Product[];
   url?: string;
+  source?: string; // 商品来源/商店
 }
 
 export interface ProductDetail
@@ -68,6 +69,7 @@ export interface ProductDetail
     | 'careInstructions'
     | 'relatedProducts'
     | 'url'
+    | 'source'
   > {
   images: string[]; // 确保 images 是必须的数组
   description: string; // 确保 description 是必须的字符串

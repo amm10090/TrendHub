@@ -1,14 +1,27 @@
 'use client';
 
 import { Navbar, NavbarContent, NavbarBrand, NavbarItem } from '@heroui/react';
-import { Button, Drawer, DrawerContent, Input, Link } from '@heroui/react';
+import {
+  Button,
+  Drawer,
+  DrawerContent,
+  Input,
+  Link,
+  Card,
+  CardBody,
+  Avatar,
+  Divider,
+} from '@heroui/react';
 import { Tabs, Tab } from '@heroui/react';
-import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { Heart, Menu, Search, ShoppingBag, User, X, Package, Building2 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { cn } from '@/lib/utils';
+import type { ProductDetail as ProductModalDetailType } from '@/types/product';
+
+import { useProductModal } from '../contexts/product-modal-context';
 
 import { LanguageSwitch } from './language-switch';
 import { NavbarBrands } from './navbar-brands';
@@ -26,6 +39,23 @@ interface MenuItem {
   isBrands?: boolean;
 }
 
+interface SearchSuggestion {
+  id: string;
+  type: 'product' | 'brand';
+  name: string;
+  price?: string;
+  originalPrice?: string | null;
+  image?: string | null;
+  brandName?: string | null;
+  brandSlug?: string | null;
+  categoryName?: string | null;
+  categorySlug?: string | null;
+  gender?: 'women' | 'men' | 'unisex' | null;
+  url: string;
+  slug?: string;
+  logo?: string | null;
+}
+
 // Define a type for the fetched category tree nodes (simplified for navbar needs)
 interface NavCategoryNode {
   id: string;
@@ -38,8 +68,10 @@ interface NavCategoryNode {
 
 export const MainNavbar = () => {
   const t = useTranslations('nav');
+  const tProduct = useTranslations('productGrid');
   const router = useRouter();
   const pathname = usePathname();
+  const { openProductModal } = useProductModal();
   const pathSegments = pathname ? pathname.split('/').filter(Boolean) : [];
   const locale = pathSegments[0] || '';
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -49,6 +81,15 @@ export const MainNavbar = () => {
     name: string;
     items: SubMenuItem[];
   } | null>(null);
+
+  // Search related states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // State for dynamic navigation items
   const [dynamicNavItems, setDynamicNavItems] = useState<MenuItem[]>([]);
@@ -166,6 +207,267 @@ export const MainNavbar = () => {
 
     fetchNavData();
   }, [locale, t, activeCategory]);
+
+  // Debounced search function
+  const debouncedSearch = useCallback((query: string) => {
+    const timeoutId = setTimeout(async () => {
+      if (query.trim().length >= 2) {
+        setIsSearchLoading(true);
+        try {
+          const response = await fetch(`/api/public/search?q=${encodeURIComponent(query)}&limit=8`);
+
+          if (response.ok) {
+            const data = await response.json();
+
+            setSearchSuggestions(data.data || []);
+            setShowSuggestions(true);
+          }
+        } catch {
+          setSearchSuggestions([]);
+        } finally {
+          setIsSearchLoading(false);
+        }
+      } else {
+        setSearchSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Handle search input changes
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+      setSelectedSuggestionIndex(-1);
+
+      if (value.trim().length === 0) {
+        setSearchSuggestions([]);
+        setShowSuggestions(false);
+
+        return;
+      }
+
+      debouncedSearch(value);
+    },
+    [debouncedSearch]
+  );
+
+  // Handle search keyboard navigation
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!showSuggestions || searchSuggestions.length === 0) {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+          // Navigate to search results page
+          router.push(`/${locale}/search?q=${encodeURIComponent(searchQuery.trim())}`);
+          setIsSearchOpen(false);
+          setShowSuggestions(false);
+        }
+
+        return;
+      }
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedSuggestionIndex((prev) =>
+            prev < searchSuggestions.length - 1 ? prev + 1 : 0
+          );
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedSuggestionIndex((prev) =>
+            prev > 0 ? prev - 1 : searchSuggestions.length - 1
+          );
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (selectedSuggestionIndex >= 0) {
+            const suggestion = searchSuggestions[selectedSuggestionIndex];
+
+            if (suggestion.type === 'product') {
+              // For products: open redirect page in new tab and show modal
+              window.open(`/${locale}/track-redirect/product/${suggestion.id}`, '_blank');
+
+              // Create product detail object for modal
+              const productDetailForModal: ProductModalDetailType = {
+                id: suggestion.id,
+                name: suggestion.name,
+                images: suggestion.image ? [suggestion.image] : [],
+                description: tProduct('defaultDescription'),
+                price: parseFloat(suggestion.price || '0'),
+                originalPrice: suggestion.originalPrice
+                  ? parseFloat(suggestion.originalPrice)
+                  : null,
+                discount: null,
+                isNew: false,
+                isFavorite: false,
+                currency: 'CNY',
+                gender: suggestion.gender,
+                categories: [],
+                sku: tProduct('defaultSku'),
+                status: 'ACTIVE',
+                videos: [],
+                brandName: suggestion.brandName,
+                brandSlug: suggestion.brandSlug,
+                brandId: suggestion.brandName || 'unknown-brand',
+                brandLogo: null,
+                categoryName: suggestion.categoryName,
+                categorySlug: suggestion.categorySlug,
+                categoryId: suggestion.categoryName || 'unknown-category',
+                inventory: 10,
+                availableQuantity: 10,
+                careInstructions: [tProduct('defaultCareInstructions')],
+                relatedProducts: [],
+                material: null,
+                details: null,
+                sizes: null,
+                colors: null,
+                specifications: null,
+                adUrl: null,
+                brand: {
+                  id: suggestion.brandName || 'unknown-brand',
+                  name: suggestion.brandName || tProduct('unknownBrand'),
+                  slug: suggestion.brandSlug || 'unknown-brand',
+                  logo: null,
+                },
+                category: {
+                  id: suggestion.categoryName || 'unknown-category',
+                  name: suggestion.categoryName || tProduct('unknownCategory'),
+                  slug: suggestion.categorySlug || 'unknown-category',
+                },
+              };
+
+              openProductModal(productDetailForModal);
+            } else {
+              // For brands and other types: just navigate
+              router.push(suggestion.url);
+            }
+
+            setIsSearchOpen(false);
+            setShowSuggestions(false);
+            setSearchQuery('');
+          } else if (searchQuery.trim()) {
+            router.push(`/${locale}/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            setIsSearchOpen(false);
+            setShowSuggestions(false);
+          }
+          break;
+        case 'Escape':
+          setShowSuggestions(false);
+          setSelectedSuggestionIndex(-1);
+          break;
+      }
+    },
+    [
+      showSuggestions,
+      searchSuggestions,
+      selectedSuggestionIndex,
+      searchQuery,
+      router,
+      locale,
+      tProduct,
+      openProductModal,
+    ]
+  );
+
+  // Handle suggestion click
+  const handleSuggestionClick = useCallback(
+    (suggestion: SearchSuggestion) => {
+      if (suggestion.type === 'product') {
+        // For products: open redirect page in new tab and show modal
+        window.open(`/${locale}/track-redirect/product/${suggestion.id}`, '_blank');
+
+        // Create product detail object for modal (similar to product-grid-original logic)
+        const productDetailForModal: ProductModalDetailType = {
+          id: suggestion.id,
+          name: suggestion.name,
+          images: suggestion.image ? [suggestion.image] : [],
+          description: tProduct('defaultDescription'),
+          price: parseFloat(suggestion.price || '0'),
+          originalPrice: suggestion.originalPrice ? parseFloat(suggestion.originalPrice) : null,
+          discount: null,
+          isNew: false,
+          isFavorite: false,
+          currency: 'CNY',
+          gender: suggestion.gender,
+          categories: [],
+          sku: tProduct('defaultSku'),
+          status: 'ACTIVE',
+          videos: [],
+          brandName: suggestion.brandName,
+          brandSlug: suggestion.brandSlug,
+          brandId: suggestion.brandName || 'unknown-brand',
+          brandLogo: null,
+          categoryName: suggestion.categoryName,
+          categorySlug: suggestion.categorySlug,
+          categoryId: suggestion.categoryName || 'unknown-category',
+          inventory: 10,
+          availableQuantity: 10,
+          careInstructions: [tProduct('defaultCareInstructions')],
+          relatedProducts: [],
+          material: null,
+          details: null,
+          sizes: null,
+          colors: null,
+          specifications: null,
+          adUrl: null,
+          brand: {
+            id: suggestion.brandName || 'unknown-brand',
+            name: suggestion.brandName || tProduct('unknownBrand'),
+            slug: suggestion.brandSlug || 'unknown-brand',
+            logo: null,
+          },
+          category: {
+            id: suggestion.categoryName || 'unknown-category',
+            name: suggestion.categoryName || tProduct('unknownCategory'),
+            slug: suggestion.categorySlug || 'unknown-category',
+          },
+        };
+
+        openProductModal(productDetailForModal);
+      } else {
+        // For brands and other types: just navigate
+        router.push(suggestion.url);
+      }
+
+      setIsSearchOpen(false);
+      setShowSuggestions(false);
+      setSearchQuery('');
+    },
+    [router, locale, tProduct, openProductModal]
+  );
+
+  // Handle search open/close
+  const handleSearchOpen = useCallback(() => {
+    setIsSearchOpen(true);
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  const handleSearchClose = useCallback(() => {
+    setIsSearchOpen(false);
+    setShowSuggestions(false);
+    setSearchQuery('');
+    setSearchSuggestions([]);
+    setSelectedSuggestionIndex(-1);
+  }, []);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleItemClick = (item: MenuItem, e: React.MouseEvent<Element>) => {
     e.preventDefault();
@@ -332,33 +634,184 @@ export const MainNavbar = () => {
         <NavbarContent justify="end">
           <div className="flex items-center gap-2">
             {isSearchOpen ? (
-              <div className="absolute inset-0 px-4 flex items-center bg-bg-secondary-light dark:bg-bg-secondary-dark">
-                <Input
-                  aria-label={t('search.label')}
-                  classNames={{
-                    base: 'w-full',
-                    input: 'text-small text-text-primary-light dark:text-text-primary-dark',
-                    inputWrapper:
-                      'h-10 bg-bg-tertiary-light dark:bg-bg-tertiary-dark border-border-primary-light dark:border-border-primary-dark',
-                  }}
-                  endContent={
-                    <Button
-                      isIconOnly
-                      aria-label={t('search.close')}
-                      className="text-text-primary-light dark:text-text-primary-dark"
-                      size="sm"
-                      variant="light"
-                      onPointerDown={() => setIsSearchOpen(false)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  }
-                  placeholder={t('search.placeholder')}
-                  startContent={
-                    <Search className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />
-                  }
-                  type="search"
-                />
+              <div
+                className="absolute inset-0 px-4 flex items-center bg-bg-secondary-light dark:bg-bg-secondary-dark"
+                ref={suggestionsRef}
+              >
+                <div className="w-full relative">
+                  <Input
+                    ref={searchInputRef}
+                    aria-label={t('search.label')}
+                    classNames={{
+                      base: 'w-full',
+                      input: 'text-small text-text-primary-light dark:text-text-primary-dark',
+                      inputWrapper:
+                        'h-10 bg-bg-tertiary-light dark:bg-bg-tertiary-dark border-border-primary-light dark:border-border-primary-dark',
+                    }}
+                    endContent={
+                      <Button
+                        isIconOnly
+                        aria-label={t('search.close')}
+                        className="text-text-primary-light dark:text-text-primary-dark"
+                        size="sm"
+                        variant="light"
+                        onPointerDown={handleSearchClose}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    }
+                    placeholder={t('search.placeholder')}
+                    startContent={
+                      <Search className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />
+                    }
+                    type="search"
+                    value={searchQuery}
+                    onValueChange={handleSearchChange}
+                    onKeyDown={handleSearchKeyDown}
+                  />
+
+                  {/* Search Suggestions Dropdown */}
+                  {showSuggestions && (searchSuggestions.length > 0 || isSearchLoading) && (
+                    <Card className="absolute top-full left-0 right-0 mt-2 z-50 max-h-96 overflow-y-auto bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark shadow-lg">
+                      <CardBody className="p-0">
+                        {isSearchLoading ? (
+                          <div className="p-4 text-center text-sm text-text-secondary-light dark:text-text-secondary-dark">
+                            {t('search.loading')}
+                          </div>
+                        ) : (
+                          <>
+                            {searchSuggestions.map((suggestion, index) => (
+                              <div
+                                key={`${suggestion.type}-${suggestion.id}`}
+                                className={cn(
+                                  'flex items-center gap-3 p-3 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark cursor-pointer transition-colors border-b border-border-primary-light dark:border-border-primary-dark last:border-b-0',
+                                  selectedSuggestionIndex === index &&
+                                    'bg-hover-bg-light dark:bg-hover-bg-dark'
+                                )}
+                                onClick={() => handleSuggestionClick(suggestion)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleSuggestionClick(suggestion);
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                {suggestion.type === 'product' ? (
+                                  <>
+                                    <div className="w-10 h-10 flex-shrink-0">
+                                      {suggestion.image ? (
+                                        <Avatar
+                                          src={suggestion.image}
+                                          alt={suggestion.name}
+                                          className="w-10 h-10"
+                                          radius="sm"
+                                        />
+                                      ) : (
+                                        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center">
+                                          <Package className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark truncate">
+                                        {suggestion.name}
+                                      </p>
+                                      <div className="flex items-center gap-2 text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                                        {suggestion.brandName && (
+                                          <span>{suggestion.brandName}</span>
+                                        )}
+                                        {suggestion.categoryName && (
+                                          <>
+                                            {suggestion.brandName && <span>•</span>}
+                                            <span>{suggestion.categoryName}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {suggestion.price && (
+                                      <div className="flex-shrink-0 text-right">
+                                        <p className="text-sm font-semibold text-text-primary-light dark:text-text-primary-dark">
+                                          ¥{suggestion.price}
+                                        </p>
+                                        {suggestion.originalPrice &&
+                                          suggestion.originalPrice !== suggestion.price && (
+                                            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark line-through">
+                                              ¥{suggestion.originalPrice}
+                                            </p>
+                                          )}
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="w-10 h-10 flex-shrink-0">
+                                      {suggestion.logo ? (
+                                        <Avatar
+                                          src={suggestion.logo}
+                                          alt={suggestion.name}
+                                          className="w-10 h-10"
+                                          radius="sm"
+                                        />
+                                      ) : (
+                                        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center">
+                                          <Building2 className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark truncate">
+                                        {suggestion.name}
+                                      </p>
+                                      <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                                        {t('search.brand')}
+                                      </p>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            ))}
+                            {searchQuery.trim() && (
+                              <>
+                                <Divider />
+                                <div
+                                  className="flex items-center gap-3 p-3 hover:bg-hover-bg-light dark:hover:bg-hover-bg-dark cursor-pointer transition-colors"
+                                  onClick={() => {
+                                    router.push(
+                                      `/${locale}/search?q=${encodeURIComponent(searchQuery.trim())}`
+                                    );
+                                    handleSearchClose();
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      router.push(
+                                        `/${locale}/search?q=${encodeURIComponent(searchQuery.trim())}`
+                                      );
+                                      handleSearchClose();
+                                    }
+                                  }}
+                                  role="button"
+                                  tabIndex={0}
+                                >
+                                  <div className="w-10 h-10 flex items-center justify-center">
+                                    <Search className="w-5 h-5 text-text-secondary-light dark:text-text-secondary-dark" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm text-text-primary-light dark:text-text-primary-dark">
+                                      {t('search.seeAllResults')} &quot;{searchQuery}&quot;
+                                    </p>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </>
+                        )}
+                      </CardBody>
+                    </Card>
+                  )}
+                </div>
               </div>
             ) : (
               <>
@@ -367,7 +820,7 @@ export const MainNavbar = () => {
                     isIconOnly
                     aria-label={t('search.label')}
                     variant="light"
-                    onPointerDown={() => setIsSearchOpen(true)}
+                    onPointerDown={handleSearchOpen}
                   >
                     <Search className="h-5 w-5" />
                   </Button>

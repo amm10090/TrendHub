@@ -29,6 +29,7 @@ export async function GET(
     }
 
     // 转换 Decimal 为字符串，并显式构建响应对象以确保字段名正确
+    // 通过解构移除 adurl (lowercase)，然后添加 adUrl (camelCase) 来解决大小写冲突问题
     const { adurl, ...restOfProduct } = product;
     const productSerializable = {
       ...restOfProduct,
@@ -55,7 +56,7 @@ export async function GET(
         // 不暴露 level, parentId 等内部结构
       },
       updatedAt: product.updatedAt.toISOString(),
-      // videos 字段已包含在 product 中
+      // videos 字段已包含在 restOfProduct 中
     };
 
     return NextResponse.json(productSerializable);

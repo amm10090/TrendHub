@@ -55,17 +55,6 @@ export default function TrackPageContent({ locale }: TrackPageContentProps) {
             const url =
               foundProduct.adUrl || foundProduct.url || `/${locale}/product/${foundProduct.id}`;
 
-            // 调试信息
-            console.log('TrackPageContent Debug:', {
-              productId: foundProduct.id,
-              productName: foundProduct.name,
-              adUrl: foundProduct.adUrl,
-              url: foundProduct.url,
-              selectedUrl: url,
-              adUrlType: typeof foundProduct.adUrl,
-              urlType: typeof foundProduct.url,
-            });
-
             setTargetUrl(url);
             setLoading(false);
           } catch {

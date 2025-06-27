@@ -2,9 +2,14 @@
 
 import { Button, Card, Chip, Image, Select, SelectItem } from '@heroui/react';
 import { Clock, List, Star, TrendingUp } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, useCallback } from 'react';
 import * as React from 'react';
+
+import type { ProductDetail as ProductModalDetailType } from '@/types/product';
+
+import { useProductModal } from '../contexts/product-modal-context';
 
 interface Deal {
   id: string;
@@ -26,6 +31,7 @@ interface Deal {
   clicks: number;
   featured: boolean;
   categorySlug: string;
+  source: string; // Product source (store)
 }
 
 interface LiveDealsRefinedProps {
@@ -42,26 +48,48 @@ interface ProductApiData {
   originalPrice?: number | string;
   discount?: number | string;
   brandName?: string;
-  brandLogo?: string | null;
+  brandLogo?: string | undefined;
   gender?: string;
   categoryName?: string;
   categorySlug?: string;
   adUrl?: string;
   url?: string;
   isNew?: boolean;
+  source?: string; // Product source (store)
+
+  // Additional fields for ProductDetail compatibility
+  images?: string[];
+  currency?: string;
+  categories?: string[];
+  status?: string;
+  videos?: string[];
+  brandSlug?: string;
+  brandId?: string;
+  categoryId?: string;
+  inventory?: number;
+  careInstructions?: string[];
+  material?: string;
+  details?: string[];
+  sizes?: string[];
+  colors?: Array<{ name: string; value: string }> | string[];
+  specifications?: Record<string, unknown>;
+
+  // Coupon related fields from database
+  coupon?: string; // 优惠券代码
+  couponDescription?: string; // 优惠券描述
+  couponExpirationDate?: string; // 优惠券过期日期
+  promotionUrl?: string; // 推广链接
 }
 
 type ViewMode = 'original' | 'compact' | 'dense' | 'list';
 type SortOption = 'newest' | 'popular' | 'discount' | 'expires';
-type CategoryFilter =
-  | 'all'
-  | 'fashion'
-  | 'footwear'
-  | 'jewelry'
-  | 'electronics'
-  | 'beauty'
-  | 'home'
-  | 'sports';
+type SourceFilter = string; // Dynamic store source filter
+
+interface StoreOption {
+  value: string;
+  label: string;
+  count: number;
+}
 
 // Mock data - replace with actual API call
 const mockDeals: Deal[] = [
@@ -85,6 +113,7 @@ const mockDeals: Deal[] = [
     clicks: 245,
     featured: true,
     categorySlug: 'footwear',
+    source: 'footshop',
   },
   {
     id: '2',
@@ -106,6 +135,7 @@ const mockDeals: Deal[] = [
     clicks: 182,
     featured: false,
     categorySlug: 'jewelry',
+    source: 'kay',
   },
   {
     id: '3',
@@ -127,6 +157,7 @@ const mockDeals: Deal[] = [
     clicks: 158,
     featured: false,
     categorySlug: 'fashion',
+    source: 'hottopic',
   },
   {
     id: '4',
@@ -148,6 +179,7 @@ const mockDeals: Deal[] = [
     clicks: 201,
     featured: true,
     categorySlug: 'fashion',
+    source: 'belk',
   },
   {
     id: '5',
@@ -169,6 +201,7 @@ const mockDeals: Deal[] = [
     clicks: 325,
     featured: false,
     categorySlug: 'sports',
+    source: 'nike',
   },
   {
     id: '6',
@@ -190,6 +223,7 @@ const mockDeals: Deal[] = [
     clicks: 189,
     featured: false,
     categorySlug: 'beauty',
+    source: 'sephora',
   },
   {
     id: '7',
@@ -210,6 +244,7 @@ const mockDeals: Deal[] = [
     categorySlug: 'electronics',
     discount: 'Save $200+',
     savings: 'Save $200+',
+    source: 'bestbuy',
   },
   {
     id: '8',
@@ -231,18 +266,25 @@ const mockDeals: Deal[] = [
     clicks: 185,
     featured: false,
     categorySlug: 'fashion',
+    source: 'zara',
   },
 ];
 
 export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, className = '' }) => {
   const t = useTranslations('liveDeals');
+  const { openProductModal } = useProductModal();
+  const params = useParams();
+  const locale = (params?.locale as string) || 'zh';
+
   const [deals, setDeals] = useState<Deal[]>([]);
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
+  const [originalProducts, setOriginalProducts] = useState<Map<string, ProductApiData>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('compact');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [availableStores, setAvailableStores] = useState<StoreOption[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [loadMoreCount, setLoadMoreCount] = useState(0);
@@ -257,14 +299,33 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch products with discounts/coupons to create deals
-        const response = await fetch('/api/public/products?limit=50&sale=true');
+        // Fetch products with coupons or discounts to create deals
+        // Include products that have: coupons, discounts, or are on sale
+        const params = new URLSearchParams({
+          limit: '50',
+          // Get products with any promotion
+          sale: 'true',
+          // The backend should include products with coupon field or discount > 0
+        });
+
+        if (gender) {
+          params.append('gender', gender);
+        }
+
+        const response = await fetch(`/api/public/products?${params.toString()}`);
 
         if (!response.ok) {
           throw new Error(t('liveDeals.errors.fetchError'));
         }
 
         const result = await response.json();
+
+        // Store original product data for modal use
+        const originalProductsMap = new Map();
+
+        (result.data || []).forEach((product: ProductApiData) => {
+          originalProductsMap.set(product.id, product);
+        });
 
         // Transform products into deals format
         const dealsFromProducts = (result.data || []).map((product: ProductApiData): Deal => {
@@ -291,6 +352,45 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
           const categorySlug = product.categorySlug || product.gender || 'fashion';
           const category = categoryMap[categorySlug] || 'FASHION';
 
+          // Check if product has coupon or discount
+          const hasCoupon = product.coupon && product.coupon.trim() !== '';
+          const hasDiscount = product.discount && parseFloat(String(product.discount)) > 0;
+
+          // Use couponDescription as deal title if available, otherwise product name
+          const dealTitle = product.couponDescription || product.name;
+
+          // Use coupon code if available, otherwise SKU
+          const dealCode = hasCoupon ? product.coupon : product.sku;
+
+          // Calculate discount display
+          let discountDisplay = 'Special Offer';
+
+          if (hasDiscount) {
+            discountDisplay = `${Math.round(parseFloat(String(product.discount)))}% off`;
+          } else if (hasCoupon && product.couponDescription) {
+            discountDisplay = 'Coupon Available';
+          }
+
+          // Calculate savings
+          let savingsDisplay = 'Save More';
+
+          if (product.originalPrice && product.price) {
+            const originalPrice = parseFloat(String(product.originalPrice));
+            const currentPrice = parseFloat(String(product.price));
+
+            savingsDisplay = `Save ¥${(originalPrice - currentPrice).toLocaleString()}`;
+          }
+
+          // Use coupon expiration date if available
+          const expirationDate = product.couponExpirationDate
+            ? new Date(product.couponExpirationDate).toLocaleDateString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString();
+
+          // Check if coupon is expired
+          const isExpired = product.couponExpirationDate
+            ? new Date(product.couponExpirationDate) < new Date()
+            : false;
+
           return {
             id: product.id,
             merchant: {
@@ -299,27 +399,51 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
               category: category,
               categoryColor: categoryColors[category] || '#EF4444',
             },
-            title: product.name,
-            description: product.description || 'Limited time offer',
-            code: product.sku || undefined,
-            discount: product.discount
-              ? `${Math.round(parseFloat(String(product.discount)))}% off`
-              : 'Special Offer',
-            savings:
-              product.originalPrice && product.price
-                ? `Save ¥${(parseFloat(String(product.originalPrice)) - parseFloat(String(product.price))).toLocaleString()}`
-                : 'Save More',
-            affiliateUrl: product.adUrl || product.url || '#',
+            title: dealTitle,
+            description:
+              product.description ||
+              (hasCoupon ? 'Limited time coupon offer' : 'Limited time offer'),
+            code: dealCode || undefined,
+            discount: discountDisplay,
+            savings: savingsDisplay,
+            affiliateUrl: product.promotionUrl || product.adUrl || product.url || '#',
             rating: 4.0 + Math.random() * 0.7, // Generate rating between 4.0-4.7
-            expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(), // 30 days from now
-            isExpired: false,
+            expires: expirationDate,
+            isExpired: isExpired,
             clicks: Math.floor(Math.random() * 300) + 50, // Random clicks 50-350
-            featured: product.isNew || Math.random() > 0.7,
+            featured: product.isNew || hasCoupon || Math.random() > 0.7,
             categorySlug: categorySlug,
+            source: product.source || 'unknown',
           };
         });
 
         setDeals(dealsFromProducts);
+        setOriginalProducts(originalProductsMap);
+
+        // Extract unique stores and create store options
+        const storeCount: { [key: string]: number } = {};
+
+        dealsFromProducts.forEach((deal: Deal) => {
+          storeCount[deal.source] = (storeCount[deal.source] || 0) + 1;
+        });
+
+        const storeOptions: StoreOption[] = [
+          { value: 'all', label: t('allStores') || 'All Stores', count: dealsFromProducts.length },
+        ];
+
+        Object.entries(storeCount)
+          .sort(([, a], [, b]) => b - a) // Sort by count descending
+          .forEach(([source, count]) => {
+            if (source !== 'unknown') {
+              storeOptions.push({
+                value: source,
+                label: source.charAt(0).toUpperCase() + source.slice(1),
+                count: count,
+              });
+            }
+          });
+
+        setAvailableStores(storeOptions);
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : t('liveDeals.errors.unknown');
 
@@ -327,6 +451,29 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
 
         // Fallback to mock data if API fails
         setDeals(mockDeals);
+
+        // Generate store options from mock data
+        const mockStoreCount: { [key: string]: number } = {};
+
+        mockDeals.forEach((deal: Deal) => {
+          mockStoreCount[deal.source] = (mockStoreCount[deal.source] || 0) + 1;
+        });
+
+        const mockStoreOptions: StoreOption[] = [
+          { value: 'all', label: t('allStores') || 'All Stores', count: mockDeals.length },
+        ];
+
+        Object.entries(mockStoreCount)
+          .sort(([, a], [, b]) => b - a)
+          .forEach(([source, count]) => {
+            mockStoreOptions.push({
+              value: source,
+              label: source.charAt(0).toUpperCase() + source.slice(1),
+              count: count,
+            });
+          });
+
+        setAvailableStores(mockStoreOptions);
       } finally {
         setIsLoading(false);
       }
@@ -338,9 +485,9 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
   const filterAndSortDeals = useCallback(() => {
     let filtered = [...deals];
 
-    // Filter by category
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter((deal) => deal.categorySlug === categoryFilter);
+    // Filter by store source
+    if (sourceFilter !== 'all') {
+      filtered = filtered.filter((deal) => deal.source === sourceFilter);
     }
 
     // Sort deals
@@ -358,7 +505,7 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
     });
 
     setFilteredDeals(filtered);
-  }, [deals, categoryFilter, sortBy]);
+  }, [deals, sourceFilter, sortBy]);
 
   useEffect(() => {
     filterAndSortDeals();
@@ -368,7 +515,7 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
   useEffect(() => {
     setCurrentPage(1);
     setLoadMoreCount(0);
-  }, [categoryFilter, sortBy]);
+  }, [sourceFilter, sortBy]);
 
   const handleCopyCode = useCallback(async (code: string) => {
     try {
@@ -381,20 +528,138 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
   }, []);
 
   const handleDealClick = useCallback(
-    (deal: Deal) => {
-      if (deal.code) {
+    (deal: Deal, skipCouponCopy = false) => {
+      // Don't handle clicks for expired deals
+      if (deal.isExpired) return;
+
+      // 1. Copy coupon code if available (only if not already copied via button)
+      if (deal.code && !skipCouponCopy) {
         handleCopyCode(deal.code);
       }
-      window.open(deal.affiliateUrl, '_blank');
 
-      // Update click count
+      // 2. Open redirect page in new tab (like ProductGrid)
+      window.open(`/${locale}/track-redirect/product/${deal.id}`, '_blank');
+
+      // 3. Open product modal in current page using original product data
+      const originalProduct = originalProducts.get(deal.id);
+
+      const productDetailForModal: ProductModalDetailType = originalProduct
+        ? {
+            // Use original product data when available
+            id: originalProduct.id,
+            name: originalProduct.name,
+            images: originalProduct.images || [],
+            description: originalProduct.description || deal.description,
+            price: parseFloat(String(originalProduct.price)) || 0,
+            originalPrice: originalProduct.originalPrice
+              ? parseFloat(String(originalProduct.originalPrice))
+              : undefined,
+            discount: originalProduct.discount
+              ? parseFloat(String(originalProduct.discount))
+              : undefined,
+            isNew: originalProduct.isNew || deal.featured,
+            isFavorite: false,
+            currency: originalProduct.currency || 'CNY',
+            gender: (originalProduct.gender as 'women' | 'men' | 'unisex') || gender || undefined,
+            categories: originalProduct.categories || [deal.categorySlug],
+            sku: originalProduct.sku || deal.code || undefined,
+            status: originalProduct.status || (deal.isExpired ? 'expired' : 'active'),
+            videos: originalProduct.videos || [],
+            brandName: originalProduct.brandName || deal.merchant.name,
+            brandSlug:
+              originalProduct.brandSlug || deal.merchant.name.toLowerCase().replace(/\s+/g, '-'),
+            brandId:
+              originalProduct.brandId || deal.merchant.name.toLowerCase().replace(/\s+/g, '-'),
+            brandLogo: originalProduct.brandLogo || (deal.merchant.logo ?? undefined),
+            categoryName: originalProduct.categoryName || deal.merchant.category,
+            categorySlug: originalProduct.categorySlug || deal.categorySlug,
+            categoryId: originalProduct.categoryId || deal.categorySlug,
+            inventory: originalProduct.inventory || 99,
+            availableQuantity: originalProduct.inventory || 99,
+            careInstructions: originalProduct.careInstructions || [
+              '请查看商品详情页面了解更多信息',
+            ],
+            relatedProducts: [],
+            material: originalProduct.material || undefined,
+            details: originalProduct.details || [],
+            sizes: originalProduct.sizes || [],
+            colors: originalProduct.colors
+              ? originalProduct.colors.map((color) =>
+                  typeof color === 'string' ? { name: color, value: color } : color
+                )
+              : [],
+            specifications: originalProduct.specifications || undefined,
+            adUrl: originalProduct.adUrl || deal.affiliateUrl,
+            brand: {
+              id: originalProduct.brandId || deal.merchant.name.toLowerCase().replace(/\s+/g, '-'),
+              name: originalProduct.brandName || deal.merchant.name,
+              slug:
+                originalProduct.brandSlug || deal.merchant.name.toLowerCase().replace(/\s+/g, '-'),
+              logo: originalProduct.brandLogo || (deal.merchant.logo ?? undefined),
+            },
+            category: {
+              id: originalProduct.categoryId || deal.categorySlug,
+              name: originalProduct.categoryName || deal.merchant.category,
+              slug: originalProduct.categorySlug || deal.categorySlug,
+            },
+          }
+        : {
+            // Fallback to deal data if original product not found
+            id: deal.id,
+            name: deal.title,
+            images: [],
+            description: deal.description,
+            price: 0,
+            originalPrice: undefined,
+            discount: undefined,
+            isNew: deal.featured,
+            isFavorite: false,
+            currency: 'CNY',
+            gender: gender || undefined,
+            categories: [deal.categorySlug],
+            sku: deal.code || undefined,
+            status: deal.isExpired ? 'expired' : 'active',
+            videos: [],
+            brandName: deal.merchant.name,
+            brandSlug: deal.merchant.name.toLowerCase().replace(/\s+/g, '-'),
+            brandId: deal.merchant.name.toLowerCase().replace(/\s+/g, '-'),
+            brandLogo: deal.merchant.logo ?? undefined,
+            categoryName: deal.merchant.category,
+            categorySlug: deal.categorySlug,
+            categoryId: deal.categorySlug,
+            inventory: 99,
+            availableQuantity: 99,
+            careInstructions: ['请查看商品详情页面了解更多信息'],
+            relatedProducts: [],
+            material: undefined,
+            details: [],
+            sizes: [],
+            colors: [],
+            specifications: undefined,
+            adUrl: deal.affiliateUrl,
+            brand: {
+              id: deal.merchant.name.toLowerCase().replace(/\s+/g, '-'),
+              name: deal.merchant.name,
+              slug: deal.merchant.name.toLowerCase().replace(/\s+/g, '-'),
+              logo: deal.merchant.logo ?? undefined,
+            },
+            category: {
+              id: deal.categorySlug,
+              name: deal.merchant.category,
+              slug: deal.categorySlug,
+            },
+          };
+
+      openProductModal(productDetailForModal);
+
+      // 4. Update click count
       const updatedDeals = deals.map((d) =>
         d.id === deal.id ? { ...d, clicks: d.clicks + 1 } : d
       );
 
       setDeals(updatedDeals);
     },
-    [deals, handleCopyCode]
+    [deals, handleCopyCode, openProductModal, locale, gender, originalProducts]
   );
 
   const getCodePreview = (code: string) => {
@@ -497,6 +762,7 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
               <Select
                 size="sm"
                 className="w-40"
+                aria-label="Filter by store"
                 classNames={{
                   trigger:
                     'bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark',
@@ -504,25 +770,38 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
                   popoverContent:
                     'bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark',
                 }}
-                defaultSelectedKeys={[categoryFilter]}
+                selectedKeys={new Set([sourceFilter])}
                 onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0] as CategoryFilter;
+                  const keysArray = Array.from(keys);
+                  const value = keysArray[0] as SourceFilter;
 
-                  setCategoryFilter(value);
+                  // Simple selection logic - just set the new value
+                  if (value) {
+                    setSourceFilter(value);
+                  }
                 }}
               >
-                <SelectItem key="all">All Categories</SelectItem>
-                <SelectItem key="fashion">Fashion</SelectItem>
-                <SelectItem key="footwear">Footwear</SelectItem>
-                <SelectItem key="jewelry">Jewelry</SelectItem>
-                <SelectItem key="electronics">Electronics</SelectItem>
-                <SelectItem key="beauty">Beauty</SelectItem>
-                <SelectItem key="sports">Sports</SelectItem>
+                {availableStores.map((store) => (
+                  <SelectItem
+                    key={store.value}
+                    textValue={`${store.label} (${store.count})`}
+                    onPress={() => {
+                      // If clicking the same store that's already selected, reset to "all"
+                      if (store.value === sourceFilter && store.value !== 'all') {
+                        setSourceFilter('all');
+                      }
+                      // Otherwise, normal selection will be handled by onSelectionChange
+                    }}
+                  >
+                    {store.label} ({store.count})
+                  </SelectItem>
+                ))}
               </Select>
 
               <Select
                 size="sm"
                 className="w-32"
+                aria-label="Sort deals by"
                 classNames={{
                   trigger:
                     'bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark',
@@ -530,17 +809,28 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
                   popoverContent:
                     'bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark',
                 }}
-                defaultSelectedKeys={[sortBy]}
+                selectedKeys={new Set([sortBy])}
                 onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0] as SortOption;
+                  const keysArray = Array.from(keys);
+                  const value = keysArray[0] as SortOption;
 
-                  setSortBy(value);
+                  if (value) {
+                    setSortBy(value);
+                  }
                 }}
               >
-                <SelectItem key="newest">{t('sort.newest')}</SelectItem>
-                <SelectItem key="popular">{t('sort.popular')}</SelectItem>
-                <SelectItem key="discount">{t('sort.discount')}</SelectItem>
-                <SelectItem key="expires">{t('sort.expires')}</SelectItem>
+                <SelectItem key="newest" textValue={t('sort.newest')}>
+                  {t('sort.newest')}
+                </SelectItem>
+                <SelectItem key="popular" textValue={t('sort.popular')}>
+                  {t('sort.popular')}
+                </SelectItem>
+                <SelectItem key="discount" textValue={t('sort.discount')}>
+                  {t('sort.discount')}
+                </SelectItem>
+                <SelectItem key="expires" textValue={t('sort.expires')}>
+                  {t('sort.expires')}
+                </SelectItem>
               </Select>
             </div>
 
@@ -589,16 +879,18 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
               key={deal.id}
               className={`${getCardSize()} ${
                 viewMode === 'list' ? 'flex-row' : 'flex-col'
-              } bg-white dark:bg-bg-secondary-dark border border-gray-200 dark:border-border-primary-dark hover:border-gray-300 dark:hover:border-border-hover-dark transition-all duration-200 hover:shadow-md group cursor-pointer`}
-              onClick={() => handleDealClick(deal)}
+              } bg-white dark:bg-bg-secondary-dark border border-gray-200 dark:border-border-primary-dark hover:border-gray-300 dark:hover:border-border-hover-dark transition-all duration-200 hover:shadow-md group cursor-pointer ${
+                deal.isExpired ? 'opacity-60 bg-gray-50 dark:bg-gray-800' : ''
+              }`}
+              onClick={() => !deal.isExpired && handleDealClick(deal)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (!deal.isExpired && (e.key === 'Enter' || e.key === ' ')) {
                   e.preventDefault();
                   handleDealClick(deal);
                 }
               }}
               role="button"
-              tabIndex={0}
+              tabIndex={deal.isExpired ? -1 : 0}
             >
               <div
                 className={`${viewMode === 'list' ? 'flex flex-row gap-3' : 'flex flex-col h-full'} p-3`}
@@ -657,11 +949,13 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
                     <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span>{deal.rating}</span>
+                        <span>{deal.rating.toFixed(1)}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{deal.expires}</span>
+                        <Clock className={`w-3 h-3 ${deal.isExpired ? 'text-red-500' : ''}`} />
+                        <span className={deal.isExpired ? 'text-red-500 line-through' : ''}>
+                          {deal.isExpired ? 'Expired' : `Expires ${deal.expires}`}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -672,19 +966,43 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
                     {deal.code ? (
                       <Button
                         size="sm"
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-1 h-7 text-xs font-mono font-semibold"
-                        onPress={() => handleCopyCode(deal.code!)}
+                        className={`px-3 py-1 h-7 text-xs font-mono font-semibold ${
+                          deal.isExpired
+                            ? 'bg-gray-400 cursor-not-allowed text-gray-600'
+                            : 'bg-gray-900 hover:bg-gray-800 text-white'
+                        }`}
+                        onPress={() => {
+                          if (!deal.isExpired) {
+                            handleCopyCode(deal.code!);
+                          }
+                        }}
                         onClick={(e) => e.stopPropagation()}
+                        isDisabled={deal.isExpired}
                       >
-                        {copiedCode === deal.code ? '✓' : getCodePreview(deal.code)}
+                        {deal.isExpired
+                          ? 'Expired'
+                          : copiedCode === deal.code
+                            ? '✓'
+                            : getCodePreview(deal.code)}
                       </Button>
                     ) : (
                       <Button
                         size="sm"
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-1 h-7 text-xs font-semibold"
+                        className={`px-3 py-1 h-7 text-xs font-semibold ${
+                          deal.isExpired
+                            ? 'bg-gray-400 cursor-not-allowed text-gray-600'
+                            : 'bg-gray-900 hover:bg-gray-800 text-white'
+                        }`}
+                        onPress={() => {
+                          // For "Get Deal" button, trigger the full deal click logic
+                          if (!deal.isExpired) {
+                            handleDealClick(deal);
+                          }
+                        }}
                         onClick={(e) => e.stopPropagation()}
+                        isDisabled={deal.isExpired}
                       >
-                        Get Deal
+                        {deal.isExpired ? 'Expired' : 'Get Deal'}
                       </Button>
                     )}
 

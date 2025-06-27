@@ -6,10 +6,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState, useCallback } from 'react';
 import Slider from 'react-slick';
 
-import { useProductModal } from '@/contexts/product-modal-context';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
+import { useProductModal } from '@/contexts/product-modal-context';
 import { type Product as ProductType, ProductDetail } from '@/types/product';
 
 interface RelatedProductsProps {

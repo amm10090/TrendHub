@@ -64,14 +64,27 @@ export async function GET(request: NextRequest) {
       where.gender = gender;
     }
     if (sale) {
-      where.AND = [
-        ...(Array.isArray(where.AND)
-          ? where.AND
-          : where.AND
-            ? [where.AND]
-            : []),
-        { originalPrice: { not: null } },
-        { price: { lt: db.product.fields.originalPrice } },
+      // Include products that have either:
+      // 1. A discount (originalPrice > price) OR
+      // 2. A coupon code OR
+      // 3. A discount percentage > 0
+      where.OR = [
+        ...(where.OR || []),
+        // Has discount pricing
+        {
+          AND: [
+            { originalPrice: { not: null } },
+            { price: { lt: db.product.fields.originalPrice } },
+          ],
+        },
+        // Has coupon code
+        {
+          coupon: { not: null, not: "" },
+        },
+        // Has discount percentage
+        {
+          discount: { gt: 0 },
+        },
       ];
     }
     if (minPrice !== undefined || maxPrice !== undefined) {
@@ -123,6 +136,11 @@ export async function GET(request: NextRequest) {
       adurl: string | null;
       cautions: string | null;
       inventory: number | null;
+      source: string;
+      coupon: string | null;
+      couponDescription: string | null;
+      couponExpirationDate: Date | null;
+      promotionUrl: string | null;
       brand: {
         id: string;
         name: string;
@@ -165,6 +183,11 @@ export async function GET(request: NextRequest) {
         adurl: true,
         cautions: true,
         inventory: true,
+        source: true,
+        coupon: true,
+        couponDescription: true,
+        couponExpirationDate: true,
+        promotionUrl: true,
         brand: {
           select: { id: true, name: true, slug: true, logo: true },
         },
@@ -224,6 +247,12 @@ export async function GET(request: NextRequest) {
           url: p.url || undefined,
           adUrl: p.adurl || undefined,
           careInstructions: p.cautions ? [p.cautions] : [],
+          source: p.source,
+          coupon: p.coupon || undefined,
+          couponDescription: p.couponDescription || undefined,
+          couponExpirationDate:
+            p.couponExpirationDate?.toISOString() || undefined,
+          promotionUrl: p.promotionUrl || undefined,
         };
       },
     );

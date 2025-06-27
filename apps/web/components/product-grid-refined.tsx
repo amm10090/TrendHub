@@ -178,7 +178,7 @@ export const ProductGridRefined: React.FC<ProductGridRefinedProps> = ({ gender }
         // 从真实产品数据中提取商店信息
         const uniqueSources = new Set<string>();
 
-        realProducts.forEach((product) => {
+        realProducts.forEach((product: { source?: string }) => {
           if (product.source) {
             uniqueSources.add(product.source);
           }
@@ -215,10 +215,12 @@ export const ProductGridRefined: React.FC<ProductGridRefinedProps> = ({ gender }
         setStores(realStores);
 
         // 转换产品数据，添加retailer字段
-        const productsWithRetailer: ProductWithRetailer[] = realProducts.map((product) => ({
-          ...product,
-          retailer: product.source || ('unknown' as StoreFilter),
-        }));
+        const productsWithRetailer: ProductWithRetailer[] = realProducts.map(
+          (product: ProductTypeFromAppTypes) => ({
+            ...product,
+            retailer: product.source || ('unknown' as StoreFilter),
+          })
+        );
 
         setProductsToDisplay(productsWithRetailer);
       } catch (err: unknown) {
@@ -869,8 +871,7 @@ export const ProductGridRefined: React.FC<ProductGridRefinedProps> = ({ gender }
                       size="sm"
                       variant="flat"
                       className="absolute bottom-3 right-3 z-10 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                      onPress={(e) => {
-                        e.stopPropagation();
+                      onPress={() => {
                         // Handle wishlist logic
                       }}
                     >

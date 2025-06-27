@@ -33,6 +33,24 @@ interface LiveDealsRefinedProps {
   className?: string;
 }
 
+interface ProductApiData {
+  id: string;
+  name: string;
+  description?: string;
+  sku?: string;
+  price: number | string;
+  originalPrice?: number | string;
+  discount?: number | string;
+  brandName?: string;
+  brandLogo?: string | null;
+  gender?: string;
+  categoryName?: string;
+  categorySlug?: string;
+  adUrl?: string;
+  url?: string;
+  isNew?: boolean;
+}
+
 type ViewMode = 'original' | 'compact' | 'dense' | 'list';
 type SortOption = 'newest' | 'popular' | 'discount' | 'expires';
 type CategoryFilter =
@@ -242,7 +260,7 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
         const result = await response.json();
 
         // Transform products into deals format
-        const dealsFromProducts = (result.data || []).map((product): Deal => {
+        const dealsFromProducts = (result.data || []).map((product: ProductApiData): Deal => {
           const categoryMap: { [key: string]: string } = {
             women: 'FASHION',
             men: 'FASHION',
@@ -278,11 +296,11 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
             description: product.description || 'Limited time offer',
             code: product.sku || undefined,
             discount: product.discount
-              ? `${Math.round(parseFloat(product.discount))}% off`
+              ? `${Math.round(parseFloat(String(product.discount)))}% off`
               : 'Special Offer',
             savings:
               product.originalPrice && product.price
-                ? `Save ¥${(parseFloat(product.originalPrice) - parseFloat(product.price)).toLocaleString()}`
+                ? `Save ¥${(parseFloat(String(product.originalPrice)) - parseFloat(String(product.price))).toLocaleString()}`
                 : 'Save More',
             affiliateUrl: product.adUrl || product.url || '#',
             rating: 4.0 + Math.random() * 0.7, // Generate rating between 4.0-4.7

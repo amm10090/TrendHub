@@ -15,6 +15,11 @@ interface Brand {
   description?: string;
 }
 
+interface ProductData {
+  originalPrice: string;
+  price: string;
+}
+
 interface FeaturedBrandsProps {
   gender?: 'women' | 'men';
   className?: string;
@@ -65,8 +70,8 @@ export const FeaturedBrands: React.FC<FeaturedBrandsProps> = ({ gender, classNam
               if (productsResult.data && productsResult.data.length > 0) {
                 const products = productsResult.data;
                 const discounts = products
-                  .filter((p) => p.originalPrice && p.price)
-                  .map((p) => {
+                  .filter((p: ProductData) => p.originalPrice && p.price)
+                  .map((p: ProductData) => {
                     const original = parseFloat(p.originalPrice);
                     const current = parseFloat(p.price);
 

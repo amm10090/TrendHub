@@ -223,8 +223,7 @@ export const ProductGridRefined: React.FC<ProductGridRefinedProps> = ({ gender }
         );
 
         setProductsToDisplay(productsWithRetailer);
-      } catch (err: unknown) {
-        console.error('Failed to fetch real products, falling back to mock data:', err);
+      } catch {
         // 如果 API 失败，使用 mock 数据
         const mockProducts: ProductWithRetailer[] = [
           {

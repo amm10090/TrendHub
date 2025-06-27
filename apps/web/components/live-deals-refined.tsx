@@ -244,6 +244,13 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loadMoreCount, setLoadMoreCount] = useState(0);
+
+  const ITEMS_PER_ROW = 4; // 每行4个
+  const ROWS_PER_PAGE = 2; // 每页2行
+  const ITEMS_PER_PAGE = ITEMS_PER_ROW * ROWS_PER_PAGE; // 每页8个
+  const MAX_LOAD_MORE = 3; // 最多加载3次
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -356,6 +363,12 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
   useEffect(() => {
     filterAndSortDeals();
   }, [filterAndSortDeals]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    setLoadMoreCount(0);
+  }, [categoryFilter, sortBy]);
 
   const handleCopyCode = useCallback(async (code: string) => {
     try {
@@ -571,7 +584,7 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
 
         {/* Deals Grid */}
         <div className={`grid ${getGridCols()} gap-3`}>
-          {filteredDeals.map((deal) => (
+          {filteredDeals.slice(0, currentPage * ITEMS_PER_PAGE).map((deal) => (
             <Card
               key={deal.id}
               className={`${getCardSize()} ${
@@ -687,10 +700,19 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
         </div>
 
         {/* Load More */}
-        {filteredDeals.length >= 8 && (
+        {filteredDeals.length > currentPage * ITEMS_PER_PAGE && loadMoreCount < MAX_LOAD_MORE && (
           <div className="text-center mt-8">
-            <Button size="lg" variant="flat" className="px-8">
-              Load More ({deals.length - filteredDeals.length} remaining)
+            <Button
+              size="lg"
+              variant="flat"
+              className="px-8"
+              onPress={() => {
+                setCurrentPage((prev) => prev + 1);
+                setLoadMoreCount((prev) => prev + 1);
+              }}
+            >
+              {t('loadMore')} (+
+              {Math.min(ITEMS_PER_PAGE, filteredDeals.length - currentPage * ITEMS_PER_PAGE)})
             </Button>
           </div>
         )}

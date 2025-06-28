@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, Card, Chip, Image, Select, SelectItem } from '@heroui/react';
-import { Clock, List, Star, TrendingUp } from 'lucide-react';
+import { Image } from '@heroui/react';
+import { Clock, List, Star } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, useCallback } from 'react';
@@ -333,6 +333,8 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
             women: 'FASHION',
             men: 'FASHION',
             bags: 'FASHION',
+            clothing: 'FASHION',
+            fashion: 'FASHION',
             shoes: 'FOOTWEAR',
             jewelry: 'JEWELRY',
             beauty: 'BEAUTY',
@@ -687,29 +689,27 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
   const getCardSize = () => {
     switch (viewMode) {
       case 'list':
-        return 'h-20';
+        return 'h-24';
       case 'dense':
-        return 'h-32';
+        return 'h-36';
       case 'original':
         return 'h-48';
       default: // compact
-        return 'h-40';
+        return 'h-44';
     }
   };
 
   if (isLoading) {
     return (
-      <section
-        className={`w-full bg-bg-primary-light dark:bg-bg-primary-dark py-12 sm:py-16 ${className}`}
-      >
+      <section className={`w-full bg-gray-50 py-12 sm:py-16 ${className}`}>
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8">
-            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/3 animate-pulse" />
-            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/4 animate-pulse" />
+            <div className="h-6 bg-gray-300 rounded w-1/3 animate-pulse" />
+            <div className="h-6 bg-gray-300 rounded w-1/4 animate-pulse" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="h-40 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+              <div key={i} className="h-40 bg-gray-200 rounded-lg animate-pulse" />
             ))}
           </div>
         </div>
@@ -719,9 +719,7 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
 
   if (error) {
     return (
-      <section
-        className={`w-full bg-bg-primary-light dark:bg-bg-primary-dark py-12 sm:py-16 ${className}`}
-      >
+      <section className={`w-full bg-gray-50 py-12 sm:py-16 ${className}`}>
         <div className="container mx-auto px-4 sm:px-6 text-center">
           <p className="text-red-500">{error}</p>
         </div>
@@ -734,153 +732,106 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
   }
 
   return (
-    <section
-      className={`w-full bg-bg-primary-light dark:bg-bg-primary-dark py-12 sm:py-16 ${className}`}
-    >
+    <section className={`w-full bg-gray-50 py-12 sm:py-16 ${className}`}>
       <div className="container mx-auto px-4 sm:px-6">
         {/* Header and Controls */}
         <div className="mb-6">
-          {/* Title Row */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-red-500" />
-                <h2 className="text-xl sm:text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">
-                  {t('title')}
-                </h2>
+          {/* Title and Controls Row */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+            {/* Left Side - Title and Count */}
+            <div className="flex items-center gap-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                🔥 {t('title')}
+              </h2>
+              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                {filteredDeals.length.toLocaleString()} deals
               </div>
-              <Chip size="sm" color="default" variant="flat">
-                {filteredDeals.length} deals
-              </Chip>
-            </div>
-          </div>
-
-          {/* Controls Row */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            {/* Filters */}
-            <div className="flex flex-wrap gap-3">
-              <Select
-                size="sm"
-                className="w-40"
-                aria-label="Filter by store"
-                classNames={{
-                  trigger:
-                    'bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark',
-                  listbox: 'bg-white dark:bg-bg-secondary-dark',
-                  popoverContent:
-                    'bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark',
-                }}
-                selectedKeys={new Set([sourceFilter])}
-                onSelectionChange={(keys) => {
-                  const keysArray = Array.from(keys);
-                  const value = keysArray[0] as SourceFilter;
-
-                  // Simple selection logic - just set the new value
-                  if (value) {
-                    setSourceFilter(value);
-                  }
-                }}
-              >
-                {availableStores.map((store) => (
-                  <SelectItem
-                    key={store.value}
-                    textValue={`${store.label} (${store.count})`}
-                    onPress={() => {
-                      // If clicking the same store that's already selected, reset to "all"
-                      if (store.value === sourceFilter && store.value !== 'all') {
-                        setSourceFilter('all');
-                      }
-                      // Otherwise, normal selection will be handled by onSelectionChange
-                    }}
-                  >
-                    {store.label} ({store.count})
-                  </SelectItem>
-                ))}
-              </Select>
-
-              <Select
-                size="sm"
-                className="w-32"
-                aria-label="Sort deals by"
-                classNames={{
-                  trigger:
-                    'bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark',
-                  listbox: 'bg-white dark:bg-bg-secondary-dark',
-                  popoverContent:
-                    'bg-white dark:bg-bg-secondary-dark border border-border-primary-light dark:border-border-primary-dark',
-                }}
-                selectedKeys={new Set([sortBy])}
-                onSelectionChange={(keys) => {
-                  const keysArray = Array.from(keys);
-                  const value = keysArray[0] as SortOption;
-
-                  if (value) {
-                    setSortBy(value);
-                  }
-                }}
-              >
-                <SelectItem key="newest" textValue={t('sort.newest')}>
-                  {t('sort.newest')}
-                </SelectItem>
-                <SelectItem key="popular" textValue={t('sort.popular')}>
-                  {t('sort.popular')}
-                </SelectItem>
-                <SelectItem key="discount" textValue={t('sort.discount')}>
-                  {t('sort.discount')}
-                </SelectItem>
-                <SelectItem key="expires" textValue={t('sort.expires')}>
-                  {t('sort.expires')}
-                </SelectItem>
-              </Select>
             </div>
 
-            {/* View Mode Toggle */}
-            <div className="flex gap-1 border border-border-primary-light dark:border-border-primary-dark rounded-lg p-1">
-              <Button
-                size="sm"
-                variant={viewMode === 'original' ? 'solid' : 'light'}
-                className="px-2 py-1 text-xs"
-                onPress={() => setViewMode('original')}
-              >
-                Original
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'compact' ? 'solid' : 'light'}
-                className="px-2 py-1 text-xs"
-                onPress={() => setViewMode('compact')}
-              >
-                Compact
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'dense' ? 'solid' : 'light'}
-                className="px-2 py-1 text-xs"
-                onPress={() => setViewMode('dense')}
-              >
-                Dense
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'list' ? 'solid' : 'light'}
-                className="px-2 py-1 text-xs"
-                onPress={() => setViewMode('list')}
-              >
-                <List className="w-3 h-3" />
-              </Button>
+            {/* Right Side - Filters and View Toggle */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white min-w-[140px] h-10 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                  value={sourceFilter}
+                  onChange={(e) => setSourceFilter(e.target.value as SourceFilter)}
+                >
+                  {availableStores.map((store) => (
+                    <option key={store.value} value={store.value}>
+                      {store.label} ({store.count})
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white min-w-[120px] h-10 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                >
+                  <option value="newest">{t('sort.newest')}</option>
+                  <option value="popular">{t('sort.popular')}</option>
+                  <option value="discount">{t('sort.discount')}</option>
+                  <option value="expires">{t('sort.expires')}</option>
+                </select>
+              </div>
+
+              {/* View Mode Toggle */}
+              <div className="flex border border-gray-300 rounded-md overflow-hidden bg-white h-10">
+                <button
+                  className={`px-3 py-2 text-xs font-medium transition-colors min-w-[65px] flex items-center justify-center ${
+                    viewMode === 'original'
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setViewMode('original')}
+                >
+                  Original
+                </button>
+                <button
+                  className={`px-3 py-2 text-xs font-medium transition-colors border-l border-gray-300 min-w-[65px] flex items-center justify-center ${
+                    viewMode === 'compact'
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setViewMode('compact')}
+                >
+                  Compact
+                </button>
+                <button
+                  className={`px-3 py-2 text-xs font-medium transition-colors border-l border-gray-300 min-w-[55px] flex items-center justify-center ${
+                    viewMode === 'dense'
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setViewMode('dense')}
+                >
+                  Dense
+                </button>
+                <button
+                  className={`px-3 py-2 text-xs font-medium transition-colors border-l border-gray-300 min-w-[45px] flex items-center justify-center ${
+                    viewMode === 'list'
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="w-3 h-3" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Deals Grid */}
-        <div className={`grid ${getGridCols()} gap-3`}>
+        <div className={`grid ${getGridCols()} ${viewMode === 'dense' ? 'gap-2' : 'gap-3'}`}>
           {filteredDeals.slice(0, currentPage * ITEMS_PER_PAGE).map((deal) => (
-            <Card
+            <div
               key={deal.id}
               className={`${getCardSize()} ${
-                viewMode === 'list' ? 'flex-row' : 'flex-col'
-              } bg-white dark:bg-bg-secondary-dark border border-gray-200 dark:border-border-primary-dark hover:border-gray-300 dark:hover:border-border-hover-dark transition-all duration-200 hover:shadow-md group cursor-pointer ${
-                deal.isExpired ? 'opacity-60 bg-gray-50 dark:bg-gray-800' : ''
+                viewMode === 'list' ? 'flex-row items-center' : 'flex-col'
+              } bg-white border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md cursor-pointer rounded-lg ${
+                deal.isExpired ? 'opacity-60 bg-gray-50' : ''
               }`}
               onClick={() => !deal.isExpired && handleDealClick(deal)}
               onKeyDown={(e) => {
@@ -893,145 +844,189 @@ export const LiveDealsRefined: React.FC<LiveDealsRefinedProps> = ({ gender, clas
               tabIndex={deal.isExpired ? -1 : 0}
             >
               <div
-                className={`${viewMode === 'list' ? 'flex flex-row gap-3' : 'flex flex-col h-full'} p-3`}
+                className={`${
+                  viewMode === 'list'
+                    ? 'flex flex-row gap-3 items-center w-full'
+                    : 'flex flex-col h-full'
+                } ${viewMode === 'dense' ? 'p-3' : 'p-4'}`}
               >
-                {/* Header */}
-                <div className={`${viewMode === 'list' ? 'flex-shrink-0' : ''} mb-2`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {/* Merchant Logo */}
-                    <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
-                      {deal.merchant.logo ? (
-                        <Image
-                          alt={`${deal.merchant.name} logo`}
-                          className="w-4 h-4 object-contain"
-                          src={deal.merchant.logo}
-                        />
-                      ) : (
-                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
-                          {deal.merchant.name.charAt(0)}
-                        </span>
-                      )}
+                {/* Header - Merchant Info */}
+                <div
+                  className={`${viewMode === 'list' ? 'flex-shrink-0 min-w-0' : ''} ${
+                    viewMode === 'dense' ? 'mb-2' : 'mb-3'
+                  }`}
+                >
+                  <div
+                    className={`flex items-center justify-between ${
+                      viewMode === 'dense' ? 'gap-2 mb-1' : 'gap-3 mb-2'
+                    }`}
+                  >
+                    {/* Left side - Logo and Name */}
+                    <div className="flex items-center gap-3">
+                      {/* Merchant Logo */}
+                      <div
+                        className={`bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 ${
+                          viewMode === 'dense' ? 'w-6 h-6' : 'w-8 h-8'
+                        }`}
+                      >
+                        {deal.merchant.logo ? (
+                          <Image
+                            alt={`${deal.merchant.name} logo`}
+                            className={
+                              viewMode === 'dense'
+                                ? 'w-4 h-4 object-contain'
+                                : 'w-6 h-6 object-contain'
+                            }
+                            src={deal.merchant.logo}
+                          />
+                        ) : (
+                          <span
+                            className={`font-bold text-gray-600 ${
+                              viewMode === 'dense' ? 'text-xs' : 'text-sm'
+                            }`}
+                          >
+                            {deal.merchant.name.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Merchant Name */}
+                      <span
+                        className={`font-semibold text-gray-900 ${
+                          viewMode === 'dense' ? 'text-xs' : 'text-sm'
+                        }`}
+                      >
+                        {deal.merchant.name}
+                      </span>
                     </div>
 
-                    {/* Merchant Name */}
-                    <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                      {deal.merchant.name}
-                    </span>
-
-                    {/* Category Badge */}
-                    <Chip
-                      size="sm"
-                      style={{ backgroundColor: deal.merchant.categoryColor }}
-                      className="text-white text-xs px-1 py-0 h-4 min-h-4"
+                    {/* Right side - Category Badge */}
+                    <span
+                      className={`text-white uppercase font-semibold px-2 py-1 rounded flex-shrink-0 ${
+                        viewMode === 'dense' ? 'text-[10px]' : 'text-xs'
+                      } ${deal.merchant.category === 'FASHION' ? 'bg-red-500' : 'bg-gray-500'}`}
                     >
                       {deal.merchant.category}
-                    </Chip>
+                    </span>
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className={`${viewMode === 'list' ? 'flex-1' : 'flex-1 flex flex-col'}`}>
-                  {/* Title */}
+                <div
+                  className={`${viewMode === 'list' ? 'flex-1 min-w-0' : 'flex-1 flex flex-col'}`}
+                >
+                  {/* Title/Description */}
                   <h3
-                    className={`font-medium text-gray-900 dark:text-gray-100 mb-1 ${
+                    className={`font-medium text-gray-900 ${
                       viewMode === 'dense'
-                        ? 'text-xs line-clamp-2'
+                        ? 'text-xs line-clamp-2 mb-2'
                         : viewMode === 'list'
-                          ? 'text-sm line-clamp-1'
-                          : 'text-sm line-clamp-2'
+                          ? 'text-sm line-clamp-1 mb-3'
+                          : 'text-sm line-clamp-2 mb-2'
                     }`}
                   >
                     {deal.title}
                   </h3>
 
                   {/* Meta Info */}
-                  {viewMode !== 'dense' && (
-                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span>{deal.rating.toFixed(1)}</span>
-                      </div>
+                  <div
+                    className={`flex items-center gap-4 text-xs text-gray-500 ${
+                      viewMode === 'dense' ? 'mb-2' : 'mb-1'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      <span>{deal.rating.toFixed(1)}</span>
+                    </div>
+                    {viewMode !== 'dense' && (
                       <div className="flex items-center gap-1">
                         <Clock className={`w-3 h-3 ${deal.isExpired ? 'text-red-500' : ''}`} />
                         <span className={deal.isExpired ? 'text-red-500 line-through' : ''}>
                           {deal.isExpired ? 'Expired' : `Expires ${deal.expires}`}
                         </span>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Actions */}
-                  <div className="mt-auto flex items-center justify-between">
+                  <div
+                    className={`flex items-center justify-between ${
+                      viewMode === 'list' ? '' : 'mt-auto'
+                    }`}
+                  >
                     {/* Coupon Button */}
                     {deal.code ? (
-                      <Button
-                        size="sm"
-                        className={`px-3 py-1 h-7 text-xs font-mono font-semibold ${
+                      <button
+                        className={`rounded font-mono font-semibold transition-all ${
+                          viewMode === 'dense' ? 'px-3 py-1 text-[10px]' : 'px-4 py-2 text-xs'
+                        } ${
                           deal.isExpired
                             ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                             : 'bg-gray-900 hover:bg-gray-800 text-white'
                         }`}
-                        onPress={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (!deal.isExpired) {
                             handleCopyCode(deal.code!);
                           }
                         }}
-                        onClick={(e) => e.stopPropagation()}
-                        isDisabled={deal.isExpired}
+                        disabled={deal.isExpired}
                       >
                         {deal.isExpired
                           ? 'Expired'
                           : copiedCode === deal.code
                             ? '✓'
                             : getCodePreview(deal.code)}
-                      </Button>
+                      </button>
                     ) : (
-                      <Button
-                        size="sm"
-                        className={`px-3 py-1 h-7 text-xs font-semibold ${
+                      <button
+                        className={`rounded font-semibold transition-all ${
+                          viewMode === 'dense' ? 'px-3 py-1 text-[10px]' : 'px-4 py-2 text-xs'
+                        } ${
                           deal.isExpired
                             ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                             : 'bg-gray-900 hover:bg-gray-800 text-white'
                         }`}
-                        onPress={() => {
-                          // For "Get Deal" button, trigger the full deal click logic
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (!deal.isExpired) {
                             handleDealClick(deal);
                           }
                         }}
-                        onClick={(e) => e.stopPropagation()}
-                        isDisabled={deal.isExpired}
+                        disabled={deal.isExpired}
                       >
                         {deal.isExpired ? 'Expired' : 'Get Deal'}
-                      </Button>
+                      </button>
                     )}
 
                     {/* Savings */}
-                    <span className="text-green-600 dark:text-green-400 font-semibold text-xs">
+                    <span
+                      className={`text-green-600 font-semibold ${
+                        viewMode === 'dense' ? 'text-[10px]' : 'text-xs'
+                      }`}
+                    >
                       {deal.savings}
                     </span>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
 
         {/* Load More */}
         {filteredDeals.length > currentPage * ITEMS_PER_PAGE && loadMoreCount < MAX_LOAD_MORE && (
           <div className="text-center mt-8">
-            <Button
-              size="lg"
-              variant="flat"
-              className="px-8"
-              onPress={() => {
+            <button
+              className="bg-gray-900 text-white px-8 py-3 rounded-md text-sm font-semibold hover:bg-gray-800 transition-colors"
+              onClick={() => {
                 setCurrentPage((prev) => prev + 1);
                 setLoadMoreCount((prev) => prev + 1);
               }}
             >
               {t('loadMore')} (+
               {Math.min(ITEMS_PER_PAGE, filteredDeals.length - currentPage * ITEMS_PER_PAGE)})
-            </Button>
+            </button>
           </div>
         )}
       </div>

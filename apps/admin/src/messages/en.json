@@ -284,6 +284,122 @@
     "common": {
       "hello": ""
     },
+    "discounts": {
+      "title": "Discount Management",
+      "description": "Manage FMTC and other discount sources with automatic expiration handling and brand matching",
+      "import": {
+        "title": "Import Discounts",
+        "button": "Import Discounts",
+        "description": "Import discount data from FMTC or other sources",
+        "pasteContent": "Paste Content",
+        "pasteContentPlaceholder": "Paste FMTC discount data here...",
+        "fileUpload": "File Upload",
+        "fileUploadDescription": "Upload CSV, TSV or Excel files",
+        "previewData": "Preview Data",
+        "importType": "Import Type",
+        "source": "Data Source",
+        "processing": "Processing...",
+        "success": "Import successful",
+        "error": "Import failed",
+        "duplicate": "Duplicate data detected",
+        "skip": "Skip duplicates",
+        "replace": "Replace existing",
+        "merge": "Merge data"
+      },
+      "settings": {
+        "title": "Discount Settings",
+        "button": "Settings",
+        "description": "Configure discount system settings",
+        "scheduler": {
+          "title": "Expiration Scheduler",
+          "enabled": "Enable automatic expiration checking",
+          "interval": "Check interval (minutes)",
+          "cleanup": "Enable expired data cleanup",
+          "retention": "Data retention days"
+        },
+        "notifications": {
+          "title": "Threshold Notifications",
+          "enabled": "Enable threshold monitoring",
+          "critical": "Critical threshold",
+          "warning": "Warning threshold",
+          "channels": "Notification channels",
+          "email": "Email notifications",
+          "webhook": "Webhook notifications",
+          "dashboard": "Dashboard alerts"
+        },
+        "brandMatching": {
+          "title": "Brand Matching",
+          "autoMatch": "Enable automatic brand matching",
+          "confidence": "Minimum confidence level",
+          "fuzzyMatch": "Enable fuzzy matching"
+        }
+      },
+      "stats": {
+        "total": "Total Discounts",
+        "active": "Active Discounts",
+        "expired": "Expired Discounts",
+        "unmatched": "Unmatched Brands",
+        "activeRate": "Active rate"
+      },
+      "status": {
+        "active": "Active",
+        "expired": "Expired",
+        "inactive": "Inactive",
+        "unknown": "Unknown"
+      },
+      "filters": {
+        "search": "Search discounts, merchants, or codes...",
+        "status": "Status Filter",
+        "brand": "Brand Filter",
+        "allStatuses": "All Statuses",
+        "allBrands": "All Brands",
+        "matched": "Matched Brands",
+        "unmatched": "Unmatched Brands",
+        "moreFilters": "More Filters",
+        "currentFilters": "Current filters:",
+        "clearAll": "Clear All"
+      },
+      "table": {
+        "discountInfo": "Discount Info",
+        "merchant": "Merchant",
+        "code": "Code",
+        "discount": "Discount",
+        "status": "Status",
+        "brand": "Brand",
+        "validity": "Valid Period",
+        "usage": "Usage Count",
+        "actions": "Actions",
+        "noData": "No matching discount data found",
+        "noDataDescription": "Try adjusting filter conditions or clearing search",
+        "selectAll": "Select All",
+        "selected": "Selected {count} items"
+      },
+      "actions": {
+        "view": "View Details",
+        "edit": "Edit",
+        "copy": "Copy Code",
+        "visit": "Visit Merchant",
+        "delete": "Delete",
+        "batchActivate": "Batch Activate",
+        "batchDeactivate": "Batch Deactivate",
+        "batchDelete": "Batch Delete",
+        "export": "Export",
+        "refresh": "Refresh"
+      },
+      "tabs": {
+        "list": "Discount List",
+        "analytics": "Analytics",
+        "brandMatching": "Brand Matching",
+        "notifications": "Notifications",
+        "imports": "Import History"
+      },
+      "placeholders": {
+        "analyticsComingSoon": "Analytics features coming soon...",
+        "brandMatchingComingSoon": "Brand matching features coming soon...",
+        "notificationsComingSoon": "Notification features coming soon...",
+        "importsComingSoon": "Import history features coming soon..."
+      }
+    },
     "createError": "Failed to create brand",
     "createSuccess": "Brand created successfully",
     "dashboard": {
@@ -695,6 +811,7 @@
     "logout": "Logout",
     "login": "Login",
     "logs": "Logs",
+    "more": "More",
     "navigation": "Navigation",
     "notifications": "Notifications",
     "openMenu": "Open Menu",
@@ -709,7 +826,8 @@
     "shortcutSettings": "⌘S",
     "userMenu": "User Menu",
     "contentManagement": "Content Management",
-    "scraperManagement": "Scraper Management"
+    "scraperManagement": "Scraper Management",
+    "discounts": "Discount Management"
   },
   "nav": {
     "brands_a_z": "",
@@ -2136,6 +2254,160 @@
         "systemInitializationFailed": "System initialization failed.",
         "dbDisconnectWarning": "Error disconnecting database"
       }
+    }
+  },
+  "discounts": {
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "inactive": "Inactive",
+      "unknown": "Unknown"
+    },
+    "stats": {
+      "expired": "Expired Discounts",
+      "unmatched": "Unmatched Brands"
+    },
+    "tabs": {
+      "list": "Discount List",
+      "analytics": "Analytics",
+      "brandMatching": "Brand Matching",
+      "notifications": "Notifications",
+      "imports": "Import History"
+    },
+    "filters": {
+      "search": "Search discounts, merchants or codes...",
+      "status": "Filter by Status",
+      "brand": "Filter by Brand",
+      "allStatuses": "All Statuses",
+      "allBrands": "All Brands",
+      "matched": "Matched",
+      "unmatched": "Unmatched",
+      "moreFilters": "More Filters",
+      "currentFilters": "Current Filters:",
+      "clearAll": "Clear All"
+    },
+    "import": {
+      "title": "Import Discount Data"
+    },
+    "settings": {
+      "title": "Discount System Settings",
+      "scheduler": {
+        "title": "Auto Scheduler",
+        "enabled": "Enable automatic expiry check",
+        "interval": "Check interval (minutes)",
+        "cleanup": "Auto cleanup expired data",
+        "retention": "Data retention days"
+      },
+      "notifications": {
+        "title": "Threshold Notifications",
+        "enabled": "Enable notification system",
+        "critical": "Critical threshold",
+        "warning": "Warning threshold",
+        "channels": "Notification channels",
+        "email": "Email notifications",
+        "webhook": "Webhook notifications",
+        "dashboard": "Dashboard notifications"
+      },
+      "brandMatching": {
+        "title": "Brand Matching",
+        "autoMatch": "Enable auto matching",
+        "confidence": "Matching confidence",
+        "fuzzyMatch": "Enable fuzzy matching"
+      }
+    },
+    "page": {
+      "title": "Discount Management",
+      "description": "Manage discount information from FMTC and other sources, with automatic expiry handling and brand matching",
+      "settingsButton": "Settings",
+      "importButton": "Import Discounts"
+    },
+    "stats": {
+      "expired": "Expired Discounts",
+      "unmatched": "Unmatched Brands",
+      "totalDiscounts": "Total Discounts",
+      "activeDiscounts": "Active Discounts",
+      "totalDescription": "Active Rate",
+      "activeDescription": "Available for user use",
+      "expiredDescription": "Data needs cleanup",
+      "unmatchedDescription": "Requires manual linking"
+    },
+    "table": {
+      "title": "Discount List",
+      "description": "View and manage all discount information with filtering, search, and bulk operations",
+      "export": "Export",
+      "refresh": "Refresh",
+      "discountInfo": "Discount Info",
+      "merchant": "Merchant",
+      "discountCode": "Discount Code",
+      "discountAmount": "Discount Amount",
+      "status": "Status",
+      "brand": "Brand",
+      "validPeriod": "Valid Period",
+      "usageCount": "Usage Count",
+      "actions": "Actions",
+      "noData": "No matching discount data found",
+      "noDataDescription": "Try adjusting filter conditions or clearing search",
+      "unmatched": "Unmatched",
+      "source": "Source",
+      "to": "to",
+      "times": "times"
+    },
+    "filters": {
+      "search": "Search discounts, merchants or codes...",
+      "status": "Filter by Status",
+      "brand": "Filter by Brand",
+      "allStatuses": "All Statuses",
+      "allBrands": "All Brands",
+      "matched": "Matched",
+      "unmatched": "Unmatched",
+      "moreFilters": "More Filters",
+      "currentFilters": "Current Filters:",
+      "clearAll": "Clear All",
+      "searchLabel": "Search:",
+      "statusLabel": "Status:",
+      "brandLabel": "Brand:"
+    },
+    "bulkActions": {
+      "selected": "Selected",
+      "items": "items",
+      "bulkActivate": "Bulk Activate",
+      "bulkDeactivate": "Bulk Deactivate",
+      "bulkDelete": "Bulk Delete"
+    },
+    "dropdownActions": {
+      "viewDetails": "View Details",
+      "edit": "Edit",
+      "copyCode": "Copy Code",
+      "visitMerchant": "Visit Merchant",
+      "delete": "Delete"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "of": "of",
+      "results": "results",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Deep analysis and trend charts of discount data",
+      "inDevelopment": "Chart functionality in development..."
+    },
+    "brandMatching": {
+      "title": "Brand Matching Management",
+      "description": "Manage mapping relationships from FMTC merchant names to system brands",
+      "inDevelopment": "Brand matching functionality in development..."
+    },
+    "notifications": {
+      "title": "Data Threshold Notifications",
+      "description": "Configure discount data monitoring thresholds to automatically send alerts when active discount count falls below set values",
+      "inDevelopment": "Notification settings functionality in development..."
+    },
+    "imports": {
+      "title": "Import History",
+      "description": "View all discount data import records and execution results",
+      "newImport": "New Import",
+      "inDevelopment": "Import history functionality in development..."
     }
   }
 }

@@ -560,7 +560,11 @@ export default function BrandsPage() {
             <div className="flex items-center space-x-2">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center"
+                  >
                     <HelpCircle className="mr-2 h-4 w-4" />
                     {t("help.title", { default: "帮助" })}
                   </Button>

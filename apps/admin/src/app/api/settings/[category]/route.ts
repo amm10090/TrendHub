@@ -66,6 +66,7 @@ export async function DELETE(
   { params }: { params: { category: string } },
 ) {
   const { category } = await Promise.resolve(params);
+
   // 如果路径是 /api/settings/{key}，则删除特定设置
   if (category && !category.includes("/")) {
     try {

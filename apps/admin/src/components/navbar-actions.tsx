@@ -175,16 +175,21 @@ export function NavbarActions() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/settings/account">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>{t("profile")}</span>
+                <Link
+                  href="/settings/account"
+                  className="flex items-center justify-between w-full"
+                >
+                  <div className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>{t("profile")}</span>
+                  </div>
                   <DropdownMenuShortcut>
                     {t("shortcutProfile")}
                   </DropdownMenuShortcut>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/settings">
+                <Link href="/settings" className="flex items-center">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>{t("settings")}</span>
                   <DropdownMenuShortcut>

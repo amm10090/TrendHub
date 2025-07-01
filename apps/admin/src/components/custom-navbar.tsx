@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Menu, Search, Sun, Moon } from "lucide-react";
+import { LogOut, Menu, Search, Sun, Moon, MoreHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
@@ -11,6 +11,12 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   NavigationMenu,
@@ -65,7 +71,33 @@ export function CustomNavbar() {
     // TODO: Implement actual search logic if needed
   };
 
-  const navItems = [
+  // 核心导航项 - 在桌面版始终显示
+  const coreNavItems = [
+    { href: "/", label: t("dashboard"), active: pathname === "/" },
+    {
+      href: "/products",
+      label: t("products"),
+      active: pathname.startsWith("/products"),
+    },
+    {
+      href: "/brands",
+      label: t("brand"),
+      active: pathname.startsWith("/brands"),
+    },
+    {
+      href: "/discounts",
+      label: t("discounts"),
+      active: pathname.startsWith("/discounts"),
+    },
+    {
+      href: "/settings",
+      label: t("settings"),
+      active: pathname.startsWith("/settings"),
+    },
+  ];
+
+  // 所有导航项 - 在移动侧边栏中显示
+  const allNavItems = [
     { href: "/", label: t("dashboard"), active: pathname === "/" },
     {
       href: "/products",
@@ -88,16 +120,26 @@ export function CustomNavbar() {
       active: pathname.startsWith("/content-management"),
     },
     {
-      href: "/settings",
-      label: t("settings"),
-      active: pathname.startsWith("/settings"),
+      href: "/discounts",
+      label: t("discounts"),
+      active: pathname.startsWith("/discounts"),
     },
     {
       href: "/scraper-management",
       label: t("scraperManagement"),
       active: pathname.startsWith("/scraper-management"),
     },
+    {
+      href: "/settings",
+      label: t("settings"),
+      active: pathname.startsWith("/settings"),
+    },
   ];
+
+  // 额外的导航项 - 在桌面版的"更多"下拉菜单中显示
+  const extraNavItems = allNavItems.filter(
+    (item) => !coreNavItems.some((coreItem) => coreItem.href === item.href),
+  );
 
   return (
     <>
@@ -111,7 +153,7 @@ export function CustomNavbar() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <div className="flex items-center">
-              <SheetTrigger asChild className="sm:hidden mr-2">
+              <SheetTrigger asChild className="lg:hidden mr-2">
                 <Button variant="ghost" size="icon" aria-label={t("openMenu")}>
                   <Menu size={24} />
                 </Button>
@@ -133,34 +175,72 @@ export function CustomNavbar() {
               </Link>
             </div>
 
-            <div className="hidden sm:flex flex-grow justify-center">
+            <div className="hidden lg:flex flex-grow justify-center">
               <NavigationMenu>
                 <NavigationMenuList>
-                  {navItems.map((item) => (
+                  {coreNavItems.map((item) => (
                     <NavigationMenuItem key={item.href}>
                       <NavigationMenuLink
                         href={item.href}
                         className={cn(
                           navigationMenuTriggerStyle(),
-                          "text-sm font-medium transition-all duration-300 relative group",
+                          "text-xs lg:text-sm font-medium transition-all duration-300 relative group",
                           item.active
                             ? "bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-blue-950/50 dark:via-purple-950/50 dark:to-blue-950/50 text-blue-700 dark:text-blue-300 shadow-md shadow-blue-500/10 dark:shadow-blue-500/20 ring-1 ring-blue-200/50 dark:ring-blue-800/50 backdrop-blur-sm"
                             : "text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:via-blue-50/50 hover:to-gray-50 dark:hover:from-gray-800/30 dark:hover:via-blue-900/20 dark:hover:to-gray-800/30 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-sm hover:ring-1 hover:ring-gray-200/50 dark:hover:ring-gray-700/50",
-                          "rounded-2xl px-4 py-2.5 backdrop-blur-sm",
+                          "rounded-xl px-2 lg:px-3 py-1.5 lg:py-2 backdrop-blur-sm",
                         )}
                         asChild
                       >
-                        <Link href={item.href} className="relative">
-                          {item.label}
-                          {item.active && (
-                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-400/10 dark:to-purple-400/10 blur-sm -z-10" />
-                          )}
+                        <Link
+                          href={item.href}
+                          className="relative flex items-center"
+                        >
+                          <span className="relative">
+                            {item.label}
+                            {item.active && (
+                              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-400/10 dark:to-purple-400/10 blur-sm -z-10" />
+                            )}
+                          </span>
                         </Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
                   ))}
                 </NavigationMenuList>
               </NavigationMenu>
+
+              {/* 更多菜单下拉 - 显示额外的导航项 */}
+              {extraNavItems.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2 px-2 lg:px-3 py-1.5 lg:py-2 text-xs lg:text-sm font-medium rounded-xl transition-all duration-300 text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:via-blue-50/50 hover:to-gray-50 dark:hover:from-gray-800/30 dark:hover:via-blue-900/20 dark:hover:to-gray-800/30 hover:text-blue-600 dark:hover:text-blue-400"
+                    >
+                      <MoreHorizontal size={16} />
+                      <span className="ml-1 hidden xl:inline">{t("more")}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {extraNavItems.map((item) => (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center w-full px-2 py-2 text-sm",
+                            item.active
+                              ? "bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300"
+                              : "text-gray-700 dark:text-gray-300",
+                          )}
+                        >
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
 
             <NavbarActions />
@@ -236,7 +316,7 @@ export function CustomNavbar() {
                   </div>
 
                   <nav className="flex flex-col gap-2">
-                    {navItems.map((item) => (
+                    {allNavItems.map((item) => (
                       <SheetClose asChild key={item.href}>
                         <Link
                           href={item.href}
@@ -247,16 +327,18 @@ export function CustomNavbar() {
                               : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:via-blue-50/30 hover:to-gray-50 dark:hover:from-gray-800/50 dark:hover:via-blue-900/20 dark:hover:to-gray-800/50 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-md hover:ring-1 hover:ring-gray-200/30 dark:hover:ring-gray-700/30 hover:scale-[1.02]",
                           )}
                         >
-                          <div className="relative z-10 flex items-center gap-3">
-                            {item.label}
+                          <div className="relative">
+                            <div className="relative z-10 flex items-center gap-3">
+                              {item.label}
+                              {item.active && (
+                                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-sm animate-pulse" />
+                              )}
+                            </div>
                             {item.active && (
-                              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-sm animate-pulse" />
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 dark:from-blue-400/10 dark:via-purple-400/10 dark:to-blue-400/10 rounded-2xl blur-sm" />
                             )}
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent dark:via-white/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                           </div>
-                          {item.active && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 dark:from-blue-400/10 dark:via-purple-400/10 dark:to-blue-400/10 rounded-2xl blur-sm" />
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent dark:via-white/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                         </Link>
                       </SheetClose>
                     ))}
@@ -294,8 +376,10 @@ export function CustomNavbar() {
                     variant="destructive"
                     className="w-full rounded-2xl py-4 font-semibold text-base bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 shadow-lg shadow-red-500/25 dark:shadow-red-500/40 ring-1 ring-red-400/20 dark:ring-red-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-95"
                   >
-                    <LogOut size={20} className="mr-3" />
-                    {t("logout")}
+                    <span className="flex items-center">
+                      <LogOut size={20} className="mr-3" />
+                      {t("logout")}
+                    </span>
                   </Button>
                 </SheetClose>
               </SheetFooter>

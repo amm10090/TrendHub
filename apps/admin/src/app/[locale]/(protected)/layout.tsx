@@ -14,11 +14,12 @@ interface ChildrenProps {
 
 export default async function ProtectedLayout({
   children,
-  params: { locale }, // 从 params 获取 locale
+  params,
 }: {
   children: React.ReactNode;
   params: { locale: string };
 }) {
+  const { locale } = await params; // Await params before accessing properties
   const session = await auth(); // 在服务端获取会话
 
   if (!session?.user) {

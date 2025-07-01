@@ -558,6 +558,7 @@
     "login": "登录",
     "logout": "退出登录",
     "logs": "日志管理",
+    "more": "更多",
     "navigation": "导航",
     "notifications": "通知",
     "openMenu": "打开菜单",
@@ -572,7 +573,8 @@
     "shortcutSettings": "⌘S",
     "userMenu": "用户菜单",
     "contentManagement": "内容管理",
-    "scraperManagement": "爬虫管理"
+    "scraperManagement": "爬虫管理",
+    "discounts": "折扣管理"
   },
   "nav": {
     "brands_a_z": "导航.品牌_A_Z",
@@ -1909,6 +1911,160 @@
         "systemInitializationFailed": "系统初始化失败。",
         "dbDisconnectWarning": "断开数据库连接时出错"
       }
+    }
+  },
+  "discounts": {
+    "status": {
+      "active": "活跃",
+      "expired": "已过期",
+      "inactive": "未激活",
+      "unknown": "未知"
+    },
+    "stats": {
+      "expired": "过期折扣",
+      "unmatched": "未匹配品牌"
+    },
+    "tabs": {
+      "list": "折扣列表",
+      "analytics": "统计分析",
+      "brandMatching": "品牌匹配",
+      "notifications": "通知设置",
+      "imports": "导入历史"
+    },
+    "filters": {
+      "search": "搜索折扣、商家或折扣码...",
+      "status": "状态筛选",
+      "brand": "品牌筛选",
+      "allStatuses": "所有状态",
+      "allBrands": "所有品牌",
+      "matched": "已匹配",
+      "unmatched": "未匹配",
+      "moreFilters": "更多筛选",
+      "currentFilters": "当前筛选条件:",
+      "clearAll": "清除全部"
+    },
+    "import": {
+      "title": "导入折扣数据"
+    },
+    "settings": {
+      "title": "折扣系统设置",
+      "scheduler": {
+        "title": "自动调度器",
+        "enabled": "启用自动过期检查",
+        "interval": "检查间隔 (分钟)",
+        "cleanup": "自动清理过期数据",
+        "retention": "数据保留天数"
+      },
+      "notifications": {
+        "title": "阈值通知",
+        "enabled": "启用通知系统",
+        "critical": "严重阈值",
+        "warning": "警告阈值",
+        "channels": "通知渠道",
+        "email": "邮件通知",
+        "webhook": "Webhook通知",
+        "dashboard": "仪表板通知"
+      },
+      "brandMatching": {
+        "title": "品牌匹配",
+        "autoMatch": "启用自动匹配",
+        "confidence": "匹配置信度",
+        "fuzzyMatch": "启用模糊匹配"
+      }
+    },
+    "page": {
+      "title": "折扣管理",
+      "description": "管理FMTC和其他来源的折扣信息，支持自动过期处理和品牌匹配",
+      "settingsButton": "设置",
+      "importButton": "导入折扣"
+    },
+    "stats": {
+      "expired": "过期折扣",
+      "unmatched": "未匹配品牌",
+      "totalDiscounts": "总折扣数",
+      "activeDiscounts": "活跃折扣",
+      "totalDescription": "活跃率",
+      "activeDescription": "可用于用户使用",
+      "expiredDescription": "需要清理的数据",
+      "unmatchedDescription": "需要手动关联"
+    },
+    "table": {
+      "title": "折扣列表",
+      "description": "查看和管理所有折扣信息，支持筛选、搜索和批量操作",
+      "export": "导出",
+      "refresh": "刷新",
+      "discountInfo": "折扣信息",
+      "merchant": "商家",
+      "discountCode": "折扣码",
+      "discountAmount": "折扣力度",
+      "status": "状态",
+      "brand": "品牌",
+      "validPeriod": "有效期",
+      "usageCount": "使用次数",
+      "actions": "操作",
+      "noData": "没有找到匹配的折扣数据",
+      "noDataDescription": "尝试调整筛选条件或清除搜索",
+      "unmatched": "未匹配",
+      "source": "来源",
+      "to": "至",
+      "times": "次"
+    },
+    "filters": {
+      "search": "搜索折扣、商家或折扣码...",
+      "status": "状态筛选",
+      "brand": "品牌筛选",
+      "allStatuses": "所有状态",
+      "allBrands": "所有品牌",
+      "matched": "已匹配",
+      "unmatched": "未匹配",
+      "moreFilters": "更多筛选",
+      "currentFilters": "当前筛选条件:",
+      "clearAll": "清除全部",
+      "searchLabel": "搜索:",
+      "statusLabel": "状态:",
+      "brandLabel": "品牌:"
+    },
+    "bulkActions": {
+      "selected": "已选择",
+      "items": "项",
+      "bulkActivate": "批量激活",
+      "bulkDeactivate": "批量禁用",
+      "bulkDelete": "批量删除"
+    },
+    "dropdownActions": {
+      "viewDetails": "查看详情",
+      "edit": "编辑",
+      "copyCode": "复制折扣码",
+      "visitMerchant": "访问商家页面",
+      "delete": "删除"
+    },
+    "pagination": {
+      "showing": "显示",
+      "of": "个结果中的",
+      "results": "个",
+      "previous": "上一页",
+      "next": "下一页"
+    },
+    "analytics": {
+      "title": "统计分析",
+      "description": "折扣数据的深度分析和趋势图表",
+      "inDevelopment": "统计图表功能开发中..."
+    },
+    "brandMatching": {
+      "title": "品牌匹配管理",
+      "description": "管理FMTC商家名称到系统品牌的映射关系",
+      "inDevelopment": "品牌匹配功能开发中..."
+    },
+    "notifications": {
+      "title": "数据阈值通知",
+      "description": "配置折扣数据监控阈值，当活跃折扣数量低于设定值时自动发送提醒",
+      "inDevelopment": "通知设置功能开发中..."
+    },
+    "imports": {
+      "title": "导入历史",
+      "description": "查看所有折扣数据导入记录和执行结果",
+      "newImport": "新建导入",
+      "inDevelopment": "导入历史功能开发中..."
     }
   }
 }

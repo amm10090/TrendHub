@@ -183,3 +183,4 @@ packages/scraper/screenshots
 packages/scraper/test-results
 .cursorignore
 .claude/
+CLAUDE.md

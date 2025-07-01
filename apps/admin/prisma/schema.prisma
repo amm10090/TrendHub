@@ -67,11 +67,11 @@ model Category {
 /// 品牌信息
 model Brand {
   /// 唯一标识符
-  id          String    @id @default(cuid())
+  id          String         @id @default(cuid())
   /// 品牌名称
-  name        String    @unique
+  name        String         @unique
   /// 品牌的唯一访问路径片段
-  slug        String    @unique
+  slug        String         @unique
   /// 品牌描述
   description String?
   /// 品牌Logo图片URL
@@ -79,15 +79,19 @@ model Brand {
   /// 品牌官方网站URL
   website     String?
   /// 是否激活
-  isActive    Boolean   @default(true)
+  isActive    Boolean        @default(true)
   /// 创建时间
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime       @default(now())
   /// 更新时间
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime       @updatedAt
   /// 是否为热门品牌
-  popularity  Boolean   @default(false)
+  popularity  Boolean        @default(false)
   /// 该品牌下的商品列表
   products    Product[]
+  /// 该品牌的折扣列表
+  discounts   Discount[]
+  /// 品牌映射记录
+  brandMappings BrandMapping[]
 
   @@index([isActive])
   @@index([popularity])
@@ -486,16 +490,17 @@ enum ScraperLogLevel {
 // --- Auth.js 模型 ---
 
 model User {
-  id            String    @id @default(cuid())
+  id            String           @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?          @unique
   emailVerified DateTime?
   image         String?
-  passwordHash  String?   // 新增：用于存储哈希后的密码
+  passwordHash  String?          // 新增：用于存储哈希后的密码
   accounts      Account[]
   sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  discountImports DiscountImport[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model Account {
@@ -537,4 +542,186 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// --- FMTC 折扣管理模型 ---
+
+/// 折扣/优惠券信息
+model Discount {
+  /// 唯一标识符
+  id          String           @id @default(cuid())
+  /// 商家名称 (对应 FMTC 的 Merchant 字段)
+  merchantName String
+  /// 折扣标题/描述 (对应 FMTC 的 Deal 字段)
+  title       String
+  /// 折扣码 (对应 FMTC 的 Code 字段)
+  code        String?
+  /// 折扣类型
+  type        DiscountType     @default(OTHER)
+  /// 折扣值 (百分比或固定金额)
+  value       Decimal?
+  /// 最小订单金额
+  minAmount   Decimal?
+  /// 最大折扣金额
+  maxAmount   Decimal?
+  
+  // FMTC 特有字段
+  /// FMTC 更新时间 (对应 Updated 字段)
+  fmtcUpdated DateTime?
+  /// 开始时间 (对应 Start 字段)
+  startDate   DateTime?
+  /// 结束时间 (对应 End 字段)
+  endDate     DateTime?
+  /// FMTC 评分 (对应 Rating 字段)
+  rating      Decimal?
+  /// 折扣状态 (new, active, not started 等)
+  dealStatus  String?
+  
+  // 系统管理字段
+  /// 是否激活
+  isActive    Boolean          @default(true)
+  /// 是否过期
+  isExpired   Boolean          @default(false)
+  /// 数据来源
+  source      String           @default("FMTC")
+  /// 原始数据来源ID
+  sourceId    String?
+  /// 原始链接
+  originalUrl String?
+  
+  // 品牌关联
+  /// 关联的品牌ID
+  brandId     String?
+  /// 关联的品牌
+  brand       Brand?           @relation(fields: [brandId], references: [id])
+  
+  // 使用统计
+  /// 使用次数
+  useCount    Int              @default(0)
+  /// 最大使用次数
+  maxUses     Int?
+  
+  // 元数据
+  /// 原始导入数据 (JSON格式)
+  rawData     Json?
+  /// 导入时间
+  importedAt  DateTime         @default(now())
+  /// 更新时间
+  updatedAt   DateTime         @updatedAt
+  /// 创建时间
+  createdAt   DateTime         @default(now())
+  
+  @@index([merchantName])
+  @@index([brandId])
+  @@index([isActive, isExpired])
+  @@index([endDate])
+  @@index([source])
+  @@index([dealStatus])
+  @@index([startDate])
+  @@index([code])
+}
+
+/// 折扣导入记录
+model DiscountImport {
+  /// 唯一标识符
+  id           String            @id @default(cuid())
+  /// 导入文件名
+  fileName     String?
+  /// 原始内容
+  rawContent   String            @db.Text
+  /// 解析后的数据
+  parsedData   Json
+  /// 导入状态
+  status       ImportStatus      @default(PENDING)
+  /// 总记录数
+  totalRecords Int               @default(0)
+  /// 成功导入数
+  successCount Int               @default(0)
+  /// 错误数量
+  errorCount   Int               @default(0)
+  /// 跳过数量 (重复等)
+  skippedCount Int               @default(0)
+  /// 错误详情
+  errors       Json?
+  /// 导入类型 (PASTE, FILE, API)
+  importType   ImportType        @default(PASTE)
+  
+  /// 执行用户ID
+  userId       String?
+  /// 执行用户
+  user         User?             @relation(fields: [userId], references: [id])
+  
+  /// 创建时间
+  createdAt    DateTime          @default(now())
+  /// 完成时间
+  completedAt  DateTime?
+  /// 更新时间
+  updatedAt    DateTime          @updatedAt
+  
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([importType])
+}
+
+/// 品牌匹配映射 (用于FMTC商家名称到系统品牌的映射)
+model BrandMapping {
+  /// 唯一标识符
+  id            String   @id @default(cuid())
+  /// FMTC商家名称 (原始名称)
+  merchantName  String   @unique
+  /// 系统中的品牌ID
+  brandId       String?
+  /// 系统中的品牌
+  brand         Brand?   @relation(fields: [brandId], references: [id])
+  /// 是否已确认匹配
+  isConfirmed   Boolean  @default(false)
+  /// 匹配置信度 (0-1)
+  confidence    Decimal? @db.Decimal(3, 2)
+  /// 创建时间
+  createdAt     DateTime @default(now())
+  /// 更新时间
+  updatedAt     DateTime @updatedAt
+  
+  @@index([merchantName])
+  @@index([brandId])
+  @@index([isConfirmed])
+}
+
+/// 折扣类型枚举
+enum DiscountType {
+  /// 百分比折扣
+  PERCENTAGE
+  /// 固定金额折扣
+  FIXED_AMOUNT
+  /// 免费送货
+  FREE_SHIPPING
+  /// 买X送Y
+  BUY_X_GET_Y
+  /// 其他类型
+  OTHER
+}
+
+/// 导入状态枚举
+enum ImportStatus {
+  /// 等待处理
+  PENDING
+  /// 处理中
+  PROCESSING
+  /// 完成
+  COMPLETED
+  /// 失败
+  FAILED
+  /// 部分成功
+  PARTIAL
+}
+
+/// 导入类型枚举
+enum ImportType {
+  /// 粘贴文本
+  PASTE
+  /// 文件上传
+  FILE
+  /// API导入
+  API
 }

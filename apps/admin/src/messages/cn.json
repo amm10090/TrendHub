@@ -1920,28 +1920,12 @@
       "inactive": "未激活",
       "unknown": "未知"
     },
-    "stats": {
-      "expired": "过期折扣",
-      "unmatched": "未匹配品牌"
-    },
     "tabs": {
       "list": "折扣列表",
       "analytics": "统计分析",
       "brandMatching": "品牌匹配",
       "notifications": "通知设置",
       "imports": "导入历史"
-    },
-    "filters": {
-      "search": "搜索折扣、商家或折扣码...",
-      "status": "状态筛选",
-      "brand": "品牌筛选",
-      "allStatuses": "所有状态",
-      "allBrands": "所有品牌",
-      "matched": "已匹配",
-      "unmatched": "未匹配",
-      "moreFilters": "更多筛选",
-      "currentFilters": "当前筛选条件:",
-      "clearAll": "清除全部"
     },
     "import": {
       "title": "导入折扣数据"
@@ -1978,16 +1962,6 @@
       "settingsButton": "设置",
       "importButton": "导入折扣"
     },
-    "stats": {
-      "expired": "过期折扣",
-      "unmatched": "未匹配品牌",
-      "totalDiscounts": "总折扣数",
-      "activeDiscounts": "活跃折扣",
-      "totalDescription": "活跃率",
-      "activeDescription": "可用于用户使用",
-      "expiredDescription": "需要清理的数据",
-      "unmatchedDescription": "需要手动关联"
-    },
     "table": {
       "title": "折扣列表",
       "description": "查看和管理所有折扣信息，支持筛选、搜索和批量操作",
@@ -2009,21 +1983,6 @@
       "to": "至",
       "times": "次"
     },
-    "filters": {
-      "search": "搜索折扣、商家或折扣码...",
-      "status": "状态筛选",
-      "brand": "品牌筛选",
-      "allStatuses": "所有状态",
-      "allBrands": "所有品牌",
-      "matched": "已匹配",
-      "unmatched": "未匹配",
-      "moreFilters": "更多筛选",
-      "currentFilters": "当前筛选条件:",
-      "clearAll": "清除全部",
-      "searchLabel": "搜索:",
-      "statusLabel": "状态:",
-      "brandLabel": "品牌:"
-    },
     "bulkActions": {
       "selected": "已选择",
       "items": "项",
@@ -2038,6 +1997,48 @@
       "visitMerchant": "访问商家页面",
       "delete": "删除"
     },
+    "filters": {
+      "search": "搜索折扣码、商家或品牌...",
+      "status": "状态",
+      "brand": "品牌",
+      "allStatuses": "所有状态",
+      "allBrands": "所有品牌",
+      "matched": "已匹配",
+      "unmatched": "未匹配",
+      "moreFilters": "更多筛选",
+      "moreFiltersDescription": "应用高级筛选来精细化你的折扣搜索结果",
+      "currentFilters": "当前筛选:",
+      "searchLabel": "搜索:",
+      "statusLabel": "状态:",
+      "brandLabel": "品牌:",
+      "clearAll": "清除全部",
+      "dateRange": "日期范围",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "discountType": "折扣类型",
+      "selectType": "选择类型",
+      "minValue": "最小值",
+      "maxValue": "最大值",
+      "source": "来源",
+      "selectSource": "选择来源",
+      "rating": "评分",
+      "selectRating": "选择评分",
+      "stars": "星"
+    },
+    "types": {
+      "percentage": "百分比折扣",
+      "fixedAmount": "固定金额",
+      "freeShipping": "免费送货",
+      "buyXGetY": "买X送Y",
+      "other": "其他"
+    },
+    "sources": {
+      "manual": "手动"
+    },
+    "actions": {
+      "cancel": "取消",
+      "apply": "应用"
+    },
     "pagination": {
       "showing": "显示",
       "of": "个结果中的",
@@ -2045,26 +2046,263 @@
       "previous": "上一页",
       "next": "下一页"
     },
-    "analytics": {
-      "title": "统计分析",
-      "description": "折扣数据的深度分析和趋势图表",
-      "inDevelopment": "统计图表功能开发中..."
-    },
     "brandMatching": {
       "title": "品牌匹配管理",
-      "description": "管理FMTC商家名称到系统品牌的映射关系",
-      "inDevelopment": "品牌匹配功能开发中..."
+      "errors": {
+        "fetchFailed": "获取品牌匹配数据失败",
+        "createFailed": "创建品牌映射失败",
+        "updateFailed": "更新品牌映射失败",
+        "deleteFailed": "删除品牌映射失败",
+        "batchFailed": "批量匹配失败"
+      },
+      "messages": {
+        "createSuccess": "品牌映射创建成功",
+        "updateSuccess": "品牌映射更新成功",
+        "deleteSuccess": "品牌映射删除成功",
+        "batchSuccess": "批量匹配完成，处理了 {count} 个商家"
+      },
+      "actions": {
+        "batchMatch": "批量匹配",
+        "refresh": "刷新",
+        "link": "关联品牌",
+        "create": "创建关联",
+        "cancel": "取消",
+        "update": "更新"
+      },
+      "search": {
+        "label": "搜索",
+        "placeholder": "搜索商家名称或品牌..."
+      },
+      "filters": {
+        "status": "状态",
+        "allStatuses": "所有状态",
+        "confirmed": "已确认",
+        "unconfirmed": "未确认"
+      },
+      "stats": {
+        "mapped": "已映射商家",
+        "confirmed": "已确认",
+        "unconfirmed": "未确认",
+        "unmatched": "未匹配"
+      },
+      "unmatched": {
+        "title": "未匹配商家 ({count})",
+        "discountCount": "{count} 个折扣",
+        "example": "示例",
+        "suggested": "建议"
+      },
+      "matched": {
+        "title": "已匹配商家 ({count})"
+      },
+      "table": {
+        "merchantName": "商家名称",
+        "linkedBrand": "关联品牌",
+        "status": "状态",
+        "discountCount": "折扣数量",
+        "confidence": "匹配度",
+        "actions": "操作",
+        "notLinked": "未关联"
+      },
+      "status": {
+        "confirmed": "已确认",
+        "unconfirmed": "未确认"
+      },
+      "dialogs": {
+        "linkBrand": {
+          "title": "关联品牌",
+          "description": "为商家 \"{merchantName}\" 选择关联的品牌",
+          "selectBrand": "选择品牌",
+          "selectPlaceholder": "选择品牌",
+          "suggested": "推荐品牌"
+        },
+        "editBrand": {
+          "title": "编辑品牌关联",
+          "description": "修改商家 \"{merchantName}\" 的品牌关联",
+          "selectBrand": "选择品牌",
+          "selectPlaceholder": "选择品牌"
+        }
+      }
     },
     "notifications": {
-      "title": "数据阈值通知",
-      "description": "配置折扣数据监控阈值，当活跃折扣数量低于设定值时自动发送提醒",
-      "inDevelopment": "通知设置功能开发中..."
+      "errors": {
+        "fetchFailed": "获取通知数据失败",
+        "updateFailed": "更新配置失败",
+        "testFailed": "发送测试通知失败",
+        "checkFailed": "检查阈值失败",
+        "configLoadFailed": "无法加载通知配置"
+      },
+      "messages": {
+        "configUpdated": "通知配置已更新",
+        "testSent": "测试通知已发送"
+      },
+      "actions": {
+        "checkNow": "立即检查",
+        "testNotification": "测试通知",
+        "refresh": "刷新",
+        "saving": "保存中...",
+        "saveConfig": "保存配置"
+      },
+      "config": {
+        "title": "通知配置",
+        "enableNotifications": "启用通知",
+        "enableDescription": "开启后将监控折扣数据阈值并发送提醒",
+        "criticalThreshold": "严重警告阈值",
+        "criticalDescription": "活跃折扣数量低于此值时发送严重警告",
+        "warningThreshold": "一般警告阈值",
+        "warningDescription": "活跃折扣数量低于此值时发送一般警告",
+        "checkInterval": "检查间隔 (分钟)",
+        "intervalDescription": "系统多久检查一次阈值",
+        "channels": "通知渠道",
+        "emailRecipients": "邮件收件人",
+        "emailPlaceholder": "输入邮件地址，用逗号分隔"
+      },
+      "channels": {
+        "dashboard": "仪表板",
+        "email": "邮件",
+        "webhook": "Webhook"
+      },
+      "levels": {
+        "critical": "严重",
+        "warning": "警告",
+        "info": "信息",
+        "unknown": "未知"
+      },
+      "types": {
+        "totalCount": "总数量",
+        "activeCount": "活跃数量",
+        "brandSpecific": "品牌特定",
+        "typeSpecific": "类型特定"
+      },
+      "alerts": {
+        "title": "最近警告",
+        "current": "当前",
+        "threshold": "阈值",
+        "criticalShortage": "严重不足",
+        "noAlerts": "暂无警告信息",
+        "systemNormal": "系统运行正常"
+      }
     },
-    "imports": {
-      "title": "导入历史",
-      "description": "查看所有折扣数据导入记录和执行结果",
-      "newImport": "新建导入",
-      "inDevelopment": "导入历史功能开发中..."
+    "importHistory": {
+      "title": "导入历史记录",
+      "errors": {
+        "fetchFailed": "获取导入历史失败"
+      },
+      "actions": {
+        "refresh": "刷新"
+      },
+      "search": {
+        "placeholder": "搜索文件名或用户..."
+      },
+      "filters": {
+        "allStatuses": "全部状态"
+      },
+      "status": {
+        "completed": "已完成",
+        "failed": "失败",
+        "partial": "部分成功",
+        "processing": "处理中",
+        "unknown": "未知"
+      },
+      "types": {
+        "paste": "粘贴导入",
+        "fileUpload": "文件上传",
+        "api": "API导入"
+      },
+      "duration": {
+        "seconds": "秒",
+        "minutes": "分钟",
+        "hours": "小时"
+      },
+      "stats": {
+        "totalImports": "总导入次数",
+        "successful": "成功",
+        "partial": "部分成功",
+        "failed": "失败"
+      },
+      "pagination": {
+        "perPage": "{count}条/页",
+        "showing": "显示第 {start} - {end} 条，共 {total} 条记录",
+        "previous": "上一页",
+        "next": "下一页"
+      },
+      "table": {
+        "importInfo": "导入信息",
+        "type": "类型",
+        "status": "状态",
+        "recordStats": "记录统计",
+        "successRate": "成功率",
+        "duration": "耗时",
+        "user": "导入用户",
+        "createdAt": "创建时间",
+        "actions": "操作",
+        "directPaste": "直接粘贴",
+        "total": "总计",
+        "success": "成功",
+        "errors": "错误",
+        "skipped": "跳过",
+        "unknown": "未知",
+        "completed": "完成"
+      },
+      "empty": {
+        "noRecords": "暂无导入记录",
+        "description": "开始导入折扣数据后，记录将显示在这里"
+      },
+      "details": {
+        "title": "导入详情",
+        "description": "查看导入记录的详细信息和错误日志",
+        "basicInfo": "基本信息",
+        "fileName": "文件名",
+        "importType": "导入类型",
+        "status": "状态",
+        "createdAt": "创建时间",
+        "completedAt": "完成时间",
+        "statistics": "统计信息",
+        "totalRecords": "总记录数",
+        "successCount": "成功导入",
+        "errorCount": "导入错误",
+        "skippedCount": "跳过记录",
+        "successRate": "成功率",
+        "errorLog": "错误日志",
+        "dataPreview": "数据预览"
+      }
+    },
+    "stats": {
+      "totalDiscounts": "总折扣数",
+      "activeDiscounts": "活跃折扣",
+      "expired": "已过期",
+      "unmatched": "未匹配",
+      "totalDescription": "活跃率",
+      "activeDescription": "可用于用户使用",
+      "expiredDescription": "需要清理的数据",
+      "unmatchedDescription": "需要手动关联",
+      "overview": {
+        "total": "总折扣数",
+        "active": "活跃折扣",
+        "expired": "过期折扣",
+        "unmatched": "未匹配品牌",
+        "activeRate": "活跃率 {rate}%",
+        "activeDescription": "可用于用户使用",
+        "expiredDescription": "需要清理的数据",
+        "unmatchedDescription": "需要手动关联"
+      },
+      "trend": {
+        "title": "近期趋势",
+        "newDiscounts": "新增折扣",
+        "expiredDiscounts": "过期折扣"
+      },
+      "rating": {
+        "average": "平均评分",
+        "basedOn": "基于 {count} 个评分"
+      },
+      "expiry": {
+        "title": "即将过期",
+        "moreItems": "还有 {count} 个折扣即将过期",
+        "noItems": "暂无即将过期的折扣"
+      },
+      "footer": {
+        "lastUpdated": "数据更新时间: {time}",
+        "refresh": "刷新"
+      }
     }
   }
 }

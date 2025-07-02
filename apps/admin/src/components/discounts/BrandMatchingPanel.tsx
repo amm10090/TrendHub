@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   Trash2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -72,6 +73,7 @@ interface UnmatchedMerchant {
 }
 
 export function BrandMatchingPanel() {
+  const t = useTranslations("discounts.brandMatching");
   const [mappings, setMappings] = useState<BrandMapping[]>([]);
   const [unmatched, setUnmatched] = useState<UnmatchedMerchant[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -84,7 +86,7 @@ export function BrandMatchingPanel() {
   const [newBrandId, setNewBrandId] = useState("");
   const [processing, setProcessing] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [mappingsRes, unmatchedRes, brandsRes] = await Promise.all([
@@ -109,11 +111,11 @@ export function BrandMatchingPanel() {
         setBrands(brandsResult.data || []);
       }
     } catch {
-      toast.error("获取品牌匹配数据失败");
+      toast.error(t("errors.fetchFailed"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   const handleCreateMapping = async (merchantName: string, brandId: string) => {
     try {
@@ -131,13 +133,13 @@ export function BrandMatchingPanel() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success("品牌映射创建成功");
+        toast.success(t("messages.createSuccess"));
         await fetchData();
       } else {
-        toast.error(result.error || "创建映射失败");
+        toast.error(result.error || t("errors.createFailed"));
       }
     } catch {
-      toast.error("创建映射失败");
+      toast.error(t("errors.createFailed"));
     } finally {
       setProcessing(false);
     }
@@ -159,15 +161,15 @@ export function BrandMatchingPanel() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success("品牌映射更新成功");
+        toast.success(t("messages.updateSuccess"));
         setEditingMapping(null);
         setNewBrandId("");
         await fetchData();
       } else {
-        toast.error(result.error || "更新映射失败");
+        toast.error(result.error || t("errors.updateFailed"));
       }
     } catch {
-      toast.error("更新映射失败");
+      toast.error(t("errors.updateFailed"));
     } finally {
       setProcessing(false);
     }
@@ -185,13 +187,13 @@ export function BrandMatchingPanel() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success("品牌映射删除成功");
+        toast.success(t("messages.deleteSuccess"));
         await fetchData();
       } else {
-        toast.error(result.error || "删除映射失败");
+        toast.error(result.error || t("errors.deleteFailed"));
       }
     } catch {
-      toast.error("删除映射失败");
+      toast.error(t("errors.deleteFailed"));
     } finally {
       setProcessing(false);
     }
@@ -211,13 +213,15 @@ export function BrandMatchingPanel() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success(`批量匹配完成，处理了 ${result.data.processed} 个商家`);
+        toast.success(
+          t("messages.batchSuccess", { count: result.data.processed }),
+        );
         await fetchData();
       } else {
-        toast.error(result.error || "批量匹配失败");
+        toast.error(result.error || t("errors.batchFailed"));
       }
     } catch {
-      toast.error("批量匹配失败");
+      toast.error(t("errors.batchFailed"));
     } finally {
       setProcessing(false);
     }
@@ -245,7 +249,7 @@ export function BrandMatchingPanel() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -268,13 +272,13 @@ export function BrandMatchingPanel() {
 
   return (
     <div className="space-y-6">
-      {/* 控制面板 */}
+      {/* Control Panel */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <Link2 className="w-5 h-5" />
-              品牌匹配管理
+              {t("title")}
             </CardTitle>
             <div className="flex gap-2">
               <Button
@@ -286,25 +290,25 @@ export function BrandMatchingPanel() {
                 <RefreshCw
                   className={`w-4 h-4 mr-1 ${processing ? "animate-spin" : ""}`}
                 />
-                批量匹配
+                {t("actions.batchMatch")}
               </Button>
               <Button size="sm" variant="outline" onClick={fetchData}>
                 <RefreshCw className="w-4 h-4 mr-1" />
-                刷新
+                {t("actions.refresh")}
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 筛选器 */}
+          {/* Filters */}
           <div className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-64">
-              <Label htmlFor="search">搜索商家或品牌</Label>
+              <Label htmlFor="search">{t("search.label")}</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="search"
-                  placeholder="输入商家名称或品牌名称..."
+                  placeholder={t("search.placeholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -313,55 +317,67 @@ export function BrandMatchingPanel() {
             </div>
 
             <div className="w-48">
-              <Label>状态</Label>
+              <Label>{t("filters.status")}</Label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部状态</SelectItem>
-                  <SelectItem value="confirmed">已确认</SelectItem>
-                  <SelectItem value="unconfirmed">未确认</SelectItem>
+                  <SelectItem value="all">
+                    {t("filters.allStatuses")}
+                  </SelectItem>
+                  <SelectItem value="confirmed">
+                    {t("filters.confirmed")}
+                  </SelectItem>
+                  <SelectItem value="unconfirmed">
+                    {t("filters.unconfirmed")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* 统计信息 */}
+          {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <div className="text-lg font-bold">{mappings.length}</div>
-              <div className="text-muted-foreground">已映射商家</div>
+              <div className="text-muted-foreground">{t("stats.mapped")}</div>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <div className="text-lg font-bold text-green-600">
                 {mappings.filter((m) => m.isConfirmed).length}
               </div>
-              <div className="text-muted-foreground">已确认</div>
+              <div className="text-muted-foreground">
+                {t("stats.confirmed")}
+              </div>
             </div>
             <div className="text-center p-3 bg-yellow-50 rounded-lg">
               <div className="text-lg font-bold text-yellow-600">
                 {mappings.filter((m) => !m.isConfirmed).length}
               </div>
-              <div className="text-muted-foreground">未确认</div>
+              <div className="text-muted-foreground">
+                {t("stats.unconfirmed")}
+              </div>
             </div>
             <div className="text-center p-3 bg-red-50 rounded-lg">
               <div className="text-lg font-bold text-red-600">
                 {unmatched.length}
               </div>
-              <div className="text-muted-foreground">未匹配</div>
+              <div className="text-muted-foreground">
+                {t("stats.unmatched")}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 未匹配商家 */}
+      {/* Unmatched Merchants */}
       {filteredUnmatched.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              未匹配商家 ({filteredUnmatched.length})
+              {t("unmatched.title", { count: filteredUnmatched.length })}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -374,11 +390,14 @@ export function BrandMatchingPanel() {
                   <div className="flex-1">
                     <div className="font-medium">{merchant.merchantName}</div>
                     <div className="text-sm text-muted-foreground">
-                      {merchant.discountCount} 个折扣
+                      {t("unmatched.discountCount", {
+                        count: merchant.discountCount,
+                      })}
                     </div>
                     {merchant.sampleTitles.length > 0 && (
                       <div className="text-xs text-muted-foreground mt-1">
-                        示例: {merchant.sampleTitles.slice(0, 2).join(", ")}
+                        {t("unmatched.example")}:{" "}
+                        {merchant.sampleTitles.slice(0, 2).join(", ")}
                       </div>
                     )}
                   </div>
@@ -386,7 +405,8 @@ export function BrandMatchingPanel() {
                   <div className="flex items-center gap-2">
                     {merchant.suggestedBrands.length > 0 && (
                       <div className="text-xs text-muted-foreground">
-                        建议: {merchant.suggestedBrands[0].brand.name}(
+                        {t("unmatched.suggested")}:{" "}
+                        {merchant.suggestedBrands[0].brand.name}(
                         {(merchant.suggestedBrands[0].confidence * 100).toFixed(
                           0,
                         )}
@@ -402,26 +422,33 @@ export function BrandMatchingPanel() {
                           className="flex items-center"
                         >
                           <Link2 className="w-4 h-4 mr-1" />
-                          关联品牌
+                          {t("actions.link")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>关联品牌</DialogTitle>
+                          <DialogTitle>
+                            {t("dialogs.linkBrand.title")}
+                          </DialogTitle>
                           <DialogDescription>
-                            为商家 &quot;{merchant.merchantName}&quot;
-                            选择关联的品牌
+                            {t("dialogs.linkBrand.description", {
+                              merchantName: merchant.merchantName,
+                            })}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
-                            <Label>选择品牌</Label>
+                            <Label>{t("dialogs.linkBrand.selectBrand")}</Label>
                             <Select
                               value={newBrandId}
                               onValueChange={setNewBrandId}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="选择品牌" />
+                                <SelectValue
+                                  placeholder={t(
+                                    "dialogs.linkBrand.selectPlaceholder",
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {brands.map((brand) => (
@@ -435,7 +462,7 @@ export function BrandMatchingPanel() {
 
                           {merchant.suggestedBrands.length > 0 && (
                             <div>
-                              <Label>推荐品牌</Label>
+                              <Label>{t("dialogs.linkBrand.suggested")}</Label>
                               <div className="space-y-2 mt-2">
                                 {merchant.suggestedBrands
                                   .slice(0, 3)
@@ -500,7 +527,7 @@ export function BrandMatchingPanel() {
                             }}
                             disabled={!newBrandId || processing}
                           >
-                            创建关联
+                            {t("actions.create")}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
@@ -513,12 +540,12 @@ export function BrandMatchingPanel() {
         </Card>
       )}
 
-      {/* 已匹配商家 */}
+      {/* Matched Merchants */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Check className="w-5 h-5 text-green-600" />
-            已匹配商家 ({filteredMappings.length})
+            {t("matched.title", { count: filteredMappings.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -526,12 +553,12 @@ export function BrandMatchingPanel() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>商家名称</TableHead>
-                  <TableHead>关联品牌</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>折扣数量</TableHead>
-                  <TableHead>匹配度</TableHead>
-                  <TableHead className="w-32">操作</TableHead>
+                  <TableHead>{t("table.merchantName")}</TableHead>
+                  <TableHead>{t("table.linkedBrand")}</TableHead>
+                  <TableHead>{t("table.status")}</TableHead>
+                  <TableHead>{t("table.discountCount")}</TableHead>
+                  <TableHead>{t("table.confidence")}</TableHead>
+                  <TableHead className="w-32">{t("table.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -552,14 +579,18 @@ export function BrandMatchingPanel() {
                           <span>{mapping.brand.name}</span>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">未关联</span>
+                        <span className="text-muted-foreground">
+                          {t("table.notLinked")}
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant={mapping.isConfirmed ? "default" : "secondary"}
                       >
-                        {mapping.isConfirmed ? "已确认" : "未确认"}
+                        {mapping.isConfirmed
+                          ? t("status.confirmed")
+                          : t("status.unconfirmed")}
                       </Badge>
                     </TableCell>
                     <TableCell>{mapping.discountCount}</TableCell>
@@ -589,20 +620,29 @@ export function BrandMatchingPanel() {
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>编辑品牌关联</DialogTitle>
+                              <DialogTitle>
+                                {t("dialogs.editBrand.title")}
+                              </DialogTitle>
                               <DialogDescription>
-                                修改商家 &quot;{mapping.merchantName}&quot;
-                                的品牌关联
+                                {t("dialogs.editBrand.description", {
+                                  merchantName: mapping.merchantName,
+                                })}
                               </DialogDescription>
                             </DialogHeader>
                             <div>
-                              <Label>选择品牌</Label>
+                              <Label>
+                                {t("dialogs.editBrand.selectBrand")}
+                              </Label>
                               <Select
                                 value={newBrandId}
                                 onValueChange={setNewBrandId}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="选择品牌" />
+                                  <SelectValue
+                                    placeholder={t(
+                                      "dialogs.editBrand.selectPlaceholder",
+                                    )}
+                                  />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {brands.map((brand) => (
@@ -621,7 +661,7 @@ export function BrandMatchingPanel() {
                                   setNewBrandId("");
                                 }}
                               >
-                                取消
+                                {t("actions.cancel")}
                               </Button>
                               <Button
                                 onClick={() => {
@@ -634,7 +674,7 @@ export function BrandMatchingPanel() {
                                 }}
                                 disabled={!newBrandId || processing}
                               >
-                                更新
+                                {t("actions.update")}
                               </Button>
                             </DialogFooter>
                           </DialogContent>

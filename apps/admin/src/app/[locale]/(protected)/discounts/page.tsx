@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Plus,
   BarChart3,
   Settings,
   Upload,
@@ -19,12 +18,15 @@ import {
   Copy,
   ExternalLink,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
+import { BrandMatchingPanel } from "@/components/discounts/BrandMatchingPanel";
 import { DiscountImportModal } from "@/components/discounts/DiscountImportModal";
 import { DiscountSettingsModal } from "@/components/discounts/DiscountSettingsModal";
+import { DiscountStats } from "@/components/discounts/DiscountStats";
+import { ImportHistoryPanel } from "@/components/discounts/ImportHistoryPanel";
+import { NotificationPanel } from "@/components/discounts/NotificationPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +38,14 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -44,6 +54,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -61,20 +72,71 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Mock data
-const mockDiscounts = [
+// Interfaces
+interface Discount {
+  id: string;
+  title: string;
+  merchantName: string;
+  code?: string;
+  type: string;
+  value?: number;
+  isActive: boolean;
+  isExpired: boolean;
+  brand?: {
+    id: string;
+    name: string;
+    logo?: string;
+  };
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  useCount: number;
+  source: string;
+  rating?: number;
+}
+
+interface DiscountStats {
+  total: number;
+  active: number;
+  expired: number;
+  inactive: number;
+}
+
+interface DiscountResponse {
+  success: boolean;
+  data: Discount[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  stats: DiscountStats;
+}
+
+// Mock data (for fallback)
+const mockDiscounts: Discount[] = [
   {
     id: "1",
     title: "Nike Sneakers 20% Discount",
     merchantName: "Nike Official Store",
     code: "NIKE20OFF",
-    discount: "20%",
-    status: "active",
-    brand: "Nike",
+    type: "percentage",
+    value: 20,
+    isActive: true,
+    isExpired: false,
+    brand: {
+      id: "nike-1",
+      name: "Nike",
+    },
     startDate: "2024-01-01",
     endDate: "2024-12-31",
     createdAt: "2024-01-01",
-    usageCount: 1234,
+    updatedAt: "2024-01-01",
+    useCount: 1234,
     source: "FMTC",
   },
   {
@@ -82,13 +144,19 @@ const mockDiscounts = [
     title: "Apple iPhone Limited Offer",
     merchantName: "Apple Store",
     code: "APPLE15",
-    discount: "$100",
-    status: "active",
-    brand: "Apple",
+    type: "fixed",
+    value: 100,
+    isActive: true,
+    isExpired: false,
+    brand: {
+      id: "apple-1",
+      name: "Apple",
+    },
     startDate: "2024-06-01",
     endDate: "2024-07-31",
     createdAt: "2024-06-01",
-    usageCount: 856,
+    updatedAt: "2024-06-01",
+    useCount: 856,
     source: "FMTC",
   },
   {
@@ -96,13 +164,19 @@ const mockDiscounts = [
     title: "Adidas Store-wide Sale",
     merchantName: "Adidas Official",
     code: "ADIDAS25",
-    discount: "25%",
-    status: "expired",
-    brand: "Adidas",
+    type: "percentage",
+    value: 25,
+    isActive: false,
+    isExpired: true,
+    brand: {
+      id: "adidas-1",
+      name: "Adidas",
+    },
     startDate: "2024-03-01",
     endDate: "2024-05-31",
     createdAt: "2024-03-01",
-    usageCount: 432,
+    updatedAt: "2024-05-31",
+    useCount: 432,
     source: "FMTC",
   },
   {
@@ -110,13 +184,15 @@ const mockDiscounts = [
     title: "Unknown Brand Mystery Discount",
     merchantName: "Unknown Merchant",
     code: "MYSTERY10",
-    discount: "10%",
-    status: "active",
-    brand: null,
+    type: "percentage",
+    value: 10,
+    isActive: true,
+    isExpired: false,
     startDate: "2024-06-15",
     endDate: "2024-08-15",
     createdAt: "2024-06-15",
-    usageCount: 23,
+    updatedAt: "2024-06-15",
+    useCount: 23,
     source: "FMTC",
   },
   {
@@ -124,64 +200,306 @@ const mockDiscounts = [
     title: "Samsung Electronics Special",
     merchantName: "Samsung Electronics",
     code: "SAMSUNG30",
-    discount: "30%",
-    status: "inactive",
-    brand: "Samsung",
+    type: "percentage",
+    value: 30,
+    isActive: false,
+    isExpired: false,
+    brand: {
+      id: "samsung-1",
+      name: "Samsung",
+    },
     startDate: "2024-08-01",
     endDate: "2024-09-30",
     createdAt: "2024-07-01",
-    usageCount: 0,
+    updatedAt: "2024-07-01",
+    useCount: 0,
     source: "FMTC",
   },
 ];
 
 export default function DiscountsPage() {
-  const router = useRouter();
   const t = useTranslations("discounts");
+
+  // Data state
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [stats, setStats] = useState<DiscountStats>({
+    total: 0,
+    active: 0,
+    expired: 0,
+    inactive: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
+
+  // Filter state
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [brandFilter, setBrandFilter] = useState("all");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   // Modal states
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
 
-  // Filter data
-  const filteredDiscounts = mockDiscounts.filter((discount) => {
-    const matchesSearch =
-      searchTerm === "" ||
-      discount.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      discount.merchantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      discount.code.toLowerCase().includes(searchTerm.toLowerCase());
+  // Processing states
+  const [processingBulk, setProcessingBulk] = useState(false);
+  const [processingAction, setProcessingAction] = useState<string | null>(null);
 
-    const matchesStatus =
-      statusFilter === "all" || discount.status === statusFilter;
+  // API functions
+  const fetchDiscounts = useCallback(
+    async (page = 1, filters = {}) => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: itemsPerPage.toString(),
+          ...filters,
+        });
 
-    const matchesBrand =
-      brandFilter === "all" ||
-      (brandFilter === "matched" && discount.brand) ||
-      (brandFilter === "unmatched" && !discount.brand) ||
-      discount.brand?.toLowerCase() === brandFilter.toLowerCase();
+        const response = await fetch(`/api/discounts?${params}`);
+        const result: DiscountResponse = await response.json();
 
-    return matchesSearch && matchesStatus && matchesBrand;
+        if (result.success) {
+          setDiscounts(result.data);
+          setStats(result.stats);
+          setPagination(result.pagination);
+          setCurrentPage(page);
+        } else {
+          // Fallback to mock data
+          setDiscounts(mockDiscounts);
+          setStats({
+            total: mockDiscounts.length,
+            active: mockDiscounts.filter((d) => d.isActive && !d.isExpired)
+              .length,
+            expired: mockDiscounts.filter((d) => d.isExpired).length,
+            inactive: mockDiscounts.filter((d) => !d.isActive && !d.isExpired)
+              .length,
+          });
+        }
+      } catch {
+        // Fallback to mock data on error
+        setDiscounts(mockDiscounts);
+        setStats({
+          total: mockDiscounts.length,
+          active: mockDiscounts.filter((d) => d.isActive && !d.isExpired)
+            .length,
+          expired: mockDiscounts.filter((d) => d.isExpired).length,
+          inactive: mockDiscounts.filter((d) => !d.isActive && !d.isExpired)
+            .length,
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [itemsPerPage],
+  );
+
+  // Action handlers
+  const handleRefresh = useCallback(() => {
+    fetchDiscounts(currentPage, {
+      search: searchTerm,
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      brandId:
+        brandFilter !== "all" &&
+        brandFilter !== "matched" &&
+        brandFilter !== "unmatched"
+          ? brandFilter
+          : undefined,
+    });
+  }, [fetchDiscounts, currentPage, searchTerm, statusFilter, brandFilter]);
+
+  const handleExport = useCallback(async () => {
+    try {
+      setProcessingAction("export");
+      const params = new URLSearchParams({
+        export: "true",
+        search: searchTerm,
+        status: statusFilter !== "all" ? statusFilter : "",
+        brandId:
+          brandFilter !== "all" &&
+          brandFilter !== "matched" &&
+          brandFilter !== "unmatched"
+            ? brandFilter
+            : "",
+      });
+
+      const response = await fetch(`/api/discounts?${params}`);
+      const blob = await response.blob();
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.download = `discounts-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      setProcessingAction(null);
+    }
+  }, [searchTerm, statusFilter, brandFilter]);
+
+  const handleBulkAction = useCallback(
+    async (action: "activate" | "deactivate" | "delete") => {
+      if (selectedItems.length === 0) return;
+
+      try {
+        setProcessingBulk(true);
+        const response = await fetch("/api/discounts", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: selectedItems,
+            action,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setSelectedItems([]);
+          await fetchDiscounts(currentPage, {
+            search: searchTerm,
+            status: statusFilter !== "all" ? statusFilter : undefined,
+            brandId:
+              brandFilter !== "all" &&
+              brandFilter !== "matched" &&
+              brandFilter !== "unmatched"
+                ? brandFilter
+                : undefined,
+          });
+        } else {
+          console.error("Bulk action failed:", result.error);
+        }
+      } catch (error) {
+        console.error("Bulk action failed:", error);
+      } finally {
+        setProcessingBulk(false);
+      }
+    },
+    [
+      selectedItems,
+      currentPage,
+      searchTerm,
+      statusFilter,
+      brandFilter,
+      fetchDiscounts,
+    ],
+  );
+
+  const handleRowAction = useCallback(
+    async (discountId: string, action: string) => {
+      setProcessingAction(discountId);
+
+      try {
+        switch (action) {
+          case "view":
+            // Handle view details
+            break;
+          case "edit":
+            // Handle edit
+            break;
+          case "copy": {
+            const discount = discounts.find((d) => d.id === discountId);
+
+            if (discount?.code) {
+              await navigator.clipboard.writeText(discount.code);
+            }
+            break;
+          }
+          case "visit": {
+            const discount = discounts.find((d) => d.id === discountId);
+            if (discount) {
+              window.open(
+                `https://www.google.com/search?q=${discount.merchantName}`,
+                "_blank",
+              );
+            }
+            break;
+          }
+          case "delete": {
+            const response = await fetch(`/api/discounts/${discountId}`, {
+              method: "DELETE",
+            });
+
+            if (response.ok) {
+              await fetchDiscounts(currentPage, {
+                search: searchTerm,
+                status: statusFilter !== "all" ? statusFilter : undefined,
+                brandId:
+                  brandFilter !== "all" &&
+                  brandFilter !== "matched" &&
+                  brandFilter !== "unmatched"
+                    ? brandFilter
+                    : undefined,
+              });
+            }
+            break;
+          }
+        }
+      } catch (error) {
+        console.error("Action failed:", error);
+      } finally {
+        setProcessingAction(null);
+      }
+    },
+    [
+      discounts,
+      currentPage,
+      searchTerm,
+      statusFilter,
+      brandFilter,
+      fetchDiscounts,
+    ],
+  );
+
+  // Apply filters and fetch data
+  useEffect(() => {
+    const filters: Record<string, string> = {};
+
+    if (searchTerm) filters.search = searchTerm;
+    if (statusFilter !== "all") filters.status = statusFilter;
+    if (
+      brandFilter !== "all" &&
+      brandFilter !== "matched" &&
+      brandFilter !== "unmatched"
+    ) {
+      filters.brandId = brandFilter;
+    }
+
+    fetchDiscounts(currentPage, filters);
+  }, [fetchDiscounts, currentPage, searchTerm, statusFilter, brandFilter]);
+
+  // For client-side filtering if needed (mostly handled by API now)
+  const filteredDiscounts = discounts.filter((discount) => {
+    if (brandFilter === "matched" && !discount.brand) return false;
+    if (brandFilter === "unmatched" && discount.brand) return false;
+
+    return true;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            {t("status.active")}
-          </Badge>
-        );
-      case "expired":
-        return <Badge variant="destructive">{t("status.expired")}</Badge>;
-      case "inactive":
-        return <Badge variant="secondary">{t("status.inactive")}</Badge>;
-      default:
-        return <Badge variant="outline">{t("status.unknown")}</Badge>;
+  const getStatusBadge = (discount: Discount) => {
+    if (discount.isExpired) {
+      return <Badge variant="destructive">{t("status.expired")}</Badge>;
+    } else if (discount.isActive) {
+      return (
+        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+          {t("status.active")}
+        </Badge>
+      );
+    } else {
+      return <Badge variant="secondary">{t("status.inactive")}</Badge>;
     }
   };
 
@@ -234,14 +552,12 @@ export default function DiscountsPage() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockDiscounts.length}</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground">
               {t("stats.totalDescription")}{" "}
-              {Math.round(
-                (mockDiscounts.filter((d) => d.status === "active").length /
-                  mockDiscounts.length) *
-                  100,
-              )}
+              {stats.total > 0
+                ? Math.round((stats.active / stats.total) * 100)
+                : 0}
               %
             </p>
           </CardContent>
@@ -256,7 +572,7 @@ export default function DiscountsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {mockDiscounts.filter((d) => d.status === "active").length}
+              {stats.active}
             </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.activeDescription")}
@@ -273,7 +589,7 @@ export default function DiscountsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {mockDiscounts.filter((d) => d.status === "expired").length}
+              {stats.expired}
             </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.expiredDescription")}
@@ -290,7 +606,7 @@ export default function DiscountsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
-              {mockDiscounts.filter((d) => !d.brand).length}
+              {discounts.filter((d) => !d.brand).length}
             </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.unmatchedDescription")}
@@ -322,12 +638,26 @@ export default function DiscountsPage() {
                   <CardDescription>{t("table.description")}</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
-                    <Download className="w-4 h-4 mr-2" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExport}
+                    disabled={processingAction === "export"}
+                  >
+                    <Download
+                      className={`w-4 h-4 mr-2 ${processingAction === "export" ? "animate-spin" : ""}`}
+                    />
                     {t("table.export")}
                   </Button>
-                  <Button size="sm" variant="outline">
-                    <RefreshCw className="w-4 h-4 mr-2" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRefresh}
+                    disabled={loading}
+                  >
+                    <RefreshCw
+                      className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                    />
                     {t("table.refresh")}
                   </Button>
                 </div>
@@ -384,7 +714,11 @@ export default function DiscountsPage() {
                   </SelectContent>
                 </Select>
 
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMoreFiltersOpen(true)}
+                >
                   <Filter className="w-4 h-4 mr-2" />
                   {t("filters.moreFilters")}
                 </Button>
@@ -464,13 +798,28 @@ export default function DiscountsPage() {
                     {t("bulkActions.items")}
                   </span>
                   <div className="flex gap-2 ml-auto">
-                    <Button size="sm" variant="outline">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleBulkAction("activate")}
+                      disabled={processingBulk}
+                    >
                       {t("bulkActions.bulkActivate")}
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleBulkAction("deactivate")}
+                      disabled={processingBulk}
+                    >
                       {t("bulkActions.bulkDeactivate")}
                     </Button>
-                    <Button size="sm" variant="destructive">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleBulkAction("delete")}
+                      disabled={processingBulk}
+                    >
                       {t("bulkActions.bulkDelete")}
                     </Button>
                   </div>
@@ -552,15 +901,17 @@ export default function DiscountsPage() {
                             </code>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">{discount.discount}</Badge>
+                            <Badge variant="outline">
+                              {discount.value
+                                ? `${discount.value}${discount.type === "PERCENTAGE" ? "%" : ""}`
+                                : "-"}
+                            </Badge>
                           </TableCell>
-                          <TableCell>
-                            {getStatusBadge(discount.status)}
-                          </TableCell>
+                          <TableCell>{getStatusBadge(discount)}</TableCell>
                           <TableCell>
                             {discount.brand ? (
                               <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                                {discount.brand}
+                                {discount.brand.name}
                               </Badge>
                             ) : (
                               <Badge variant="secondary">
@@ -579,7 +930,7 @@ export default function DiscountsPage() {
                           <TableCell>
                             <div className="text-center">
                               <div className="font-medium">
-                                {discount.usageCount.toLocaleString()}
+                                {discount.useCount.toLocaleString()}
                               </div>
                               <div className="text-xs text-muted-foreground">
                                 {t("table.times")}
@@ -597,26 +948,52 @@ export default function DiscountsPage() {
                                 <DropdownMenuLabel>
                                   {t("table.actions")}
                                 </DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => {}}>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleRowAction(discount.id, "view")
+                                  }
+                                  disabled={processingAction === discount.id}
+                                >
                                   <Eye className="w-4 h-4 mr-2" />
                                   {t("dropdownActions.viewDetails")}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => {}}>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleRowAction(discount.id, "edit")
+                                  }
+                                  disabled={processingAction === discount.id}
+                                >
                                   <Edit className="w-4 h-4 mr-2" />
                                   {t("dropdownActions.edit")}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => {}}>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleRowAction(discount.id, "copy")
+                                  }
+                                  disabled={
+                                    processingAction === discount.id ||
+                                    !discount.code
+                                  }
+                                >
                                   <Copy className="w-4 h-4 mr-2" />
                                   {t("dropdownActions.copyCode")}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => {}}>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleRowAction(discount.id, "visit")
+                                  }
+                                  disabled={processingAction === discount.id}
+                                >
                                   <ExternalLink className="w-4 h-4 mr-2" />
                                   {t("dropdownActions.visitMerchant")}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   className="text-red-600"
-                                  onClick={() => {}}
+                                  onClick={() =>
+                                    handleRowAction(discount.id, "delete")
+                                  }
+                                  disabled={processingAction === discount.id}
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" />
                                   {t("dropdownActions.delete")}
@@ -632,19 +1009,33 @@ export default function DiscountsPage() {
               </div>
 
               {/* Pagination */}
-              {filteredDiscounts.length > 0 && (
+              {pagination.total > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
-                    {t("pagination.showing")} 1-
-                    {Math.min(itemsPerPage, filteredDiscounts.length)}{" "}
-                    {t("pagination.of")} {filteredDiscounts.length}{" "}
+                    {t("pagination.showing")}{" "}
+                    {(pagination.page - 1) * pagination.limit + 1}-
+                    {Math.min(
+                      pagination.page * pagination.limit,
+                      pagination.total,
+                    )}{" "}
+                    {t("pagination.of")} {pagination.total}{" "}
                     {t("pagination.results")}
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" disabled>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!pagination.hasPrev || loading}
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                    >
                       {t("pagination.previous")}
                     </Button>
-                    <Button variant="outline" size="sm" disabled>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!pagination.hasNext || loading}
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                    >
                       {t("pagination.next")}
                     </Button>
                   </div>
@@ -655,77 +1046,19 @@ export default function DiscountsPage() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                {t("analytics.title")}
-              </CardTitle>
-              <CardDescription>{t("analytics.description")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                {t("analytics.inDevelopment")}
-              </div>
-            </CardContent>
-          </Card>
+          <DiscountStats />
         </TabsContent>
 
         <TabsContent value="brand-matching" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("brandMatching.title")}</CardTitle>
-              <CardDescription>
-                {t("brandMatching.description")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                {t("brandMatching.inDevelopment")}
-              </div>
-            </CardContent>
-          </Card>
+          <BrandMatchingPanel />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("notifications.title")}</CardTitle>
-              <CardDescription>
-                {t("notifications.description")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                {t("notifications.inDevelopment")}
-              </div>
-            </CardContent>
-          </Card>
+          <NotificationPanel />
         </TabsContent>
 
         <TabsContent value="imports" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>{t("imports.title")}</CardTitle>
-                  <CardDescription>{t("imports.description")}</CardDescription>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => router.push("/discounts/import")}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t("imports.newImport")}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                {t("imports.inDevelopment")}
-              </div>
-            </CardContent>
-          </Card>
+          <ImportHistoryPanel />
         </TabsContent>
       </Tabs>
 
@@ -738,6 +1071,99 @@ export default function DiscountsPage() {
         open={settingsModalOpen}
         onOpenChange={setSettingsModalOpen}
       />
+
+      {/* More Filters Modal */}
+      <Dialog open={moreFiltersOpen} onOpenChange={setMoreFiltersOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("filters.moreFilters")}</DialogTitle>
+            <DialogDescription>
+              {t("filters.moreFiltersDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-2">
+              <Label>{t("filters.dateRange")}</Label>
+              <div className="flex gap-2">
+                <Input type="date" placeholder={t("filters.startDate")} />
+                <Input type="date" placeholder={t("filters.endDate")} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("filters.discountType")}</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("filters.selectType")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PERCENTAGE">
+                    {t("types.percentage")}
+                  </SelectItem>
+                  <SelectItem value="FIXED_AMOUNT">
+                    {t("types.fixedAmount")}
+                  </SelectItem>
+                  <SelectItem value="FREE_SHIPPING">
+                    {t("types.freeShipping")}
+                  </SelectItem>
+                  <SelectItem value="BUY_X_GET_Y">
+                    {t("types.buyXGetY")}
+                  </SelectItem>
+                  <SelectItem value="OTHER">{t("types.other")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("filters.minValue")}</Label>
+              <Input type="number" placeholder="0" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("filters.maxValue")}</Label>
+              <Input type="number" placeholder="100" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("filters.source")}</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("filters.selectSource")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FMTC">FMTC</SelectItem>
+                  <SelectItem value="API">API</SelectItem>
+                  <SelectItem value="MANUAL">{t("sources.manual")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("filters.rating")}</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("filters.selectRating")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5 {t("filters.stars")}</SelectItem>
+                  <SelectItem value="4">4+ {t("filters.stars")}</SelectItem>
+                  <SelectItem value="3">3+ {t("filters.stars")}</SelectItem>
+                  <SelectItem value="2">2+ {t("filters.stars")}</SelectItem>
+                  <SelectItem value="1">1+ {t("filters.stars")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMoreFiltersOpen(false)}>
+              {t("actions.cancel")}
+            </Button>
+            <Button
+              onClick={() => {
+                // Apply advanced filters
+                setMoreFiltersOpen(false);
+              }}
+            >
+              {t("actions.apply")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

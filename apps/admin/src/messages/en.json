@@ -2263,28 +2263,12 @@
       "inactive": "Inactive",
       "unknown": "Unknown"
     },
-    "stats": {
-      "expired": "Expired Discounts",
-      "unmatched": "Unmatched Brands"
-    },
     "tabs": {
       "list": "Discount List",
       "analytics": "Analytics",
       "brandMatching": "Brand Matching",
       "notifications": "Notifications",
       "imports": "Import History"
-    },
-    "filters": {
-      "search": "Search discounts, merchants or codes...",
-      "status": "Filter by Status",
-      "brand": "Filter by Brand",
-      "allStatuses": "All Statuses",
-      "allBrands": "All Brands",
-      "matched": "Matched",
-      "unmatched": "Unmatched",
-      "moreFilters": "More Filters",
-      "currentFilters": "Current Filters:",
-      "clearAll": "Clear All"
     },
     "import": {
       "title": "Import Discount Data"
@@ -2321,16 +2305,6 @@
       "settingsButton": "Settings",
       "importButton": "Import Discounts"
     },
-    "stats": {
-      "expired": "Expired Discounts",
-      "unmatched": "Unmatched Brands",
-      "totalDiscounts": "Total Discounts",
-      "activeDiscounts": "Active Discounts",
-      "totalDescription": "Active Rate",
-      "activeDescription": "Available for user use",
-      "expiredDescription": "Data needs cleanup",
-      "unmatchedDescription": "Requires manual linking"
-    },
     "table": {
       "title": "Discount List",
       "description": "View and manage all discount information with filtering, search, and bulk operations",
@@ -2352,21 +2326,6 @@
       "to": "to",
       "times": "times"
     },
-    "filters": {
-      "search": "Search discounts, merchants or codes...",
-      "status": "Filter by Status",
-      "brand": "Filter by Brand",
-      "allStatuses": "All Statuses",
-      "allBrands": "All Brands",
-      "matched": "Matched",
-      "unmatched": "Unmatched",
-      "moreFilters": "More Filters",
-      "currentFilters": "Current Filters:",
-      "clearAll": "Clear All",
-      "searchLabel": "Search:",
-      "statusLabel": "Status:",
-      "brandLabel": "Brand:"
-    },
     "bulkActions": {
       "selected": "Selected",
       "items": "items",
@@ -2381,6 +2340,48 @@
       "visitMerchant": "Visit Merchant",
       "delete": "Delete"
     },
+    "filters": {
+      "search": "Search discounts, merchants, or brands...",
+      "status": "Status",
+      "brand": "Brand",
+      "allStatuses": "All Statuses",
+      "allBrands": "All Brands",
+      "matched": "Matched",
+      "unmatched": "Unmatched",
+      "moreFilters": "More Filters",
+      "moreFiltersDescription": "Apply advanced filters to refine your discount search results",
+      "currentFilters": "Current Filters:",
+      "searchLabel": "Search:",
+      "statusLabel": "Status:",
+      "brandLabel": "Brand:",
+      "clearAll": "Clear All",
+      "dateRange": "Date Range",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "discountType": "Discount Type",
+      "selectType": "Select Type",
+      "minValue": "Min Value",
+      "maxValue": "Max Value",
+      "source": "Source",
+      "selectSource": "Select Source",
+      "rating": "Rating",
+      "selectRating": "Select Rating",
+      "stars": "stars"
+    },
+    "types": {
+      "percentage": "Percentage Discount",
+      "fixedAmount": "Fixed Amount",
+      "freeShipping": "Free Shipping",
+      "buyXGetY": "Buy X Get Y",
+      "other": "Other"
+    },
+    "sources": {
+      "manual": "Manual"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "apply": "Apply"
+    },
     "pagination": {
       "showing": "Showing",
       "of": "of",
@@ -2388,26 +2389,263 @@
       "previous": "Previous",
       "next": "Next"
     },
-    "analytics": {
-      "title": "Analytics",
-      "description": "Deep analysis and trend charts of discount data",
-      "inDevelopment": "Chart functionality in development..."
-    },
     "brandMatching": {
       "title": "Brand Matching Management",
-      "description": "Manage mapping relationships from FMTC merchant names to system brands",
-      "inDevelopment": "Brand matching functionality in development..."
+      "errors": {
+        "fetchFailed": "Failed to fetch brand matching data",
+        "createFailed": "Failed to create brand mapping",
+        "updateFailed": "Failed to update brand mapping",
+        "deleteFailed": "Failed to delete brand mapping",
+        "batchFailed": "Batch matching failed"
+      },
+      "messages": {
+        "createSuccess": "Brand mapping created successfully",
+        "updateSuccess": "Brand mapping updated successfully",
+        "deleteSuccess": "Brand mapping deleted successfully",
+        "batchSuccess": "Batch matching completed, processed {count} merchants"
+      },
+      "actions": {
+        "batchMatch": "Batch Match",
+        "refresh": "Refresh",
+        "link": "Link Brand",
+        "create": "Create Link",
+        "cancel": "Cancel",
+        "update": "Update"
+      },
+      "search": {
+        "label": "Search",
+        "placeholder": "Search merchant name or brand..."
+      },
+      "filters": {
+        "status": "Status",
+        "allStatuses": "All Statuses",
+        "confirmed": "Confirmed",
+        "unconfirmed": "Unconfirmed"
+      },
+      "stats": {
+        "mapped": "Mapped Merchants",
+        "confirmed": "Confirmed",
+        "unconfirmed": "Unconfirmed",
+        "unmatched": "Unmatched"
+      },
+      "unmatched": {
+        "title": "Unmatched Merchants ({count})",
+        "discountCount": "{count} discounts",
+        "example": "Example",
+        "suggested": "Suggested"
+      },
+      "matched": {
+        "title": "Matched Merchants ({count})"
+      },
+      "table": {
+        "merchantName": "Merchant Name",
+        "linkedBrand": "Linked Brand",
+        "status": "Status",
+        "discountCount": "Discount Count",
+        "confidence": "Confidence",
+        "actions": "Actions",
+        "notLinked": "Not Linked"
+      },
+      "status": {
+        "confirmed": "Confirmed",
+        "unconfirmed": "Unconfirmed"
+      },
+      "dialogs": {
+        "linkBrand": {
+          "title": "Link Brand",
+          "description": "Select a brand to link with merchant \"{merchantName}\"",
+          "selectBrand": "Select Brand",
+          "selectPlaceholder": "Select Brand",
+          "suggested": "Suggested Brands"
+        },
+        "editBrand": {
+          "title": "Edit Brand Link",
+          "description": "Modify brand link for merchant \"{merchantName}\"",
+          "selectBrand": "Select Brand",
+          "selectPlaceholder": "Select Brand"
+        }
+      }
     },
     "notifications": {
-      "title": "Data Threshold Notifications",
-      "description": "Configure discount data monitoring thresholds to automatically send alerts when active discount count falls below set values",
-      "inDevelopment": "Notification settings functionality in development..."
+      "errors": {
+        "fetchFailed": "Failed to fetch notification data",
+        "updateFailed": "Failed to update configuration",
+        "testFailed": "Failed to send test notification",
+        "checkFailed": "Failed to check thresholds",
+        "configLoadFailed": "Unable to load notification configuration"
+      },
+      "messages": {
+        "configUpdated": "Notification configuration updated",
+        "testSent": "Test notification sent"
+      },
+      "actions": {
+        "checkNow": "Check Now",
+        "testNotification": "Test Notification",
+        "refresh": "Refresh",
+        "saving": "Saving...",
+        "saveConfig": "Save Configuration"
+      },
+      "config": {
+        "title": "Notification Configuration",
+        "enableNotifications": "Enable Notifications",
+        "enableDescription": "Monitor discount data thresholds and send alerts when enabled",
+        "criticalThreshold": "Critical Alert Threshold",
+        "criticalDescription": "Send critical alerts when active discount count falls below this value",
+        "warningThreshold": "Warning Alert Threshold",
+        "warningDescription": "Send warning alerts when active discount count falls below this value",
+        "checkInterval": "Check Interval (minutes)",
+        "intervalDescription": "How often the system checks thresholds",
+        "channels": "Notification Channels",
+        "emailRecipients": "Email Recipients",
+        "emailPlaceholder": "Enter email addresses, separated by commas"
+      },
+      "channels": {
+        "dashboard": "Dashboard",
+        "email": "Email",
+        "webhook": "Webhook"
+      },
+      "levels": {
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info",
+        "unknown": "Unknown"
+      },
+      "types": {
+        "totalCount": "Total Count",
+        "activeCount": "Active Count",
+        "brandSpecific": "Brand Specific",
+        "typeSpecific": "Type Specific"
+      },
+      "alerts": {
+        "title": "Recent Alerts",
+        "current": "Current",
+        "threshold": "Threshold",
+        "criticalShortage": "Critical Shortage",
+        "noAlerts": "No alerts available",
+        "systemNormal": "System running normally"
+      }
     },
-    "imports": {
-      "title": "Import History",
-      "description": "View all discount data import records and execution results",
-      "newImport": "New Import",
-      "inDevelopment": "Import history functionality in development..."
+    "importHistory": {
+      "title": "Import History Records",
+      "errors": {
+        "fetchFailed": "Failed to fetch import history"
+      },
+      "actions": {
+        "refresh": "Refresh"
+      },
+      "search": {
+        "placeholder": "Search filename or user..."
+      },
+      "filters": {
+        "allStatuses": "All Statuses"
+      },
+      "status": {
+        "completed": "Completed",
+        "failed": "Failed",
+        "partial": "Partial Success",
+        "processing": "Processing",
+        "unknown": "Unknown"
+      },
+      "types": {
+        "paste": "Paste Import",
+        "fileUpload": "File Upload",
+        "api": "API Import"
+      },
+      "duration": {
+        "seconds": "s",
+        "minutes": "m",
+        "hours": "h"
+      },
+      "stats": {
+        "totalImports": "Total Imports",
+        "successful": "Successful",
+        "partial": "Partial Success",
+        "failed": "Failed"
+      },
+      "pagination": {
+        "perPage": "{count} per page",
+        "showing": "Showing {start} - {end} of {total} records",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "table": {
+        "importInfo": "Import Info",
+        "type": "Type",
+        "status": "Status",
+        "recordStats": "Record Stats",
+        "successRate": "Success Rate",
+        "duration": "Duration",
+        "user": "Import User",
+        "createdAt": "Created At",
+        "actions": "Actions",
+        "directPaste": "Direct Paste",
+        "total": "Total",
+        "success": "Success",
+        "errors": "Errors",
+        "skipped": "Skipped",
+        "unknown": "Unknown",
+        "completed": "Completed"
+      },
+      "empty": {
+        "noRecords": "No import records",
+        "description": "Import records will appear here after you start importing discount data"
+      },
+      "details": {
+        "title": "Import Details",
+        "description": "View detailed information and error logs for this import record",
+        "basicInfo": "Basic Information",
+        "fileName": "File Name",
+        "importType": "Import Type",
+        "status": "Status",
+        "createdAt": "Created At",
+        "completedAt": "Completed At",
+        "statistics": "Statistics",
+        "totalRecords": "Total Records",
+        "successCount": "Successful Imports",
+        "errorCount": "Import Errors",
+        "skippedCount": "Skipped Records",
+        "successRate": "Success Rate",
+        "errorLog": "Error Log",
+        "dataPreview": "Data Preview"
+      }
+    },
+    "stats": {
+      "totalDiscounts": "Total Discounts",
+      "activeDiscounts": "Active Discounts",
+      "expired": "Expired",
+      "unmatched": "Unmatched",
+      "totalDescription": "Active rate",
+      "activeDescription": "Available for user use",
+      "expiredDescription": "Data needs cleanup",
+      "unmatchedDescription": "Requires manual linking",
+      "overview": {
+        "total": "Total Discounts",
+        "active": "Active Discounts",
+        "expired": "Expired Discounts",
+        "unmatched": "Unmatched Brands",
+        "activeRate": "Active Rate {rate}%",
+        "activeDescription": "Available for user use",
+        "expiredDescription": "Data needs cleanup",
+        "unmatchedDescription": "Requires manual linking"
+      },
+      "trend": {
+        "title": "Recent Trends",
+        "newDiscounts": "New Discounts",
+        "expiredDiscounts": "Expired Discounts"
+      },
+      "rating": {
+        "average": "Average Rating",
+        "basedOn": "Based on {count} ratings"
+      },
+      "expiry": {
+        "title": "Upcoming Expiry",
+        "moreItems": "{count} more discounts expiring soon",
+        "noItems": "No discounts expiring soon"
+      },
+      "footer": {
+        "lastUpdated": "Data updated: {time}",
+        "refresh": "Refresh"
+      }
     }
   }
 }

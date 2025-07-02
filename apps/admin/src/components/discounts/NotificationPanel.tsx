@@ -11,7 +11,8 @@ import {
   Send,
   TrendingDown,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,7 @@ interface NotificationConfig {
 }
 
 export function NotificationPanel() {
+  const t = useTranslations("discounts.notifications");
   const [alerts, setAlerts] = useState<ThresholdAlert[]>([]);
   const [config, setConfig] = useState<NotificationConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,7 @@ export function NotificationPanel() {
   const [testing, setTesting] = useState(false);
   const [checking, setChecking] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [alertsRes, configRes] = await Promise.all([
@@ -74,11 +76,11 @@ export function NotificationPanel() {
         setConfig(configResult.data);
       }
     } catch {
-      toast.error("获取通知数据失败");
+      toast.error(t("errors.fetchFailed"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   const handleConfigUpdate = async () => {
     if (!config) return;
@@ -94,13 +96,13 @@ export function NotificationPanel() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success("通知配置已更新");
+        toast.success(t("messages.configUpdated"));
         setConfig(result.data);
       } else {
-        toast.error(result.error || "更新配置失败");
+        toast.error(result.error || t("errors.updateFailed"));
       }
     } catch {
-      toast.error("更新配置失败");
+      toast.error(t("errors.updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -118,13 +120,13 @@ export function NotificationPanel() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success("测试通知已发送");
+        toast.success(t("messages.testSent"));
         await fetchData(); // Refresh alerts
       } else {
-        toast.error(result.error || "发送测试通知失败");
+        toast.error(result.error || t("errors.testFailed"));
       }
     } catch {
-      toast.error("发送测试通知失败");
+      toast.error(t("errors.testFailed"));
     } finally {
       setTesting(false);
     }
@@ -145,10 +147,10 @@ export function NotificationPanel() {
         toast.success(result.message);
         await fetchData(); // Refresh alerts
       } else {
-        toast.error(result.error || "检查阈值失败");
+        toast.error(result.error || t("errors.checkFailed"));
       }
     } catch {
-      toast.error("检查阈值失败");
+      toast.error(t("errors.checkFailed"));
     } finally {
       setChecking(false);
     }
@@ -170,26 +172,26 @@ export function NotificationPanel() {
   const getAlertBadge = (level: string) => {
     switch (level) {
       case "critical":
-        return <Badge variant="destructive">严重</Badge>;
+        return <Badge variant="destructive">{t("levels.critical")}</Badge>;
       case "warning":
         return (
           <Badge variant="secondary" className="bg-yellow-600">
-            警告
+            {t("levels.warning")}
           </Badge>
         );
       case "info":
-        return <Badge variant="default">信息</Badge>;
+        return <Badge variant="default">{t("levels.info")}</Badge>;
       default:
-        return <Badge variant="outline">未知</Badge>;
+        return <Badge variant="outline">{t("levels.unknown")}</Badge>;
     }
   };
 
   const getTypeLabel = (type: string) => {
     const labels = {
-      total_count: "总数量",
-      active_count: "活跃数量",
-      brand_specific: "品牌特定",
-      type_specific: "类型特定",
+      total_count: t("types.totalCount"),
+      active_count: t("types.activeCount"),
+      brand_specific: t("types.brandSpecific"),
+      type_specific: t("types.typeSpecific"),
     };
 
     return labels[type as keyof typeof labels] || type;
@@ -202,7 +204,7 @@ export function NotificationPanel() {
     const interval = setInterval(fetchData, 60000); // Refresh every minute
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -227,7 +229,9 @@ export function NotificationPanel() {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-6">
-          <p className="text-muted-foreground">无法加载通知配置</p>
+          <p className="text-muted-foreground">
+            {t("errors.configLoadFailed")}
+          </p>
         </CardContent>
       </Card>
     );
@@ -235,13 +239,13 @@ export function NotificationPanel() {
 
   return (
     <div className="space-y-6">
-      {/* 配置面板 */}
+      {/* Configuration Panel */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Settings className="w-5 h-5" />
-              通知配置
+              {t("config.title")}
             </CardTitle>
             <div className="flex gap-2">
               <Button
@@ -253,7 +257,7 @@ export function NotificationPanel() {
                 <RefreshCw
                   className={`w-4 h-4 mr-1 ${checking ? "animate-spin" : ""}`}
                 />
-                立即检查
+                {t("actions.checkNow")}
               </Button>
               <Button
                 size="sm"
@@ -262,19 +266,19 @@ export function NotificationPanel() {
                 disabled={testing}
               >
                 <Send className="w-4 h-4 mr-1" />
-                测试通知
+                {t("actions.testNotification")}
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 基本设置 */}
+          {/* Basic Settings */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label>启用通知</Label>
+                <Label>{t("config.enableNotifications")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  开启后将监控折扣数据阈值并发送提醒
+                  {t("config.enableDescription")}
                 </p>
               </div>
               <Switch
@@ -287,10 +291,12 @@ export function NotificationPanel() {
 
             <Separator />
 
-            {/* 阈值设置 */}
+            {/* Threshold Settings */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="critical-threshold">严重警告阈值</Label>
+                <Label htmlFor="critical-threshold">
+                  {t("config.criticalThreshold")}
+                </Label>
                 <Input
                   id="critical-threshold"
                   type="number"
@@ -306,12 +312,14 @@ export function NotificationPanel() {
                   }
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  活跃折扣数量低于此值时发送严重警告
+                  {t("config.criticalDescription")}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="warning-threshold">一般警告阈值</Label>
+                <Label htmlFor="warning-threshold">
+                  {t("config.warningThreshold")}
+                </Label>
                 <Input
                   id="warning-threshold"
                   type="number"
@@ -327,13 +335,15 @@ export function NotificationPanel() {
                   }
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  活跃折扣数量低于此值时发送一般警告
+                  {t("config.warningDescription")}
                 </p>
               </div>
             </div>
 
             <div>
-              <Label htmlFor="check-interval">检查间隔 (分钟)</Label>
+              <Label htmlFor="check-interval">
+                {t("config.checkInterval")}
+              </Label>
               <Input
                 id="check-interval"
                 type="number"
@@ -346,13 +356,13 @@ export function NotificationPanel() {
                 }
               />
               <p className="text-xs text-muted-foreground mt-1">
-                系统多久检查一次阈值
+                {t("config.intervalDescription")}
               </p>
             </div>
 
-            {/* 通知渠道 */}
+            {/* Notification Channels */}
             <div>
-              <Label>通知渠道</Label>
+              <Label>{t("config.channels")}</Label>
               <div className="flex gap-2 mt-2">
                 {["dashboard", "email", "webhook"].map((channel) => (
                   <Badge
@@ -378,9 +388,9 @@ export function NotificationPanel() {
                       setConfig({ ...config, channels });
                     }}
                   >
-                    {channel === "dashboard" && "仪表板"}
-                    {channel === "email" && "邮件"}
-                    {channel === "webhook" && "Webhook"}
+                    {channel === "dashboard" && t("channels.dashboard")}
+                    {channel === "email" && t("channels.email")}
+                    {channel === "webhook" && t("channels.webhook")}
                     {config.channels.includes(
                       channel as "email" | "webhook" | "dashboard",
                     ) && <Check className="w-3 h-3 ml-1" />}
@@ -389,13 +399,15 @@ export function NotificationPanel() {
               </div>
             </div>
 
-            {/* 邮件收件人 */}
+            {/* Email Recipients */}
             {config.channels.includes("email") && (
               <div>
-                <Label htmlFor="recipients">邮件收件人</Label>
+                <Label htmlFor="recipients">
+                  {t("config.emailRecipients")}
+                </Label>
                 <Textarea
                   id="recipients"
-                  placeholder="输入邮件地址，用逗号分隔"
+                  placeholder={t("config.emailPlaceholder")}
                   value={config.recipients.join(", ")}
                   onChange={(e) =>
                     setConfig({
@@ -415,23 +427,23 @@ export function NotificationPanel() {
               disabled={saving}
               className="w-full"
             >
-              {saving ? "保存中..." : "保存配置"}
+              {saving ? t("actions.saving") : t("actions.saveConfig")}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* 最近警告 */}
+      {/* Recent Alerts */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5" />
-              最近警告
+              {t("alerts.title")}
             </CardTitle>
             <Button size="sm" variant="outline" onClick={fetchData}>
               <RefreshCw className="w-4 h-4 mr-1" />
-              刷新
+              {t("actions.refresh")}
             </Button>
           </div>
         </CardHeader>
@@ -458,12 +470,16 @@ export function NotificationPanel() {
                     </div>
                     <p className="text-sm">{alert.message}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                      <span>当前: {alert.current}</span>
-                      <span>阈值: {alert.threshold}</span>
+                      <span>
+                        {t("alerts.current")}: {alert.current}
+                      </span>
+                      <span>
+                        {t("alerts.threshold")}: {alert.threshold}
+                      </span>
                       {alert.level === "critical" && (
                         <div className="flex items-center gap-1 text-red-600">
                           <TrendingDown className="w-3 h-3" />
-                          严重不足
+                          {t("alerts.criticalShortage")}
                         </div>
                       )}
                     </div>
@@ -474,8 +490,8 @@ export function NotificationPanel() {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>暂无警告信息</p>
-              <p className="text-xs mt-1">系统运行正常</p>
+              <p>{t("alerts.noAlerts")}</p>
+              <p className="text-xs mt-1">{t("alerts.systemNormal")}</p>
             </div>
           )}
         </CardContent>

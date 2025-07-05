@@ -2,7 +2,7 @@
 
 import { DiscountType } from "@prisma/client";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,14 +29,14 @@ export function DiscountPreviewTable({
 
   const getDiscountTypeLabel = (type: DiscountType) => {
     const labels = {
-      [DiscountType.PERCENTAGE]: "百分比",
-      [DiscountType.FIXED_AMOUNT]: "固定金额",
-      [DiscountType.FREE_SHIPPING]: "免费送货",
-      [DiscountType.BUY_X_GET_Y]: "买X送Y",
-      [DiscountType.OTHER]: "其他",
+      [DiscountType.PERCENTAGE]: "Percentage",
+      [DiscountType.FIXED_AMOUNT]: "Fixed Amount",
+      [DiscountType.FREE_SHIPPING]: "Free Shipping",
+      [DiscountType.BUY_X_GET_Y]: "Buy X Get Y",
+      [DiscountType.OTHER]: "Other",
     };
 
-    return labels[type] || "其他";
+    return labels[type] || "Other";
   };
 
   const getDiscountTypeVariant = (type: DiscountType) => {
@@ -67,7 +67,7 @@ export function DiscountPreviewTable({
   const formatDate = (date?: Date) => {
     if (!date) return "-";
 
-    return format(date, "MM/dd/yy HH:mm", { locale: zhCN });
+    return format(date, "MM/dd/yy HH:mm", { locale: enUS });
   };
 
   const formatValue = (discount: FMTCDiscountData) => {
@@ -90,7 +90,7 @@ export function DiscountPreviewTable({
     <div className="space-y-4">
       {maxRows && data.length > maxRows && (
         <div className="text-sm text-muted-foreground">
-          显示前 {maxRows} 条记录，共 {data.length} 条
+          Showing first {maxRows} of {data.length} records
         </div>
       )}
 
@@ -98,15 +98,15 @@ export function DiscountPreviewTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[150px]">商家</TableHead>
-              <TableHead className="min-w-[200px]">折扣标题</TableHead>
-              <TableHead className="w-[100px]">折扣码</TableHead>
-              <TableHead className="w-[80px]">类型</TableHead>
-              <TableHead className="w-[80px]">折扣值</TableHead>
-              <TableHead className="w-[80px]">状态</TableHead>
-              <TableHead className="w-[120px]">开始时间</TableHead>
-              <TableHead className="w-[120px]">结束时间</TableHead>
-              <TableHead className="w-[60px]">评分</TableHead>
+              <TableHead className="w-[150px]">Merchant</TableHead>
+              <TableHead className="min-w-[200px]">Discount Title</TableHead>
+              <TableHead className="w-[100px]">Code</TableHead>
+              <TableHead className="w-[80px]">Type</TableHead>
+              <TableHead className="w-[80px]">Value</TableHead>
+              <TableHead className="w-[80px]">Status</TableHead>
+              <TableHead className="w-[120px]">Start Time</TableHead>
+              <TableHead className="w-[120px]">End Time</TableHead>
+              <TableHead className="w-[60px]">Rating</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -130,7 +130,7 @@ export function DiscountPreviewTable({
                     </div>
                     {discount.minAmount && (
                       <div className="text-xs text-muted-foreground mt-1">
-                        最低消费: ${discount.minAmount}
+                        Min spend: ${discount.minAmount}
                       </div>
                     )}
                   </div>
@@ -142,7 +142,7 @@ export function DiscountPreviewTable({
                     </Badge>
                   ) : (
                     <span className="text-muted-foreground text-xs">
-                      无需代码
+                      No code required
                     </span>
                   )}
                 </TableCell>
@@ -184,7 +184,7 @@ export function DiscountPreviewTable({
                   </div>
                   {isExpired(discount.endDate) && (
                     <Badge variant="destructive" className="text-xs mt-1">
-                      已过期
+                      Expired
                     </Badge>
                   )}
                 </TableCell>
@@ -192,7 +192,7 @@ export function DiscountPreviewTable({
                   {discount.rating ? (
                     <div className="text-center">
                       <div className="font-medium">{discount.rating}</div>
-                      <div className="text-muted-foreground">分</div>
+                      <div className="text-muted-foreground">pts</div>
                     </div>
                   ) : (
                     <span className="text-muted-foreground">-</span>

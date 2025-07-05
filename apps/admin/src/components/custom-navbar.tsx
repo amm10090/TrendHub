@@ -32,6 +32,7 @@ import {
   SheetContent,
   SheetFooter,
   SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
@@ -152,13 +153,7 @@ export function CustomNavbar() {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <div className="flex items-center">
-              <SheetTrigger asChild className="lg:hidden mr-2">
-                <Button variant="ghost" size="icon" aria-label={t("openMenu")}>
-                  <Menu size={24} />
-                </Button>
-              </SheetTrigger>
-
+            <div className="flex items-center justify-between w-full lg:w-auto">
               <Link
                 href="/"
                 className="flex items-center gap-3 font-bold text-xl group transition-all duration-300 hover:scale-105"
@@ -173,6 +168,20 @@ export function CustomNavbar() {
                   {t("appName")}
                 </span>
               </Link>
+
+              <SheetTrigger asChild className="lg:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t("openMenu")}
+                  className="h-12 w-12 rounded-xl hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950 dark:hover:to-purple-950 transition-all duration-300"
+                >
+                  <Menu
+                    size={28}
+                    className="text-gray-700 dark:text-gray-300"
+                  />
+                </Button>
+              </SheetTrigger>
             </div>
 
             <div className="hidden lg:flex flex-grow justify-center">
@@ -243,12 +252,16 @@ export function CustomNavbar() {
               )}
             </div>
 
-            <NavbarActions />
+            <div className="hidden lg:block">
+              <NavbarActions />
+            </div>
 
             <SheetContent
               side="left"
-              className="w-80 p-0 flex flex-col bg-white/95 dark:bg-gray-950/95 backdrop-blur-2xl border-r border-gray-200/50 dark:border-gray-800/50 shadow-2xl shadow-black/10 dark:shadow-black/30"
+              className="w-96 p-0 flex flex-col bg-white/95 dark:bg-gray-950/95 backdrop-blur-2xl border-r border-gray-200/50 dark:border-gray-800/50 shadow-2xl shadow-black/10 dark:shadow-black/30"
+              onOpenAutoFocus={(e) => e.preventDefault()}
             >
+              <SheetTitle className="sr-only">{t("openMenu")}</SheetTitle>
               <SheetHeader className="p-6 border-b border-gray-200/60 dark:border-gray-800/60 bg-gradient-to-r from-gray-50/50 to-blue-50/30 dark:from-gray-900/50 dark:to-blue-950/30">
                 <div className="flex justify-between items-center">
                   <Link

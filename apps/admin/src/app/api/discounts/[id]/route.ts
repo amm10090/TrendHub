@@ -11,7 +11,7 @@ interface RouteParams {
 // GET - 获取单个折扣详情
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const discount = await db.discount.findUnique({
       where: { id },
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT - 更新单个折扣
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const {
@@ -193,7 +193,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE - 删除单个折扣
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // 验证折扣是否存在
     const existingDiscount = await db.discount.findUnique({
@@ -231,7 +231,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 // PATCH - 更新折扣使用统计
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { action } = body;
 

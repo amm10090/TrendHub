@@ -376,7 +376,9 @@
     "all": "全部",
     "cancel": "取消",
     "close": "关闭",
+    "save": "保存",
     "id": "ID",
+    "createdAt": "创建时间",
     "columns": {
       "brand": "品牌",
       "category": "分类",
@@ -400,6 +402,7 @@
     "notApplicable": "不适用",
     "price": "价格",
     "processing": "处理中...",
+    "loading": "加载中...",
     "search": "搜索",
     "selectBrand": "选择品牌",
     "selectCategory": "选择分类",
@@ -1976,6 +1979,9 @@
       "validPeriod": "有效期",
       "usageCount": "使用次数",
       "actions": "操作",
+      "typeValue": "类型/值",
+      "time": "时间",
+      "total": "总计",
       "noData": "没有找到匹配的折扣数据",
       "noDataDescription": "尝试调整筛选条件或清除搜索",
       "unmatched": "未匹配",
@@ -2045,6 +2051,38 @@
       "results": "个",
       "previous": "上一页",
       "next": "下一页"
+    },
+    "messages": {
+      "copiedToClipboard": "折扣码已复制到剪贴板",
+      "fetchError": "获取折扣数据失败",
+      "deleteConfirm": "确定要删除这个折扣吗？此操作不可撤销。",
+      "deleteSuccess": "折扣删除成功",
+      "deleteError": "删除失败",
+      "deleteErrorRetry": "删除失败，请重试",
+      "editSuccess": "折扣已激活",
+      "editSuccessDeactivated": "折扣已禁用",
+      "editError": "更新失败",
+      "editErrorRetry": "编辑失败，请重试",
+      "viewDetailsError": "获取折扣详情失败",
+      "selectItems": "请选择要操作的折扣",
+      "batchSuccess": "操作成功",
+      "batchError": "操作失败",
+      "batchErrorRetry": "操作失败，请重试"
+    },
+    "detail": {
+      "title": "折扣详情",
+      "basicInfo": "基本信息",
+      "discountInfo": "折扣信息",
+      "brandInfo": "品牌信息",
+      "statusInfo": "状态信息"
+    },
+    "edit": {
+      "title": "编辑折扣",
+      "updateSuccess": "折扣更新成功",
+      "updateError": "折扣更新失败",
+      "codePlaceholder": "例如：SAVE20",
+      "valuePlaceholder": "例如：20 或 10.50",
+      "statusDescription": "已禁用的折扣不会在前端显示"
     },
     "brandMatching": {
       "title": "品牌匹配管理",

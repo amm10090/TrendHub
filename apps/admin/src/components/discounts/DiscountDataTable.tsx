@@ -2,7 +2,7 @@
 
 import { DiscountType } from "@prisma/client";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import {
   MoreHorizontal,
   Edit,
@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
@@ -37,6 +38,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+import { DiscountDetailModal } from "./DiscountDetailModal";
+import { DiscountEditModal } from "./DiscountEditModal";
 
 interface Discount {
   id: string;
@@ -79,6 +83,7 @@ interface StatsInfo {
 export function DiscountDataTable() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("discounts");
 
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
@@ -98,6 +103,13 @@ export function DiscountDataTable() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // 模态框状态
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(
+    null,
+  );
 
   // 从URL参数构建查询字符串
   const buildQueryString = useCallback(() => {
@@ -126,14 +138,14 @@ export function DiscountDataTable() {
         setPagination(result.pagination);
         setStats(result.stats);
       } else {
-        toast.error(result.error || "获取折扣数据失败");
+        toast.error(result.error || t("messages.fetchError"));
       }
     } catch {
-      toast.error("获取折扣数据失败");
+      toast.error(t("messages.fetchError"));
     } finally {
       setLoading(false);
     }
-  }, [buildQueryString]);
+  }, [buildQueryString, t]);
 
   // 页面跳转
   const handlePageChange = (newPage: number) => {
@@ -149,7 +161,7 @@ export function DiscountDataTable() {
     data?: Record<string, unknown>,
   ) => {
     if (selectedIds.length === 0) {
-      toast.error("请选择要操作的折扣");
+      toast.error(t("messages.selectItems"));
 
       return;
     }
@@ -169,14 +181,14 @@ export function DiscountDataTable() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message || t("messages.batchSuccess"));
         setSelectedIds([]);
         await fetchDiscounts();
       } else {
-        toast.error(result.error || "操作失败");
+        toast.error(result.error || t("messages.batchError"));
       }
     } catch {
-      toast.error("操作失败，请重试");
+      toast.error(t("messages.batchErrorRetry"));
     } finally {
       setActionLoading(false);
     }
@@ -185,37 +197,76 @@ export function DiscountDataTable() {
   // 复制折扣码
   const copyDiscountCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast.success("折扣码已复制到剪贴板");
+    toast.success(t("messages.copiedToClipboard"));
+  };
+
+  // 查看详情
+  const handleViewDetails = (discountId: string) => {
+    setSelectedDiscountId(discountId);
+    setDetailModalOpen(true);
+  };
+
+  // 编辑折扣
+  const handleEditDiscount = (discountId: string) => {
+    setSelectedDiscountId(discountId);
+    setEditModalOpen(true);
+  };
+
+  // 删除单个折扣
+  const handleDeleteDiscount = async (discountId: string) => {
+    if (!confirm(t("messages.deleteConfirm"))) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const response = await fetch(`/api/discounts/${discountId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(t("messages.deleteSuccess"));
+        await fetchDiscounts();
+      } else {
+        toast.error(result.error || t("messages.deleteError"));
+      }
+    } catch {
+      toast.error(t("messages.deleteErrorRetry"));
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // 格式化日期
   const formatDate = (date?: Date) => {
     if (!date) return "-";
 
-    return format(new Date(date), "MM/dd HH:mm", { locale: zhCN });
+    return format(new Date(date), "MM/dd HH:mm", { locale: enUS });
   };
 
   // 获取折扣类型标签
   const getDiscountTypeLabel = (type: DiscountType) => {
     const labels = {
-      [DiscountType.PERCENTAGE]: "百分比",
-      [DiscountType.FIXED_AMOUNT]: "固定金额",
-      [DiscountType.FREE_SHIPPING]: "免费送货",
-      [DiscountType.BUY_X_GET_Y]: "买X送Y",
-      [DiscountType.OTHER]: "其他",
+      [DiscountType.PERCENTAGE]: t("types.percentage"),
+      [DiscountType.FIXED_AMOUNT]: t("types.fixedAmount"),
+      [DiscountType.FREE_SHIPPING]: t("types.freeShipping"),
+      [DiscountType.BUY_X_GET_Y]: t("types.buyXGetY"),
+      [DiscountType.OTHER]: t("types.other"),
     };
 
-    return labels[type] || "未知";
+    return labels[type] || t("status.unknown");
   };
 
   // 获取状态标签样式
   const getStatusBadge = (discount: Discount) => {
     if (discount.isExpired) {
-      return <Badge variant="destructive">已过期</Badge>;
+      return <Badge variant="destructive">{t("status.expired")}</Badge>;
     } else if (!discount.isActive) {
-      return <Badge variant="secondary">未激活</Badge>;
+      return <Badge variant="secondary">{t("status.inactive")}</Badge>;
     } else {
-      return <Badge variant="default">活跃</Badge>;
+      return <Badge variant="default">{t("status.active")}</Badge>;
     }
   };
 
@@ -234,8 +285,7 @@ export function DiscountDataTable() {
 
   useEffect(() => {
     fetchDiscounts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [fetchDiscounts]);
 
   if (loading) {
     return (
@@ -268,16 +318,18 @@ export function DiscountDataTable() {
       <div className="flex justify-between items-center">
         <div className="flex gap-4 text-sm text-muted-foreground">
           <span>
-            总计: <strong>{stats.total}</strong>
+            {t("table.total")}: <strong>{stats.total}</strong>
           </span>
           <span>
-            活跃: <strong className="text-green-600">{stats.active}</strong>
+            {t("status.active")}:{" "}
+            <strong className="text-green-600">{stats.active}</strong>
           </span>
           <span>
-            过期: <strong className="text-red-600">{stats.expired}</strong>
+            {t("status.expired")}:{" "}
+            <strong className="text-red-600">{stats.expired}</strong>
           </span>
           <span>
-            未激活:{" "}
+            {t("status.inactive")}:{" "}
             <strong className="text-yellow-600">{stats.inactive}</strong>
           </span>
         </div>
@@ -290,7 +342,7 @@ export function DiscountDataTable() {
               onClick={() => handleBatchAction("activate")}
               disabled={actionLoading}
             >
-              批量激活 ({selectedIds.length})
+              {t("bulkActions.bulkActivate")} ({selectedIds.length})
             </Button>
             <Button
               size="sm"
@@ -298,7 +350,7 @@ export function DiscountDataTable() {
               onClick={() => handleBatchAction("deactivate")}
               disabled={actionLoading}
             >
-              批量禁用
+              {t("bulkActions.bulkDeactivate")}
             </Button>
             <Button
               size="sm"
@@ -306,7 +358,7 @@ export function DiscountDataTable() {
               onClick={() => handleBatchAction("delete")}
               disabled={actionLoading}
             >
-              批量删除
+              {t("bulkActions.bulkDelete")}
             </Button>
           </div>
         )}
@@ -332,13 +384,15 @@ export function DiscountDataTable() {
                   }}
                 />
               </TableHead>
-              <TableHead>商家/品牌</TableHead>
-              <TableHead>折扣信息</TableHead>
-              <TableHead>类型/值</TableHead>
-              <TableHead>状态</TableHead>
-              <TableHead>时间</TableHead>
-              <TableHead>使用次数</TableHead>
-              <TableHead className="w-12">操作</TableHead>
+              <TableHead>
+                {t("table.merchant")}/{t("table.brand")}
+              </TableHead>
+              <TableHead>{t("table.discountInfo")}</TableHead>
+              <TableHead>{t("table.typeValue")}</TableHead>
+              <TableHead>{t("table.status")}</TableHead>
+              <TableHead>{t("table.time")}</TableHead>
+              <TableHead>{t("table.usageCount")}</TableHead>
+              <TableHead className="w-12">{t("table.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -424,7 +478,7 @@ export function DiscountDataTable() {
                     {getStatusBadge(discount)}
                     {discount.rating && (
                       <div className="text-xs text-muted-foreground">
-                        评分: {discount.rating}
+                        {t("filters.rating")}: {discount.rating}
                       </div>
                     )}
                   </div>
@@ -464,26 +518,34 @@ export function DiscountDataTable() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleViewDetails(discount.id)}
+                      >
                         <Eye className="w-4 h-4 mr-2" />
-                        查看详情
+                        {t("dropdownActions.viewDetails")}
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleEditDiscount(discount.id)}
+                      >
                         <Edit className="w-4 h-4 mr-2" />
-                        编辑
+                        {t("dropdownActions.edit")}
                       </DropdownMenuItem>
                       {discount.code && (
                         <DropdownMenuItem
                           onClick={() => copyDiscountCode(discount.code!)}
                         >
                           <Copy className="w-4 h-4 mr-2" />
-                          复制折扣码
+                          {t("dropdownActions.copyCode")}
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => handleDeleteDiscount(discount.id)}
+                        disabled={actionLoading}
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
-                        删除
+                        {t("dropdownActions.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -498,9 +560,10 @@ export function DiscountDataTable() {
       {pagination.totalPages > 1 && (
         <div className="flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
-            显示 {(pagination.page - 1) * pagination.limit + 1} -{" "}
+            {t("pagination.showing")}{" "}
+            {(pagination.page - 1) * pagination.limit + 1} -{" "}
             {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-            条， 共 {pagination.total} 条
+            {t("pagination.of")} {pagination.total} {t("pagination.results")}
           </div>
           <div className="flex gap-2">
             <Button
@@ -510,7 +573,7 @@ export function DiscountDataTable() {
               disabled={!pagination.hasPrev}
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
-              上一页
+              {t("pagination.previous")}
             </Button>
             <Button
               variant="outline"
@@ -518,12 +581,29 @@ export function DiscountDataTable() {
               onClick={() => handlePageChange(pagination.page + 1)}
               disabled={!pagination.hasNext}
             >
-              下一页
+              {t("pagination.next")}
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
         </div>
       )}
+
+      {/* 模态框组件 */}
+      <DiscountDetailModal
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        discountId={selectedDiscountId}
+      />
+
+      <DiscountEditModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        discountId={selectedDiscountId}
+        onSuccess={() => {
+          fetchDiscounts();
+          setEditModalOpen(false);
+        }}
+      />
     </div>
   );
 }

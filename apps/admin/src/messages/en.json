@@ -2273,23 +2273,35 @@
       "notifications": "Notifications",
       "imports": "Import History"
     },
-    "import": {
-      "title": "Import Discount Data"
-    },
     "settings": {
       "title": "Discount System Settings",
+      "loadingError": "Failed to load settings",
+      "saveSuccess": "Settings saved successfully",
+      "saveError": "Failed to save settings",
+      "loading": "Loading settings...",
+      "cancel": "Cancel",
+      "save": "Save Settings",
       "scheduler": {
         "title": "Auto Scheduler",
+        "description": "Configure automatic expiry check and data cleanup functions",
         "enabled": "Enable automatic expiry check",
+        "enabledDescription": "Automatically check and mark expired discounts",
         "interval": "Check interval (minutes)",
+        "intervalDescription": "Set the time interval for automatic checks (1-1440 minutes)",
         "cleanup": "Auto cleanup expired data",
-        "retention": "Data retention days"
+        "cleanupDescription": "Automatically delete expired data beyond retention period",
+        "retention": "Data retention days",
+        "retentionDescription": "Retention days for expired data (1-365 days)"
       },
       "notifications": {
         "title": "Threshold Notifications",
+        "description": "Configure data volume threshold monitoring and notification functions",
         "enabled": "Enable notification system",
+        "enabledDescription": "Enable discount quantity threshold monitoring",
         "critical": "Critical threshold",
+        "criticalDescription": "Send critical warning when below this quantity",
         "warning": "Warning threshold",
+        "warningDescription": "Send warning reminder when below this quantity",
         "channels": "Notification channels",
         "email": "Email notifications",
         "webhook": "Webhook notifications",
@@ -2297,9 +2309,80 @@
       },
       "brandMatching": {
         "title": "Brand Matching",
+        "description": "Configure automatic brand matching function",
         "autoMatch": "Enable auto matching",
+        "autoMatchDescription": "Automatically try to match brands when importing",
         "confidence": "Matching confidence",
-        "fuzzyMatch": "Enable fuzzy matching"
+        "confidenceDescription": "Minimum confidence for brand matching (0.1-1.0)",
+        "fuzzyMatch": "Enable fuzzy matching",
+        "fuzzyMatchDescription": "Enable fuzzy matching algorithm"
+      }
+    },
+    "import": {
+      "title": "FMTC Discount Data Import",
+      "description": "Supports pasting FMTC copied discount information or uploading TSV/CSV files. The system will automatically parse data and intelligently match brands.",
+      "pasteContent": "Paste Content",
+      "fileUpload": "File Upload",
+      "downloadSample": "Download Sample File",
+      "pasteLabel": "Paste FMTC Discount Information",
+      "pasteDescription": "Supports table format (tab-separated) or plain text format. The system will automatically identify format and parse.",
+      "pastePlaceholder": "Please paste FMTC discount information...\n\nExample format:\nGap CA\tExtra 20% Off Purchase\tADDON\t06/25/25 10:45am PDT\t06/25/25 12:00pm PDT\t07/03/25 11:59pm PDT\t24.5",
+      "previewResults": "Preview Parse Results",
+      "importProgress": "Import Progress",
+      "previewData": "Preview Data",
+      "previewDescription": "After confirming the data is correct, click the import button to start batch importing discount information",
+      "confirmImport": "Confirm Import",
+      "messages": {
+        "pasteRequired": "Please paste FMTC data first",
+        "parseSuccess": "Successfully parsed {count} discount information",
+        "parseWarning": "Found {count} data errors, invalid data has been filtered",
+        "parseError": "Parsing failed, please check data format",
+        "validationError": "Parsing failed, please check data format",
+        "noDataToImport": "No data to import",
+        "importSuccess": "Successfully imported {count} discount information",
+        "importError": "Import failed",
+        "importRetry": "Import failed, please try again",
+        "fileReadError": "Failed to read file"
+      },
+      "status": {
+        "parsing": "Parsing...",
+        "importing": "Importing...",
+        "completed": "Import Complete",
+        "failed": "Import Failed"
+      },
+      "stats": {
+        "total": "Total",
+        "lines": "lines",
+        "success": "Success",
+        "items": "items",
+        "error": "Error",
+        "skipped": "Skipped",
+        "moreErrors": "... and {count} more errors"
+      },
+      "progress": {
+        "success": "Success: {successful}",
+        "failed": "Failed: {failed}",
+        "of": "/"
+      },
+      "validation": {
+        "title": "Data validation errors:"
+      },
+      "fileUploader": {
+        "unsupportedFileType": "Unsupported file type, please select CSV, TSV or TXT files",
+        "fileTooLarge": "File size cannot exceed {size}MB",
+        "uploadFailed": "File upload failed",
+        "unsupportedFileTypeTitle": "Unsupported file type",
+        "dragFileHere": "Drag file here",
+        "orText": "or",
+        "clickToSelect": "click to select file",
+        "supportedFormats": "Supported formats: CSV, TSV, TXT",
+        "maxSize": "Max {size}MB",
+        "uploadedAt": "uploaded at",
+        "processing": "Processing file...",
+        "supportedFormatsTitle": "Supported formats description:",
+        "csvDescription": "Comma-separated values file",
+        "tsvDescription": "Tab-separated values file (recommended, matches FMTC export format)",
+        "txtDescription": "Plain text file"
       }
     },
     "page": {

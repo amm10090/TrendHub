@@ -1,6 +1,7 @@
 "use client";
 
 import { Upload, File, X, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ export function FileUploader({
   loading = false,
   maxSize = 10 * 1024 * 1024, // 10MB
 }: FileUploaderProps) {
+  const t = useTranslations("discounts.import.fileUploader");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isDragReject, setIsDragReject] = useState(false);
@@ -37,14 +39,16 @@ export function FileUploader({
     async (file: File) => {
       // 文件类型检查
       if (!isValidFileType(file)) {
-        toast.error("不支持的文件类型，请选择 CSV、TSV 或 TXT 文件");
+        toast.error(t("unsupportedFileType"));
 
         return;
       }
 
       // 文件大小检查
       if (file.size > maxSize) {
-        toast.error(`文件大小不能超过 ${Math.round(maxSize / 1024 / 1024)}MB`);
+        toast.error(
+          t("fileTooLarge", { size: Math.round(maxSize / 1024 / 1024) }),
+        );
 
         return;
       }
@@ -54,7 +58,7 @@ export function FileUploader({
       try {
         await onUpload(file);
       } catch {
-        toast.error("文件上传失败");
+        toast.error(t("uploadFailed"));
         setSelectedFile(null);
       }
     },
@@ -178,21 +182,23 @@ export function FileUploader({
 
               <div className="space-y-2">
                 <div className="text-lg font-medium">
-                  {isDragReject ? "不支持的文件类型" : "拖拽文件到此处"}
+                  {isDragReject
+                    ? t("unsupportedFileTypeTitle")
+                    : t("dragFileHere")}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  或者{" "}
+                  {t("orText")}{" "}
                   <Button
                     variant="link"
                     className="h-auto p-0"
                     disabled={loading}
                   >
-                    点击选择文件
+                    {t("clickToSelect")}
                   </Button>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  支持格式: CSV, TSV, TXT | 最大{" "}
-                  {Math.round(maxSize / 1024 / 1024)}MB
+                  {t("supportedFormats")} |{" "}
+                  {t("maxSize", { size: Math.round(maxSize / 1024 / 1024) })}
                 </div>
               </div>
             </div>
@@ -208,7 +214,7 @@ export function FileUploader({
             <div className="flex-1 min-w-0">
               <div className="font-medium truncate">{selectedFile.name}</div>
               <div className="text-sm text-muted-foreground">
-                {formatFileSize(selectedFile.size)} • 上传于{" "}
+                {formatFileSize(selectedFile.size)} • {t("uploadedAt")}{" "}
                 {new Date().toLocaleTimeString()}
               </div>
             </div>
@@ -228,7 +234,7 @@ export function FileUploader({
           {loading && (
             <div className="mt-3 text-sm text-muted-foreground flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
-              正在处理文件...
+              {t("processing")}
             </div>
           )}
         </Card>
@@ -236,17 +242,17 @@ export function FileUploader({
 
       <div className="text-xs text-muted-foreground space-y-1">
         <div>
-          <strong>支持的格式说明:</strong>
+          <strong>{t("supportedFormatsTitle")}</strong>
         </div>
         <ul className="list-disc list-inside space-y-1 ml-2">
           <li>
-            <strong>CSV:</strong> 逗号分隔值文件
+            <strong>CSV:</strong> {t("csvDescription")}
           </li>
           <li>
-            <strong>TSV:</strong> Tab分隔值文件（推荐，与FMTC导出格式匹配）
+            <strong>TSV:</strong> {t("tsvDescription")}
           </li>
           <li>
-            <strong>TXT:</strong> 纯文本文件
+            <strong>TXT:</strong> {t("txtDescription")}
           </li>
         </ul>
       </div>

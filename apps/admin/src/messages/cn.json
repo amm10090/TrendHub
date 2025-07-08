@@ -1930,23 +1930,35 @@
       "notifications": "通知设置",
       "imports": "导入历史"
     },
-    "import": {
-      "title": "导入折扣数据"
-    },
     "settings": {
       "title": "折扣系统设置",
+      "loadingError": "加载设置失败",
+      "saveSuccess": "设置保存成功",
+      "saveError": "保存设置失败",
+      "loading": "加载设置中...",
+      "cancel": "取消",
+      "save": "保存设置",
       "scheduler": {
         "title": "自动调度器",
+        "description": "配置自动过期检查和数据清理功能",
         "enabled": "启用自动过期检查",
+        "enabledDescription": "自动检查和标记过期的折扣",
         "interval": "检查间隔 (分钟)",
+        "intervalDescription": "设置自动检查的时间间隔（1-1440分钟）",
         "cleanup": "自动清理过期数据",
-        "retention": "数据保留天数"
+        "cleanupDescription": "自动删除超过保留期的过期数据",
+        "retention": "数据保留天数",
+        "retentionDescription": "过期数据的保留天数（1-365天）"
       },
       "notifications": {
         "title": "阈值通知",
+        "description": "配置数据量阈值监控和通知功能",
         "enabled": "启用通知系统",
+        "enabledDescription": "启用折扣数量阈值监控",
         "critical": "严重阈值",
+        "criticalDescription": "低于此数量时发送关键警告",
         "warning": "警告阈值",
+        "warningDescription": "低于此数量时发送警告提醒",
         "channels": "通知渠道",
         "email": "邮件通知",
         "webhook": "Webhook通知",
@@ -1954,9 +1966,80 @@
       },
       "brandMatching": {
         "title": "品牌匹配",
+        "description": "配置自动品牌匹配功能",
         "autoMatch": "启用自动匹配",
+        "autoMatchDescription": "导入时自动尝试匹配品牌",
         "confidence": "匹配置信度",
-        "fuzzyMatch": "启用模糊匹配"
+        "confidenceDescription": "品牌匹配的最低置信度（0.1-1.0）",
+        "fuzzyMatch": "启用模糊匹配",
+        "fuzzyMatchDescription": "启用模糊匹配算法"
+      }
+    },
+    "import": {
+      "title": "FMTC折扣数据导入",
+      "description": "支持粘贴FMTC复制的折扣信息或上传TSV/CSV文件。系统将自动解析数据并智能匹配品牌。",
+      "pasteContent": "粘贴内容",
+      "fileUpload": "文件上传",
+      "downloadSample": "下载示例文件",
+      "pasteLabel": "粘贴FMTC折扣信息",
+      "pasteDescription": "支持表格格式（tab分隔）或纯文本格式。系统会自动识别格式并解析。",
+      "pastePlaceholder": "请粘贴从FMTC复制的折扣信息...\n\n示例格式:\nGap CA\tExtra 20% Off Purchase\tADDON\t06/25/25 10:45am PDT\t06/25/25 12:00pm PDT\t07/03/25 11:59pm PDT\t24.5",
+      "previewResults": "预览解析结果",
+      "importProgress": "导入进度",
+      "previewData": "预览数据",
+      "previewDescription": "确认数据无误后，点击导入按钮开始批量导入折扣信息",
+      "confirmImport": "确认导入",
+      "messages": {
+        "pasteRequired": "请先粘贴FMTC数据",
+        "parseSuccess": "成功解析 {count} 条折扣信息",
+        "parseWarning": "发现 {count} 个数据错误，已过滤无效数据",
+        "parseError": "解析失败，请检查数据格式",
+        "validationError": "解析失败，请检查数据格式",
+        "noDataToImport": "没有可导入的数据",
+        "importSuccess": "成功导入 {count} 条折扣信息",
+        "importError": "导入失败",
+        "importRetry": "导入失败，请重试",
+        "fileReadError": "文件读取失败"
+      },
+      "status": {
+        "parsing": "解析中...",
+        "importing": "导入中...",
+        "completed": "导入完成",
+        "failed": "导入失败"
+      },
+      "stats": {
+        "total": "总计",
+        "lines": "行",
+        "success": "成功",
+        "items": "个",
+        "error": "错误",
+        "skipped": "跳过",
+        "moreErrors": "... 还有 {count} 个错误"
+      },
+      "progress": {
+        "success": "成功: {successful}",
+        "failed": "失败: {failed}",
+        "of": "/"
+      },
+      "validation": {
+        "title": "数据验证错误:"
+      },
+      "fileUploader": {
+        "unsupportedFileType": "不支持的文件类型，请选择 CSV、TSV 或 TXT 文件",
+        "fileTooLarge": "文件大小不能超过 {size}MB",
+        "uploadFailed": "文件上传失败",
+        "unsupportedFileTypeTitle": "不支持的文件类型",
+        "dragFileHere": "拖拽文件到此处",
+        "orText": "或者",
+        "clickToSelect": "点击选择文件",
+        "supportedFormats": "支持格式: CSV, TSV, TXT",
+        "maxSize": "最大 {size}MB",
+        "uploadedAt": "上传于",
+        "processing": "正在处理文件...",
+        "supportedFormatsTitle": "支持的格式说明:",
+        "csvDescription": "逗号分隔值文件",
+        "tsvDescription": "Tab分隔值文件（推荐，与FMTC导出格式匹配）",
+        "txtDescription": "纯文本文件"
       }
     },
     "page": {
@@ -1964,6 +2047,10 @@
       "description": "管理FMTC和其他来源的折扣信息，支持自动过期处理和品牌匹配",
       "settingsButton": "设置",
       "importButton": "导入折扣"
+    },
+    "common": {
+      "loading": "加载中...",
+      "operationFailed": "操作失败，请重试"
     },
     "table": {
       "title": "折扣列表",

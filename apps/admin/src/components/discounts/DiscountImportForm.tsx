@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, Upload, Eye, Download, AlertTriangle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -43,6 +44,7 @@ interface DiscountImportFormProps {
 export function DiscountImportForm({
   onSuccess,
 }: DiscountImportFormProps = {}) {
+  const t = useTranslations("discounts.import");
   const router = useRouter();
   const [importMode, setImportMode] = useState<"paste" | "file">("paste");
   const [pastedContent, setPastedContent] = useState("");
@@ -61,7 +63,7 @@ export function DiscountImportForm({
   // 预览解析结果
   const handlePreview = async () => {
     if (!pastedContent.trim()) {
-      toast.error("请先粘贴FMTC数据");
+      toast.error(t("messages.pasteRequired"));
 
       return;
     }
@@ -80,14 +82,16 @@ export function DiscountImportForm({
 
       if (validated.errors.length > 0) {
         toast.warning(
-          `发现 ${validated.errors.length} 个数据错误，已过滤无效数据`,
+          t("messages.parseWarning", { count: validated.errors.length }),
         );
       } else {
-        toast.success(`成功解析 ${validated.validData.length} 条折扣信息`);
+        toast.success(
+          t("messages.parseSuccess", { count: validated.validData.length }),
+        );
       }
     } catch {
-      toast.error("解析失败，请检查数据格式");
-      setValidationErrors(["解析失败，请检查数据格式"]);
+      toast.error(t("messages.parseError"));
+      setValidationErrors([t("messages.validationError")]);
     } finally {
       setIsPreviewLoading(false);
       setImportProgress((prev) => ({ ...prev, status: "idle" }));
@@ -97,7 +101,7 @@ export function DiscountImportForm({
   // 执行导入
   const handleImport = async () => {
     if (previewData.length === 0) {
-      toast.error("没有可导入的数据");
+      toast.error(t("messages.noDataToImport"));
 
       return;
     }
@@ -133,7 +137,7 @@ export function DiscountImportForm({
           status: "completed",
         });
 
-        toast.success(`成功导入 ${result.imported} 条折扣信息`);
+        toast.success(t("messages.importSuccess", { count: result.imported }));
 
         // 导入成功后调用回调或跳转
         if (onSuccess) {
@@ -146,11 +150,11 @@ export function DiscountImportForm({
           }, 3000);
         }
       } else {
-        throw new Error(result.error || "导入失败");
+        throw new Error(result.error || t("messages.importError"));
       }
     } catch {
       setImportProgress((prev) => ({ ...prev, status: "error" }));
-      toast.error("导入失败，请重试");
+      toast.error(t("messages.importRetry"));
     }
   };
 
@@ -167,7 +171,7 @@ export function DiscountImportForm({
       // 自动解析文件内容
       await handlePreview();
     } catch {
-      toast.error("文件读取失败");
+      toast.error(t("messages.fileReadError"));
     } finally {
       setIsPreviewLoading(false);
     }
@@ -198,11 +202,9 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5" />
-            FMTC折扣数据导入
+            {t("title")}
           </CardTitle>
-          <CardDescription>
-            支持粘贴FMTC复制的折扣信息或上传TSV/CSV文件。系统将自动解析数据并智能匹配品牌。
-          </CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -213,27 +215,27 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
           >
             <div className="flex justify-between items-center">
               <TabsList>
-                <TabsTrigger value="paste">粘贴内容</TabsTrigger>
-                <TabsTrigger value="file">文件上传</TabsTrigger>
+                <TabsTrigger value="paste">{t("pasteContent")}</TabsTrigger>
+                <TabsTrigger value="file">{t("fileUpload")}</TabsTrigger>
               </TabsList>
 
               <Button variant="outline" size="sm" onClick={downloadExample}>
                 <Download className="w-4 h-4 mr-2" />
-                下载示例文件
+                {t("downloadSample")}
               </Button>
             </div>
 
             <TabsContent value="paste" className="space-y-4">
               <div>
-                <Label htmlFor="pastedContent">粘贴FMTC折扣信息</Label>
+                <Label htmlFor="pastedContent">{t("pasteLabel")}</Label>
                 <p className="text-sm text-muted-foreground mb-2">
-                  支持表格格式（tab分隔）或纯文本格式。系统会自动识别格式并解析。
+                  {t("pasteDescription")}
                 </p>
                 <Textarea
                   id="pastedContent"
                   value={pastedContent}
                   onChange={(e) => setPastedContent(e.target.value)}
-                  placeholder="请粘贴从FMTC复制的折扣信息...&#10;&#10;示例格式:&#10;Gap CA	Extra 20% Off Purchase	ADDON	06/25/25 10:45am PDT	06/25/25 12:00pm PDT	07/03/25 11:59pm PDT	24.5"
+                  placeholder={t("pastePlaceholder")}
                   rows={12}
                   className="font-mono text-xs"
                 />
@@ -249,7 +251,7 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
                 ) : (
                   <Eye className="w-4 h-4 mr-2" />
                 )}
-                预览解析结果
+                {t("previewResults")}
               </Button>
             </TabsContent>
 
@@ -268,28 +270,29 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
               <AlertDescription>
                 <div className="flex flex-wrap gap-4 text-sm">
                   <span>
-                    总计: <strong>{parseStats.totalLines}</strong> 行
+                    {t("stats.total")}: <strong>{parseStats.totalLines}</strong>{" "}
+                    {t("stats.lines")}
                   </span>
                   <span>
-                    成功:{" "}
+                    {t("stats.success")}:{" "}
                     <strong className="text-green-600">
                       {parseStats.parsedCount}
                     </strong>{" "}
-                    个
+                    {t("stats.items")}
                   </span>
                   <span>
-                    错误:{" "}
+                    {t("stats.error")}:{" "}
                     <strong className="text-red-600">
                       {parseStats.errorCount}
                     </strong>{" "}
-                    个
+                    {t("stats.items")}
                   </span>
                   <span>
-                    跳过:{" "}
+                    {t("stats.skipped")}:{" "}
                     <strong className="text-yellow-600">
                       {parseStats.skippedCount}
                     </strong>{" "}
-                    个
+                    {t("stats.items")}
                   </span>
                 </div>
               </AlertDescription>
@@ -302,13 +305,17 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
               <AlertTriangle className="w-4 h-4" />
               <AlertDescription>
                 <div className="space-y-1">
-                  <p className="font-medium">数据验证错误:</p>
+                  <p className="font-medium">{t("validation.title")}</p>
                   <ul className="list-disc list-inside text-sm space-y-1">
                     {validationErrors.slice(0, 5).map((error, index) => (
                       <li key={index}>{error}</li>
                     ))}
                     {validationErrors.length > 5 && (
-                      <li>... 还有 {validationErrors.length - 5} 个错误</li>
+                      <li>
+                        {t("stats.moreErrors", {
+                          count: validationErrors.length - 5,
+                        })}
+                      </li>
                     )}
                   </ul>
                 </div>
@@ -320,7 +327,7 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
           {importProgress.status !== "idle" && (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>导入进度</Label>
+                <Label>{t("importProgress")}</Label>
                 <div className="flex gap-2">
                   <Badge
                     variant={
@@ -329,10 +336,12 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
                         : "secondary"
                     }
                   >
-                    {importProgress.status === "parsing" && "解析中..."}
-                    {importProgress.status === "importing" && "导入中..."}
-                    {importProgress.status === "completed" && "导入完成"}
-                    {importProgress.status === "error" && "导入失败"}
+                    {importProgress.status === "parsing" && t("status.parsing")}
+                    {importProgress.status === "importing" &&
+                      t("status.importing")}
+                    {importProgress.status === "completed" &&
+                      t("status.completed")}
+                    {importProgress.status === "error" && t("status.failed")}
                   </Badge>
                 </div>
               </div>
@@ -350,8 +359,11 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
                       {importProgress.processed} / {importProgress.total}
                     </span>
                     <span>
-                      成功: {importProgress.successful} | 失败:{" "}
-                      {importProgress.failed}
+                      {t("progress.success", {
+                        successful: importProgress.successful,
+                      })}{" "}
+                      |{" "}
+                      {t("progress.failed", { failed: importProgress.failed })}
                     </span>
                   </div>
                 </>
@@ -369,11 +381,9 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Eye className="w-5 h-5" />
-                  预览数据 ({previewData.length} 条)
+                  {t("previewData")} ({previewData.length} {t("stats.items")})
                 </CardTitle>
-                <CardDescription>
-                  确认数据无误后，点击导入按钮开始批量导入折扣信息
-                </CardDescription>
+                <CardDescription>{t("previewDescription")}</CardDescription>
               </div>
 
               <Button
@@ -389,7 +399,7 @@ Dermstore (US)\t"new Express shipping with orders $100+"\tSHIP\t06/25/25 10:07am
                 ) : (
                   <Upload className="w-4 h-4 mr-2" />
                 )}
-                确认导入 ({previewData.length} 条)
+                {t("confirmImport")} ({previewData.length} {t("stats.items")})
               </Button>
             </div>
           </CardHeader>

@@ -93,7 +93,7 @@ export function DiscountSettingsModal({
     if (open) {
       loadSettings();
     }
-  }, [open]);
+  }, [open]); // loadSettings 是稳定的函数，不需要添加到依赖数组
 
   const loadSettings = async () => {
     setLoading(true);
@@ -106,7 +106,7 @@ export function DiscountSettingsModal({
         setSettings({ ...defaultSettings, ...data });
       }
     } catch {
-      toast.error("加载设置失败");
+      toast.error(t("loadingError"));
     } finally {
       setLoading(false);
     }
@@ -122,13 +122,13 @@ export function DiscountSettingsModal({
       });
 
       if (response.ok) {
-        toast.success("设置保存成功");
+        toast.success(t("saveSuccess"));
         onOpenChange(false);
       } else {
         throw new Error("Failed to save settings");
       }
     } catch {
-      toast.error("保存设置失败");
+      toast.error(t("saveError"));
     } finally {
       setSaving(false);
     }
@@ -183,7 +183,7 @@ export function DiscountSettingsModal({
         <DialogContent className="max-w-4xl">
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-8 h-8 animate-spin" />
-            <span className="ml-2">加载设置中...</span>
+            <span className="ml-2">{t("loading")}</span>
           </div>
         </DialogContent>
       </Dialog>
@@ -215,16 +215,14 @@ export function DiscountSettingsModal({
             <Card>
               <CardHeader>
                 <CardTitle>{t("scheduler.title")}</CardTitle>
-                <CardDescription>
-                  配置自动过期检查和数据清理功能
-                </CardDescription>
+                <CardDescription>{t("scheduler.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>{t("scheduler.enabled")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      自动检查和标记过期的折扣
+                      {t("scheduler.enabledDescription")}
                     </p>
                   </div>
                   <Switch
@@ -254,7 +252,7 @@ export function DiscountSettingsModal({
                     disabled={!settings.scheduler.enabled}
                   />
                   <p className="text-sm text-muted-foreground">
-                    设置自动检查的时间间隔（1-1440分钟）
+                    {t("scheduler.intervalDescription")}
                   </p>
                 </div>
 
@@ -264,7 +262,7 @@ export function DiscountSettingsModal({
                   <div className="space-y-0.5">
                     <Label>{t("scheduler.cleanup")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      自动删除超过保留期的过期数据
+                      {t("scheduler.cleanupDescription")}
                     </p>
                   </div>
                   <Switch
@@ -295,7 +293,7 @@ export function DiscountSettingsModal({
                     }
                   />
                   <p className="text-sm text-muted-foreground">
-                    过期数据的保留天数（1-365天）
+                    {t("scheduler.retentionDescription")}
                   </p>
                 </div>
               </CardContent>
@@ -306,14 +304,16 @@ export function DiscountSettingsModal({
             <Card>
               <CardHeader>
                 <CardTitle>{t("notifications.title")}</CardTitle>
-                <CardDescription>配置数据量阈值监控和通知功能</CardDescription>
+                <CardDescription>
+                  {t("notifications.description")}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>{t("notifications.enabled")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      启用折扣数量阈值监控
+                      {t("notifications.enabledDescription")}
                     </p>
                   </div>
                   <Switch
@@ -345,7 +345,7 @@ export function DiscountSettingsModal({
                       disabled={!settings.notifications.enabled}
                     />
                     <p className="text-sm text-muted-foreground">
-                      低于此数量时发送关键警告
+                      {t("notifications.criticalDescription")}
                     </p>
                   </div>
 
@@ -367,7 +367,7 @@ export function DiscountSettingsModal({
                       disabled={!settings.notifications.enabled}
                     />
                     <p className="text-sm text-muted-foreground">
-                      低于此数量时发送警告提醒
+                      {t("notifications.warningDescription")}
                     </p>
                   </div>
                 </div>
@@ -433,14 +433,16 @@ export function DiscountSettingsModal({
             <Card>
               <CardHeader>
                 <CardTitle>{t("brandMatching.title")}</CardTitle>
-                <CardDescription>配置自动品牌匹配功能</CardDescription>
+                <CardDescription>
+                  {t("brandMatching.description")}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>{t("brandMatching.autoMatch")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      导入时自动尝试匹配品牌
+                      {t("brandMatching.autoMatchDescription")}
                     </p>
                   </div>
                   <Switch
@@ -473,7 +475,7 @@ export function DiscountSettingsModal({
                     disabled={!settings.brandMatching.autoMatch}
                   />
                   <p className="text-sm text-muted-foreground">
-                    品牌匹配的最低置信度（0.1-1.0）
+                    {t("brandMatching.confidenceDescription")}
                   </p>
                 </div>
 
@@ -483,7 +485,7 @@ export function DiscountSettingsModal({
                   <div className="space-y-0.5">
                     <Label>{t("brandMatching.fuzzyMatch")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      启用模糊匹配算法
+                      {t("brandMatching.fuzzyMatchDescription")}
                     </p>
                   </div>
                   <Switch
@@ -501,12 +503,12 @@ export function DiscountSettingsModal({
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+            {t("cancel")}
           </Button>
           <Button onClick={saveSettings} disabled={saving}>
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             <Save className="w-4 h-4 mr-2" />
-            保存设置
+            {t("save")}
           </Button>
         </div>
       </DialogContent>

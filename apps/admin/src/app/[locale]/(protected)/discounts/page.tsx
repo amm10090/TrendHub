@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Target,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 
@@ -16,6 +17,7 @@ import { DiscountDataTable } from "@/components/discounts/DiscountDataTable";
 import { DiscountImportModal } from "@/components/discounts/DiscountImportModal";
 import { DiscountSettingsModal } from "@/components/discounts/DiscountSettingsModal";
 import { DiscountStats } from "@/components/discounts/DiscountStats";
+import { FMTCManagementPanel } from "@/components/discounts/FMTCManagementPanel";
 import { ImportHistoryPanel } from "@/components/discounts/ImportHistoryPanel";
 import { NotificationPanel } from "@/components/discounts/NotificationPanel";
 import { Button } from "@/components/ui/button";
@@ -49,6 +51,10 @@ interface DiscountStats {
 
 export default function DiscountsPage() {
   const t = useTranslations("discounts");
+  const searchParams = useSearchParams();
+
+  // 从 URL 参数获取初始标签页
+  const initialTab = searchParams.get("tab") || "discounts";
 
   // 简化的状态管理 - 只保留模态框和统计数据
   const [stats, setStats] = useState<DiscountStats>({
@@ -57,6 +63,9 @@ export default function DiscountsPage() {
     expired: 0,
     inactive: 0,
   });
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   // Modal states
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -87,6 +96,15 @@ export default function DiscountsPage() {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  // 监听 URL 参数变化
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams, activeTab]);
 
   return (
     <div className="space-y-6">
@@ -185,12 +203,19 @@ export default function DiscountsPage() {
       </div>
 
       {/* Main Content - Tabs */}
-      <Tabs defaultValue="discounts" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="discounts">{t("tabs.list")}</TabsTrigger>
           <TabsTrigger value="analytics">{t("tabs.analytics")}</TabsTrigger>
           <TabsTrigger value="brand-matching">
             {t("tabs.brandMatching")}
+          </TabsTrigger>
+          <TabsTrigger value="fmtc-merchants">
+            {t("tabs.fmtcMerchants")}
           </TabsTrigger>
           <TabsTrigger value="notifications">
             {t("tabs.notifications")}
@@ -209,6 +234,10 @@ export default function DiscountsPage() {
 
         <TabsContent value="brand-matching" className="space-y-4">
           <BrandMatchingPanel />
+        </TabsContent>
+
+        <TabsContent value="fmtc-merchants" className="space-y-4">
+          <FMTCManagementPanel />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">

@@ -26,6 +26,7 @@ export * from "./sites/farfetch.js";
 export * from "./sites/italist.js";
 export * from "./sites/mytheresa/index.js";
 export * from "./sites/yoox.js";
+export * from "./sites/fmtc/index.js";
 
 // 明确导出默认导出
 import mytheresaScraperDefault from "./sites/mytheresa/index.js";
@@ -33,6 +34,7 @@ import italistScraperDefault from "./sites/italist.js";
 import yooxScraperDefault from "./sites/yoox.js";
 import farfetchScraperDefault from "./sites/farfetch.js";
 import cettireScraperDefault from "./sites/cettire.js";
+import fmtcScraperDefault from "./sites/fmtc/index.js";
 
 // 重命名导出以匹配 API 路由中的期望名称
 export const mytheresaScraper = mytheresaScraperDefault;
@@ -40,6 +42,7 @@ export const italistScraper = italistScraperDefault;
 export const yooxScraper = yooxScraperDefault;
 export const farfetchScraper = farfetchScraperDefault;
 export const cettireScraper = cettireScraperDefault;
+export const fmtcScraper = fmtcScraperDefault;
 
 // Import the specific scraper to test and crawlee's log
 // import scrapeMytheresa from './sites/mytheresa.js'; // 被上面的 mytheresaScraperDefault 替代

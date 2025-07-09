@@ -375,7 +375,6 @@
   "common": {
     "all": "全部",
     "cancel": "取消",
-    "close": "关闭",
     "save": "保存",
     "id": "ID",
     "createdAt": "创建时间",
@@ -383,8 +382,8 @@
       "brand": "品牌",
       "category": "分类",
       "status": "状态",
-      "enabled": "Enabled",
-      "disabled": "Disabled"
+      "enabled": "已启用",
+      "disabled": "已禁用"
     },
     "confirm": "确认",
     "deleting": "删除中...",
@@ -404,6 +403,32 @@
     "processing": "处理中...",
     "loading": "加载中...",
     "search": "搜索",
+    "refresh": "刷新",
+    "clearFilters": "清除筛选",
+    "selectAll": "全选",
+    "selectRow": "选择行",
+    "selectedCount": "已选择 {count} 项",
+    "activate": "激活",
+    "deactivate": "停用",
+    "delete": "删除",
+    "view": "查看",
+    "select": "选择",
+    "edit": "编辑",
+    "active": "激活",
+    "basic": "基本",
+    "name": "名称",
+    "config": "配置",
+    "description": "描述",
+    "enabled": "已启用",
+    "create": "创建",
+    "disabled": "已禁用",
+    "title": "标题",
+    "interval": "间隔",
+    "never": "从未",
+    "manual": "手动",
+    "noData": "暂无数据",
+    "new": "新增",
+    "close": "关闭",
     "selectBrand": "选择品牌",
     "selectCategory": "选择分类",
     "selectProduct": "选择产品",
@@ -412,7 +437,9 @@
       "inactive": "未激活",
       "inStock": "有库存",
       "lowStock": "库存不足",
-      "outOfStock": "缺货"
+      "outOfStock": "缺货",
+      "enabled": "已启用",
+      "disabled": "已禁用"
     },
     "actions": {
       "openMenu": "打开菜单",
@@ -424,7 +451,8 @@
       "cancel": "取消",
       "create": "创建",
       "saveChanges": "保存更改",
-      "backToList": "返回列表"
+      "backToList": "返回列表",
+      "title": "操作"
     },
     "errors": {
       "error": "错误",
@@ -1927,6 +1955,7 @@
       "list": "折扣列表",
       "analytics": "统计分析",
       "brandMatching": "品牌匹配",
+      "fmtcMerchants": "FMTC 商户",
       "notifications": "通知设置",
       "imports": "导入历史"
     },
@@ -2428,6 +2457,142 @@
         "lastUpdated": "数据更新时间: {time}",
         "refresh": "刷新"
       }
+    }
+  },
+  "fmtcMerchants": {
+    "title": "FMTC 商户管理",
+    "description": "管理从 FMTC 平台抓取的商户信息",
+    "stats": {
+      "totalMerchants": "总商户数",
+      "brandMatched": "已匹配品牌",
+      "unmatched": "未匹配",
+      "lastUpdate": "最后更新",
+      "matchRate": "匹配率",
+      "last24Hours": "过去24小时",
+      "recentlyUpdated": "最近更新"
+    },
+    "scraper": {
+      "title": "抓取任务",
+      "lastRun": "最后执行",
+      "nextRun": "下次执行",
+      "runNow": "立即执行",
+      "configure": "配置",
+      "createTask": "创建任务",
+      "editTask": "编辑任务",
+      "deleteTask": "删除任务",
+      "taskDetails": "任务详情",
+      "executionHistory": "执行历史",
+      "noTasks": "暂无抓取任务",
+      "noExecutions": "暂无执行记录",
+      "confirmDelete": "确认删除此任务？",
+      "createTaskDescription": "创建一个新的 FMTC 商户抓取任务",
+      "namePlaceholder": "输入任务名称",
+      "descriptionPlaceholder": "输入任务描述（可选）",
+      "cronExpression": "定时表达式",
+      "credentials": "登录凭据",
+      "username": "用户名",
+      "password": "密码",
+      "maxPages": "最大页数",
+      "includeDetails": "包含详情",
+      "downloadImages": "下载图片",
+      "enabledTasks": "启用任务",
+      "runningTasks": "运行中",
+      "completedToday": "今日完成",
+      "failedToday": "今日失败",
+      "progress": "进度",
+      "running": "运行中",
+      "merchants": "商户",
+      "status": {
+        "idle": "空闲",
+        "running": "运行中",
+        "completed": "已完成",
+        "failed": "失败",
+        "cancelled": "已取消"
+      }
+    },
+    "filters": {
+      "title": "筛选器",
+      "search": "搜索商户名称",
+      "searchPlaceholder": "输入商户名称进行搜索",
+      "country": "国家",
+      "selectCountry": "选择国家",
+      "network": "网络平台",
+      "selectNetwork": "选择网络平台",
+      "brandStatus": "品牌匹配状态",
+      "selectBrandStatus": "选择品牌状态",
+      "matched": "已匹配",
+      "unmatched": "未匹配",
+      "confirmed": "已确认",
+      "needsConfirmation": "需要确认"
+    },
+    "columns": {
+      "name": "商户名称",
+      "country": "国家",
+      "network": "网络平台",
+      "category": "分类",
+      "brandMatch": "品牌匹配",
+      "confidence": "置信度",
+      "lastUpdate": "最后更新",
+      "homepage": "官方网站",
+      "merchant": "商户",
+      "suggestedBrand": "建议品牌"
+    },
+    "actions": {
+      "viewDetails": "查看详情",
+      "editMerchant": "编辑商户",
+      "refreshData": "刷新数据",
+      "confirmMatch": "确认匹配",
+      "rejectMatch": "拒绝匹配",
+      "matchBrand": "匹配品牌",
+      "visitSite": "访问网站"
+    },
+    "status": {
+      "unmatched": "未匹配",
+      "confirmed": "已确认",
+      "needsConfirmation": "需要确认"
+    },
+    "noResults": "未找到商户",
+    "brandMatching": {
+      "title": "品牌匹配",
+      "total": "总计",
+      "matched": "已匹配",
+      "unmatched": "未匹配",
+      "confirmed": "已确认",
+      "needsConfirmation": "需要确认",
+      "unmatchedMerchants": "未匹配商户",
+      "pendingConfirmation": "待确认匹配",
+      "noUnmatchedMerchants": "暂无未匹配商户",
+      "noPendingMatches": "暂无待确认匹配",
+      "brandSuggestions": "品牌建议",
+      "suggestionDescription": "为商户 {merchantName} 推荐的品牌",
+      "noSuggestions": "暂无品牌建议",
+      "searchMerchants": "搜索商户",
+      "threshold": "阈值",
+      "batchAutoMatch": "批量自动匹配",
+      "batchMatching": "批量匹配中",
+      "autoMatch": "自动匹配"
+    },
+    "details": {
+      "basicInfo": "基本信息",
+      "technicalInfo": "技术信息",
+      "brandMatching": "品牌匹配",
+      "networkAssociations": "网络关联",
+      "logos": "Logo",
+      "screenshots": "截图",
+      "links": "链接",
+      "freshReachSupported": "支持 FreshReach",
+      "shipsTo": "配送地区",
+      "noBrandMatch": "暂无品牌匹配",
+      "noNetworks": "暂无网络关联",
+      "affiliateUrl": "联盟链接",
+      "previewDealsUrl": "预览优惠链接"
+    },
+    "tabs": {
+      "merchants": "商户管理",
+      "scraper": "抓取任务",
+      "brandMatching": "品牌匹配",
+      "networks": "网络关联",
+      "media": "媒体资源"
     }
   }
 }

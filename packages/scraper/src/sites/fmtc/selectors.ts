@@ -1,0 +1,231 @@
+/**
+ * FMTC 页面选择器定义
+ */
+
+import type { FMTCSelectors } from "./types.js";
+
+/**
+ * FMTC 页面选择器配置
+ */
+export const FMTC_SELECTORS: FMTCSelectors = {
+  // 登录页面选择器
+  login: {
+    /** 用户名输入框 */
+    usernameInput:
+      'input[name="username"], input[name="email"], input[type="email"], #username, #email',
+    /** 密码输入框 */
+    passwordInput: 'input[name="password"], input[type="password"], #password',
+    /** 登录按钮 */
+    submitButton:
+      'button[type="submit"], input[type="submit"], .btn-login, #login-btn, button:has-text("Login"), button:has-text("Sign In")',
+    /** 登录表单 */
+    loginForm:
+      'form#login-form, form.login-form, form[action*="login"], form:has(input[type="password"])',
+    /** 错误消息 */
+    errorMessage:
+      '.error, .alert-danger, .login-error, [class*="error"], [class*="invalid"]',
+    /** 验证码 */
+    captcha: '.captcha, #captcha, img[src*="captcha"], .g-recaptcha',
+  },
+
+  // 商户列表页面选择器
+  merchantList: {
+    /** 商户行 - 表格行或列表项 */
+    merchantRows:
+      'table tbody tr, .merchant-row, .program-row, [class*="merchant"], [class*="program"]',
+    /** 商户名称 */
+    merchantName:
+      'td:first-child a, .merchant-name a, .program-name a, a[href*="merchant"], a[href*="program"]',
+    /** 商户国家 */
+    merchantCountry: 'td:nth-child(2), .country, [class*="country"]',
+    /** 网络平台 */
+    network: 'td:nth-child(3), .network, [class*="network"]',
+    /** 添加日期 */
+    dateAdded: 'td:nth-child(4), .date-added, [class*="date"]',
+    /** 高级订阅数 */
+    premiumSubscriptions: 'td:nth-child(5), .premium-count, [class*="premium"]',
+    /** 详情链接 */
+    detailLink: 'a[href*="merchant"], a[href*="program"], td:first-child a',
+
+    // 分页相关选择器
+    pagination: {
+      /** 下一页按钮 */
+      nextButton:
+        'a:has-text("Next"), .next, [aria-label="Next"], button:has-text("Next")',
+      /** 页码链接 */
+      pageLinks: '.pagination a, .pager a, [class*="page"] a',
+      /** 当前页 */
+      currentPage: '.pagination .active, .current-page, [class*="active"]',
+      /** 总页数 */
+      totalPages: ".pagination a:last-child, .total-pages",
+    },
+  },
+
+  // 商户详情页面选择器
+  merchantDetail: {
+    /** 官方网站 */
+    homepage:
+      'a[href*="http"]:has-text("Homepage"), a:has-text("Website"), .homepage a, [class*="website"] a',
+    /** 主要分类 */
+    primaryCategory:
+      '.category, [class*="category"], td:has-text("Category") + td, th:has-text("Category") ~ td',
+    /** 主要国家 */
+    primaryCountry:
+      '.country, [class*="country"], td:has-text("Country") + td, th:has-text("Country") ~ td',
+    /** 配送地区 */
+    shipsTo:
+      '.ships-to, [class*="ships"], td:has-text("Ships") + td, th:has-text("Ships") ~ td',
+    /** FMTC ID */
+    fmtcId:
+      '.fmtc-id, [class*="fmtc"], td:has-text("FMTC ID") + td, th:has-text("ID") ~ td',
+    /** 商户状态 */
+    status: '.status, [class*="status"], td:has-text("Status") + td',
+    /** FreshReach 支持 */
+    freshReachSupported:
+      'td:has-text("FreshReach") + td, .freshreach, [class*="freshreach"]',
+
+    // Logo 图片选择器
+    logos: {
+      logo120x60: 'img[src*="120x60"], img[alt*="120x60"], .logo-120x60 img',
+      logo88x31: 'img[src*="88x31"], img[alt*="88x31"], .logo-88x31 img',
+    },
+
+    // 截图选择器
+    screenshots: {
+      screenshot280x210:
+        'img[src*="280x210"], img[alt*="280x210"], .screenshot-280x210 img',
+      screenshot600x450:
+        'img[src*="600x450"], img[alt*="600x450"], .screenshot-600x450 img',
+    },
+
+    /** 联盟链接 */
+    affiliateUrl:
+      'a[href*="awin"], a[href*="affiliate"], .affiliate-url, [class*="affiliate"] a',
+    /** 预览优惠链接 */
+    previewDealsUrl:
+      'a:has-text("Preview"), a:has-text("Deals"), .preview-deals a',
+
+    // 网络关联表格
+    networkTable: {
+      /** 表格行 */
+      rows: "table tr, .network-table tr, .networks tr",
+      /** 网络名称 */
+      networkName: "td:first-child, .network-name",
+      /** 网络ID */
+      networkId: "td:nth-child(2), .network-id",
+      /** 状态 */
+      status: 'td:nth-child(3), .status, [class*="status"]',
+    },
+  },
+};
+
+/**
+ * FMTC URL 模式
+ */
+export const FMTC_URL_PATTERNS = {
+  /** 登录页面 */
+  LOGIN: "https://account.fmtc.co/cp/login",
+  /** 商户目录页面 */
+  MERCHANT_DIRECTORY: "https://account.fmtc.co/cp/program_directory/index",
+  /** 默认的商户列表页面 */
+  DEFAULT_MERCHANT_LIST:
+    "https://account.fmtc.co/cp/program_directory/index/net/0/opm/0/cntry/0/cat/2/unsmrch/0",
+  /** 商户详情页面模式 */
+  MERCHANT_DETAIL_PATTERN:
+    /https:\/\/account\.fmtc\.co\/cp\/program_directory\/merchant\/\d+/,
+};
+
+/**
+ * FMTC 页面等待条件
+ */
+export const FMTC_WAIT_CONDITIONS = {
+  /** 登录页面加载完成 */
+  LOGIN_PAGE_LOADED: () => FMTC_SELECTORS.login.usernameInput,
+  /** 登录成功 */
+  LOGIN_SUCCESS: () => "body:not(:has(.error)):not(:has(.alert-danger))",
+  /** 商户列表页面加载完成 */
+  MERCHANT_LIST_LOADED: () => FMTC_SELECTORS.merchantList.merchantRows,
+  /** 商户详情页面加载完成 */
+  MERCHANT_DETAIL_LOADED: () =>
+    `${FMTC_SELECTORS.merchantDetail.homepage}, .merchant-info, .program-info`,
+  /** 分页加载完成 */
+  PAGINATION_LOADED: () => FMTC_SELECTORS.merchantList.pagination.pageLinks,
+};
+
+/**
+ * FMTC 页面特征检测
+ */
+export const FMTC_PAGE_FEATURES = {
+  /** 检测是否为登录页面 */
+  isLoginPage: () =>
+    document.querySelector(FMTC_SELECTORS.login.passwordInput) !== null,
+  /** 检测是否已登录 */
+  isLoggedIn: () =>
+    document.querySelector('.user-menu, .logout, [href*="logout"]') !== null,
+  /** 检测是否为商户列表页面 */
+  isMerchantListPage: () =>
+    document.querySelector(FMTC_SELECTORS.merchantList.merchantRows) !== null,
+  /** 检测是否为商户详情页面 */
+  isMerchantDetailPage: () =>
+    document.querySelector(FMTC_SELECTORS.merchantDetail.homepage) !== null,
+  /** 检测是否出现错误 */
+  hasError: () =>
+    document.querySelector(FMTC_SELECTORS.login.errorMessage!) !== null,
+  /** 检测是否需要验证码 */
+  requiresCaptcha: () =>
+    document.querySelector(FMTC_SELECTORS.login.captcha!) !== null,
+};
+
+/**
+ * FMTC 数据提取正则表达式
+ */
+export const FMTC_REGEX_PATTERNS = {
+  /** 提取 FMTC ID */
+  FMTC_ID: /FMTC\s*ID[:\s]*(\d+)/i,
+  /** 提取网络 ID */
+  NETWORK_ID: /\((\d+)\)$/,
+  /** 提取日期 */
+  DATE: /(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})|(\d{4}[/-]\d{1,2}[/-]\d{1,2})/,
+  /** 提取数字 */
+  NUMBERS: /\d+/g,
+  /** 提取 URL */
+  URL: /(https?:\/\/[^\s]+)/g,
+  /** 提取邮箱 */
+  EMAIL: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+};
+
+/**
+ * FMTC 错误消息模式
+ */
+export const FMTC_ERROR_PATTERNS = {
+  /** 登录失败 */
+  LOGIN_FAILED: [
+    "invalid credentials",
+    "incorrect username",
+    "incorrect password",
+    "login failed",
+    "authentication failed",
+  ],
+  /** 账户被锁定 */
+  ACCOUNT_LOCKED: [
+    "account locked",
+    "account suspended",
+    "account disabled",
+    "too many attempts",
+  ],
+  /** 需要验证码 */
+  CAPTCHA_REQUIRED: ["captcha", "verification required", "prove you are human"],
+  /** 会话过期 */
+  SESSION_EXPIRED: [
+    "session expired",
+    "please login again",
+    "authentication timeout",
+  ],
+  /** 访问被拒绝 */
+  ACCESS_DENIED: [
+    "access denied",
+    "permission denied",
+    "unauthorized",
+    "forbidden",
+  ],
+};

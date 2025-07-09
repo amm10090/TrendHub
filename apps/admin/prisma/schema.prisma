@@ -92,6 +92,8 @@ model Brand {
   discounts   Discount[]
   /// 品牌映射记录
   brandMappings BrandMapping[]
+  /// 关联的 FMTC 商户
+  fmtcMerchants FMTCMerchant[]
 
   @@index([isActive])
   @@index([popularity])
@@ -667,25 +669,30 @@ model DiscountImport {
 /// 品牌匹配映射 (用于FMTC商家名称到系统品牌的映射)
 model BrandMapping {
   /// 唯一标识符
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   /// FMTC商家名称 (原始名称)
-  merchantName  String   @unique
+  merchantName  String        @unique
   /// 系统中的品牌ID
   brandId       String?
   /// 系统中的品牌
-  brand         Brand?   @relation(fields: [brandId], references: [id])
+  brand         Brand?        @relation(fields: [brandId], references: [id])
   /// 是否已确认匹配
-  isConfirmed   Boolean  @default(false)
+  isConfirmed   Boolean       @default(false)
   /// 匹配置信度 (0-1)
-  confidence    Decimal? @db.Decimal(3, 2)
+  confidence    Decimal?      @db.Decimal(3, 2)
+  /// 关联的 FMTC 商户ID
+  fmtcMerchantId String?
+  /// 关联的 FMTC 商户
+  fmtcMerchant   FMTCMerchant? @relation(fields: [fmtcMerchantId], references: [id])
   /// 创建时间
-  createdAt     DateTime @default(now())
+  createdAt     DateTime      @default(now())
   /// 更新时间
-  updatedAt     DateTime @updatedAt
+  updatedAt     DateTime      @updatedAt
   
   @@index([merchantName])
   @@index([brandId])
   @@index([isConfirmed])
+  @@index([fmtcMerchantId])
 }
 
 /// 折扣类型枚举
@@ -724,4 +731,188 @@ enum ImportType {
   FILE
   /// API导入
   API
+}
+
+// --- FMTC 商户管理模型 ---
+
+/// FMTC 商户信息
+model FMTCMerchant {
+  /// 唯一标识符
+  id                    String               @id @default(cuid())
+  
+  // 基本信息 (来自列表页)
+  /// 商户名称
+  name                  String
+  /// 商户国家
+  country               String?
+  /// 网络平台 (联盟平台名称)
+  network               String?
+  /// 在FMTC上的添加日期
+  dateAdded             DateTime?
+  /// 高级订阅数量
+  premiumSubscriptions  Int?                 @default(0)
+  
+  // 详细信息 (来自详情页)
+  /// 官方网站 URL
+  homepage              String?
+  /// 主要分类
+  primaryCategory       String?
+  /// 主要国家
+  primaryCountry        String?
+  /// 配送地区
+  shipsTo               String[]             @default([])
+  /// FMTC 内部 ID
+  fmtcId                String?              @unique
+  /// 网络 ID (如 AW ID)
+  networkId             String?
+  /// 商户状态
+  status                String?
+  /// 是否支持 FreshReach
+  freshReachSupported   Boolean              @default(false)
+  
+  // 品牌图片信息
+  /// 120x60 Logo URL
+  logo120x60            String?
+  /// 88x31 Logo URL
+  logo88x31             String?
+  /// 280x210 截图 URL
+  screenshot280x210     String?
+  /// 600x450 截图 URL
+  screenshot600x450     String?
+  
+  // 关联链接
+  /// 联盟链接 (如 AW URL)
+  affiliateUrl          String?
+  /// 预览优惠链接
+  previewDealsUrl       String?
+  
+  // 数据管理
+  /// 数据来源页面 URL
+  sourceUrl             String?
+  /// 最后抓取时间
+  lastScrapedAt         DateTime?
+  /// 是否激活
+  isActive              Boolean              @default(true)
+  /// 原始数据 (JSON)
+  rawData               Json?
+  
+  // 品牌关联
+  /// 关联的系统品牌ID
+  brandId               String?
+  /// 关联的系统品牌
+  brand                 Brand?               @relation(fields: [brandId], references: [id])
+  /// 匹配置信度
+  brandMatchConfidence  Decimal?             @db.Decimal(3, 2)
+  /// 是否已确认品牌匹配
+  brandMatchConfirmed   Boolean              @default(false)
+  
+  // 网络关联信息
+  networks              FMTCMerchantNetwork[]
+  /// 品牌映射记录
+  brandMappings         BrandMapping[]
+  
+  // 时间戳
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  
+  @@index([name])
+  @@index([country])
+  @@index([network])
+  @@index([fmtcId])
+  @@index([brandId])
+  @@index([isActive])
+  @@index([lastScrapedAt])
+}
+
+/// FMTC 商户网络关联信息
+model FMTCMerchantNetwork {
+  /// 唯一标识符
+  id           String       @id @default(cuid())
+  /// 商户ID
+  merchantId   String
+  /// 网络名称
+  networkName  String
+  /// 网络ID
+  networkId    String?
+  /// 加入状态 (Joined, Not Joined, Relationship Not Verified)
+  status       String
+  /// 是否激活
+  isActive     Boolean      @default(true)
+  /// 关联的商户
+  merchant     FMTCMerchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  /// 创建时间
+  createdAt    DateTime     @default(now())
+  /// 更新时间
+  updatedAt    DateTime     @updatedAt
+  
+  @@index([merchantId])
+  @@index([networkName])
+  @@index([status])
+}
+
+/// FMTC 抓取任务配置
+model FMTCScraperTask {
+  /// 唯一标识符
+  id                    String                    @id @default(cuid())
+  /// 任务名称
+  name                  String                    @unique
+  /// 任务描述
+  description           String?
+  /// FMTC 登录凭据 (加密存储)
+  credentials           Json
+  /// 抓取配置 (页数限制、过滤条件等)
+  config                Json
+  /// 是否启用
+  isEnabled             Boolean                   @default(true)
+  /// CRON 表达式 (定时执行)
+  cronExpression        String?
+  /// 最后执行时间
+  lastExecutedAt        DateTime?
+  /// 下次执行时间
+  nextExecuteAt         DateTime?
+  /// 执行记录
+  executions            FMTCScraperExecution[]
+  /// 创建时间
+  createdAt             DateTime                  @default(now())
+  /// 更新时间
+  updatedAt             DateTime                 @updatedAt
+  
+  @@index([isEnabled])
+  @@index([nextExecuteAt])
+}
+
+/// FMTC 抓取执行记录
+model FMTCScraperExecution {
+  /// 唯一标识符
+  id              String            @id @default(cuid())
+  /// 任务ID
+  taskId          String
+  /// 执行状态
+  status          ScraperTaskStatus @default(IDLE)
+  /// 开始时间
+  startedAt       DateTime?
+  /// 完成时间
+  completedAt     DateTime?
+  /// 抓取统计
+  metrics         Json?
+  /// 错误信息
+  errorMessage    String?
+  /// 错误堆栈
+  errorStack      String?
+  /// 抓取的商户数量
+  merchantsCount  Int               @default(0)
+  /// 新增商户数量
+  newMerchantsCount Int             @default(0)
+  /// 更新商户数量
+  updatedMerchantsCount Int         @default(0)
+  /// 关联任务
+  task            FMTCScraperTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  /// 创建时间
+  createdAt       DateTime          @default(now())
+  /// 更新时间
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([taskId])
+  @@index([status])
+  @@index([startedAt])
 }

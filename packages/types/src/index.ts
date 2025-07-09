@@ -37,3 +37,6 @@ export interface CodeSnippet {
 
 // 导出产品相关类型
 export * from "./product.js";
+
+// 导出 FMTC 相关类型
+export * from "./fmtc.js";

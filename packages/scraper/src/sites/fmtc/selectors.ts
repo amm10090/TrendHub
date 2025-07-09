@@ -11,21 +11,27 @@ export const FMTC_SELECTORS: FMTCSelectors = {
   // 登录页面选择器
   login: {
     /** 用户名输入框 */
-    usernameInput:
-      'input[name="username"], input[name="email"], input[type="email"], #username, #email',
+    usernameInput: '#username, input[name="username"]',
     /** 密码输入框 */
-    passwordInput: 'input[name="password"], input[type="password"], #password',
+    passwordInput: '#password, input[name="password"]',
     /** 登录按钮 */
-    submitButton:
-      'button[type="submit"], input[type="submit"], .btn-login, #login-btn, button:has-text("Login"), button:has-text("Sign In")',
+    submitButton: 'button[type="submit"], .btn.fmtc-primary-btn',
     /** 登录表单 */
-    loginForm:
-      'form#login-form, form.login-form, form[action*="login"], form:has(input[type="password"])',
+    loginForm: 'form#form, form[name="form"], form[action="/cp/login"]',
     /** 错误消息 */
     errorMessage:
-      '.error, .alert-danger, .login-error, [class*="error"], [class*="invalid"]',
-    /** 验证码 */
-    captcha: '.captcha, #captcha, img[src*="captcha"], .g-recaptcha',
+      '.error, .alert-danger, .login-error, [class*="error"], [class*="invalid"], .rc-anchor-error-msg',
+    /** reCAPTCHA */
+    recaptcha: ".g-recaptcha, #rc-anchor-container, .recaptcha-checkbox",
+    /** reCAPTCHA 响应字段 */
+    recaptchaResponse:
+      '#g-recaptcha-response, textarea[name="g-recaptcha-response"]',
+    /** reCAPTCHA 复选框 */
+    recaptchaCheckbox: ".recaptcha-checkbox, #recaptcha-anchor",
+    /** 忘记密码链接 */
+    forgotPasswordLink: 'a[href="/cp/login/forgot"]',
+    /** 注册链接 */
+    signUpLink: 'a[href*="sign-up"]',
   },
 
   // 商户列表页面选择器
@@ -158,10 +164,12 @@ export const FMTC_WAIT_CONDITIONS = {
 export const FMTC_PAGE_FEATURES = {
   /** 检测是否为登录页面 */
   isLoginPage: () =>
-    document.querySelector(FMTC_SELECTORS.login.passwordInput) !== null,
+    document.querySelector('#username, #password, form[action="/cp/login"]') !==
+    null,
   /** 检测是否已登录 */
   isLoggedIn: () =>
-    document.querySelector('.user-menu, .logout, [href*="logout"]') !== null,
+    document.querySelector('.user-menu, .logout, [href*="logout"]') !== null &&
+    !document.querySelector("#username, #password"),
   /** 检测是否为商户列表页面 */
   isMerchantListPage: () =>
     document.querySelector(FMTC_SELECTORS.merchantList.merchantRows) !== null,
@@ -173,7 +181,7 @@ export const FMTC_PAGE_FEATURES = {
     document.querySelector(FMTC_SELECTORS.login.errorMessage!) !== null,
   /** 检测是否需要验证码 */
   requiresCaptcha: () =>
-    document.querySelector(FMTC_SELECTORS.login.captcha!) !== null,
+    document.querySelector(".g-recaptcha, #rc-anchor-container") !== null,
 };
 
 /**

@@ -57,17 +57,35 @@ export class FMTCLoginHandler {
       // 3. 等待登录页面加载
       await this.waitForLoginPageLoad();
 
+      // 3.1. 验证登录表单
+      const formValid = await this.validateLoginForm();
+      if (!formValid) {
+        return {
+          success: false,
+          error: "登录表单验证失败，页面结构可能已更改",
+        };
+      }
+
       // 4. 检测是否需要验证码
       const requiresCaptcha = await this.checkCaptchaRequired();
       if (requiresCaptcha) {
-        await this.logMessage(LocalScraperLogLevel.WARN, "检测到验证码要求", {
-          username: credentials.username,
-        });
-        return {
-          success: false,
-          error: "需要验证码，请手动处理",
-          requiresCaptcha: true,
-        };
+        await this.logMessage(
+          LocalScraperLogLevel.WARN,
+          "检测到 reCAPTCHA 要求",
+          {
+            username: credentials.username,
+          },
+        );
+
+        // 尝试等待用户手动完成验证码
+        const captchaCompleted = await this.waitForCaptchaCompletion();
+        if (!captchaCompleted) {
+          return {
+            success: false,
+            error: "需要手动完成 reCAPTCHA 验证",
+            requiresCaptcha: true,
+          };
+        }
       }
 
       // 5. 填写登录表单
@@ -184,10 +202,72 @@ export class FMTCLoginHandler {
    */
   private async checkCaptchaRequired(): Promise<boolean> {
     try {
-      const captchaElement = await this.page.$(FMTC_SELECTORS.login.captcha!);
-      return captchaElement !== null;
+      // 检查 reCAPTCHA 是否存在
+      const recaptchaElement = await this.page.$(
+        FMTC_SELECTORS.login.recaptcha!,
+      );
+
+      if (recaptchaElement) {
+        await this.logMessage(LocalScraperLogLevel.WARN, "检测到 reCAPTCHA");
+
+        // 检查 reCAPTCHA 是否已经完成
+        const recaptchaResponse = await this.page.$(
+          FMTC_SELECTORS.login.recaptchaResponse!,
+        );
+        if (recaptchaResponse) {
+          const responseValue = await recaptchaResponse.getAttribute("value");
+          if (responseValue && responseValue.length > 0) {
+            await this.logMessage(
+              LocalScraperLogLevel.INFO,
+              "reCAPTCHA 已完成",
+            );
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      return false;
     } catch (error) {
       this.log.warning(`检查验证码时出错: ${(error as Error).message}`);
+      return false;
+    }
+  }
+
+  /**
+   * 等待 reCAPTCHA 完成
+   */
+  private async waitForCaptchaCompletion(
+    timeout: number = 60000,
+  ): Promise<boolean> {
+    await this.logMessage(LocalScraperLogLevel.INFO, "等待 reCAPTCHA 完成", {
+      timeout: timeout / 1000,
+    });
+
+    try {
+      // 等待 reCAPTCHA 响应字段有值
+      await this.page.waitForFunction(
+        (selector) => {
+          const element = document.querySelector(
+            selector,
+          ) as HTMLTextAreaElement;
+          return element && element.value && element.value.length > 0;
+        },
+        FMTC_SELECTORS.login.recaptchaResponse!,
+        { timeout },
+      );
+
+      await this.logMessage(LocalScraperLogLevel.INFO, "reCAPTCHA 完成");
+      return true;
+    } catch (error) {
+      await this.logMessage(
+        LocalScraperLogLevel.ERROR,
+        "等待 reCAPTCHA 完成超时",
+        {
+          error: (error as Error).message,
+        },
+      );
       return false;
     }
   }
@@ -236,20 +316,31 @@ export class FMTCLoginHandler {
     await this.logMessage(LocalScraperLogLevel.DEBUG, "提交登录表单");
 
     try {
+      // 再次检查 reCAPTCHA 是否已完成
+      const recaptchaRequired = await this.checkCaptchaRequired();
+      if (recaptchaRequired) {
+        throw new Error("reCAPTCHA 未完成，无法提交表单");
+      }
+
       // 查找并点击提交按钮
       const submitButton = await this.page.$(FMTC_SELECTORS.login.submitButton);
       if (submitButton) {
+        // 确保按钮可点击
+        await submitButton.scrollIntoViewIfNeeded();
+        await delay(500);
+
         // 等待网络请求完成
         await Promise.all([
           this.page.waitForLoadState("networkidle"),
           submitButton.click(),
         ]);
 
-        await delay(2000); // 额外等待处理时间
+        await delay(3000); // 额外等待处理时间
       } else {
         // 如果找不到按钮，尝试按 Enter 键提交
         await this.page.keyboard.press("Enter");
         await this.page.waitForLoadState("networkidle");
+        await delay(3000);
       }
 
       await this.logMessage(LocalScraperLogLevel.DEBUG, "登录表单提交完成");
@@ -424,6 +515,80 @@ export class FMTCLoginHandler {
       }
     } catch (error) {
       await this.logMessage(LocalScraperLogLevel.ERROR, "刷新会话失败", {
+        error: (error as Error).message,
+      });
+      return false;
+    }
+  }
+
+  /**
+   * 尝试解决 reCAPTCHA (如果可能)
+   */
+  async handleRecaptcha(): Promise<boolean> {
+    try {
+      await this.logMessage(LocalScraperLogLevel.INFO, "尝试处理 reCAPTCHA");
+
+      // 检查是否有 reCAPTCHA 复选框
+      const recaptchaCheckbox = await this.page.$(
+        FMTC_SELECTORS.login.recaptchaCheckbox!,
+      );
+      if (recaptchaCheckbox) {
+        // 点击 reCAPTCHA 复选框
+        await recaptchaCheckbox.click();
+        await delay(2000);
+
+        // 等待 reCAPTCHA 完成
+        const completed = await this.waitForCaptchaCompletion(30000);
+        if (completed) {
+          await this.logMessage(
+            LocalScraperLogLevel.INFO,
+            "reCAPTCHA 处理成功",
+          );
+          return true;
+        }
+      }
+
+      await this.logMessage(
+        LocalScraperLogLevel.WARN,
+        "无法自动处理 reCAPTCHA",
+      );
+      return false;
+    } catch (error) {
+      await this.logMessage(LocalScraperLogLevel.ERROR, "处理 reCAPTCHA 失败", {
+        error: (error as Error).message,
+      });
+      return false;
+    }
+  }
+
+  /**
+   * 验证登录表单是否有效
+   */
+  async validateLoginForm(): Promise<boolean> {
+    try {
+      const form = await this.page.$(FMTC_SELECTORS.login.loginForm);
+      const usernameInput = await this.page.$(
+        FMTC_SELECTORS.login.usernameInput,
+      );
+      const passwordInput = await this.page.$(
+        FMTC_SELECTORS.login.passwordInput,
+      );
+      const submitButton = await this.page.$(FMTC_SELECTORS.login.submitButton);
+
+      const isValid = form && usernameInput && passwordInput && submitButton;
+
+      if (!isValid) {
+        await this.logMessage(LocalScraperLogLevel.ERROR, "登录表单验证失败", {
+          form: !!form,
+          usernameInput: !!usernameInput,
+          passwordInput: !!passwordInput,
+          submitButton: !!submitButton,
+        });
+      }
+
+      return !!isValid;
+    } catch (error) {
+      await this.logMessage(LocalScraperLogLevel.ERROR, "验证登录表单时出错", {
         error: (error as Error).message,
       });
       return false;

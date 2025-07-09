@@ -243,12 +243,25 @@ export default async function scrapeFMTC(
 }
 
 /**
+ * 统计信息类型
+ */
+interface FMTCStatistics {
+  totalMerchants: number;
+  withHomepage: number;
+  withFMTCId: number;
+  withNetworks: number;
+  withLogos: number;
+  withScreenshots: number;
+  byCountry: Record<string, number>;
+  byNetwork: Record<string, number>;
+  byCategory: Record<string, number>;
+}
+
+/**
  * 生成抓取统计信息
  */
-function generateStatistics(
-  merchants: FMTCMerchantData[],
-): Record<string, number> {
-  const stats = {
+function generateStatistics(merchants: FMTCMerchantData[]): FMTCStatistics {
+  const stats: FMTCStatistics = {
     totalMerchants: merchants.length,
     withHomepage: merchants.filter((m) => m.homepage).length,
     withFMTCId: merchants.filter((m) => m.fmtcId).length,

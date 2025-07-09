@@ -91,8 +91,16 @@ export interface FMTCSelectors {
     loginForm: string;
     /** 错误消息 */
     errorMessage?: string;
-    /** 验证码 */
-    captcha?: string;
+    /** reCAPTCHA */
+    recaptcha?: string;
+    /** reCAPTCHA 响应字段 */
+    recaptchaResponse?: string;
+    /** reCAPTCHA 复选框 */
+    recaptchaCheckbox?: string;
+    /** 忘记密码链接 */
+    forgotPasswordLink?: string;
+    /** 注册链接 */
+    signUpLink?: string;
   };
 
   /** 商户列表页面选择器 */

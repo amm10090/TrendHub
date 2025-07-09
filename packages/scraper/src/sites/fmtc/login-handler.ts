@@ -12,6 +12,11 @@ import {
   FMTC_ERROR_PATTERNS,
 } from "./selectors.js";
 import { sendLogToBackend, LocalScraperLogLevel, delay } from "../../utils.js";
+import {
+  ReCAPTCHAService,
+  ReCAPTCHAMode,
+  type ReCAPTCHAConfig,
+} from "./recaptcha-service.js";
 
 /**
  * FMTC 登录处理器类
@@ -20,11 +25,33 @@ export class FMTCLoginHandler {
   private page: Page;
   private log: Log;
   private executionId?: string;
+  private recaptchaService: ReCAPTCHAService;
 
-  constructor(page: Page, log: Log, executionId?: string) {
+  constructor(
+    page: Page,
+    log: Log,
+    executionId?: string,
+    recaptchaConfig?: ReCAPTCHAConfig,
+  ) {
     this.page = page;
     this.log = log;
     this.executionId = executionId;
+
+    // 创建默认的reCAPTCHA配置
+    const defaultRecaptchaConfig: ReCAPTCHAConfig = {
+      mode: ReCAPTCHAMode.MANUAL,
+      manualTimeout: 60000, // 60秒
+      autoTimeout: 120000, // 2分钟
+      retryAttempts: 3,
+      retryDelay: 5000,
+      ...recaptchaConfig,
+    };
+
+    this.recaptchaService = new ReCAPTCHAService(
+      page,
+      log,
+      defaultRecaptchaConfig,
+    );
   }
 
   /**
@@ -66,26 +93,33 @@ export class FMTCLoginHandler {
         };
       }
 
-      // 4. 检测是否需要验证码
-      const requiresCaptcha = await this.checkCaptchaRequired();
-      if (requiresCaptcha) {
+      // 4. 处理 reCAPTCHA 验证
+      const recaptchaResult = await this.recaptchaService.solveWithRetry();
+      if (!recaptchaResult.success) {
         await this.logMessage(
-          LocalScraperLogLevel.WARN,
-          "检测到 reCAPTCHA 要求",
+          LocalScraperLogLevel.ERROR,
+          "reCAPTCHA 验证失败",
           {
             username: credentials.username,
+            error: recaptchaResult.error,
+            method: recaptchaResult.method,
+            duration: recaptchaResult.duration,
+            cost: recaptchaResult.cost,
           },
         );
 
-        // 尝试等待用户手动完成验证码
-        const captchaCompleted = await this.waitForCaptchaCompletion();
-        if (!captchaCompleted) {
-          return {
-            success: false,
-            error: "需要手动完成 reCAPTCHA 验证",
-            requiresCaptcha: true,
-          };
-        }
+        return {
+          success: false,
+          error: recaptchaResult.error || "reCAPTCHA 验证失败",
+          requiresCaptcha: true,
+        };
+      } else if (recaptchaResult.method !== "skip") {
+        await this.logMessage(LocalScraperLogLevel.INFO, "reCAPTCHA 验证成功", {
+          username: credentials.username,
+          method: recaptchaResult.method,
+          duration: recaptchaResult.duration,
+          cost: recaptchaResult.cost,
+        });
       }
 
       // 5. 填写登录表单
@@ -316,12 +350,6 @@ export class FMTCLoginHandler {
     await this.logMessage(LocalScraperLogLevel.DEBUG, "提交登录表单");
 
     try {
-      // 再次检查 reCAPTCHA 是否已完成
-      const recaptchaRequired = await this.checkCaptchaRequired();
-      if (recaptchaRequired) {
-        throw new Error("reCAPTCHA 未完成，无法提交表单");
-      }
-
       // 查找并点击提交按钮
       const submitButton = await this.page.$(FMTC_SELECTORS.login.submitButton);
       if (submitButton) {
@@ -528,31 +556,26 @@ export class FMTCLoginHandler {
     try {
       await this.logMessage(LocalScraperLogLevel.INFO, "尝试处理 reCAPTCHA");
 
-      // 检查是否有 reCAPTCHA 复选框
-      const recaptchaCheckbox = await this.page.$(
-        FMTC_SELECTORS.login.recaptchaCheckbox!,
-      );
-      if (recaptchaCheckbox) {
-        // 点击 reCAPTCHA 复选框
-        await recaptchaCheckbox.click();
-        await delay(2000);
+      const result = await this.recaptchaService.solveWithRetry();
 
-        // 等待 reCAPTCHA 完成
-        const completed = await this.waitForCaptchaCompletion(30000);
-        if (completed) {
-          await this.logMessage(
-            LocalScraperLogLevel.INFO,
-            "reCAPTCHA 处理成功",
-          );
-          return true;
-        }
+      if (result.success) {
+        await this.logMessage(LocalScraperLogLevel.INFO, "reCAPTCHA 处理成功", {
+          method: result.method,
+          duration: result.duration,
+          cost: result.cost,
+        });
+        return true;
+      } else {
+        await this.logMessage(
+          LocalScraperLogLevel.ERROR,
+          "reCAPTCHA 处理失败",
+          {
+            error: result.error,
+            method: result.method,
+          },
+        );
+        return false;
       }
-
-      await this.logMessage(
-        LocalScraperLogLevel.WARN,
-        "无法自动处理 reCAPTCHA",
-      );
-      return false;
     } catch (error) {
       await this.logMessage(LocalScraperLogLevel.ERROR, "处理 reCAPTCHA 失败", {
         error: (error as Error).message,
@@ -593,5 +616,66 @@ export class FMTCLoginHandler {
       });
       return false;
     }
+  }
+
+  /**
+   * 获取当前 reCAPTCHA 服务的余额
+   */
+  async getRecaptchaBalance(): Promise<number> {
+    try {
+      return await this.recaptchaService.getBalance();
+    } catch (error) {
+      await this.logMessage(
+        LocalScraperLogLevel.ERROR,
+        "获取 reCAPTCHA 余额失败",
+        {
+          error: (error as Error).message,
+        },
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * 检查是否需要 reCAPTCHA 验证
+   */
+  async checkRecaptchaRequired(): Promise<boolean> {
+    try {
+      return await this.recaptchaService.detectReCAPTCHA();
+    } catch (error) {
+      await this.logMessage(
+        LocalScraperLogLevel.ERROR,
+        "检查 reCAPTCHA 状态失败",
+        {
+          error: (error as Error).message,
+        },
+      );
+      return false;
+    }
+  }
+
+  /**
+   * 检查 reCAPTCHA 是否已完成
+   */
+  async checkRecaptchaCompleted(): Promise<boolean> {
+    try {
+      return await this.recaptchaService.isReCAPTCHACompleted();
+    } catch (error) {
+      await this.logMessage(
+        LocalScraperLogLevel.ERROR,
+        "检查 reCAPTCHA 完成状态失败",
+        {
+          error: (error as Error).message,
+        },
+      );
+      return false;
+    }
+  }
+
+  /**
+   * 获取当前 reCAPTCHA 服务实例
+   */
+  getRecaptchaService(): ReCAPTCHAService {
+    return this.recaptchaService;
   }
 }

@@ -3,6 +3,7 @@
  */
 
 import type { FMTCScraperOptions, FMTCAntiDetectionConfig } from "./types.js";
+import { ReCAPTCHAMode, type ReCAPTCHAConfig } from "./recaptcha-service.js";
 
 /**
  * 默认的 FMTC 爬虫选项
@@ -61,6 +62,9 @@ export const FMTC_CONFIG = {
   // 验证码配置
   CAPTCHA_WAIT_TIMEOUT: 60000, // 等待验证码完成的最大时间
   MANUAL_INTERVENTION_TIMEOUT: 120000, // 等待手动干预的最大时间
+  RECAPTCHA_AUTO_TIMEOUT: 180000, // 自动解决reCAPTCHA的最大时间
+  RECAPTCHA_RETRY_ATTEMPTS: 3, // reCAPTCHA重试次数
+  RECAPTCHA_RETRY_DELAY: 5000, // reCAPTCHA重试延迟
 
   // 抓取限制
   MAX_PAGES_PER_SESSION: 50,
@@ -160,6 +164,50 @@ export function getEnvironmentConfig() {
 }
 
 /**
+ * 获取 reCAPTCHA 配置
+ */
+export function getRecaptchaConfig(): ReCAPTCHAConfig {
+  // 确定reCAPTCHA模式
+  let mode: ReCAPTCHAMode = ReCAPTCHAMode.MANUAL; // 默认手动模式
+
+  const recaptchaMode = process.env.FMTC_RECAPTCHA_MODE?.toLowerCase();
+  if (recaptchaMode === "auto") {
+    mode = ReCAPTCHAMode.AUTO;
+  } else if (recaptchaMode === "skip") {
+    mode = ReCAPTCHAMode.SKIP;
+  }
+
+  return {
+    mode,
+    manualTimeout: parseInt(
+      process.env.FMTC_RECAPTCHA_MANUAL_TIMEOUT ||
+        String(FMTC_CONFIG.MANUAL_INTERVENTION_TIMEOUT),
+    ),
+    autoTimeout: parseInt(
+      process.env.FMTC_RECAPTCHA_AUTO_TIMEOUT ||
+        String(FMTC_CONFIG.RECAPTCHA_AUTO_TIMEOUT),
+    ),
+    retryAttempts: parseInt(
+      process.env.FMTC_RECAPTCHA_RETRY_ATTEMPTS ||
+        String(FMTC_CONFIG.RECAPTCHA_RETRY_ATTEMPTS),
+    ),
+    retryDelay: parseInt(
+      process.env.FMTC_RECAPTCHA_RETRY_DELAY ||
+        String(FMTC_CONFIG.RECAPTCHA_RETRY_DELAY),
+    ),
+    twoCaptcha: process.env.FMTC_2CAPTCHA_API_KEY
+      ? {
+          apiKey: process.env.FMTC_2CAPTCHA_API_KEY,
+          softId: parseInt(process.env.FMTC_2CAPTCHA_SOFT_ID || "4580"),
+          serverDomain:
+            process.env.FMTC_2CAPTCHA_SERVER_DOMAIN || "2captcha.com",
+          callback: process.env.FMTC_2CAPTCHA_CALLBACK,
+        }
+      : undefined,
+  };
+}
+
+/**
  * 检查配置的有效性
  */
 export function validateConfig(config: Record<string, unknown>): {
@@ -195,6 +243,50 @@ export function validateConfig(config: Record<string, unknown>): {
       : undefined;
   if (maxConcurrency && (maxConcurrency < 1 || maxConcurrency > 5)) {
     errors.push("maxConcurrency 必须在 1-5 之间");
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * 验证 reCAPTCHA 配置
+ */
+export function validateRecaptchaConfig(config: ReCAPTCHAConfig): {
+  valid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // 验证超时时间
+  if (config.manualTimeout < 10000 || config.manualTimeout > 300000) {
+    errors.push("manualTimeout 必须在 10-300 秒之间");
+  }
+
+  if (config.autoTimeout < 30000 || config.autoTimeout > 600000) {
+    errors.push("autoTimeout 必须在 30-600 秒之间");
+  }
+
+  // 验证重试配置
+  if (config.retryAttempts < 1 || config.retryAttempts > 10) {
+    errors.push("retryAttempts 必须在 1-10 之间");
+  }
+
+  if (config.retryDelay < 1000 || config.retryDelay > 30000) {
+    errors.push("retryDelay 必须在 1-30 秒之间");
+  }
+
+  // 验证2captcha配置
+  if (config.mode === ReCAPTCHAMode.AUTO) {
+    if (!config.twoCaptcha?.apiKey) {
+      errors.push("自动模式需要配置 2captcha API 密钥");
+    }
+
+    if (config.twoCaptcha?.apiKey && config.twoCaptcha.apiKey.length < 10) {
+      errors.push("2captcha API 密钥长度不符合要求");
+    }
   }
 
   return {

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 
-import { auth } from "../../../../auth";
+import { auth } from "@/auth";
 
 /**
  * GET /api/fmtc-merchants
@@ -30,13 +30,10 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     // 构建查询条件
-    const where: Prisma.FMTCMerchantWhereInput = {
-      isActive: true,
-      AND: [],
-    };
+    const andConditions: Prisma.FMTCMerchantWhereInput[] = [];
 
     if (search) {
-      where.AND!.push({
+      andConditions.push({
         OR: [
           { name: { contains: search, mode: "insensitive" } },
           { homepage: { contains: search, mode: "insensitive" } },
@@ -46,22 +43,27 @@ export async function GET(request: NextRequest) {
     }
 
     if (country) {
-      where.AND!.push({ country: country });
+      andConditions.push({ country: country });
     }
 
     if (network) {
-      where.AND!.push({ network: network });
+      andConditions.push({ network: network });
     }
 
     if (status) {
-      where.AND!.push({ status: status });
+      andConditions.push({ status: status });
     }
 
     if (brandMatched === "matched") {
-      where.AND!.push({ brandId: { not: null } });
+      andConditions.push({ brandId: { not: null } });
     } else if (brandMatched === "unmatched") {
-      where.AND!.push({ brandId: null });
+      andConditions.push({ brandId: null });
     }
+
+    const where: Prisma.FMTCMerchantWhereInput = {
+      isActive: true,
+      ...(andConditions.length > 0 && { AND: andConditions }),
+    };
 
     // 获取商户列表
     const [merchants, totalCount] = await Promise.all([
@@ -123,9 +125,8 @@ export async function GET(request: NextRequest) {
         },
       },
     });
-  } catch (error) {
-    console.error("FMTC Merchants API Error:", error);
-
+  } catch {
+    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -216,9 +217,8 @@ export async function POST(request: NextRequest) {
       { success: false, error: "不支持的操作" },
       { status: 400 },
     );
-  } catch (error) {
-    console.error("FMTC Merchants Create Error:", error);
-
+  } catch {
+    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -307,9 +307,8 @@ export async function PUT(request: NextRequest) {
         action,
       },
     });
-  } catch (error) {
-    console.error("FMTC Merchants Update Error:", error);
-
+  } catch {
+    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -351,9 +350,8 @@ export async function DELETE(request: NextRequest) {
         deletedCount: result.count,
       },
     });
-  } catch (error) {
-    console.error("FMTC Merchants Delete Error:", error);
-
+  } catch {
+    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },

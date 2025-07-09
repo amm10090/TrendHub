@@ -80,9 +80,8 @@ export async function GET(
         },
       },
     });
-  } catch (error) {
-    console.error("FMTC Scraper Task Detail Error:", error);
-
+  } catch {
+    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -145,9 +144,8 @@ export async function PUT(
       success: true,
       data: updatedTask,
     });
-  } catch (error) {
-    console.error("FMTC Scraper Task Update Error:", error);
-
+  } catch {
+    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -207,9 +205,8 @@ export async function DELETE(
       success: true,
       data: { message: "任务已删除" },
     });
-  } catch (error) {
-    console.error("FMTC Scraper Task Delete Error:", error);
-
+  } catch {
+    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -380,9 +377,8 @@ export async function POST(
           { status: 400 },
         );
     }
-  } catch (error) {
-    console.error("FMTC Scraper Task Action Error:", error);
-
+  } catch {
+    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },

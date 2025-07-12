@@ -128,6 +128,52 @@ export class FMTCLoginHandler {
       // 6. 提交表单
       await this.submitLoginForm();
 
+      // 6.1 检查提交后是否出现新的reCAPTCHA
+      await delay(2000); // 等待页面加载
+      const needsRecaptchaAgain = await this.recaptchaService.detectReCAPTCHA();
+
+      if (needsRecaptchaAgain) {
+        await this.logMessage(
+          LocalScraperLogLevel.WARN,
+          "提交后出现新的reCAPTCHA，重新处理",
+          {
+            username: credentials.username,
+          },
+        );
+
+        const secondRecaptchaResult =
+          await this.recaptchaService.solveWithRetry();
+        if (!secondRecaptchaResult.success) {
+          await this.logMessage(
+            LocalScraperLogLevel.ERROR,
+            "第二次reCAPTCHA验证失败",
+            {
+              username: credentials.username,
+              error: secondRecaptchaResult.error,
+            },
+          );
+          return {
+            success: false,
+            error: secondRecaptchaResult.error || "第二次reCAPTCHA验证失败",
+            requiresCaptcha: true,
+          };
+        }
+
+        await this.logMessage(
+          LocalScraperLogLevel.INFO,
+          "第二次reCAPTCHA验证成功",
+          {
+            username: credentials.username,
+            method: secondRecaptchaResult.method,
+            duration: secondRecaptchaResult.duration,
+            cost: secondRecaptchaResult.cost,
+          },
+        );
+
+        // 重新提交表单
+        await this.submitLoginForm();
+      }
+
       // 7. 等待登录结果
       const loginResult = await this.waitForLoginResult();
 
@@ -318,9 +364,20 @@ export class FMTCLoginHandler {
         FMTC_SELECTORS.login.usernameInput,
       );
       if (usernameInput) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "找到用户名输入框，开始填写",
+        );
         await usernameInput.click({ clickCount: 3 }); // 选中全部文本
         await usernameInput.fill(credentials.username);
         await delay(500);
+
+        // 验证用户名是否填写成功
+        const usernameValue = await usernameInput.inputValue();
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "用户名填写完成", {
+          expectedUsername: credentials.username,
+          actualUsername: usernameValue,
+        });
       } else {
         throw new Error("未找到用户名输入框");
       }
@@ -330,9 +387,20 @@ export class FMTCLoginHandler {
         FMTC_SELECTORS.login.passwordInput,
       );
       if (passwordInput) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "找到密码输入框，开始填写",
+        );
         await passwordInput.click({ clickCount: 3 }); // 选中全部文本
         await passwordInput.fill(credentials.password);
         await delay(500);
+
+        // 验证密码是否填写成功（不记录实际密码）
+        const passwordValue = await passwordInput.inputValue();
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "密码填写完成", {
+          passwordLength: credentials.password.length,
+          actualPasswordLength: passwordValue.length,
+        });
       } else {
         throw new Error("未找到密码输入框");
       }
@@ -387,9 +455,21 @@ export class FMTCLoginHandler {
       // 等待一段时间让页面反应
       await delay(3000);
 
+      // 获取当前页面信息
+      const currentUrl = this.page.url();
+      const pageTitle = await this.page.title();
+
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "页面状态检查", {
+        currentUrl,
+        pageTitle,
+      });
+
       // 检查是否出现错误消息
       const errorMessage = await this.checkForErrorMessage();
       if (errorMessage) {
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "检测到错误消息", {
+          errorMessage,
+        });
         return {
           success: false,
           error: errorMessage,
@@ -397,12 +477,18 @@ export class FMTCLoginHandler {
       }
 
       // 检查是否登录成功 (通过 URL 变化或页面内容)
-      const currentUrl = this.page.url();
       const isStillOnLoginPage = currentUrl.includes("login");
+
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "URL检查", {
+        isStillOnLoginPage,
+      });
 
       if (!isStillOnLoginPage) {
         // URL 已改变，可能登录成功
         const loginSuccess = await this.isLoggedIn();
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "登录状态检查", {
+          loginSuccess,
+        });
         if (loginSuccess) {
           return { success: true };
         }
@@ -413,7 +499,25 @@ export class FMTCLoginHandler {
         '.user-menu, .logout, [href*="logout"]',
       );
       if (hasUserMenu) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "找到用户菜单，登录成功",
+        );
         return { success: true };
+      }
+
+      // 检查是否仍需要reCAPTCHA
+      const stillNeedsRecaptcha = await this.checkRecaptchaRequired();
+      if (stillNeedsRecaptcha) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "仍需要reCAPTCHA验证",
+        );
+        return {
+          success: false,
+          error: "登录后仍需要reCAPTCHA验证",
+          requiresCaptcha: true,
+        };
       }
 
       // 如果仍在登录页面，检查具体错误
@@ -421,6 +525,14 @@ export class FMTCLoginHandler {
       for (const [errorType, patterns] of Object.entries(FMTC_ERROR_PATTERNS)) {
         for (const pattern of patterns) {
           if (pageContent.toLowerCase().includes(pattern)) {
+            await this.logMessage(
+              LocalScraperLogLevel.DEBUG,
+              "匹配到错误模式",
+              {
+                errorType,
+                pattern,
+              },
+            );
             return {
               success: false,
               error: `登录失败: ${errorType}`,
@@ -430,6 +542,7 @@ export class FMTCLoginHandler {
       }
 
       // 默认错误
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "无法确定登录状态");
       return {
         success: false,
         error: "登录状态未知，请检查凭据",
@@ -484,12 +597,17 @@ export class FMTCLoginHandler {
     this.log.info(`[FMTC Login] ${message}`);
 
     if (this.executionId) {
-      await sendLogToBackend(
-        this.executionId,
-        level,
-        `[FMTC Login] ${message}`,
-        context,
-      );
+      try {
+        await sendLogToBackend(
+          this.executionId,
+          level,
+          `[FMTC Login] ${message}`,
+          context,
+        );
+      } catch {
+        // 静默处理日志发送失败，不影响主流程
+        console.debug(`日志发送失败（忽略）: ${message}`);
+      }
     }
   }
 

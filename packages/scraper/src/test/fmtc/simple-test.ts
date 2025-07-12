@@ -3,7 +3,10 @@
  */
 
 import { chromium } from "playwright";
-import { FMTC_SELECTORS, FMTC_URL_PATTERNS } from "./selectors.js";
+import {
+  FMTC_SELECTORS,
+  FMTC_URL_PATTERNS,
+} from "../../sites/fmtc/selectors.js";
 import type { PageElementCheck, SelectorTestResult } from "./test-types.js";
 
 /**

@@ -356,6 +356,9 @@ export function createDefaultFMTCOptions(credentials: {
 // 导出类型和处理器 (用于测试或高级用法)
 export * from "./types.js";
 export { FMTCLoginHandler } from "./login-handler.js";
+export { FMTCNavigationHandler } from "./navigation-handler.js";
+export { FMTCSearchHandler } from "./search-handler.js";
+export { FMTCResultsParser } from "./results-parser.js";
 export { FMTCMerchantListHandler } from "./merchant-list-handler.js";
 export { FMTCMerchantDetailHandler } from "./merchant-detail-handler.js";
 export { FMTCAntiDetection } from "./anti-detection.js";

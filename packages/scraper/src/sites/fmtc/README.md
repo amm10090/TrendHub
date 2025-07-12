@@ -30,11 +30,33 @@ fmtc/
 ├── selectors.ts                 # CSS 选择器配置
 ├── config.ts                    # 配置文件
 ├── login-handler.ts             # 登录处理器
+├── recaptcha-service.ts         # reCAPTCHA 处理服务
 ├── merchant-list-handler.ts     # 商户列表处理器
 ├── merchant-detail-handler.ts   # 商户详情处理器
+├── navigation-handler.ts        # 页面导航处理器
+├── search-handler.ts            # 搜索功能处理器
+├── results-parser.ts            # 结果解析器
 ├── request-handler.ts           # 请求处理器
 ├── anti-detection.ts            # 反检测机制
-└── test-login.ts               # 登录功能测试
+└── recaptcha-config.md          # reCAPTCHA 配置文档
+```
+
+### 📁 测试文件
+
+所有测试文件已移动到独立的测试目录：
+
+```
+../../test/fmtc/
+├── README.md                    # 测试说明文档
+├── test-types.ts                # 测试类型定义
+├── simple-test.ts               # 基础选择器测试
+├── standalone-login-test.ts     # ⭐ 推荐：独立登录测试
+├── enhanced-login-test.ts       # 增强登录测试
+├── full-login-test.ts          # 完整登录测试
+├── debug-login-test.ts         # 登录调试测试
+├── complete-navigation-test.ts  # 导航功能测试
+├── complete-search-test.ts      # 完整搜索测试
+└── debug-category-options.ts    # 分类选项调试
 ```
 
 ## 快速开始
@@ -54,19 +76,22 @@ export FMTC_DEBUG_MODE="false"
 
 ### 2. 测试登录功能
 
-#### 测试页面选择器
+#### 推荐测试流程
 
 ```bash
 cd /root/TrendHub/packages/scraper
-npx tsx src/sites/fmtc/simple-test.ts selectors
+
+# 1. 基础选择器测试
+npx tsx src/test/fmtc/simple-test.ts selectors
+
+# 2. 独立登录测试（推荐）
+npx tsx src/test/fmtc/standalone-login-test.ts
+
+# 3. 完整搜索流程测试
+npx tsx src/test/fmtc/complete-search-test.ts
 ```
 
-#### 测试完整登录流程
-
-```bash
-cd /root/TrendHub/packages/scraper
-npx tsx src/sites/fmtc/simple-test.ts
-```
+更多测试选项请参考：[测试文档](../../test/fmtc/README.md)
 
 ### 3. 代码使用示例
 

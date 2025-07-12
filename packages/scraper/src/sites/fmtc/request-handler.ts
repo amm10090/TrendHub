@@ -10,6 +10,9 @@ import type {
   FMTCProgressCallback,
 } from "./types.js";
 import { FMTCLoginHandler } from "./login-handler.js";
+import { FMTCNavigationHandler } from "./navigation-handler.js";
+import { FMTCSearchHandler } from "./search-handler.js";
+import { FMTCResultsParser } from "./results-parser.js";
 import { FMTCMerchantListHandler } from "./merchant-list-handler.js";
 import { FMTCMerchantDetailHandler } from "./merchant-detail-handler.js";
 import { FMTCAntiDetection } from "./anti-detection.js";
@@ -36,6 +39,9 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
 
     // 创建处理器实例
     const loginHandler = new FMTCLoginHandler(page, log, userData.executionId);
+    const navigationHandler = new FMTCNavigationHandler(page, log);
+    const searchHandler = new FMTCSearchHandler(page, log);
+    const resultsParser = new FMTCResultsParser(page, log);
     const listHandler = new FMTCMerchantListHandler(
       page,
       log,
@@ -69,7 +75,25 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
       // 根据标签分发请求
       switch (label) {
         case "LOGIN":
-          await handleLogin(context, loginHandler, userData, log);
+          await handleLogin(
+            context,
+            loginHandler,
+            navigationHandler,
+            userData,
+            log,
+          );
+          break;
+
+        case "SEARCH":
+          await handleSearch(
+            context,
+            searchHandler,
+            resultsParser,
+            userData,
+            allScrapedMerchants,
+            progressCallback,
+            log,
+          );
           break;
 
         case "MERCHANT_LIST":
@@ -151,6 +175,7 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
 async function handleLogin(
   context: PlaywrightCrawlingContext,
   loginHandler: FMTCLoginHandler,
+  navigationHandler: FMTCNavigationHandler,
   userData: FMTCUserData,
   log: Log,
 ): Promise<void> {
@@ -166,23 +191,179 @@ async function handleLogin(
       log,
       userData.executionId,
       LocalScraperLogLevel.INFO,
-      "登录成功，开始抓取商户列表",
+      "登录成功，导航到Directory页面",
     );
 
-    // 登录成功后，将商户列表页面加入队列
-    await context.addRequests([
-      {
-        url: "https://account.fmtc.co/cp/program_directory/index/net/0/opm/0/cntry/0/cat/2/unsmrch/0",
-        label: "MERCHANT_LIST",
-        userData: {
-          ...userData,
-          label: "MERCHANT_LIST",
-          pageNumber: 1,
+    // 登录成功后，导航到Directory页面
+    const navigationResult = await navigationHandler.navigateToDirectory();
+
+    if (navigationResult.success) {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.INFO,
+        "成功导航到Directory页面，开始搜索",
+      );
+
+      // 导航成功后，执行搜索
+      await context.addRequests([
+        {
+          url:
+            navigationResult.currentUrl ||
+            "https://account.fmtc.co/cp/program_directory",
+          label: "SEARCH",
+          userData: {
+            ...userData,
+            label: "SEARCH",
+          },
         },
-      },
-    ]);
+      ]);
+    } else {
+      throw new Error(`导航到Directory页面失败: ${navigationResult.error}`);
+    }
   } else {
     throw new Error(`登录失败: ${loginResult.error}`);
+  }
+}
+
+/**
+ * 处理搜索请求
+ */
+async function handleSearch(
+  context: PlaywrightCrawlingContext,
+  searchHandler: FMTCSearchHandler,
+  resultsParser: FMTCResultsParser,
+  userData: FMTCUserData,
+  allScrapedMerchants: FMTCMerchantData[],
+  progressCallback?: FMTCProgressCallback,
+  log?: Log,
+): Promise<void> {
+  // 获取搜索参数
+  const searchParams = searchHandler.getSearchParamsFromConfig();
+
+  await logMessage(
+    log,
+    userData.executionId,
+    LocalScraperLogLevel.INFO,
+    "开始执行搜索",
+    { searchParams },
+  );
+
+  // 执行搜索
+  const searchResult = await searchHandler.performSearch(searchParams);
+
+  if (searchResult.success) {
+    await logMessage(
+      log,
+      userData.executionId,
+      LocalScraperLogLevel.INFO,
+      `搜索成功，找到 ${searchResult.resultsCount} 个结果`,
+      { resultsCount: searchResult.resultsCount },
+    );
+
+    // 解析搜索结果
+    const parsedResults = await resultsParser.parseSearchResults();
+
+    if (parsedResults.merchants.length > 0) {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.INFO,
+        `成功解析 ${parsedResults.merchants.length} 个商户`,
+      );
+
+      // 处理解析出的商户数据
+      for (const merchant of parsedResults.merchants) {
+        try {
+          // 转换为FMTCMerchantData格式
+          const merchantData: FMTCMerchantData = {
+            name: merchant.name,
+            country: merchant.country,
+            network: merchant.network,
+            sourceUrl: merchant.detailUrl || context.request.url,
+            fmtcId: merchant.id,
+            rawData: {
+              source: "search_results",
+              dateAdded: merchant.dateAdded,
+              status: merchant.status,
+            },
+          };
+
+          // 如果有详情URL且启用详情抓取，将详情页加入队列
+          if (merchant.detailUrl && userData.options?.includeDetails) {
+            await context.addRequests([
+              {
+                url: merchant.detailUrl,
+                label: "MERCHANT_DETAIL",
+                userData: {
+                  ...userData,
+                  label: "MERCHANT_DETAIL",
+                  merchantUrl: merchant.detailUrl,
+                  merchantName: merchant.name,
+                },
+              },
+            ]);
+          } else {
+            // 直接添加到结果中
+            allScrapedMerchants.push(merchantData);
+
+            if (progressCallback?.onMerchantProcessed) {
+              progressCallback.onMerchantProcessed(merchantData);
+            }
+          }
+        } catch (error) {
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.WARN,
+            `处理商户失败: ${merchant.name}`,
+            { error: (error as Error).message },
+          );
+        }
+      }
+
+      // 处理分页
+      if (parsedResults.hasNextPage) {
+        const success = await resultsParser.navigateToNextPage();
+
+        if (success) {
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.INFO,
+            "成功导航到下一页，继续解析",
+          );
+
+          // 添加下一页的搜索任务
+          await context.addRequests([
+            {
+              url: context.request.url, // 保持当前URL
+              label: "SEARCH",
+              userData: {
+                ...userData,
+                pageNumber: (userData.pageNumber || 1) + 1,
+              },
+            },
+          ]);
+        } else {
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.INFO,
+            "无法导航到下一页，搜索结束",
+          );
+        }
+      }
+    } else {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.WARN,
+        "搜索结果解析失败，未找到商户数据",
+      );
+    }
+  } else {
+    throw new Error(`搜索失败: ${searchResult.error}`);
   }
 }
 

@@ -61,6 +61,7 @@ export interface FMTCUserData {
  */
 export type FMTCRequestLabel =
   | "LOGIN"
+  | "SEARCH"
   | "MERCHANT_LIST"
   | "MERCHANT_DETAIL"
   | "IMAGE_DOWNLOAD";

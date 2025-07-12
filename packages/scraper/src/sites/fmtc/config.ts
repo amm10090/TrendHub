@@ -252,6 +252,80 @@ export function validateConfig(config: Record<string, unknown>): {
 }
 
 /**
+ * 获取搜索配置
+ */
+export function getSearchConfig() {
+  return {
+    // 搜索参数
+    searchText: process.env.FMTC_SEARCH_TEXT || "",
+    networkId: process.env.FMTC_SEARCH_NETWORK_ID || "",
+    opmProvider: process.env.FMTC_SEARCH_OPM_PROVIDER || "",
+    category: process.env.FMTC_SEARCH_CATEGORY || "",
+    country: process.env.FMTC_SEARCH_COUNTRY || "",
+    shippingCountry: process.env.FMTC_SEARCH_SHIPPING_COUNTRY || "",
+    displayType:
+      (process.env.FMTC_SEARCH_DISPLAY_TYPE as
+        | "all"
+        | "accepting"
+        | "not_accepting") || "all",
+
+    // 行为配置
+    enableRandomDelay: process.env.FMTC_SEARCH_ENABLE_RANDOM_DELAY !== "false",
+    minDelay: parseInt(process.env.FMTC_SEARCH_MIN_DELAY || "500"),
+    maxDelay: parseInt(process.env.FMTC_SEARCH_MAX_DELAY || "2000"),
+    typingDelayMin: parseInt(process.env.FMTC_SEARCH_TYPING_DELAY_MIN || "50"),
+    typingDelayMax: parseInt(process.env.FMTC_SEARCH_TYPING_DELAY_MAX || "200"),
+    enableMouseMovement: process.env.FMTC_SEARCH_MOUSE_MOVEMENT !== "false",
+  };
+}
+
+/**
+ * 验证搜索配置
+ */
+export function validateSearchConfig(
+  config: ReturnType<typeof getSearchConfig>,
+): {
+  valid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // 验证延迟时间
+  if (config.minDelay < 0 || config.minDelay > 10000) {
+    errors.push("minDelay 必须在 0-10000 毫秒之间");
+  }
+
+  if (config.maxDelay < config.minDelay || config.maxDelay > 30000) {
+    errors.push("maxDelay 必须大于 minDelay 且不超过 30000 毫秒");
+  }
+
+  // 验证输入延迟
+  if (config.typingDelayMin < 0 || config.typingDelayMin > 1000) {
+    errors.push("typingDelayMin 必须在 0-1000 毫秒之间");
+  }
+
+  if (
+    config.typingDelayMax < config.typingDelayMin ||
+    config.typingDelayMax > 2000
+  ) {
+    errors.push("typingDelayMax 必须大于 typingDelayMin 且不超过 2000 毫秒");
+  }
+
+  // 验证显示类型
+  const validDisplayTypes = ["all", "accepting", "not_accepting"];
+  if (!validDisplayTypes.includes(config.displayType)) {
+    errors.push(
+      "displayType 必须是 'all', 'accepting' 或 'not_accepting' 之一",
+    );
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
  * 验证 reCAPTCHA 配置
  */
 export function validateRecaptchaConfig(config: ReCAPTCHAConfig): {

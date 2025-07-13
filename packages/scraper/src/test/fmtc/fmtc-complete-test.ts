@@ -349,6 +349,282 @@ function generateTestReport(stats: TestStats): string {
 }
 
 /**
+ * 单独测试商户详情页面
+ */
+async function runDetailUrlTest(
+  detailUrl: string,
+  options: {
+    clearSession: boolean;
+    forceLogin: boolean;
+    savedState: unknown;
+    browser: import("playwright").Browser;
+    context: BrowserContext;
+    page: Page;
+    log: Log;
+    stats: TestStats;
+  },
+): Promise<unknown> {
+  const { browser, context, page, log, stats, savedState } = options;
+  // clearSession, forceLogin 变量已移除，因为未使用
+
+  try {
+    // 阶段1: 环境准备
+    console.log("\n📋 阶段1: 环境准备");
+    console.log("-".repeat(50));
+
+    // 网络连接检查
+    const networkOk = await checkNetworkConnectivity(page);
+    if (!networkOk) {
+      stats.errors.push("网络连接检查失败");
+      throw new Error("网络连接问题，无法继续测试");
+    }
+
+    // 阶段2: 用户认证
+    console.log("\n🔐 阶段2: 用户认证");
+    console.log("-".repeat(50));
+
+    const authStartTime = Date.now();
+    let needsLogin = true;
+
+    // 如果有保存的会话状态，先检查认证是否仍然有效
+    if (savedState) {
+      console.log("🔍 验证保存的会话状态...");
+      stats.sessionRestored = true;
+
+      const isAuthenticated = await checkAuthenticationStatus(page);
+      if (isAuthenticated) {
+        needsLogin = false;
+        console.log("✅ 会话状态有效，跳过登录步骤");
+        stats.loginTime = Date.now() - authStartTime;
+        stats.reCAPTCHAMethod = "session_restored";
+        stats.reCAPTCHACost = 0;
+      } else {
+        console.log("❌ 会话状态无效，需要重新登录");
+        // 清理无效的会话状态
+        cleanupSessionState();
+        stats.sessionRestored = false;
+      }
+    }
+
+    // 如果需要登录，执行完整的登录流程
+    if (needsLogin) {
+      console.log("🚀 开始登录流程...");
+
+      const recaptchaConfig = getRecaptchaConfig();
+      const loginHandler = new FMTCLoginHandler(
+        page,
+        log,
+        undefined,
+        recaptchaConfig,
+      );
+
+      // 导航到登录页面
+      console.log("🌐 导航到登录页面...");
+      await page.goto("https://account.fmtc.co/cp/login", {
+        waitUntil: "domcontentloaded",
+        timeout: 90000,
+      });
+      await page.waitForTimeout(3000);
+
+      // 执行登录
+      const loginResult = await loginHandler.login({
+        username: process.env.FMTC_USERNAME || "",
+        password: process.env.FMTC_PASSWORD || "",
+      });
+
+      if (!loginResult.success) {
+        stats.errors.push(`登录失败: ${loginResult.error}`);
+        throw new Error(`登录失败: ${loginResult.error}`);
+      }
+
+      stats.loginTime = Date.now() - authStartTime;
+      console.log(
+        `✅ 登录成功 (耗时: ${(stats.loginTime / 1000).toFixed(2)}秒)`,
+      );
+
+      // 保存会话状态
+      if (SESSION_CONFIG.autoSave) {
+        console.log("💾 保存会话状态...");
+        await saveSessionState(context);
+      }
+
+      // 记录 reCAPTCHA 信息
+      if (recaptchaConfig.mode === "auto") {
+        stats.reCAPTCHAMethod = "auto";
+        stats.reCAPTCHACost = 0.001; // 标准费用
+      } else {
+        stats.reCAPTCHAMethod = "manual";
+        stats.reCAPTCHACost = 0;
+      }
+    }
+
+    // 阶段3: 商户详情抓取
+    console.log("\n🔍 阶段3: 商户详情抓取");
+    console.log("-".repeat(50));
+
+    const detailStartTime = Date.now();
+    const detailHandler = new FMTCMerchantDetailHandler(page, log);
+
+    // 提取商户名称
+    let merchantName = "Unknown";
+    const urlMatch = detailUrl.match(/\/m\/\d+\/(.+)$/);
+    if (urlMatch) {
+      merchantName = urlMatch[1].replace(/-/g, " ");
+    }
+
+    console.log(`🔍 开始抓取商户详情: ${merchantName}`);
+    console.log(`📄 详情页面URL: ${detailUrl}`);
+
+    const detailResult = await detailHandler.scrapeMerchantDetails(
+      detailUrl,
+      merchantName,
+    );
+
+    stats.detailScrapingTime = Date.now() - detailStartTime;
+
+    if (detailResult.success && detailResult.merchantDetail) {
+      stats.detailsScraped = 1;
+      stats.detailsFailed = 0;
+
+      // 更新统计信息
+      if (detailResult.merchantDetail.primaryCategory) {
+        stats.categories.push(detailResult.merchantDetail.primaryCategory);
+      }
+
+      if (detailResult.merchantDetail.networks) {
+        stats.totalNetworks = detailResult.merchantDetail.networks.length;
+        detailResult.merchantDetail.networks.forEach((network) => {
+          if (
+            network.networkName &&
+            !stats.networks.includes(network.networkName)
+          ) {
+            stats.networks.push(network.networkName);
+          }
+        });
+      }
+
+      if (detailResult.merchantDetail.primaryCountry) {
+        stats.countries.push(detailResult.merchantDetail.primaryCountry);
+      }
+
+      console.log(
+        `✅ 详情抓取成功 (耗时: ${(stats.detailScrapingTime / 1000).toFixed(2)}秒)`,
+      );
+      console.log(`📊 抓取结果:`);
+      console.log(
+        `  - 分类: ${detailResult.merchantDetail.primaryCategory || "无"}`,
+      );
+      console.log(
+        `  - 国家: ${detailResult.merchantDetail.primaryCountry || "无"}`,
+      );
+      console.log(
+        `  - 网络关联: ${detailResult.merchantDetail.networks?.length || 0}个`,
+      );
+      console.log(`  - 官网: ${detailResult.merchantDetail.homepage || "无"}`);
+      console.log(
+        `  - FreshReach: ${detailResult.merchantDetail.freshReachSupported ? "支持" : "不支持"}`,
+      );
+
+      // 显示联盟链接信息
+      if (detailResult.merchantDetail.affiliateLinks) {
+        const networks = Object.keys(
+          detailResult.merchantDetail.affiliateLinks,
+        );
+        const totalLinks = Object.values(
+          detailResult.merchantDetail.affiliateLinks,
+        ).flat().length;
+        console.log(
+          `  - 联盟链接: ${totalLinks}个 (网络: ${networks.join(", ")})`,
+        );
+      } else {
+        console.log(`  - 联盟链接: 0个`);
+      }
+
+      console.log(
+        `  - FreshReach链接: ${detailResult.merchantDetail.freshReachUrls?.length || 0}个`,
+      );
+
+      // 数据导出
+      console.log("\n📤 阶段4: 数据导出");
+      console.log("-".repeat(50));
+
+      const merchantData = {
+        name: merchantName,
+        detailUrl: detailUrl,
+        ...detailResult.merchantDetail,
+        scrapedAt: new Date().toISOString(),
+      };
+
+      const jsonExport = JSON.stringify(merchantData, null, 2);
+
+      console.log(`JSON导出: ${jsonExport.length} 字符`);
+
+      // 保存到文件
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const fs = await import("fs");
+
+      try {
+        await fs.promises.writeFile(
+          `/root/TrendHub/fmtc-detail-test-${timestamp}.json`,
+          jsonExport,
+          "utf8",
+        );
+
+        console.log(`✅ 数据已保存到文件: fmtc-detail-test-${timestamp}.json`);
+      } catch (error) {
+        console.log("⚠️ 文件保存失败:", error);
+        stats.errors.push(`文件保存失败: ${(error as Error).message}`);
+      }
+
+      return merchantData;
+    } else {
+      stats.detailsScraped = 0;
+      stats.detailsFailed = 1;
+      console.log(`❌ 详情抓取失败: ${detailResult.error || "未知错误"}`);
+      stats.errors.push(`详情抓取失败: ${detailResult.error || "未知错误"}`);
+      throw new Error(`详情抓取失败: ${detailResult.error || "未知错误"}`);
+    }
+  } catch (error) {
+    console.error("❌ 测试失败:", error);
+    stats.errors.push((error as Error).message);
+    throw error;
+  } finally {
+    // 生成最终报告
+    stats.endTime = new Date();
+    stats.duration = stats.endTime.getTime() - stats.startTime.getTime();
+    stats.totalPages = 1;
+    stats.totalMerchants = 1;
+
+    console.log("\n" + "=".repeat(80));
+    console.log("📋 商户详情测试完成 - 生成报告");
+    console.log("=".repeat(80));
+
+    const report = generateTestReport(stats);
+    console.log(report);
+
+    // 保存报告
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const fs = await import("fs");
+      await fs.promises.writeFile(
+        `/root/TrendHub/fmtc-detail-test-report-${timestamp}.json`,
+        report,
+        "utf8",
+      );
+      console.log(
+        `\n📄 测试报告已保存: fmtc-detail-test-report-${timestamp}.json`,
+      );
+    } catch (error) {
+      console.log("⚠️ 报告保存失败:", error);
+    }
+
+    console.log("\n等待5秒后关闭浏览器...");
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await browser.close();
+  }
+}
+
+/**
  * 主测试函数
  */
 async function runCompleteTest() {
@@ -376,22 +652,19 @@ async function runCompleteTest() {
     process.env.FMTC_MAX_DETAILS_PER_PAGE || "5",
   ); // 每页最多抓取详情的商户数
 
+  // 检查是否是单独测试商户详情页面
+  const testDetailUrlIndex = process.argv.findIndex(
+    (arg) => arg === "--test-detail-url",
+  );
+  const testDetailUrl =
+    testDetailUrlIndex !== -1 && testDetailUrlIndex + 1 < process.argv.length
+      ? process.argv[testDetailUrlIndex + 1]
+      : null;
+
   if (clearSession) {
     console.log("🗑️ 清理会话状态...");
     cleanupSessionState();
   }
-
-  console.log("🧪 开始 FMTC 完整集成测试");
-  console.log("=".repeat(80));
-  console.log(`开始时间: ${stats.startTime.toISOString()}`);
-  if (clearSession) console.log("🗑️ 已清理保存的会话状态");
-  if (forceLogin) console.log("🔄 强制重新登录模式");
-  if (enableDetailScraping) {
-    console.log(`📋 详情抓取已启用 (每页最多 ${maxDetailsPerPage} 个商户)`);
-  } else {
-    console.log("📋 详情抓取已禁用 (仅抓取基本信息)");
-  }
-  console.log("=".repeat(80));
 
   // 尝试加载保存的会话状态
   let savedState = null;
@@ -414,11 +687,48 @@ async function runCompleteTest() {
 
   // 创建浏览器上下文，如果有保存的状态则加载
   const context = savedState
-    ? await browser.newContext({ storageState: savedState })
+    ? await browser.newContext({
+        storageState:
+          savedState as import("playwright").BrowserContextOptions["storageState"],
+      })
     : await browser.newContext();
 
   const page = await context.newPage();
   const log = new Log({ level: 4 });
+
+  // 如果是单独测试商户详情
+  if (testDetailUrl) {
+    console.log("🧪 开始 FMTC 商户详情单独测试");
+    console.log("=".repeat(80));
+    console.log(`开始时间: ${stats.startTime.toISOString()}`);
+    console.log(`测试URL: ${testDetailUrl}`);
+    if (clearSession) console.log("🗑️ 已清理保存的会话状态");
+    if (forceLogin) console.log("🔄 强制重新登录模式");
+    console.log("=".repeat(80));
+
+    return await runDetailUrlTest(testDetailUrl, {
+      clearSession,
+      forceLogin,
+      savedState,
+      browser,
+      context,
+      page,
+      log,
+      stats,
+    });
+  }
+
+  console.log("🧪 开始 FMTC 完整集成测试");
+  console.log("=".repeat(80));
+  console.log(`开始时间: ${stats.startTime.toISOString()}`);
+  if (clearSession) console.log("🗑️ 已清理保存的会话状态");
+  if (forceLogin) console.log("🔄 强制重新登录模式");
+  if (enableDetailScraping) {
+    console.log(`📋 详情抓取已启用 (每页最多 ${maxDetailsPerPage} 个商户)`);
+  } else {
+    console.log("📋 详情抓取已禁用 (仅抓取基本信息)");
+  }
+  console.log("=".repeat(80));
 
   page.setDefaultTimeout(60000);
   page.setDefaultNavigationTimeout(60000);
@@ -896,6 +1206,7 @@ if (import.meta.url === new URL(process.argv[1], "file://").href) {
     console.log("  --clear-session    清理保存的会话状态");
     console.log("  --force-login      强制重新登录（忽略保存的会话）");
     console.log("  --enable-details   启用商户详情抓取");
+    console.log("  --test-detail-url <URL>  单独测试指定的商户详情页面");
     console.log("  --help, -h         显示此帮助信息");
     console.log("");
     console.log("会话管理:");
@@ -905,8 +1216,18 @@ if (import.meta.url === new URL(process.argv[1], "file://").href) {
     console.log("  • 会话文件: fmtc-session.json");
     console.log("");
     console.log("示例:");
+    console.log("  # 完整集成测试");
     console.log("  npx tsx fmtc-complete-test.ts --clear-session");
     console.log("  npx tsx fmtc-complete-test.ts --force-login");
+    console.log("  npx tsx fmtc-complete-test.ts --enable-details");
+    console.log("");
+    console.log("  # 单独测试商户详情页面");
+    console.log(
+      '  npx tsx fmtc-complete-test.ts --test-detail-url "https://account.fmtc.co/cp/program_directory/details/m/1032/Macys"',
+    );
+    console.log(
+      '  npx tsx fmtc-complete-test.ts --test-detail-url "https://account.fmtc.co/cp/program_directory/details/m/1032/Macys" --force-login',
+    );
     process.exit(0);
   }
 

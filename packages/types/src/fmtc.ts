@@ -58,6 +58,10 @@ export interface FMTCMerchantDetailData {
   affiliateUrl?: string;
   /** 预览优惠链接 */
   previewDealsUrl?: string;
+  /** 按网络分组的联盟链接 (键为网络名称，值为链接数组) */
+  affiliateLinks?: Record<string, string[]>;
+  /** FreshReach链接列表 */
+  freshReachUrls?: string[];
 
   // 网络关联信息
   /** 网络关联列表 */

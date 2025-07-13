@@ -19,10 +19,33 @@ export interface MerchantInfo {
   commissionRate?: string;
   cookieDuration?: string;
   ecdDuration?: string;
-  status?: "accepting" | "not_accepting" | "unknown";
+  status?: "accepting" | "not_accepting" | "unknown" | string;
   url?: string;
   description?: string;
   joinUrl?: string;
+  // 从详情页抓取的额外字段
+  primaryCategory?: string;
+  primaryCountry?: string;
+  shipsTo?: string[];
+  fmtcId?: string;
+  networkId?: string;
+  freshReachSupported?: boolean;
+  logo120x60?: string;
+  logo88x31?: string;
+  screenshot280x210?: string;
+  screenshot600x450?: string;
+  affiliateUrl?: string;
+  previewDealsUrl?: string;
+  affiliateLinks?: Record<string, string[]>;
+  freshReachUrls?: string[];
+  networks?: Array<{
+    networkName: string;
+    networkId?: string;
+    status: string;
+    fmtcId?: string;
+    joinUrl?: string;
+  }>;
+  homepage?: string;
 }
 
 /**

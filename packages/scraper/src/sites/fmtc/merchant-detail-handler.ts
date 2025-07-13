@@ -191,7 +191,25 @@ export class FMTCMerchantDetailHandler {
 
       // 使用页面评估来批量提取所有信息 - 修复选择器问题
       const extractedData = await this.page.evaluate(() => {
-        const data: Record<string, unknown> = {};
+        interface ExtractedData {
+          homepage?: string;
+          primaryCategory?: string;
+          primaryCountry?: string;
+          shipsTo?: string;
+          fmtcId?: string;
+          freshReachSupported?: boolean;
+          logoInMerchantInfo?: string;
+          logo120x60?: string;
+          logo88x31?: string;
+          screenshot280x210?: string;
+          screenshot600x450?: string;
+          previewDealsUrl?: string;
+          affiliateUrl?: string;
+          affiliateLinks?: Record<string, string[]>;
+          freshReachUrls?: string[];
+          _debug?: Record<string, unknown>;
+        }
+        const data: ExtractedData = {};
 
         // 查找包含"Merchant Information"标题的section
         const sections = document.querySelectorAll("section");
@@ -265,41 +283,94 @@ export class FMTCMerchantDetailHandler {
           });
         }
 
-        // 从Tools部分提取图片链接
+        // 从Tools部分提取图片链接和其他链接
         if (toolsSection) {
-          // 查找包含特定文本的链接
-          const allLinks = toolsSection.querySelectorAll("a");
+          const allUlGroups = toolsSection.querySelectorAll("ul.list-group");
 
-          for (const link of allLinks) {
-            const linkText = link.textContent || "";
+          allUlGroups.forEach((ulGroup) => {
+            const listItems = ulGroup.querySelectorAll("li.list-group-item");
 
-            if (linkText.includes("120x60 Logo")) {
-              data.logo120x60 = (link as HTMLAnchorElement).href;
-            } else if (linkText.includes("88x31 Logo")) {
-              data.logo88x31 = (link as HTMLAnchorElement).href;
-            } else if (linkText.includes("280x210 Screenshot")) {
-              data.screenshot280x210 = (link as HTMLAnchorElement).href;
-            } else if (linkText.includes("600x450 Screenshot")) {
-              data.screenshot600x450 = (link as HTMLAnchorElement).href;
-            } else if (linkText.includes("Preview Deals")) {
-              const rel = link.getAttribute("rel");
-              if (rel) {
-                data.previewDealsUrl = `https://account.fmtc.co${rel}`;
+            listItems.forEach((item) => {
+              const text = item.textContent || "";
+
+              // 处理Branding Images部分
+              if (text.includes("120x60 Logo")) {
+                const link = item.querySelector("a");
+                if (link) {
+                  data.logo120x60 = (link as HTMLAnchorElement).href;
+                }
+              } else if (text.includes("88x31 Logo")) {
+                const link = item.querySelector("a");
+                if (link) {
+                  data.logo88x31 = (link as HTMLAnchorElement).href;
+                }
+              } else if (text.includes("280x210 Screenshot")) {
+                const link = item.querySelector("a");
+                if (link) {
+                  data.screenshot280x210 = (link as HTMLAnchorElement).href;
+                }
+              } else if (text.includes("600x450 Screenshot")) {
+                const link = item.querySelector("a");
+                if (link) {
+                  data.screenshot600x450 = (link as HTMLAnchorElement).href;
+                }
               }
-            }
-          }
+              // 处理Links部分
+              else if (text.includes("Preview Deals")) {
+                const link = item.querySelector("a.showdeals");
+                if (link) {
+                  const rel = link.getAttribute("rel");
+                  if (rel) {
+                    data.previewDealsUrl = `https://account.fmtc.co${rel}`;
+                  }
+                }
+              } else if (text.includes("FreshReach")) {
+                // 提取FreshReach链接（可能有多个）
+                if (!data.freshReachUrls) data.freshReachUrls = [];
+                const freshReachLinks = item.querySelectorAll("a");
+                freshReachLinks.forEach((frLink) => {
+                  const href = (frLink as HTMLAnchorElement).href;
+                  if (
+                    href &&
+                    href.includes("freshreach.co") &&
+                    !data.freshReachUrls!.includes(href)
+                  ) {
+                    data.freshReachUrls!.push(href);
+                  }
+                });
+                // 确认FreshReach支持状态
+                data.freshReachSupported = true;
+              } else if (text.includes(" URL:")) {
+                // 通用联盟链接提取 - 匹配任何 "XXX URL:" 模式
+                const urlMatch = text.match(/(\w+)\s+URL:/);
+                if (urlMatch) {
+                  const networkName = urlMatch[1]; // 提取网络名称 (CJ, AW, RA等)
 
-          // AW URL (联盟链接) - 查找包含AW URL文本的列表项
-          const allListItems = toolsSection.querySelectorAll("li");
-          for (const item of allListItems) {
-            const text = item.textContent || "";
-            if (text.includes("AW URL:")) {
-              const awLink = item.querySelector("a");
-              if (awLink) {
-                data.affiliateUrl = (awLink as HTMLAnchorElement).href;
+                  if (!data.affiliateLinks) data.affiliateLinks = {};
+                  if (!data.affiliateLinks[networkName])
+                    data.affiliateLinks[networkName] = [];
+
+                  const affiliateLinks = item.querySelectorAll("a");
+                  affiliateLinks.forEach((affLink) => {
+                    const href = (affLink as HTMLAnchorElement).href;
+                    if (
+                      href &&
+                      !data.affiliateLinks![networkName].includes(href)
+                    ) {
+                      data.affiliateLinks![networkName].push(href);
+                    }
+                  });
+
+                  // 为了向后兼容，保留原有的affiliateUrl字段（使用第一个找到的链接）
+                  if (!data.affiliateUrl && affiliateLinks.length > 0) {
+                    data.affiliateUrl = (
+                      affiliateLinks[0] as HTMLAnchorElement
+                    ).href;
+                  }
+                }
               }
-            }
-          }
+            });
+          });
         }
 
         // 检查FreshReach支持 - 查找包含FreshReach文本的span
@@ -336,31 +407,52 @@ export class FMTCMerchantDetailHandler {
       });
 
       // 映射提取的数据到detail对象
-      detail.homepage = extractedData.homepage;
-      detail.primaryCategory = extractedData.primaryCategory;
-      detail.primaryCountry = extractedData.primaryCountry;
+      detail.homepage = extractedData.homepage as string | undefined;
+      detail.primaryCategory = extractedData.primaryCategory as
+        | string
+        | undefined;
+      detail.primaryCountry = extractedData.primaryCountry as
+        | string
+        | undefined;
 
       // 处理配送地区
-      if (extractedData.shipsTo) {
+      if (extractedData.shipsTo && typeof extractedData.shipsTo === "string") {
         detail.shipsTo = extractedData.shipsTo
           .split(",")
           .map((s: string) => s.trim())
           .filter((s: string) => s);
       }
 
-      detail.fmtcId = extractedData.fmtcId;
-      detail.freshReachSupported = extractedData.freshReachSupported;
+      detail.fmtcId = extractedData.fmtcId as string | undefined;
+      detail.freshReachSupported = extractedData.freshReachSupported as
+        | boolean
+        | undefined;
 
       // 图片URLs - 优先使用Tools部分的链接，如果没有则使用商户信息中的
       detail.logo120x60 =
-        extractedData.logo120x60 || extractedData.logoInMerchantInfo;
-      detail.logo88x31 = extractedData.logo88x31;
-      detail.screenshot280x210 = extractedData.screenshot280x210;
-      detail.screenshot600x450 = extractedData.screenshot600x450;
+        (extractedData.logo120x60 as string | undefined) ||
+        (extractedData.logoInMerchantInfo as string | undefined);
+      detail.logo88x31 = extractedData.logo88x31 as string | undefined;
+      detail.screenshot280x210 = extractedData.screenshot280x210 as
+        | string
+        | undefined;
+      detail.screenshot600x450 = extractedData.screenshot600x450 as
+        | string
+        | undefined;
 
       // 链接
-      detail.affiliateUrl = extractedData.affiliateUrl;
-      detail.previewDealsUrl = extractedData.previewDealsUrl;
+      detail.affiliateUrl = extractedData.affiliateUrl as string | undefined;
+      detail.previewDealsUrl = extractedData.previewDealsUrl as
+        | string
+        | undefined;
+
+      // 新增的链接数据
+      detail.affiliateLinks = extractedData.affiliateLinks as
+        | Record<string, string[]>
+        | undefined;
+      detail.freshReachUrls = extractedData.freshReachUrls as
+        | string[]
+        | undefined;
 
       await this.logMessage(LocalScraperLogLevel.DEBUG, "数据提取调试信息", {
         extractedDataDebug: extractedData._debug,
@@ -381,6 +473,14 @@ export class FMTCMerchantDetailHandler {
           hasScreenshots: !!(
             detail.screenshot280x210 || detail.screenshot600x450
           ),
+          affiliateLinksNetworks: detail.affiliateLinks
+            ? Object.keys(detail.affiliateLinks)
+            : [],
+          affiliateLinksCount: detail.affiliateLinks
+            ? Object.values(detail.affiliateLinks).flat().length
+            : 0,
+          freshReachUrlsCount: detail.freshReachUrls?.length || 0,
+          freshReachSupported: detail.freshReachSupported,
         },
       );
 
@@ -407,7 +507,24 @@ export class FMTCMerchantDetailHandler {
       const networks: FMTCMerchantNetworkData[] = [];
 
       // 使用页面评估来提取网络表格数据 - 修复选择器问题
-      const networkData = await this.page.evaluate(() => {
+      interface NetworkDataResult {
+        networkList: Array<{
+          fmtcId: string;
+          networkName: string;
+          networkId: string;
+          status: string;
+          joinUrl?: string;
+        }>;
+        debugInfo: {
+          networkSectionFound: boolean;
+          tableFound: boolean;
+          rowsCount: number;
+          sectionsChecked: number;
+          networkListLength: number;
+        };
+      }
+
+      const networkData: NetworkDataResult = await this.page.evaluate(() => {
         const networkList: Array<{
           fmtcId: string;
           networkName: string;
@@ -432,7 +549,16 @@ export class FMTCMerchantDetailHandler {
         }
 
         if (!networkSection) {
-          return networkList;
+          return {
+            networkList,
+            debugInfo: {
+              networkSectionFound: false,
+              tableFound: false,
+              rowsCount: 0,
+              sectionsChecked: sections.length,
+              networkListLength: 0,
+            },
+          } as NetworkDataResult;
         }
 
         // 查找网络关联表格
@@ -442,7 +568,16 @@ export class FMTCMerchantDetailHandler {
           networkSection.querySelector(".table tbody");
 
         if (!networkTable) {
-          return networkList;
+          return {
+            networkList,
+            debugInfo: {
+              networkSectionFound: true,
+              tableFound: false,
+              rowsCount: 0,
+              sectionsChecked: sections.length,
+              networkListLength: 0,
+            },
+          } as NetworkDataResult;
         }
 
         const rows = networkTable.querySelectorAll("tr");
@@ -525,7 +660,7 @@ export class FMTCMerchantDetailHandler {
           networkListLength: networkList.length,
         };
 
-        return { networkList, debugInfo };
+        return { networkList, debugInfo } as NetworkDataResult;
       });
 
       await this.logMessage(

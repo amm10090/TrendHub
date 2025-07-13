@@ -99,19 +99,33 @@ export class FMTCResultsParser {
             // 提取所有表格单元格
             const cells = Array.from(row.querySelectorAll("td"));
 
-            if (cells.length < 4) {
-              console.warn(`第 ${index + 1} 行数据列数不足，跳过`);
+            if (cells.length < 6) {
+              console.warn(
+                `第 ${index + 1} 行数据列数不足 (${cells.length} < 6)，跳过`,
+              );
               return;
             }
 
-            // 根据真实HTML结构解析：Name | Country | Network | Date Added
+            // 根据真实HTML结构解析：
+            // cells[0] = Favorite Merchant (收藏按钮)
+            // cells[1] = Name (商户名称)
+            // cells[2] = Country (国家)
+            // cells[3] = Network (网络)
+            // cells[4] = Date Added (添加日期)
+            // cells[5] = Premium Feed Deals (优惠数量)
 
             // 第1列：Name (包含链接到详情页)
-            const nameCell = cells[0];
+            const nameCell = cells[1];
             const nameLink = nameCell.querySelector("a");
             if (nameLink) {
               merchant.name = nameLink.textContent?.trim() || "";
-              merchant.detailUrl = (nameLink as HTMLAnchorElement).href || "";
+              // 构建完整的详情URL
+              const href = (nameLink as HTMLAnchorElement).href;
+              if (href && href.startsWith("/")) {
+                merchant.detailUrl = `https://account.fmtc.co${href}`;
+              } else {
+                merchant.detailUrl = href || "";
+              }
             } else {
               merchant.name = nameCell.textContent?.trim() || "";
             }
@@ -123,13 +137,18 @@ export class FMTCResultsParser {
             }
 
             // 第2列：Country
-            merchant.country = cells[1]?.textContent?.trim() || "";
+            merchant.country = cells[2]?.textContent?.trim() || "";
 
             // 第3列：Network
-            merchant.network = cells[2]?.textContent?.trim() || "";
+            merchant.network = cells[3]?.textContent?.trim() || "";
 
             // 第4列：Date Added
-            merchant.dateAdded = cells[3]?.textContent?.trim() || "";
+            merchant.dateAdded = cells[4]?.textContent?.trim() || "";
+
+            // 第5列：Premium Feed Deals (优惠数量)
+            // 获取单元格，但不处理，仅为了保持与真实HTML结构的一致性
+            // const premiumCell = cells[5];
+            // const premiumLink = premiumCell.querySelector("a");
 
             // 生成唯一ID（从详情URL或名称生成）
             if (merchant.detailUrl) {
@@ -166,33 +185,55 @@ export class FMTCResultsParser {
           }
         });
 
-        // 获取DataTables分页信息
-        let totalCount = merchants.length;
+        // 获取分页信息
+        let totalCount = merchants.length; // 默认使用实际解析到的商户数量
         let currentPage = 1;
         let hasNextPage = false;
         let nextPageUrl: string | undefined;
 
         // 从DataTables info获取总数信息
-        const dtInfo = document.querySelector(".dataTables_info");
+        const dtInfo = document.querySelector("#program_directory_table_info");
         if (dtInfo && dtInfo.textContent) {
-          const infoText = dtInfo.textContent;
-          // 匹配类似 "Showing 1 to 10 of 57 entries" 的文本
-          const infoMatch = infoText.match(/of\s+(\d+)\s+entries/i);
-          if (infoMatch) {
-            totalCount = parseInt(infoMatch[1]);
-          }
+          const infoText = dtInfo.textContent.trim();
+          console.log(`DataTables info: ${infoText}`);
 
-          // 匹配当前页信息 "Showing 1 to 10"
-          const currentMatch = infoText.match(/showing\s+(\d+)\s+to\s+(\d+)/i);
-          if (currentMatch) {
-            const startIndex = parseInt(currentMatch[1]);
-            const pageSize = parseInt(currentMatch[2]) - startIndex + 1;
-            currentPage = Math.ceil(startIndex / pageSize);
+          // 匹配类似 "Showing 1 to 50 of 139 entries" 的文本
+          const infoMatch = infoText.match(
+            /showing\s+(\d+)\s+to\s+(\d+)\s+of\s+(\d+)\s+entries/i,
+          );
+          if (infoMatch) {
+            const start = parseInt(infoMatch[1]);
+            const end = parseInt(infoMatch[2]);
+            const total = parseInt(infoMatch[3]);
+
+            totalCount = Math.max(total, merchants.length); // 使用更大的值
+            const pageSize = end - start + 1;
+            currentPage = Math.ceil(start / pageSize);
+
+            console.log(
+              `分页信息: start=${start}, end=${end}, total=${total}, pageSize=${pageSize}, currentPage=${currentPage}`,
+            );
+          } else {
+            // 如果无法解析DataTables信息，但有实际数据，则使用实际数据量
+            if (merchants.length > 0) {
+              totalCount = merchants.length;
+              console.log(`使用实际解析数量作为总数: ${totalCount}`);
+            }
+          }
+        } else {
+          // 如果没有DataTables info，但有实际数据，则使用实际数据量
+          if (merchants.length > 0) {
+            totalCount = merchants.length;
+            console.log(
+              `未找到DataTables info，使用实际解析数量: ${totalCount}`,
+            );
           }
         }
 
         // 检测DataTables分页控件
-        const pagination = document.querySelector(".dataTables_paginate");
+        const pagination = document.querySelector(
+          "#program_directory_table_paginate, .dataTables_paginate",
+        );
         if (pagination) {
           // 查找下一页按钮
           const nextButton = pagination.querySelector(
@@ -204,6 +245,10 @@ export class FMTCResultsParser {
             // DataTables通常使用JavaScript控制分页，这里记录有下一页
             nextPageUrl = window.location.href; // 保持当前URL，由调用方处理分页
           }
+
+          console.log(`分页控件: hasNextPage=${hasNextPage}`);
+        } else {
+          console.log("未找到DataTables分页控件");
         }
 
         console.log(
@@ -393,7 +438,7 @@ export class FMTCResultsParser {
     try {
       // 查找DataTables下一页按钮
       const nextButton = await this.page.$(
-        ".dataTables_paginate .paginate_button.next:not(.disabled)",
+        "#program_directory_table_paginate .paginate_button.next:not(.disabled), .dataTables_paginate .paginate_button.next:not(.disabled)",
       );
 
       if (!nextButton) {
@@ -467,11 +512,13 @@ export class FMTCResultsParser {
       };
 
       // 从DataTables info获取信息
-      const dtInfo = document.querySelector(".dataTables_info");
+      const dtInfo = document.querySelector(
+        "#program_directory_table_info, .dataTables_info",
+      );
       if (dtInfo && dtInfo.textContent) {
-        const infoText = dtInfo.textContent;
+        const infoText = dtInfo.textContent.trim();
 
-        // 解析 "Showing 1 to 10 of 57 entries"
+        // 解析 "Showing 1 to 50 of 139 entries"
         const match = infoText.match(
           /showing\s+(\d+)\s+to\s+(\d+)\s+of\s+(\d+)\s+entries/i,
         );
@@ -484,11 +531,35 @@ export class FMTCResultsParser {
           info.pageSize = end - start + 1;
           info.currentPage = Math.ceil(start / info.pageSize);
           info.totalPages = Math.ceil(total / info.pageSize);
+        } else {
+          // 如果无法解析info，检查实际表格行数
+          const tableRows = document.querySelectorAll(
+            "#program_directory_table tbody tr",
+          );
+          if (tableRows.length > 0) {
+            info.totalEntries = tableRows.length;
+            info.pageSize = tableRows.length;
+            info.currentPage = 1;
+            info.totalPages = 1;
+          }
+        }
+      } else {
+        // 如果没有DataTables info，检查实际表格行数
+        const tableRows = document.querySelectorAll(
+          "#program_directory_table tbody tr",
+        );
+        if (tableRows.length > 0) {
+          info.totalEntries = tableRows.length;
+          info.pageSize = tableRows.length;
+          info.currentPage = 1;
+          info.totalPages = 1;
         }
       }
 
       // 检查分页按钮状态
-      const pagination = document.querySelector(".dataTables_paginate");
+      const pagination = document.querySelector(
+        "#program_directory_table_paginate, .dataTables_paginate",
+      );
       if (pagination) {
         const nextButton = pagination.querySelector(".paginate_button.next");
         const prevButton = pagination.querySelector(

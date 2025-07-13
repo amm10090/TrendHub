@@ -71,56 +71,56 @@ export const FMTC_SELECTORS: FMTCSelectors = {
   merchantDetail: {
     /** 官方网站 */
     homepage:
-      'a[href*="http"]:has-text("Homepage"), a:has-text("Website"), .homepage a, [class*="website"] a',
+      'li.list-group-item:has(span:has-text("Homepage:")) .ml-5 a, li.list-group-item:has(span:has-text("Homepage:")) span.ml-5 a',
     /** 主要分类 */
     primaryCategory:
-      '.category, [class*="category"], td:has-text("Category") + td, th:has-text("Category") ~ td',
+      'li.list-group-item:has(span:has-text("Primary Category:")) .ml-5, li.list-group-item:has(span:has-text("Primary Category:")) span.ml-5',
     /** 主要国家 */
     primaryCountry:
-      '.country, [class*="country"], td:has-text("Country") + td, th:has-text("Country") ~ td',
+      'li.list-group-item:has(span:has-text("Primary Country:")) .ml-5, li.list-group-item:has(span:has-text("Primary Country:")) span.ml-5',
     /** 配送地区 */
     shipsTo:
-      '.ships-to, [class*="ships"], td:has-text("Ships") + td, th:has-text("Ships") ~ td',
-    /** FMTC ID */
+      'li.list-group-item:has(span:has-text("Ships To:")) .ml-5, li.list-group-item:has(span:has-text("Ships To:")) span.ml-5',
+    /** FMTC ID - 从网络表格中提取 */
     fmtcId:
-      '.fmtc-id, [class*="fmtc"], td:has-text("FMTC ID") + td, th:has-text("ID") ~ td',
-    /** 商户状态 */
-    status: '.status, [class*="status"], td:has-text("Status") + td',
+      "table.fmtc-table tbody tr td:nth-child(2), .fmtc-table tbody tr td:nth-child(2)",
+    /** 商户状态 - 从网络表格状态列提取 */
+    status: "table.fmtc-table tbody tr td:nth-child(4) .badge",
     /** FreshReach 支持 */
     freshReachSupported:
-      'td:has-text("FreshReach") + td, .freshreach, [class*="freshreach"]',
+      'span.label:has-text("FreshReach"), .label:has-text("FreshReach")',
 
-    // Logo 图片选择器
+    // Logo 图片选择器 - 从商户信息和Tools部分提取
     logos: {
-      logo120x60: 'img[src*="120x60"], img[alt*="120x60"], .logo-120x60 img',
-      logo88x31: 'img[src*="88x31"], img[alt*="88x31"], .logo-88x31 img',
+      logo120x60:
+        'li.list-group-item:has(span:has-text("Logo:")) img, a:has-text("120x60 Logo")',
+      logo88x31: 'a:has-text("88x31 Logo")',
     },
 
-    // 截图选择器
+    // 截图选择器 - 从Tools部分提取
     screenshots: {
-      screenshot280x210:
-        'img[src*="280x210"], img[alt*="280x210"], .screenshot-280x210 img',
-      screenshot600x450:
-        'img[src*="600x450"], img[alt*="600x450"], .screenshot-600x450 img',
+      screenshot280x210: 'a:has-text("280x210 Screenshot")',
+      screenshot600x450: 'a:has-text("600x450 Screenshot")',
     },
 
-    /** 联盟链接 */
+    /** 联盟链接 - 从Tools部分AW URL提取 */
     affiliateUrl:
-      'a[href*="awin"], a[href*="affiliate"], .affiliate-url, [class*="affiliate"] a',
-    /** 预览优惠链接 */
-    previewDealsUrl:
-      'a:has-text("Preview"), a:has-text("Deals"), .preview-deals a',
+      'li.list-group-item:has-text("AW URL:") a, li:has-text("AW URL:") a',
+    /** 预览优惠链接 - 从Tools部分提取 */
+    previewDealsUrl: 'a.showdeals, a:has-text("Preview Deals"), .showdeals',
 
-    // 网络关联表格
+    // 网络关联表格 - 更新为实际的表格结构
     networkTable: {
       /** 表格行 */
-      rows: "table tr, .network-table tr, .networks tr",
-      /** 网络名称 */
-      networkName: "td:first-child, .network-name",
-      /** 网络ID */
-      networkId: "td:nth-child(2), .network-id",
-      /** 状态 */
-      status: 'td:nth-child(3), .status, [class*="status"]',
+      rows: "table.fmtc-table tbody tr, .table-striped tbody tr",
+      /** FMTC ID (第2列) */
+      fmtcId: "td:nth-child(2)",
+      /** 网络名称和ID (第3列) */
+      networkName: "td:nth-child(3)",
+      /** 状态 (第4列) */
+      status: "td:nth-child(4)",
+      /** Join按钮 (第5列) */
+      joinButton: "td:nth-child(5) a",
     },
   },
 };

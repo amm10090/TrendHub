@@ -17,6 +17,7 @@ import { FMTCMerchantListHandler } from "./merchant-list-handler.js";
 import { FMTCMerchantDetailHandler } from "./merchant-detail-handler.js";
 import { FMTCAntiDetection } from "./anti-detection.js";
 import { sendLogToBackend, LocalScraperLogLevel, delay } from "../../utils.js";
+import { getRecaptchaConfig } from "./config.js";
 
 /**
  * 创建 FMTC 请求处理器
@@ -28,6 +29,7 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
     progressCallback,
     antiDetectionConfig,
     maxRetries = 3,
+    sessionManager,
   } = options;
 
   return async function requestHandler(
@@ -38,7 +40,13 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
     const userData = request.userData as FMTCUserData;
 
     // 创建处理器实例
-    const loginHandler = new FMTCLoginHandler(page, log, userData.executionId);
+    const recaptchaConfig = getRecaptchaConfig();
+    const loginHandler = new FMTCLoginHandler(
+      page,
+      log,
+      userData.executionId,
+      recaptchaConfig,
+    );
     const navigationHandler = new FMTCNavigationHandler(page, log);
     const searchHandler = new FMTCSearchHandler(page, log);
     const resultsParser = new FMTCResultsParser(page, log);
@@ -81,6 +89,7 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
             navigationHandler,
             userData,
             log,
+            sessionManager,
           );
           break;
 
@@ -93,6 +102,7 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
             allScrapedMerchants,
             progressCallback,
             log,
+            sessionManager,
           );
           break;
 
@@ -178,6 +188,11 @@ async function handleLogin(
   navigationHandler: FMTCNavigationHandler,
   userData: FMTCUserData,
   log: Log,
+  sessionManager?: {
+    saveSessionState: (context: unknown, username?: string) => Promise<void>;
+    checkAuthenticationStatus: (page: unknown) => Promise<boolean>;
+    cleanupSessionState: () => void;
+  },
 ): Promise<void> {
   if (!userData.credentials) {
     throw new Error("登录凭据未提供");
@@ -193,6 +208,30 @@ async function handleLogin(
       LocalScraperLogLevel.INFO,
       "登录成功，导航到Directory页面",
     );
+
+    // 保存会话状态
+    if (sessionManager) {
+      try {
+        const browserContext = context.page.context();
+        await sessionManager.saveSessionState(
+          browserContext,
+          userData.credentials?.username,
+        );
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          "会话状态已保存",
+        );
+      } catch (error) {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.WARN,
+          `保存会话状态失败: ${(error as Error).message}`,
+        );
+      }
+    }
 
     // 登录成功后，导航到Directory页面
     const navigationResult = await navigationHandler.navigateToDirectory();
@@ -237,7 +276,59 @@ async function handleSearch(
   allScrapedMerchants: FMTCMerchantData[],
   progressCallback?: FMTCProgressCallback,
   log?: Log,
+  sessionManager?: {
+    saveSessionState: (context: unknown, username?: string) => Promise<void>;
+    checkAuthenticationStatus: (page: unknown) => Promise<boolean>;
+    cleanupSessionState: () => void;
+  },
 ): Promise<void> {
+  // 如果有现有会话，先验证会话是否有效
+  if (userData.hasExistingSession && sessionManager) {
+    try {
+      const isValid = await sessionManager.checkAuthenticationStatus(
+        context.page,
+      );
+      if (!isValid) {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.WARN,
+          "会话已失效，需要重新登录",
+        );
+
+        // 清理旧会话并重定向到登录页
+        sessionManager.cleanupSessionState();
+        await context.addRequests([
+          {
+            url: "https://account.fmtc.co/cp/login",
+            label: "LOGIN",
+            userData: {
+              ...userData,
+              label: "LOGIN",
+              hasExistingSession: false,
+            },
+          },
+        ]);
+        return;
+      }
+
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.INFO,
+        "会话有效，继续执行搜索",
+      );
+    } catch (error) {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.ERROR,
+        `会话验证失败: ${(error as Error).message}`,
+      );
+      return;
+    }
+  }
+
   // 获取搜索参数
   const searchParams = searchHandler.getSearchParamsFromConfig();
 

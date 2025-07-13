@@ -10,7 +10,9 @@ import type {
   FMTCMerchantListData,
   FMTCMerchantDetailData,
   FMTCMerchantNetworkData,
+  SessionConfig,
 } from "@repo/types";
+import type { FMTCSessionManager } from "./session-manager.js";
 
 // 重新导出需要的类型
 export type {
@@ -20,6 +22,7 @@ export type {
   FMTCMerchantListData,
   FMTCMerchantDetailData,
   FMTCMerchantNetworkData,
+  SessionConfig,
 };
 
 // 重新导出枚举
@@ -54,6 +57,8 @@ export interface FMTCUserData {
     /** 总页数 */
     totalPages: number;
   };
+  /** 是否有现有会话 */
+  hasExistingSession?: boolean;
 }
 
 /**
@@ -319,4 +324,6 @@ export interface FMTCRequestHandlerOptions {
   maxRetries?: number;
   /** 是否启用调试模式 */
   debugMode?: boolean;
+  /** 会话管理器 */
+  sessionManager?: FMTCSessionManager;
 }

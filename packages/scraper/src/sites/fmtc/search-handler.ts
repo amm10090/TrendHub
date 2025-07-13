@@ -128,8 +128,12 @@ export class FMTCSearchHandler {
     optionValue: string,
   ): Promise<boolean> {
     try {
+      // 确保 select 元素可见
+      await this.ensureElementVisible(selectElement);
+
+      // 模拟鼠标移动并点击
       await this.simulateMouseMovement(selectElement);
-      await selectElement.click();
+      await this.safeClick(selectElement);
       await this.humanDelay(300, 600);
 
       // 查找选项
@@ -139,7 +143,7 @@ export class FMTCSearchHandler {
         return false;
       }
 
-      await option.click();
+      await this.safeClick(option);
       await this.humanDelay(200, 400);
       return true;
     } catch (error) {
@@ -429,27 +433,33 @@ export class FMTCSearchHandler {
       // 模拟鼠标移动到提交按钮
       await this.simulateMouseMovement(submitButton);
 
-      // 监听页面导航
-      const navigationPromise = this.page.waitForURL("**", {
-        timeout: 15000,
-        waitUntil: "networkidle",
-      });
-
       // 点击提交按钮
       this.log.info("点击提交按钮");
       await submitButton.click();
 
-      // 等待页面导航或加载
+      // 等待页面开始加载（较短的超时时间）
       try {
-        await navigationPromise;
-        this.log.info("搜索表单提交成功，页面已更新");
+        await this.page.waitForURL("**", {
+          timeout: 10000,
+          waitUntil: "domcontentloaded", // 改为domcontentloaded，更宽松的条件
+        });
+        this.log.info("搜索表单提交成功，页面开始加载");
       } catch {
-        this.log.warning("页面导航超时，检查是否已加载结果");
+        this.log.warning("页面导航检测超时，但可能已经成功提交");
       }
 
-      // 等待页面稳定
-      await this.page.waitForLoadState("networkidle", { timeout: 30000 });
-      await this.humanDelay(1000, 2000);
+      // 等待页面基本内容加载完成（减少超时时间）
+      try {
+        await this.page.waitForLoadState("domcontentloaded", {
+          timeout: 15000,
+        });
+        this.log.info("页面基本内容加载完成");
+      } catch {
+        this.log.warning("页面加载状态检测超时，继续执行");
+      }
+
+      // 短暂等待确保搜索结果开始渲染
+      await this.humanDelay(2000, 3000);
 
       return true;
     } catch (error) {
@@ -465,15 +475,19 @@ export class FMTCSearchHandler {
     this.log.info("检测搜索结果");
 
     try {
+      // 等待搜索结果元素出现，但不要等太久
+      await this.page.waitForTimeout(2000);
+
       const resultsInfo = await this.page.evaluate(() => {
         // 查找结果表格或列表
         const resultSelectors = [
           "table.results",
+          "table tbody tr",
           ".program-list",
           ".merchant-list",
-          "table tbody tr",
           ".search-results",
           ".program-row",
+          "tr:has(td)", // 更通用的表格行选择器
         ];
 
         let resultElements = null;
@@ -481,9 +495,22 @@ export class FMTCSearchHandler {
 
         for (const selector of resultSelectors) {
           const elements = document.querySelectorAll(selector);
-          if (elements.length > 0) {
-            resultElements = elements;
-            resultCount = elements.length;
+          // 过滤掉表头行，只计算实际的数据行
+          const dataRows = Array.from(elements).filter((el) => {
+            const text = el.textContent?.trim() || "";
+            return (
+              text.length > 10 && // 有足够的内容
+              !text.toLowerCase().includes("merchant name") && // 不是表头
+              !text.toLowerCase().includes("program name")
+            ); // 不是表头
+          });
+
+          if (dataRows.length > 0) {
+            resultElements = dataRows;
+            resultCount = dataRows.length;
+            console.log(
+              `找到搜索结果，使用选择器: ${selector}, 结果数: ${resultCount}`,
+            );
             break;
           }
         }
@@ -495,6 +522,7 @@ export class FMTCSearchHandler {
           /(\d+)\s*programs?/i,
           /(\d+)\s*merchants?/i,
           /found\s*(\d+)/i,
+          /showing\s*(\d+)/i,
         ];
 
         let textCount = 0;
@@ -506,12 +534,20 @@ export class FMTCSearchHandler {
           }
         }
 
+        // 检查URL是否包含搜索参数，作为成功的指标
+        const currentUrl = window.location.href;
+        const hasSearchParams =
+          currentUrl.includes("cat/") ||
+          currentUrl.includes("search") ||
+          currentUrl.includes("program_directory");
+
         return {
           hasResultTable: !!resultElements,
           elementCount: resultCount,
           textCount: textCount,
-          currentUrl: window.location.href,
+          currentUrl: currentUrl,
           pageTitle: document.title,
+          hasSearchParams: hasSearchParams,
         };
       });
 
@@ -519,17 +555,23 @@ export class FMTCSearchHandler {
         resultsInfo.elementCount,
         resultsInfo.textCount,
       );
-      const hasResults = resultsInfo.hasResultTable && finalCount > 0;
+
+      // 如果URL包含搜索参数，即使没有检测到结果元素也认为搜索成功
+      const hasResults =
+        (resultsInfo.hasResultTable && finalCount > 0) ||
+        (resultsInfo.hasSearchParams &&
+          resultsInfo.currentUrl.includes("cat/"));
 
       this.log.info(`搜索结果检测完成:`, {
         hasResults,
         count: finalCount,
         url: resultsInfo.currentUrl,
+        hasSearchParams: resultsInfo.hasSearchParams,
       });
 
       return {
         hasResults,
-        count: finalCount,
+        count: Math.max(finalCount, hasResults ? 1 : 0), // 如果检测到搜索成功但没有计数，至少返回1
       };
     } catch (error) {
       this.log.error(`检测搜索结果失败: ${(error as Error).message}`);
@@ -718,56 +760,152 @@ export class FMTCSearchHandler {
         return false;
       }
 
-      // 2. 点击Chosen选择器打开下拉列表
+      // 2. 确保容器在视窗内并可见
+      await this.ensureElementVisible(chosenContainer);
+
+      // 3. 点击Chosen选择器打开下拉列表
       const chosenSingle = await chosenContainer.$(".chosen-single");
       if (!chosenSingle) {
         this.log.warning("未找到Chosen单选触发器");
         return false;
       }
 
-      await chosenSingle.click();
-      await this.humanDelay(300, 600);
+      // 确保触发器在视窗内
+      await this.ensureElementVisible(chosenSingle);
 
-      // 3. 等待下拉列表出现
+      // 使用更安全的点击方法
+      await this.safeClick(chosenSingle);
+      await this.humanDelay(500, 800);
+
+      // 4. 等待下拉列表出现
       await this.page.waitForSelector(".chosen-drop .chosen-results", {
-        timeout: 5000,
+        timeout: 10000,
+        state: "visible",
       });
 
-      // 4. 查找对应的选项
+      // 5. 查找对应的选项
       const chosenResults = await this.page.$(".chosen-drop .chosen-results");
       if (!chosenResults) {
         this.log.warning("未找到Chosen选项列表");
         return false;
       }
 
-      // 5. 根据值查找选项
-      const option = await chosenResults.$(
-        `li.active-result[data-option-array-index="${value}"]`,
-      );
-      if (option) {
-        await option.click();
-        await this.humanDelay(200, 400);
-        this.log.info(`✅ 成功选择Chosen选项: ${value}`);
-        return true;
-      }
-
-      // 6. 如果找不到精确匹配，尝试文本匹配
+      // 6. 优先使用文本匹配查找"Clothing & Apparel"分类
       const allOptions = await chosenResults.$$("li.active-result");
       for (const opt of allOptions) {
         const text = await opt.textContent();
         if (text && text.trim().includes("Clothing & Apparel")) {
-          await opt.click();
+          await this.ensureElementVisible(opt);
+          await this.safeClick(opt);
           await this.humanDelay(200, 400);
           this.log.info(`✅ 通过文本匹配选择Chosen选项: ${text.trim()}`);
           return true;
         }
       }
 
+      // 7. 如果没找到"Clothing & Apparel"，尝试根据data-option-array-index匹配
+      const option = await chosenResults.$(
+        `li.active-result[data-option-array-index="${value}"]`,
+      );
+      if (option) {
+        const text = await option.textContent();
+        await this.ensureElementVisible(option);
+        await this.safeClick(option);
+        await this.humanDelay(200, 400);
+        this.log.info(`✅ 通过索引选择Chosen选项: ${value} (${text?.trim()})`);
+        return true;
+      }
+
+      // 7. 如果还没找到，输出所有可用选项用于调试
       this.log.warning(`未找到匹配的Chosen选项: ${value}`);
+      this.log.info("可用的分类选项:");
+      for (let i = 0; i < allOptions.length; i++) {
+        const optText = await allOptions[i].textContent();
+        const dataIndex = await allOptions[i].getAttribute(
+          "data-option-array-index",
+        );
+        this.log.info(
+          `  ${i}: "${optText?.trim()}" (data-index: ${dataIndex})`,
+        );
+      }
       return false;
     } catch (error) {
       this.log.error(`Chosen选择失败: ${(error as Error).message}`);
       return false;
+    }
+  }
+
+  /**
+   * 确保元素在视窗内并可见
+   */
+  private async ensureElementVisible(element: ElementHandle): Promise<void> {
+    try {
+      // 检查元素是否可见
+      const isVisible = await element.isVisible();
+      if (!isVisible) {
+        this.log.warning("元素不可见，尝试滚动到视窗");
+      }
+
+      // 滚动到元素位置
+      await element.scrollIntoViewIfNeeded({ timeout: 10000 });
+      await this.humanDelay(500, 800);
+
+      // 再次检查可见性
+      const isVisibleAfterScroll = await element.isVisible();
+      if (!isVisibleAfterScroll) {
+        // 如果还不可见，尝试手动滚动
+        await element.evaluate((el) => {
+          el.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "center",
+          });
+        });
+        await this.humanDelay(1000, 1500);
+      }
+    } catch (error) {
+      this.log.warning(`确保元素可见失败: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * 安全的点击方法，带有重试机制
+   */
+  private async safeClick(element: ElementHandle): Promise<void> {
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        // 等待元素稳定
+        await element.waitForElementState("stable", { timeout: 5000 });
+
+        // 尝试点击
+        await element.click({ timeout: 10000 });
+        return; // 成功点击，退出
+      } catch (error) {
+        lastError = error as Error;
+        this.log.warning(`点击尝试 ${i + 1} 失败: ${lastError.message}`);
+
+        if (i < maxRetries - 1) {
+          // 在重试之间稍作等待
+          await this.humanDelay(1000, 1500);
+
+          // 重新确保元素可见
+          await this.ensureElementVisible(element);
+        }
+      }
+    }
+
+    // 如果所有重试都失败，尝试使用 JavaScript 点击
+    try {
+      this.log.info("尝试使用 JavaScript 点击作为后备方案");
+      await element.evaluate((el) => {
+        (el as HTMLElement).click();
+      });
+    } catch (jsError) {
+      this.log.error(`JavaScript 点击也失败: ${(jsError as Error).message}`);
+      throw lastError || jsError;
     }
   }
 }

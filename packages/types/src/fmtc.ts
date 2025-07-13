@@ -74,6 +74,10 @@ export interface FMTCMerchantNetworkData {
   networkId?: string;
   /** 加入状态 */
   status: FMTCNetworkStatus;
+  /** 商户在该网络的FMTC ID */
+  fmtcId?: string;
+  /** 加入网络的URL链接 */
+  joinUrl?: string;
 }
 
 /**
@@ -101,6 +105,20 @@ export interface FMTCCredentials {
 }
 
 /**
+ * 会话管理配置
+ */
+export interface SessionConfig {
+  /** 会话文件名 */
+  sessionFile?: string;
+  /** 会话最大有效期（毫秒） */
+  maxAge?: number;
+  /** 是否自动保存会话 */
+  autoSave?: boolean;
+  /** 基础目录 */
+  baseDir?: string;
+}
+
+/**
  * FMTC 爬虫选项
  */
 export interface FMTCScraperOptions {
@@ -120,6 +138,8 @@ export interface FMTCScraperOptions {
   headless?: boolean;
   /** 存储目录 */
   storageDir?: string;
+  /** 会话管理配置 */
+  sessionConfig?: SessionConfig;
 }
 
 /**

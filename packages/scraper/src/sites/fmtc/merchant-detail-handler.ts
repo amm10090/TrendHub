@@ -159,64 +159,216 @@ export class FMTCMerchantDetailHandler {
 
       const detail: FMTCMerchantDetailData = {};
 
-      // 提取官方网站
-      detail.homepage = await this.extractText(
-        FMTC_SELECTORS.merchantDetail.homepage,
+      // 首先添加调试信息，检查页面结构
+      const pageStructure = await this.page.evaluate(() => {
+        const debug = {
+          url: window.location.href,
+          title: document.title,
+          sectionsCount: document.querySelectorAll("section").length,
+          sections: [] as string[],
+          hasTable: !!document.querySelector("table"),
+          tableCount: document.querySelectorAll("table").length,
+        };
+
+        // 收集所有section的标题
+        const sections = document.querySelectorAll("section");
+        sections.forEach((section, index) => {
+          const h3 = section.querySelector("h3");
+          const title = h3
+            ? h3.textContent?.trim()
+            : `Section ${index + 1} (no h3)`;
+          debug.sections.push(title || `Section ${index + 1}`);
+        });
+
+        return debug;
+      });
+
+      await this.logMessage(
+        LocalScraperLogLevel.DEBUG,
+        "页面结构调试信息",
+        pageStructure,
       );
 
-      // 提取主要分类
-      detail.primaryCategory = await this.extractText(
-        FMTC_SELECTORS.merchantDetail.primaryCategory,
-      );
+      // 使用页面评估来批量提取所有信息 - 修复选择器问题
+      const extractedData = await this.page.evaluate(() => {
+        const data: Record<string, unknown> = {};
 
-      // 提取主要国家
-      detail.primaryCountry = await this.extractText(
-        FMTC_SELECTORS.merchantDetail.primaryCountry,
-      );
+        // 查找包含"Merchant Information"标题的section
+        const sections = document.querySelectorAll("section");
+        let merchantInfoSection = null;
+        let toolsSection = null;
 
-      // 提取配送地区
-      const shipsToText = await this.extractText(
-        FMTC_SELECTORS.merchantDetail.shipsTo,
-      );
-      if (shipsToText) {
-        detail.shipsTo = shipsToText
+        for (const section of sections) {
+          const h3 = section.querySelector("h3");
+          if (h3) {
+            const text = h3.textContent || "";
+            if (text.includes("Merchant Information")) {
+              merchantInfoSection = section;
+            } else if (text.includes("Tools")) {
+              toolsSection = section;
+            }
+          }
+        }
+
+        // 提取Merchant Information部分的数据
+        if (merchantInfoSection) {
+          const merchantInfoItems =
+            merchantInfoSection.querySelectorAll(".list-group-item");
+
+          merchantInfoItems.forEach((item) => {
+            const text = item.textContent || "";
+
+            // Homepage
+            if (text.includes("Homepage:")) {
+              const link =
+                item.querySelector(".ml-5 a") ||
+                item.querySelector("span.ml-5 a");
+              if (link) {
+                data.homepage = (link as HTMLAnchorElement).href;
+              }
+            }
+
+            // Primary Category
+            if (text.includes("Primary Category:")) {
+              const span =
+                item.querySelector(".ml-5") || item.querySelector("span.ml-5");
+              if (span) {
+                data.primaryCategory = span.textContent?.trim();
+              }
+            }
+
+            // Primary Country
+            if (text.includes("Primary Country:")) {
+              const span =
+                item.querySelector(".ml-5") || item.querySelector("span.ml-5");
+              if (span) {
+                data.primaryCountry = span.textContent?.trim();
+              }
+            }
+
+            // Ships To
+            if (text.includes("Ships To:")) {
+              const span =
+                item.querySelector(".ml-5") || item.querySelector("span.ml-5");
+              if (span) {
+                data.shipsTo = span.textContent?.trim();
+              }
+            }
+
+            // Logo (在商户信息中)
+            if (text.includes("Logo:")) {
+              const img = item.querySelector("img");
+              if (img) {
+                data.logoInMerchantInfo = (img as HTMLImageElement).src;
+              }
+            }
+          });
+        }
+
+        // 从Tools部分提取图片链接
+        if (toolsSection) {
+          // 查找包含特定文本的链接
+          const allLinks = toolsSection.querySelectorAll("a");
+
+          for (const link of allLinks) {
+            const linkText = link.textContent || "";
+
+            if (linkText.includes("120x60 Logo")) {
+              data.logo120x60 = (link as HTMLAnchorElement).href;
+            } else if (linkText.includes("88x31 Logo")) {
+              data.logo88x31 = (link as HTMLAnchorElement).href;
+            } else if (linkText.includes("280x210 Screenshot")) {
+              data.screenshot280x210 = (link as HTMLAnchorElement).href;
+            } else if (linkText.includes("600x450 Screenshot")) {
+              data.screenshot600x450 = (link as HTMLAnchorElement).href;
+            } else if (linkText.includes("Preview Deals")) {
+              const rel = link.getAttribute("rel");
+              if (rel) {
+                data.previewDealsUrl = `https://account.fmtc.co${rel}`;
+              }
+            }
+          }
+
+          // AW URL (联盟链接) - 查找包含AW URL文本的列表项
+          const allListItems = toolsSection.querySelectorAll("li");
+          for (const item of allListItems) {
+            const text = item.textContent || "";
+            if (text.includes("AW URL:")) {
+              const awLink = item.querySelector("a");
+              if (awLink) {
+                data.affiliateUrl = (awLink as HTMLAnchorElement).href;
+              }
+            }
+          }
+        }
+
+        // 检查FreshReach支持 - 查找包含FreshReach文本的span
+        const spans = document.querySelectorAll("span.label");
+        for (const span of spans) {
+          const text = span.textContent || "";
+          if (text.includes("FreshReach")) {
+            data.freshReachSupported = text.toLowerCase().includes("supported");
+            break;
+          }
+        }
+
+        // 从URL中提取FMTC ID
+        const currentUrl = window.location.href;
+        const urlMatch = currentUrl.match(/\/m\/(\d+)\//);
+        if (urlMatch) {
+          data.fmtcId = urlMatch[1];
+        }
+
+        // 添加调试信息
+        data._debug = {
+          merchantInfoSectionFound: !!merchantInfoSection,
+          toolsSectionFound: !!toolsSection,
+          sectionsCount: document.querySelectorAll("section").length,
+          listGroupItemsCount: merchantInfoSection
+            ? merchantInfoSection.querySelectorAll(".list-group-item").length
+            : 0,
+          toolsLinksCount: toolsSection
+            ? toolsSection.querySelectorAll("a").length
+            : 0,
+        };
+
+        return data;
+      });
+
+      // 映射提取的数据到detail对象
+      detail.homepage = extractedData.homepage;
+      detail.primaryCategory = extractedData.primaryCategory;
+      detail.primaryCountry = extractedData.primaryCountry;
+
+      // 处理配送地区
+      if (extractedData.shipsTo) {
+        detail.shipsTo = extractedData.shipsTo
           .split(",")
-          .map((s) => s.trim())
-          .filter((s) => s);
+          .map((s: string) => s.trim())
+          .filter((s: string) => s);
       }
 
-      // 提取 FMTC ID
-      detail.fmtcId = await this.extractFMTCId();
+      detail.fmtcId = extractedData.fmtcId;
+      detail.freshReachSupported = extractedData.freshReachSupported;
 
-      // 提取商户状态
-      detail.status = await this.extractText(
-        FMTC_SELECTORS.merchantDetail.status,
-      );
+      // 图片URLs - 优先使用Tools部分的链接，如果没有则使用商户信息中的
+      detail.logo120x60 =
+        extractedData.logo120x60 || extractedData.logoInMerchantInfo;
+      detail.logo88x31 = extractedData.logo88x31;
+      detail.screenshot280x210 = extractedData.screenshot280x210;
+      detail.screenshot600x450 = extractedData.screenshot600x450;
 
-      // 检查 FreshReach 支持
-      detail.freshReachSupported = await this.checkFreshReachSupport();
+      // 链接
+      detail.affiliateUrl = extractedData.affiliateUrl;
+      detail.previewDealsUrl = extractedData.previewDealsUrl;
 
-      // 提取图片URL
-      detail.logo120x60 = await this.extractImageUrl(
-        FMTC_SELECTORS.merchantDetail.logos.logo120x60,
-      );
-      detail.logo88x31 = await this.extractImageUrl(
-        FMTC_SELECTORS.merchantDetail.logos.logo88x31,
-      );
-      detail.screenshot280x210 = await this.extractImageUrl(
-        FMTC_SELECTORS.merchantDetail.screenshots.screenshot280x210,
-      );
-      detail.screenshot600x450 = await this.extractImageUrl(
-        FMTC_SELECTORS.merchantDetail.screenshots.screenshot600x450,
-      );
-
-      // 提取链接
-      detail.affiliateUrl = await this.extractLink(
-        FMTC_SELECTORS.merchantDetail.affiliateUrl,
-      );
-      detail.previewDealsUrl = await this.extractLink(
-        FMTC_SELECTORS.merchantDetail.previewDealsUrl,
-      );
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "数据提取调试信息", {
+        extractedDataDebug: extractedData._debug,
+        extractedFields: Object.keys(extractedData).filter(
+          (key) => key !== "_debug",
+        ),
+        extractedData: extractedData,
+      });
 
       await this.logMessage(
         LocalScraperLogLevel.DEBUG,
@@ -224,7 +376,11 @@ export class FMTCMerchantDetailHandler {
         {
           homepage: detail.homepage,
           fmtcId: detail.fmtcId,
+          primaryCategory: detail.primaryCategory,
           hasLogos: !!(detail.logo120x60 || detail.logo88x31),
+          hasScreenshots: !!(
+            detail.screenshot280x210 || detail.screenshot600x450
+          ),
         },
       );
 
@@ -250,84 +406,153 @@ export class FMTCMerchantDetailHandler {
 
       const networks: FMTCMerchantNetworkData[] = [];
 
-      // 查找网络关联表格
-      const networkRows = await this.page.$$(
-        FMTC_SELECTORS.merchantDetail.networkTable.rows,
+      // 使用页面评估来提取网络表格数据 - 修复选择器问题
+      const networkData = await this.page.evaluate(() => {
+        const networkList: Array<{
+          fmtcId: string;
+          networkName: string;
+          networkId: string;
+          status: string;
+          joinUrl?: string;
+        }> = [];
+
+        // 查找包含"Networks"标题的section
+        const sections = document.querySelectorAll("section");
+        let networkSection = null;
+
+        for (const section of sections) {
+          const h3 = section.querySelector("h3");
+          if (h3) {
+            const text = h3.textContent || "";
+            if (text.includes("Networks")) {
+              networkSection = section;
+              break;
+            }
+          }
+        }
+
+        if (!networkSection) {
+          return networkList;
+        }
+
+        // 查找网络关联表格
+        const networkTable =
+          networkSection.querySelector("table.fmtc-table tbody") ||
+          networkSection.querySelector("table tbody") ||
+          networkSection.querySelector(".table tbody");
+
+        if (!networkTable) {
+          return networkList;
+        }
+
+        const rows = networkTable.querySelectorAll("tr");
+
+        rows.forEach((row, index) => {
+          try {
+            const cells = row.querySelectorAll("td");
+            if (cells.length < 4) {
+              return; // 跳过列数不足的行
+            }
+
+            // 第2列：FMTC ID
+            const fmtcIdCell = cells[1];
+            const fmtcIdText = fmtcIdCell.textContent?.trim() || "";
+            const fmtcIdMatch = fmtcIdText.match(/(\d+)/);
+            const fmtcId = fmtcIdMatch ? fmtcIdMatch[1] : "";
+
+            // 第3列：Network (ID) - 格式如 "AL (35601)"
+            const networkCell = cells[2];
+            const networkText = networkCell.textContent?.trim() || "";
+
+            let networkName = "";
+            let networkId = "";
+
+            // 解析网络名称和ID - 格式: "AL (35601)"
+            const networkMatch = networkText.match(/^(.+?)\s*\((\d+)\)$/);
+            if (networkMatch) {
+              networkName = networkMatch[1].trim();
+              networkId = networkMatch[2];
+            } else {
+              networkName = networkText; // 如果没有匹配到括号格式，直接使用整个文本
+            }
+
+            // 第4列：Status - 通过badge的class判断状态
+            const statusCell = cells[3];
+            const badge = statusCell.querySelector(".badge");
+            let status = "Not Joined"; // 默认状态
+
+            if (badge) {
+              const badgeClasses = badge.className;
+              if (badgeClasses.includes("badge-success")) {
+                status = "Joined";
+              } else if (badgeClasses.includes("badge-warning")) {
+                status = "Relationship Not Verified";
+              } else if (badgeClasses.includes("badge-danger")) {
+                status = "Not Joined";
+              }
+            }
+
+            // 第5列：Join按钮URL (如果存在)
+            const joinCell = cells[4];
+            const joinLink = joinCell ? joinCell.querySelector("a") : null;
+            const joinUrl = joinLink
+              ? (joinLink as HTMLAnchorElement).href
+              : undefined;
+
+            if (networkName) {
+              // 只有当网络名称存在时才添加
+              networkList.push({
+                fmtcId,
+                networkName,
+                networkId,
+                status,
+                joinUrl,
+              });
+            }
+          } catch (error) {
+            console.warn(`解析第 ${index} 行网络数据失败:`, error);
+          }
+        });
+
+        // 添加调试信息
+        const debugInfo = {
+          networkSectionFound: !!networkSection,
+          tableFound: !!networkTable,
+          rowsCount: networkTable
+            ? networkTable.querySelectorAll("tr").length
+            : 0,
+          sectionsChecked: sections.length,
+          networkListLength: networkList.length,
+        };
+
+        return { networkList, debugInfo };
+      });
+
+      await this.logMessage(
+        LocalScraperLogLevel.DEBUG,
+        "网络数据提取调试信息",
+        networkData.debugInfo,
       );
 
-      for (let i = 0; i < networkRows.length; i++) {
-        try {
-          const row = networkRows[i];
+      // 转换为FMTCMerchantNetworkData格式
+      for (const item of networkData.networkList) {
+        const networkInfo: FMTCMerchantNetworkData = {
+          networkName: item.networkName,
+          networkId: item.networkId,
+          status: item.status as FMTCNetworkStatus,
+          fmtcId: item.fmtcId,
+          joinUrl: item.joinUrl,
+        };
 
-          // 提取网络名称
-          const networkNameElement = await row.$(
-            FMTC_SELECTORS.merchantDetail.networkTable.networkName,
-          );
-          const networkName = await networkNameElement?.textContent();
+        networks.push(networkInfo);
 
-          if (!networkName || networkName.trim() === "") {
-            continue; // 跳过没有网络名称的行
-          }
-
-          // 提取网络ID
-          const networkIdElement = await row.$(
-            FMTC_SELECTORS.merchantDetail.networkTable.networkId,
-          );
-          let networkId = await networkIdElement?.textContent();
-
-          // 使用正则提取括号中的ID
-          if (networkId) {
-            const idMatch = networkId.match(FMTC_REGEX_PATTERNS.NETWORK_ID);
-            if (idMatch) {
-              networkId = idMatch[1];
-            }
-          }
-
-          // 提取状态
-          const statusElement = await row.$(
-            FMTC_SELECTORS.merchantDetail.networkTable.status,
-          );
-          const statusText = await statusElement?.textContent();
-
-          // 映射状态文本到枚举值
-          let status = "Not Joined"; // 默认状态
-          if (statusText) {
-            const lowerStatus = statusText.toLowerCase().trim();
-            if (
-              lowerStatus.includes("joined") &&
-              !lowerStatus.includes("not")
-            ) {
-              status = "Joined";
-            } else if (
-              lowerStatus.includes("not verified") ||
-              lowerStatus.includes("relationship not verified")
-            ) {
-              status = "Relationship Not Verified";
-            }
-          }
-
-          const networkData: FMTCMerchantNetworkData = {
-            networkName: networkName.trim(),
-            networkId: networkId?.trim() || undefined,
-            status: status as FMTCNetworkStatus,
-          };
-
-          networks.push(networkData);
-
-          await this.logMessage(LocalScraperLogLevel.DEBUG, `提取网络关联`, {
-            networkName: networkData.networkName,
-            networkId: networkData.networkId,
-            status: networkData.status,
-          });
-        } catch (error) {
-          await this.logMessage(
-            LocalScraperLogLevel.WARN,
-            `提取第 ${i} 个网络关联失败`,
-            {
-              error: (error as Error).message,
-            },
-          );
-        }
+        await this.logMessage(LocalScraperLogLevel.DEBUG, `提取网络关联`, {
+          fmtcId: networkInfo.fmtcId,
+          networkName: networkInfo.networkName,
+          networkId: networkInfo.networkId,
+          status: networkInfo.status,
+          hasJoinUrl: !!networkInfo.joinUrl,
+        });
       }
 
       await this.logMessage(

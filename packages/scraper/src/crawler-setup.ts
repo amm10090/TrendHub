@@ -34,9 +34,15 @@ export const USER_AGENTS = [
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15",
 ];
 
+import { fileURLToPath } from "url";
+
 // 读取 stealth.min.js 文件内容
 let stealthScript: string | null = null;
 try {
+  // 在 ESM 模块中获取当前文件目录
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
   const stealthPath = path.join(__dirname, "../stealth.min.js");
   if (fs.existsSync(stealthPath)) {
     stealthScript = fs.readFileSync(stealthPath, "utf8");

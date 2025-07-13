@@ -1,7 +1,7 @@
 // packages/scraper/src/test-italist.ts
-import scrapeItalist from "../sites/italist.js";
-import type { ScraperOptions, Product } from "../main.js"; // Assuming ScraperOptions is exported from main.ts
-import { LocalScraperLogLevel, sendLogToBackend } from "../utils.js"; // For logging if needed
+import scrapeItalist from "../../sites/italist.js";
+import type { ScraperOptions, Product } from "../../main.js"; // Assuming ScraperOptions is exported from main.ts
+import { LocalScraperLogLevel, sendLogToBackend } from "../../utils.js"; // For logging if needed
 import * as fs from "fs";
 import * as path from "path";
 

@@ -18,6 +18,7 @@ import {
   LocalScraperLogLevel,
   ensureDirectoryExists,
 } from "../../utils.js";
+import { createSessionManager, type SessionConfig } from "./session-manager.js";
 
 /**
  * FMTC 爬虫主函数
@@ -32,6 +33,15 @@ export default async function scrapeFMTC(
   if (!options.credentials?.username || !options.credentials?.password) {
     throw new Error("FMTC 爬虫需要有效的登录凭据");
   }
+
+  // 创建会话管理器
+  const sessionConfig: Partial<SessionConfig> = {
+    sessionFile: `fmtc-session-${options.credentials.username.replace(/[^a-zA-Z0-9]/g, "_")}.json`,
+    maxAge: 4 * 60 * 60 * 1000, // 4小时
+    autoSave: options.sessionConfig?.autoSave !== false, // 默认启用
+  };
+
+  const sessionManager = createSessionManager(crawleeLog, sessionConfig);
 
   if (executionId) {
     await sendLogToBackend(
@@ -111,6 +121,11 @@ export default async function scrapeFMTC(
     },
   };
 
+  // 检查是否有保存的会话状态
+  const savedSessionState = sessionManager.loadSessionState(
+    options.credentials.username,
+  );
+
   // 反检测配置
   const antiDetectionConfig: FMTCAntiDetectionConfig = {
     enableRandomDelay: true,
@@ -135,6 +150,7 @@ export default async function scrapeFMTC(
         antiDetectionConfig,
         maxRetries: 3,
         debugMode: process.env.NODE_ENV === "development",
+        sessionManager,
       }),
       failedRequestHandler: async ({ request, log }) => {
         log.error(`${siteName}: 请求失败 ${request.url}`);
@@ -163,6 +179,14 @@ export default async function scrapeFMTC(
             "--disable-blink-features=AutomationControlled",
           ],
         },
+        // 如果有保存的会话状态，在创建浏览器上下文时恢复
+        ...(savedSessionState && {
+          useIncognitoPages: false,
+          // 传递会话状态给浏览器上下文
+          extraHTTPHeaders: {
+            "X-Session-State": JSON.stringify(savedSessionState),
+          },
+        }),
       },
       maxRequestsPerCrawl: maxRequests,
       maxConcurrency: options.maxConcurrency || 1,
@@ -174,21 +198,80 @@ export default async function scrapeFMTC(
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,
       maxRequestRetries: 3,
+      // 传递会话状态给爬虫设置
+      preNavigationHooks: [
+        async (crawlingContext) => {
+          const { page } = crawlingContext;
+          const context = page.context();
+
+          // 如果有保存的会话状态，恢复它
+          if (savedSessionState) {
+            try {
+              // 恢复储存状态（Cookies、localStorage等）
+              await context.addCookies(savedSessionState.cookies || []);
+
+              // 设置 localStorage 和 sessionStorage
+              if (savedSessionState.origins) {
+                for (const origin of savedSessionState.origins) {
+                  if (origin.localStorage) {
+                    for (const item of origin.localStorage) {
+                      await page.addInitScript(
+                        (name, value) => {
+                          localStorage.setItem(name, value);
+                        },
+                        item.name,
+                        item.value,
+                      );
+                    }
+                  }
+                  if (origin.sessionStorage) {
+                    for (const item of origin.sessionStorage) {
+                      await page.addInitScript(
+                        (name, value) => {
+                          sessionStorage.setItem(name, value);
+                        },
+                        item.name,
+                        item.value,
+                      );
+                    }
+                  }
+                }
+              }
+
+              crawleeLog.info(`${siteName}: 已恢复保存的会话状态`);
+            } catch (error) {
+              crawleeLog.warning(
+                `${siteName}: 恢复会话状态失败: ${(error as Error).message}`,
+              );
+              sessionManager.cleanupSessionState();
+            }
+          }
+        },
+      ],
     },
     config,
   );
 
+  if (savedSessionState) {
+    crawleeLog.info(`${siteName}: 找到保存的会话状态，将跳过登录直接开始抓取`);
+  } else {
+    crawleeLog.info(`${siteName}: 未找到保存的会话，将执行登录流程`);
+  }
+
   crawleeLog.info(`${siteName}: 反检测爬虫设置完成，开始抓取...`);
 
-  // 初始请求：登录页面
+  // 初始请求：登录页面或恢复会话
   const initialRequest = {
-    url: "https://account.fmtc.co/cp/login",
-    label: "LOGIN" as const,
+    url: savedSessionState
+      ? "https://account.fmtc.co/cp/program_directory"
+      : "https://account.fmtc.co/cp/login",
+    label: (savedSessionState ? "SEARCH" : "LOGIN") as const,
     userData: {
       executionId,
-      label: "LOGIN" as const,
+      label: (savedSessionState ? "SEARCH" : "LOGIN") as const,
       credentials: options.credentials,
       options: options,
+      hasExistingSession: !!savedSessionState,
     } as FMTCUserData,
   };
 

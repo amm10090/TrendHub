@@ -13,7 +13,7 @@ interface ProductPageProps {
 
 async function getProductData(id: string): Promise<ProductDetailType | null> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+    const apiUrl = 'http://localhost:3000';
     const res = await fetch(`${apiUrl}/api/public/products/${id}`, {
       cache: 'no-store',
     });

@@ -113,14 +113,12 @@ export const FMTC_SELECTORS: FMTCSelectors = {
     networkTable: {
       /** 表格行 */
       rows: "table.fmtc-table tbody tr, .table-striped tbody tr",
-      /** FMTC ID (第2列) */
-      fmtcId: "td:nth-child(2)",
       /** 网络名称和ID (第3列) */
       networkName: "td:nth-child(3)",
+      /** 网络ID */
+      networkId: "td:nth-child(2)",
       /** 状态 (第4列) */
       status: "td:nth-child(4)",
-      /** Join按钮 (第5列) */
-      joinButton: "td:nth-child(5) a",
     },
   },
 };

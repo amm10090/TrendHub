@@ -235,18 +235,55 @@ export class FMTCLoginHandler {
   }
 
   /**
-   * 导航到登录页面
+   * 导航到登录页面 - 使用与测试文件一致的重试机制
    */
   private async navigateToLoginPage(): Promise<void> {
     await this.logMessage(LocalScraperLogLevel.DEBUG, "导航到 FMTC 登录页面");
 
-    await this.page.goto(FMTC_URL_PATTERNS.LOGIN, {
-      waitUntil: "networkidle",
-      timeout: 30000,
-    });
+    let loginPageLoaded = false;
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    // 额外等待确保页面完全加载
-    await delay(2000);
+    while (!loginPageLoaded && retryCount < maxRetries) {
+      try {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          `尝试第 ${retryCount + 1} 次加载登录页面`,
+        );
+
+        await this.page.goto(FMTC_URL_PATTERNS.LOGIN, {
+          waitUntil: "domcontentloaded",
+          timeout: 90000,
+        });
+
+        // 与测试文件一致的等待时间
+        await delay(3000);
+
+        // 验证页面是否正确加载
+        const title = await this.page.title();
+        if (title.includes("Login") || title.includes("FMTC")) {
+          loginPageLoaded = true;
+          await this.logMessage(LocalScraperLogLevel.DEBUG, "登录页面加载成功");
+        } else {
+          throw new Error(`页面标题不正确: ${title}`);
+        }
+      } catch (error) {
+        retryCount++;
+        await this.logMessage(
+          LocalScraperLogLevel.WARN,
+          `第 ${retryCount} 次尝试失败: ${(error as Error).message}`,
+        );
+
+        if (retryCount < maxRetries) {
+          await this.logMessage(LocalScraperLogLevel.DEBUG, "等待 5 秒后重试");
+          await delay(5000);
+        }
+      }
+    }
+
+    if (!loginPageLoaded) {
+      throw new Error("无法加载登录页面，已达到最大重试次数");
+    }
   }
 
   /**
@@ -412,59 +449,163 @@ export class FMTCLoginHandler {
   }
 
   /**
-   * 提交登录表单
+   * 提交登录表单 - 使用与测试文件一致的方式
    */
   private async submitLoginForm(): Promise<void> {
     await this.logMessage(LocalScraperLogLevel.DEBUG, "提交登录表单");
 
     try {
-      // 查找并点击提交按钮
+      // 查找提交按钮
       const submitButton = await this.page.$(FMTC_SELECTORS.login.submitButton);
       if (submitButton) {
-        // 确保按钮可点击
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "找到提交按钮，准备点击",
+        );
+
+        // 确保按钮可见并可点击
         await submitButton.scrollIntoViewIfNeeded();
-        await delay(500);
+        await delay(1000); // 等待更长时间确保页面稳定
 
-        // 等待网络请求完成
-        await Promise.all([
-          this.page.waitForLoadState("networkidle"),
-          submitButton.click(),
-        ]);
+        // 使用简单的点击，不并发等待网络状态
+        await submitButton.click();
 
-        await delay(3000); // 额外等待处理时间
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "已点击提交按钮，等待页面响应",
+        );
+
+        // 等待更长时间让服务器处理请求
+        await delay(5000);
+
+        // 尝试等待页面稳定，但不强制
+        try {
+          await this.page.waitForLoadState("domcontentloaded", {
+            timeout: 10000,
+          });
+        } catch {
+          // 忽略超时，继续执行
+          await this.logMessage(
+            LocalScraperLogLevel.DEBUG,
+            "页面加载状态等待超时，继续执行",
+          );
+        }
       } else {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "未找到提交按钮，尝试按Enter键",
+        );
+
         // 如果找不到按钮，尝试按 Enter 键提交
         await this.page.keyboard.press("Enter");
-        await this.page.waitForLoadState("networkidle");
-        await delay(3000);
+        await delay(5000);
+
+        try {
+          await this.page.waitForLoadState("domcontentloaded", {
+            timeout: 10000,
+          });
+        } catch {
+          await this.logMessage(
+            LocalScraperLogLevel.DEBUG,
+            "Enter提交后页面加载等待超时",
+          );
+        }
       }
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "登录表单提交完成");
+      await this.logMessage(
+        LocalScraperLogLevel.DEBUG,
+        "登录表单提交完成，即将检查结果",
+      );
     } catch (error) {
       throw new Error(`提交登录表单失败: ${(error as Error).message}`);
     }
   }
 
   /**
-   * 等待登录结果
+   * 等待登录结果 - 优化页面状态检测
    */
   private async waitForLoginResult(): Promise<FMTCLoginResult> {
     await this.logMessage(LocalScraperLogLevel.DEBUG, "等待登录结果");
 
     try {
-      // 等待一段时间让页面反应
-      await delay(3000);
+      // 等待更长时间让页面充分反应
+      await delay(5000);
 
       // 获取当前页面信息
-      const currentUrl = this.page.url();
-      const pageTitle = await this.page.title();
+      let currentUrl = this.page.url();
+      let pageTitle = await this.page.title();
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "页面状态检查", {
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "初始页面状态检查", {
         currentUrl,
         pageTitle,
       });
 
-      // 检查是否出现错误消息
+      // 如果页面仍在加载，再等待一下
+      if (currentUrl.includes("login") && pageTitle.includes("Login")) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "页面可能仍在处理，额外等待",
+        );
+        await delay(3000);
+
+        // 重新获取页面信息
+        currentUrl = this.page.url();
+        pageTitle = await this.page.title();
+
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "重新检查页面状态", {
+          currentUrl,
+          pageTitle,
+        });
+      }
+
+      // 1. 先检查是否被重定向到登录页（可能触发了反爬）
+      if (
+        currentUrl.includes("login") &&
+        currentUrl !== "https://account.fmtc.co/cp/login"
+      ) {
+        await this.logMessage(
+          LocalScraperLogLevel.WARN,
+          "检测到可能的反爬重定向",
+          {
+            currentUrl,
+          },
+        );
+
+        // 检查页面内容是否包含反爬指示器
+        const pageContent = await this.page.content();
+        const antiSpamPatterns = [
+          "rate limit",
+          "too many requests",
+          "blocked",
+          "suspicious activity",
+          "please try again later",
+        ];
+
+        for (const pattern of antiSpamPatterns) {
+          if (pageContent.toLowerCase().includes(pattern)) {
+            return {
+              success: false,
+              error: `可能触发了反爬机制: ${pattern}`,
+            };
+          }
+        }
+      }
+
+      // 2. 检查是否出现新的reCAPTCHA
+      const stillNeedsRecaptcha = await this.checkRecaptchaRequired();
+      if (stillNeedsRecaptcha && currentUrl.includes("login")) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "提交后检测到新的reCAPTCHA",
+        );
+        return {
+          success: false,
+          error: "登录后出现新的reCAPTCHA验证",
+          requiresCaptcha: true,
+        };
+      }
+
+      // 3. 检查是否出现显式错误消息
       const errorMessage = await this.checkForErrorMessage();
       if (errorMessage) {
         await this.logMessage(LocalScraperLogLevel.DEBUG, "检测到错误消息", {
@@ -476,51 +617,43 @@ export class FMTCLoginHandler {
         };
       }
 
-      // 检查是否登录成功 (通过 URL 变化或页面内容)
+      // 4. 检查是否登录成功 (通过 URL 变化)
       const isStillOnLoginPage = currentUrl.includes("login");
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "URL检查", {
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "URL变化检查", {
         isStillOnLoginPage,
+        currentUrl,
       });
 
       if (!isStillOnLoginPage) {
-        // URL 已改变，可能登录成功
+        // URL 已改变，进一步验证登录状态
         const loginSuccess = await this.isLoggedIn();
-        await this.logMessage(LocalScraperLogLevel.DEBUG, "登录状态检查", {
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "登录状态验证", {
           loginSuccess,
         });
         if (loginSuccess) {
           return { success: true };
+        } else {
+          return {
+            success: false,
+            error: "页面跳转但登录状态验证失败",
+          };
         }
       }
 
-      // 检查页面是否有登录成功的指示器
+      // 5. 检查页面是否有登录成功的指示器
       const hasUserMenu = await this.page.$(
-        '.user-menu, .logout, [href*="logout"]',
+        '.user-menu, .logout, [href*="logout"], .dashboard',
       );
       if (hasUserMenu) {
         await this.logMessage(
           LocalScraperLogLevel.DEBUG,
-          "找到用户菜单，登录成功",
+          "找到用户菜单或仪表板，登录成功",
         );
         return { success: true };
       }
 
-      // 检查是否仍需要reCAPTCHA
-      const stillNeedsRecaptcha = await this.checkRecaptchaRequired();
-      if (stillNeedsRecaptcha) {
-        await this.logMessage(
-          LocalScraperLogLevel.DEBUG,
-          "仍需要reCAPTCHA验证",
-        );
-        return {
-          success: false,
-          error: "登录后仍需要reCAPTCHA验证",
-          requiresCaptcha: true,
-        };
-      }
-
-      // 如果仍在登录页面，检查具体错误
+      // 6. 检查页面内容中的错误模式
       const pageContent = await this.page.content();
       for (const [errorType, patterns] of Object.entries(FMTC_ERROR_PATTERNS)) {
         for (const pattern of patterns) {
@@ -541,11 +674,15 @@ export class FMTCLoginHandler {
         }
       }
 
-      // 默认错误
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "无法确定登录状态");
+      // 7. 默认情况 - 仍在登录页面且无明确错误
+      await this.logMessage(LocalScraperLogLevel.WARN, "登录状态不明确", {
+        currentUrl,
+        pageTitle,
+      });
+
       return {
         success: false,
-        error: "登录状态未知，请检查凭据",
+        error: `登录状态不明确 - URL: ${currentUrl}, 标题: ${pageTitle}`,
       };
     } catch (error) {
       return {

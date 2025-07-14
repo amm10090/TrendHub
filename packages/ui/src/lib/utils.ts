@@ -14,17 +14,3 @@ export function normalizeIconName(name: string): string {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 }
-
-export function filterIcons(icons: string[], searchTerm: string): string[] {
-  if (!searchTerm.trim()) return icons;
-
-  const term = searchTerm.toLowerCase();
-  return icons.filter(
-    (icon) =>
-      icon.toLowerCase().includes(term) ||
-      icon
-        .replace(/([A-Z])/g, " $1")
-        .toLowerCase()
-        .includes(term),
-  );
-}

@@ -1,9 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+import { auth } from "@/../auth";
 import { db } from "@/lib/db";
-
-import { auth } from "@/auth";
 
 /**
  * GET /api/fmtc-merchants

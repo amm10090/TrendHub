@@ -398,11 +398,14 @@ export class ReCAPTCHAService {
   }
 
   /**
-   * 在页面中应用解决方案
+   * 在页面中应用解决方案 - 改进版本，增强稳定性
    */
   private async applySolution(solution: string): Promise<void> {
     try {
-      await this.page.evaluate(
+      this.log.info("开始应用 reCAPTCHA 解决方案");
+
+      // 应用解决方案到页面
+      const applyResult = await this.page.evaluate(
         (args: { token: string; responseSelector: string }) => {
           const { token, responseSelector } = args;
 
@@ -410,36 +413,74 @@ export class ReCAPTCHAService {
           const responseElement = document.querySelector(
             responseSelector,
           ) as HTMLTextAreaElement;
-          if (responseElement) {
+          if (!responseElement) {
+            return { success: false, error: "未找到reCAPTCHA响应元素" };
+          }
+
+          try {
+            // 设置token值
             responseElement.value = token;
+
+            // 触发多个事件确保被识别
             responseElement.dispatchEvent(
               new Event("input", { bubbles: true }),
             );
             responseElement.dispatchEvent(
               new Event("change", { bubbles: true }),
             );
-          }
+            responseElement.dispatchEvent(
+              new Event("keyup", { bubbles: true }),
+            );
 
-          // 触发 reCAPTCHA 回调
-          const windowWithGrecaptcha = window as unknown as {
-            grecaptcha?: { getResponse: (widgetId: string) => string };
-          };
-          if (typeof windowWithGrecaptcha.grecaptcha !== "undefined") {
-            try {
-              // 找到 reCAPTCHA 小部件并触发回调
-              const recaptchaElement = document.querySelector(
-                ".g-recaptcha",
-              ) as HTMLElement;
-              if (recaptchaElement) {
-                const widgetId =
-                  recaptchaElement.getAttribute("data-widget-id");
-                if (widgetId && windowWithGrecaptcha.grecaptcha) {
-                  windowWithGrecaptcha.grecaptcha.getResponse(widgetId);
+            // 尝试触发 reCAPTCHA 回调
+            const windowWithGrecaptcha = window as unknown as {
+              grecaptcha?: {
+                getResponse?: (widgetId?: string) => string;
+                [key: string]: unknown;
+              };
+            };
+
+            if (typeof windowWithGrecaptcha.grecaptcha !== "undefined") {
+              try {
+                // 查找 reCAPTCHA 小部件
+                const recaptchaElement = document.querySelector(
+                  ".g-recaptcha",
+                ) as HTMLElement;
+                if (recaptchaElement) {
+                  const widgetId =
+                    recaptchaElement.getAttribute("data-widget-id");
+
+                  // 尝试多种回调方式
+                  if (windowWithGrecaptcha.grecaptcha.getResponse) {
+                    if (widgetId) {
+                      windowWithGrecaptcha.grecaptcha.getResponse(widgetId);
+                    } else {
+                      windowWithGrecaptcha.grecaptcha.getResponse();
+                    }
+                  }
+
+                  // 尝试执行回调函数
+                  const callback =
+                    recaptchaElement.getAttribute("data-callback");
+                  if (
+                    callback &&
+                    (window as Record<string, unknown>)[callback]
+                  ) {
+                    (
+                      (window as Record<string, unknown>)[callback] as (
+                        token: string,
+                      ) => void
+                    )(token);
+                  }
                 }
+              } catch (cbError) {
+                console.warn("触发 reCAPTCHA 回调时出错:", cbError);
               }
-            } catch (error) {
-              console.warn("触发 reCAPTCHA 回调时出错:", error);
             }
+
+            return { success: true, tokenLength: token.length };
+          } catch (error) {
+            return { success: false, error: (error as Error).message };
           }
         },
         {
@@ -448,10 +489,32 @@ export class ReCAPTCHAService {
         },
       );
 
-      // 等待一小段时间让页面处理
-      await delay(1000);
+      if (!applyResult.success) {
+        throw new Error(`应用token失败: ${applyResult.error}`);
+      }
 
-      this.log.info("reCAPTCHA 解决方案已应用");
+      this.log.info(`reCAPTCHA token已设置 (长度: ${applyResult.tokenLength})`);
+
+      // 等待更长时间确保reCAPTCHA状态更新
+      await delay(3000);
+
+      // 直接验证token值，而不依赖复杂的状态检测
+      const finalValue = await this.page.evaluate((selector) => {
+        const element = document.querySelector(selector) as HTMLTextAreaElement;
+        return element ? element.value : null;
+      }, FMTC_SELECTORS.login.recaptchaResponse!);
+
+      if (!finalValue || finalValue.length < 100) {
+        // 记录警告但不失败，让登录流程继续
+        this.log.warning(
+          `reCAPTCHA token 可能有问题: ${finalValue ? finalValue.length : 0} 字符`,
+        );
+        this.log.info("尽管验证可能有问题，但将继续尝试提交");
+      } else {
+        this.log.info(`reCAPTCHA token 验证成功: ${finalValue.length} 字符`);
+      }
+
+      this.log.info("reCAPTCHA 解决方案已应用，准备继续登录流程");
     } catch (error) {
       throw new Error(
         `应用 reCAPTCHA 解决方案失败: ${(error as Error).message}`,

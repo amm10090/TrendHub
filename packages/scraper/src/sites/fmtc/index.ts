@@ -12,7 +12,8 @@ import type {
   FMTCAntiDetectionConfig,
 } from "./types.js";
 import { createFMTCRequestHandler } from "./request-handler.js";
-import { createStealthCrawler } from "../../crawler-setup.js";
+import { PlaywrightCrawler } from "crawlee";
+import { chromium } from "playwright";
 import {
   sendLogToBackend,
   LocalScraperLogLevel,
@@ -51,6 +52,7 @@ export default async function scrapeFMTC(
       {
         options: {
           maxPages: options.maxPages,
+          maxMerchants: options.maxMerchants,
           includeDetails: options.includeDetails,
           downloadImages: options.downloadImages,
           maxConcurrency: options.maxConcurrency,
@@ -140,8 +142,8 @@ export default async function scrapeFMTC(
     sessionTimeout: 30 * 60 * 1000, // 30分钟
   };
 
-  // 创建爬虫
-  const crawler = createStealthCrawler(
+  // 创建爬虫 - 完全模拟测试文件的简单Playwright配置，避免复杂的反检测
+  const crawler = new PlaywrightCrawler(
     {
       requestHandler: createFMTCRequestHandler({
         allScrapedMerchants,
@@ -170,84 +172,92 @@ export default async function scrapeFMTC(
         }
       },
       launchContext: {
+        launcher: chromium, // 使用标准chromium，不是playwright-extra
+        // 完全使用测试文件的浏览器启动配置
         launchOptions: {
-          headless: options.headless !== false, // 默认使用无头模式
+          headless: false, // 与测试文件完全一致
+          slowMo: 500, // 与测试文件完全一致
+          // 只使用测试文件中的参数，不添加任何额外的
           args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
-            "--disable-blink-features=AutomationControlled",
+            "--disable-web-security", // 测试文件有这个
+            "--disable-features=VizDisplayCompositor", // 测试文件有这个
+            "--disable-blink-features=AutomationControlled", // 测试文件有这个
           ],
+          // 不设置任何额外的选项，保持原生Playwright行为
         },
-        // 如果有保存的会话状态，在创建浏览器上下文时恢复
-        ...(savedSessionState && {
-          useIncognitoPages: false,
-          // 传递会话状态给浏览器上下文
-          extraHTTPHeaders: {
-            "X-Session-State": JSON.stringify(savedSessionState),
-          },
-        }),
       },
       maxRequestsPerCrawl: maxRequests,
-      maxConcurrency: options.maxConcurrency || 1,
+      maxConcurrency: 1, // 与测试文件保持单并发
       minConcurrency: 1,
       autoscaledPoolOptions: {
         desiredConcurrency: 1,
-        maxConcurrency: options.maxConcurrency || 1,
+        maxConcurrency: 1,
       },
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,
       maxRequestRetries: 3,
-      // 传递会话状态给爬虫设置
+      // 最小化preNavigationHooks，完全模拟测试文件
       preNavigationHooks: [
         async (crawlingContext) => {
           const { page } = crawlingContext;
-          const context = page.context();
 
-          // 如果有保存的会话状态，恢复它
+          // 完全模拟测试文件的页面设置
+          page.setDefaultTimeout(60000); // 与测试文件一致
+          page.setDefaultNavigationTimeout(60000); // 与测试文件一致
+
+          // 如果有保存的会话状态，在页面加载前设置存储状态
           if (savedSessionState) {
             try {
-              // 恢复储存状态（Cookies、localStorage等）
-              await context.addCookies(savedSessionState.cookies || []);
+              // savedSessionState 是 Playwright 的 storageState 格式
+              const storageState = savedSessionState as {
+                cookies?: Array<{
+                  name: string;
+                  value: string;
+                  domain: string;
+                  path: string;
+                  expires?: number;
+                  httpOnly?: boolean;
+                  secure?: boolean;
+                  sameSite?: "Strict" | "Lax" | "None";
+                }>;
+                origins?: Array<{
+                  origin: string;
+                  localStorage?: Array<{ name: string; value: string }>;
+                }>;
+              };
 
-              // 设置 localStorage 和 sessionStorage
-              if (savedSessionState.origins) {
-                for (const origin of savedSessionState.origins) {
-                  if (origin.localStorage) {
-                    for (const item of origin.localStorage) {
-                      await page.addInitScript(
-                        (name, value) => {
-                          localStorage.setItem(name, value);
-                        },
-                        item.name,
-                        item.value,
-                      );
-                    }
-                  }
-                  if (origin.sessionStorage) {
-                    for (const item of origin.sessionStorage) {
-                      await page.addInitScript(
-                        (name, value) => {
-                          sessionStorage.setItem(name, value);
-                        },
-                        item.name,
-                        item.value,
-                      );
-                    }
+              // 添加 cookies
+              if (storageState.cookies && storageState.cookies.length > 0) {
+                await page.context().addCookies(storageState.cookies);
+              }
+
+              // 设置 localStorage
+              if (storageState.origins) {
+                for (const origin of storageState.origins) {
+                  if (origin.localStorage && origin.localStorage.length > 0) {
+                    await page.addInitScript((items) => {
+                      for (const item of items) {
+                        localStorage.setItem(item.name, item.value);
+                      }
+                    }, origin.localStorage);
                   }
                 }
               }
 
-              crawleeLog.info(`${siteName}: 已恢复保存的会话状态`);
+              crawleeLog.info(`${siteName}: 已加载保存的会话状态`);
             } catch (error) {
               crawleeLog.warning(
-                `${siteName}: 恢复会话状态失败: ${(error as Error).message}`,
+                `${siteName}: 加载会话状态失败: ${(error as Error).message}`,
               );
-              sessionManager.cleanupSessionState();
             }
           }
         },
       ],
+      // 禁用Crawlee的复杂功能，保持简单
+      useSessionPool: false, // 禁用会话池，使用我们自己的会话管理
     },
     config,
   );
@@ -260,15 +270,13 @@ export default async function scrapeFMTC(
 
   crawleeLog.info(`${siteName}: 反检测爬虫设置完成，开始抓取...`);
 
-  // 初始请求：登录页面或恢复会话
+  // 初始请求：始终从登录页面开始，确保会话状态正确
   const initialRequest = {
-    url: savedSessionState
-      ? "https://account.fmtc.co/cp/program_directory"
-      : "https://account.fmtc.co/cp/login",
-    label: (savedSessionState ? "SEARCH" : "LOGIN") as const,
+    url: "https://account.fmtc.co/cp/login",
+    label: "LOGIN",
     userData: {
       executionId,
-      label: (savedSessionState ? "SEARCH" : "LOGIN") as const,
+      label: "LOGIN",
       credentials: options.credentials,
       options: options,
       hasExistingSession: !!savedSessionState,
@@ -407,6 +415,13 @@ export function validateFMTCOptions(options: FMTCScraperOptions): void {
   }
 
   if (
+    options.maxMerchants &&
+    (options.maxMerchants < 1 || options.maxMerchants > 10000)
+  ) {
+    throw new Error("最大商家数量必须在 1-10000 之间");
+  }
+
+  if (
     options.maxConcurrency &&
     (options.maxConcurrency < 1 || options.maxConcurrency > 5)
   ) {
@@ -428,6 +443,7 @@ export function createDefaultFMTCOptions(credentials: {
   return {
     credentials,
     maxPages: 10,
+    maxMerchants: 500,
     includeDetails: true,
     downloadImages: false,
     maxConcurrency: 1,

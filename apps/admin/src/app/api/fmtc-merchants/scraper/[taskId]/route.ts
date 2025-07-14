@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { auth } from "@/../auth";
 import { db } from "@/lib/db";
+import { FMTCScraperService } from "@/lib/services/fmtc-scraper.service";
 
-import { auth } from "@/auth";
+const fmtcScraperService = new FMTCScraperService();
 
 /**
  * GET /api/fmtc-merchants/scraper/[taskId]
@@ -10,7 +12,7 @@ import { auth } from "@/auth";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { taskId: string } },
+  { params }: { params: Promise<{ taskId: string }> },
 ) {
   try {
     const session = await auth();
@@ -19,7 +21,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { taskId } = params;
+    const { taskId } = await params;
 
     const task = await db.fMTCScraperTask.findUnique({
       where: { id: taskId },
@@ -95,7 +97,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { taskId: string } },
+  { params }: { params: Promise<{ taskId: string }> },
 ) {
   try {
     const session = await auth();
@@ -104,7 +106,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { taskId } = params;
+    const { taskId } = await params;
     const body = await request.json();
 
     const task = await db.fMTCScraperTask.findUnique({
@@ -159,7 +161,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { taskId: string } },
+  { params }: { params: Promise<{ taskId: string }> },
 ) {
   try {
     const session = await auth();
@@ -168,7 +170,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { taskId } = params;
+    const { taskId } = await params;
 
     const task = await db.fMTCScraperTask.findUnique({
       where: { id: taskId },
@@ -220,7 +222,7 @@ export async function DELETE(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { taskId: string } },
+  { params }: { params: Promise<{ taskId: string }> },
 ) {
   try {
     const session = await auth();
@@ -229,7 +231,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { taskId } = params;
+    const { taskId } = await params;
     const body = await request.json();
     const { action } = body;
 
@@ -269,28 +271,23 @@ export async function POST(
           );
         }
 
-        // 创建新的执行记录
-        const execution = await db.fMTCScraperExecution.create({
-          data: {
-            taskId,
-            status: "RUNNING",
-            startedAt: new Date(),
-          },
-        });
+        // 使用爬虫服务启动任务
+        try {
+          const execution = await fmtcScraperService.startScrapingTask(taskId);
 
-        // 更新任务的最后执行时间
-        await db.fMTCScraperTask.update({
-          where: { id: taskId },
-          data: { lastExecutedAt: new Date() },
-        });
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            executionId: execution.id,
-            message: "任务已开始",
-          },
-        });
+          return NextResponse.json({
+            success: true,
+            data: {
+              executionId: execution.id,
+              message: "任务已开始",
+            },
+          });
+        } catch (error) {
+          return NextResponse.json(
+            { success: false, error: (error as Error).message },
+            { status: 500 },
+          );
+        }
       }
 
       case "stop": {

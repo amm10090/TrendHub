@@ -77,8 +77,17 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
         { url: request.url, label },
       );
 
-      // 在每个请求前执行反检测策略
-      await antiDetection.simulateRealUserBehavior();
+      // 在登录请求中跳过反检测策略，避免干扰reCAPTCHA
+      if (label !== "LOGIN") {
+        await antiDetection.simulateRealUserBehavior();
+      } else {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.DEBUG,
+          "登录请求跳过反检测策略，避免干扰reCAPTCHA",
+        );
+      }
 
       // 根据标签分发请求
       switch (label) {
@@ -89,7 +98,24 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
             navigationHandler,
             userData,
             log,
-            sessionManager,
+            sessionManager
+              ? {
+                  saveSessionState: async (
+                    context: PlaywrightCrawlingContext,
+                    username?: string,
+                  ) => {
+                    await sessionManager.saveSessionState(context, username);
+                  },
+                  checkAuthenticationStatus: async (
+                    page: PlaywrightCrawlingContext["page"],
+                  ) => {
+                    return await sessionManager.checkAuthenticationStatus(page);
+                  },
+                  cleanupSessionState: () => {
+                    sessionManager.cleanupSessionState();
+                  },
+                }
+              : undefined,
           );
           break;
 
@@ -102,7 +128,24 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
             allScrapedMerchants,
             progressCallback,
             log,
-            sessionManager,
+            sessionManager
+              ? {
+                  saveSessionState: async (
+                    context: PlaywrightCrawlingContext,
+                    username?: string,
+                  ) => {
+                    await sessionManager.saveSessionState(context, username);
+                  },
+                  checkAuthenticationStatus: async (
+                    page: PlaywrightCrawlingContext["page"],
+                  ) => {
+                    return await sessionManager.checkAuthenticationStatus(page);
+                  },
+                  cleanupSessionState: () => {
+                    sessionManager.cleanupSessionState();
+                  },
+                }
+              : undefined,
           );
           break;
 
@@ -196,6 +239,64 @@ async function handleLogin(
 ): Promise<void> {
   if (!userData.credentials) {
     throw new Error("登录凭据未提供");
+  }
+
+  // 如果有现有会话，先检查是否仍然有效
+  if (userData.hasExistingSession && sessionManager) {
+    await logMessage(
+      log,
+      userData.executionId,
+      LocalScraperLogLevel.INFO,
+      "检查现有会话状态",
+    );
+
+    try {
+      const isValid = await sessionManager.checkAuthenticationStatus(
+        context.page,
+      );
+      if (isValid) {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          "现有会话有效，跳过登录步骤",
+        );
+
+        // 会话有效，直接导航到Directory页面
+        const navigationResult = await navigationHandler.navigateToDirectory();
+        if (navigationResult.success) {
+          await context.addRequests([
+            {
+              url:
+                navigationResult.currentUrl ||
+                "https://account.fmtc.co/cp/program_directory",
+              label: "SEARCH",
+              userData: {
+                ...userData,
+                label: "SEARCH",
+              },
+            },
+          ]);
+        }
+        return;
+      } else {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.WARN,
+          "现有会话已失效，清理会话状态",
+        );
+        sessionManager.cleanupSessionState();
+      }
+    } catch (error) {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.ERROR,
+        `会话状态检查失败: ${(error as Error).message}`,
+      );
+      sessionManager.cleanupSessionState();
+    }
   }
 
   // 执行登录
@@ -365,6 +466,21 @@ async function handleSearch(
 
       // 处理解析出的商户数据
       for (const merchant of parsedResults.merchants) {
+        // 检查是否已达到最大商家数量限制
+        const maxMerchants = userData.options?.maxMerchants;
+        const currentMerchantCount = allScrapedMerchants.length;
+
+        if (maxMerchants && currentMerchantCount >= maxMerchants) {
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.INFO,
+            `已达到最大商家数量限制 (${maxMerchants})，停止处理`,
+            { currentCount: currentMerchantCount, maxMerchants },
+          );
+          break;
+        }
+
         try {
           // 转换为FMTCMerchantData格式
           const merchantData: FMTCMerchantData = {
@@ -413,8 +529,38 @@ async function handleSearch(
         }
       }
 
+      // 检查是否已达到最大商家数量限制
+      const maxMerchants = userData.options?.maxMerchants;
+      const currentMerchantCount = allScrapedMerchants.length;
+
+      if (maxMerchants && currentMerchantCount >= maxMerchants) {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          `已达到最大商家数量限制 (${maxMerchants})，停止抓取`,
+          { currentCount: currentMerchantCount, maxMerchants },
+        );
+        return;
+      }
+
       // 处理分页
       if (parsedResults.hasNextPage) {
+        // 检查分页限制
+        const maxPages = userData.options?.maxPages;
+        const currentPage = userData.pageNumber || 1;
+
+        if (maxPages && currentPage >= maxPages) {
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.INFO,
+            `已达到最大页数限制 (${maxPages})，停止抓取`,
+            { currentPage, maxPages },
+          );
+          return;
+        }
+
         const success = await resultsParser.navigateToNextPage();
 
         if (success) {
@@ -422,7 +568,8 @@ async function handleSearch(
             log,
             userData.executionId,
             LocalScraperLogLevel.INFO,
-            "成功导航到下一页，继续解析",
+            `成功导航到下一页 (${currentPage + 1})，继续解析`,
+            { currentMerchantCount, maxMerchants },
           );
 
           // 添加下一页的搜索任务
@@ -432,7 +579,7 @@ async function handleSearch(
               label: "SEARCH",
               userData: {
                 ...userData,
-                pageNumber: (userData.pageNumber || 1) + 1,
+                pageNumber: currentPage + 1,
               },
             },
           ]);

@@ -51,6 +51,15 @@ export async function sendLogToBackend(
     return; // 测试运行模式下仅输出到控制台，不发送到后端
   }
 
+  // 检查是否为FMTC爬虫的executionId (以"cmd"开头，是CUID格式)
+  if (executionId.startsWith("cmd")) {
+    console.log(
+      `[FMTC SCRAPER LOG] ${level}: ${message}`,
+      context ? JSON.stringify(context, null, 2) : "",
+    );
+    // 继续发送到后端，但如果失败则静默处理
+  }
+
   // 检查executionId格式是否符合UUID标准 (后端API期望的格式)
   // const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
   // if (!uuidRegex.test(executionId)) {

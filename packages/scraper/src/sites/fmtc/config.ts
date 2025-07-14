@@ -10,6 +10,7 @@ import { ReCAPTCHAMode, type ReCAPTCHAConfig } from "./recaptcha-service.js";
  */
 export const DEFAULT_FMTC_OPTIONS: Partial<FMTCScraperOptions> = {
   maxPages: 10,
+  maxMerchants: 500, // 默认最多抓取500个商家
   includeDetails: true,
   downloadImages: false,
   maxConcurrency: 1, // 保守设置，避免被封
@@ -69,6 +70,7 @@ export const FMTC_CONFIG = {
   // 抓取限制
   MAX_PAGES_PER_SESSION: 50,
   MAX_MERCHANTS_PER_PAGE: 100,
+  MAX_MERCHANTS_PER_SESSION: 1000, // 单次会话最大商家数量
   MIN_REQUEST_INTERVAL: 1000,
   MAX_REQUEST_INTERVAL: 5000,
 
@@ -155,6 +157,7 @@ export function getEnvironmentConfig() {
     username: process.env.FMTC_USERNAME,
     password: process.env.FMTC_PASSWORD,
     maxPages: parseInt(process.env.FMTC_MAX_PAGES || "10"),
+    maxMerchants: parseInt(process.env.FMTC_MAX_MERCHANTS || "500"),
     requestDelay: parseInt(process.env.FMTC_REQUEST_DELAY || "2000"),
     enableImageDownload: process.env.FMTC_ENABLE_IMAGE_DOWNLOAD === "true",
     headlessMode: process.env.FMTC_HEADLESS_MODE !== "false",

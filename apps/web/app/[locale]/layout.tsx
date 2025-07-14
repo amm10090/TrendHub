@@ -39,7 +39,8 @@ interface RawSnippetData {
 
 // -------------- 获取公共设置函数 --------------
 async function getPublicSettings(): Promise<Record<string, string>> {
-  const baseUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3001';
+  // 使用固定的内部URL来避免环境变量序列化问题
+  const baseUrl = 'http://localhost:3001';
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒超时
 
@@ -74,7 +75,8 @@ async function getPublicSettings(): Promise<Record<string, string>> {
 // Moved existing getActiveCodeSnippets function here, minor adjustments if needed
 // (Assuming the existing function is mostly correct, just ensure baseUrl usage)
 async function getActiveCodeSnippets(path: string): Promise<CodeSnippet[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3001';
+  // 使用固定的内部URL来避免环境变量序列化问题
+  const baseUrl = 'http://localhost:3001';
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒超时
 
@@ -133,7 +135,7 @@ export async function generateMetadata({
 
   // Construct metadata object
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'), // Add metadataBase
+    metadataBase: new URL('http://localhost:3000'), // Add metadataBase
     title: {
       default: defaultTitle,
       template: `%s | ${siteName}`, // Example: "About Us | TrendHub"

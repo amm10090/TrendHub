@@ -8,7 +8,12 @@
   "files": [
     "dist"
   ],
-  "exports": "./dist/main.js",
+  "exports": {
+    ".": "./dist/main.js",
+    "./utils": "./dist/utils.js",
+    "./sites/*": "./dist/sites/*",
+    "./dist/*": "./dist/*"
+  },
   "dependencies": {
     "@repo/types": "workspace:*",
     "crawlee": "^3.13.3",

@@ -11,10 +11,23 @@ import {
   XCircle,
   Eye,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +53,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 // 抓取任务接口
 interface FMTCScraperTask {
@@ -98,6 +112,15 @@ export function FMTCScraperPanel({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [stopConfirmTask, setStopConfirmTask] = useState<string | null>(null);
+
+  // 操作状态管理
+  const [taskActionLoading, setTaskActionLoading] = useState<{
+    [taskId: string]: string | null;
+  }>({});
+  const [creatingTask, setCreatingTask] = useState(false);
+  const [updatingTask, setUpdatingTask] = useState(false);
+  const [deletingTask, setDeletingTask] = useState<string | null>(null);
 
   // 表单状态
   const [taskForm, setTaskForm] = useState({
@@ -106,6 +129,7 @@ export function FMTCScraperPanel({
     isEnabled: true,
     cronExpression: "",
     maxPages: 10,
+    maxMerchants: 500,
     includeDetails: true,
     downloadImages: false,
     username: "",
@@ -135,6 +159,13 @@ export function FMTCScraperPanel({
 
   // 创建抓取任务
   const handleCreateTask = async () => {
+    if (creatingTask) return;
+
+    setCreatingTask(true);
+    toast.loading(t("fmtcMerchants.scraper.actions.creating"), {
+      id: "create-task",
+    });
+
     try {
       const response = await fetch("/api/fmtc-merchants/scraper", {
         method: "POST",
@@ -152,6 +183,7 @@ export function FMTCScraperPanel({
             },
             config: {
               maxPages: taskForm.maxPages,
+              maxMerchantsPerRun: taskForm.maxMerchants,
               includeDetails: taskForm.includeDetails,
               downloadImages: taskForm.downloadImages,
             },
@@ -159,23 +191,39 @@ export function FMTCScraperPanel({
         }),
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      const result = await response.json();
 
-        if (result.success) {
-          setIsCreateModalOpen(false);
-          resetForm();
-          fetchTasks();
-        }
+      if (response.ok && result.success) {
+        toast.success(t("fmtcMerchants.scraper.messages.createSuccess"), {
+          id: "create-task",
+        });
+        setIsCreateModalOpen(false);
+        resetForm();
+        await fetchTasks();
+      } else {
+        const errorMessage =
+          result.error || t("fmtcMerchants.scraper.messages.operationFailed");
+
+        toast.error(errorMessage, { id: "create-task" });
       }
     } catch (error) {
       console.error("创建任务失败:", error);
+      toast.error(t("fmtcMerchants.scraper.messages.networkError"), {
+        id: "create-task",
+      });
+    } finally {
+      setCreatingTask(false);
     }
   };
 
   // 更新任务
   const handleUpdateTask = async () => {
-    if (!selectedTask) return;
+    if (!selectedTask || updatingTask) return;
+
+    setUpdatingTask(true);
+    toast.loading(t("fmtcMerchants.scraper.actions.updating"), {
+      id: "update-task",
+    });
 
     try {
       const response = await fetch("/api/fmtc-merchants/scraper", {
@@ -188,8 +236,22 @@ export function FMTCScraperPanel({
             description: taskForm.description,
             isEnabled: taskForm.isEnabled,
             cronExpression: taskForm.cronExpression || null,
+            credentials: taskForm.password
+              ? {
+                  username: taskForm.username,
+                  password: taskForm.password,
+                }
+              : taskForm.username && !taskForm.password
+                ? {
+                    username: taskForm.username,
+                    password:
+                      ((selectedTask.credentials as Record<string, unknown>)
+                        ?.password as string) || "",
+                  }
+                : undefined,
             config: {
               maxPages: taskForm.maxPages,
+              maxMerchantsPerRun: taskForm.maxMerchants,
               includeDetails: taskForm.includeDetails,
               downloadImages: taskForm.downloadImages,
             },
@@ -197,45 +259,124 @@ export function FMTCScraperPanel({
         }),
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      const result = await response.json();
 
-        if (result.success) {
-          setIsEditModalOpen(false);
-          setSelectedTask(null);
-          resetForm();
-          fetchTasks();
-        }
+      if (response.ok && result.success) {
+        toast.success(t("fmtcMerchants.scraper.messages.updateSuccess"), {
+          id: "update-task",
+        });
+        setIsEditModalOpen(false);
+        setSelectedTask(null);
+        resetForm();
+        await fetchTasks();
+      } else {
+        const errorMessage =
+          result.error || t("fmtcMerchants.scraper.messages.operationFailed");
+
+        toast.error(errorMessage, { id: "update-task" });
       }
     } catch (error) {
       console.error("更新任务失败:", error);
+      toast.error(t("fmtcMerchants.scraper.messages.networkError"), {
+        id: "update-task",
+      });
+    } finally {
+      setUpdatingTask(false);
     }
+  };
+
+  // 处理停止任务的确认
+  const handleStopConfirm = (taskId: string) => {
+    setStopConfirmTask(taskId);
+  };
+
+  // 执行停止任务
+  const executeStopTask = async () => {
+    if (!stopConfirmTask) return;
+    await handleTaskAction(stopConfirmTask, "stop");
+    setStopConfirmTask(null);
   };
 
   // 执行任务操作
   const handleTaskAction = async (taskId: string, action: string) => {
+    // 防止重复操作
+    if (taskActionLoading[taskId]) {
+      return;
+    }
+
+    // 设置加载状态
+    setTaskActionLoading((prev) => ({ ...prev, [taskId]: action }));
+
     try {
+      // 显示操作开始的提示
+      const actionText =
+        {
+          start: t("fmtcMerchants.scraper.actions.starting"),
+          stop: t("fmtcMerchants.scraper.actions.stopping"),
+          enable: t("fmtcMerchants.scraper.actions.enabling"),
+          disable: t("fmtcMerchants.scraper.actions.disabling"),
+          reset: t("fmtcMerchants.scraper.actions.resetting"),
+        }[action] || t("fmtcMerchants.scraper.actions.executing");
+
+      toast.loading(actionText, { id: `task-${taskId}-${action}` });
+
       const response = await fetch(`/api/fmtc-merchants/scraper/${taskId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      const result = await response.json();
 
-        if (result.success) {
-          fetchTasks();
-        }
+      if (response.ok && result.success) {
+        // 成功提示
+        const successText =
+          {
+            start: t("fmtcMerchants.scraper.messages.startSuccess"),
+            stop: t("fmtcMerchants.scraper.messages.stopSuccess"),
+            enable: t("fmtcMerchants.scraper.messages.enableSuccess"),
+            disable: t("fmtcMerchants.scraper.messages.disableSuccess"),
+            reset: t("fmtcMerchants.scraper.messages.resetSuccess"),
+          }[action] || t("fmtcMerchants.scraper.messages.operationSuccess");
+
+        toast.success(successText, { id: `task-${taskId}-${action}` });
+
+        // 刷新任务列表
+        await fetchTasks();
+      } else {
+        // 错误提示
+        const errorMessage =
+          result.error || t("fmtcMerchants.scraper.messages.operationFailed");
+
+        toast.error(errorMessage, { id: `task-${taskId}-${action}` });
       }
     } catch (error) {
       console.error("任务操作失败:", error);
+      toast.error(t("fmtcMerchants.scraper.messages.networkError"), {
+        id: `task-${taskId}-${action}`,
+      });
+    } finally {
+      // 清除加载状态
+      setTaskActionLoading((prev) => {
+        const newState = { ...prev };
+
+        delete newState[taskId];
+
+        return newState;
+      });
     }
   };
 
   // 删除任务
   const handleDeleteTask = async (taskId: string) => {
     if (!confirm(t("fmtcMerchants.scraper.confirmDelete"))) return;
+
+    if (deletingTask) return;
+
+    setDeletingTask(taskId);
+    toast.loading(t("fmtcMerchants.scraper.actions.deleting"), {
+      id: `delete-task-${taskId}`,
+    });
 
     try {
       const response = await fetch(
@@ -245,11 +386,26 @@ export function FMTCScraperPanel({
         },
       );
 
-      if (response.ok) {
-        fetchTasks();
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success(t("fmtcMerchants.scraper.messages.deleteSuccess"), {
+          id: `delete-task-${taskId}`,
+        });
+        await fetchTasks();
+      } else {
+        const errorMessage =
+          result.error || t("fmtcMerchants.scraper.messages.operationFailed");
+
+        toast.error(errorMessage, { id: `delete-task-${taskId}` });
       }
     } catch (error) {
       console.error("删除任务失败:", error);
+      toast.error(t("fmtcMerchants.scraper.messages.networkError"), {
+        id: `delete-task-${taskId}`,
+      });
+    } finally {
+      setDeletingTask(null);
     }
   };
 
@@ -261,6 +417,7 @@ export function FMTCScraperPanel({
       isEnabled: true,
       cronExpression: "",
       maxPages: 10,
+      maxMerchants: 500,
       includeDetails: true,
       downloadImages: false,
       username: "",
@@ -271,16 +428,22 @@ export function FMTCScraperPanel({
   // 打开编辑模态框
   const openEditModal = (task: FMTCScraperTask) => {
     setSelectedTask(task);
+
+    // 从任务配置中读取实际值，如果不存在则使用默认值
+    const config = task.config || {};
+    const credentials = task.credentials || {};
+
     setTaskForm({
       name: task.name,
       description: task.description || "",
       isEnabled: task.isEnabled,
       cronExpression: task.cronExpression || "",
-      maxPages: 10, // 从 config 中获取
-      includeDetails: true,
-      downloadImages: false,
-      username: "",
-      password: "",
+      maxPages: config.maxPages || config.maxPagesPerRun || 10,
+      maxMerchants: config.maxMerchants || config.maxMerchantsPerRun || 500,
+      includeDetails: config.includeDetails !== false,
+      downloadImages: config.downloadImages || false,
+      username: credentials.username || "",
+      password: "", // 出于安全考虑，不显示已保存的密码
     });
     setIsEditModalOpen(true);
   };
@@ -410,30 +573,80 @@ export function FMTCScraperPanel({
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant={isRunning ? "destructive" : "default"}
-                        size="sm"
-                        onClick={() =>
-                          handleTaskAction(
-                            task.id,
-                            isRunning ? "stop" : "start",
-                          )
-                        }
-                        disabled={!task.isEnabled && !isRunning}
-                      >
-                        {isRunning ? (
-                          <Square className="h-4 w-4" />
-                        ) : (
-                          <Play className="h-4 w-4" />
-                        )}
-                      </Button>
+                      {isRunning ? (
+                        <AlertDialog
+                          open={stopConfirmTask === task.id}
+                          onOpenChange={(open) => {
+                            if (!open) setStopConfirmTask(null);
+                          }}
+                        >
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleStopConfirm(task.id)}
+                              disabled={!!taskActionLoading[task.id]}
+                            >
+                              {taskActionLoading[task.id] === "stop" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Square className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {t(
+                                  "fmtcMerchants.scraper.messages.confirmStop",
+                                )}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t(
+                                  "fmtcMerchants.scraper.messages.confirmStopMessage",
+                                )}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>
+                                {t("common.cancel")}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={executeStopTask}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t("fmtcMerchants.scraper.actions.stop")}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ) : (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleTaskAction(task.id, "start")}
+                          disabled={
+                            !task.isEnabled || !!taskActionLoading[task.id]
+                          }
+                        >
+                          {taskActionLoading[task.id] === "start" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
                       <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteTask(task.id)}
-                        disabled={isRunning}
+                        disabled={isRunning || deletingTask === task.id}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {deletingTask === task.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -462,19 +675,27 @@ export function FMTCScraperPanel({
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm font-medium">
-                        {t("fmtcMerchants.scraper.status")}
+                        {t("common.columns.status")}
                       </p>
                       {latestExecution ? (
                         <Badge
-                          className={getStatusColor(latestExecution.status)}
+                          className={cn(
+                            getStatusColor(latestExecution.status),
+                            "transition-all duration-200",
+                            isRunning && "animate-pulse",
+                          )}
                         >
                           <div className="flex items-center space-x-1">
                             {getStatusIcon(latestExecution.status)}
                             <span>
                               {t(
                                 `fmtcMerchants.scraper.status.${latestExecution.status.toLowerCase()}`,
+                                { fallback: latestExecution.status },
                               )}
                             </span>
+                            {taskActionLoading[task.id] && (
+                              <Loader2 className="h-3 w-3 animate-spin ml-1" />
+                            )}
                           </div>
                         </Badge>
                       ) : (
@@ -500,16 +721,32 @@ export function FMTCScraperPanel({
 
                   {/* 执行进度 */}
                   {isRunning && (
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-4 space-y-2 animate-in slide-in-from-top-2 duration-300">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">
                           {t("fmtcMerchants.scraper.progress")}
                         </span>
-                        <span className="text-sm text-muted-foreground">
-                          {t("fmtcMerchants.scraper.running")}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+                          <span className="text-sm text-muted-foreground">
+                            {t("fmtcMerchants.scraper.running")}
+                          </span>
+                        </div>
                       </div>
-                      <Progress value={65} className="h-2" />
+                      <Progress
+                        value={65}
+                        className="h-2 transition-all duration-300"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>
+                          {taskActionLoading[task.id]
+                            ? t(
+                                `fmtcMerchants.scraper.actions.${taskActionLoading[task.id]}`,
+                              )
+                            : t("fmtcMerchants.scraper.running")}
+                        </span>
+                        <span>65%</span>
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -644,6 +881,24 @@ export function FMTCScraperPanel({
                     }
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maxMerchants">
+                    {t("fmtcMerchants.scraper.maxMerchants")}
+                  </Label>
+                  <Input
+                    id="maxMerchants"
+                    type="number"
+                    min="1"
+                    max="10000"
+                    value={taskForm.maxMerchants}
+                    onChange={(e) =>
+                      setTaskForm({
+                        ...taskForm,
+                        maxMerchants: parseInt(e.target.value) || 500,
+                      })
+                    }
+                  />
+                </div>
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="includeDetails"
@@ -681,9 +936,16 @@ export function FMTCScraperPanel({
             </Button>
             <Button
               onClick={handleCreateTask}
-              disabled={!taskForm.name || !taskForm.username}
+              disabled={!taskForm.name || !taskForm.username || creatingTask}
             >
-              {t("common.create")}
+              {creatingTask ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t("fmtcMerchants.scraper.actions.creating")}
+                </>
+              ) : (
+                t("common.create")
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -696,58 +958,180 @@ export function FMTCScraperPanel({
             <DialogTitle>{t("fmtcMerchants.scraper.editTask")}</DialogTitle>
           </DialogHeader>
 
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">{t("common.name")}</Label>
-              <Input
-                id="edit-name"
-                value={taskForm.name}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, name: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">
-                {t("common.description")}
-              </Label>
-              <Textarea
-                id="edit-description"
-                value={taskForm.description}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, description: e.target.value })
-                }
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="edit-enabled"
-                checked={taskForm.isEnabled}
-                onCheckedChange={(checked) =>
-                  setTaskForm({ ...taskForm, isEnabled: checked })
-                }
-              />
-              <Label htmlFor="edit-enabled">{t("common.enabled")}</Label>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-cron">
-                {t("fmtcMerchants.scraper.cronExpression")}
-              </Label>
-              <Input
-                id="edit-cron"
-                value={taskForm.cronExpression}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, cronExpression: e.target.value })
-                }
-              />
-            </div>
-          </div>
+          <Tabs defaultValue="basic" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic">{t("common.basic")}</TabsTrigger>
+              <TabsTrigger value="credentials">
+                {t("fmtcMerchants.scraper.credentials")}
+              </TabsTrigger>
+              <TabsTrigger value="config">{t("common.config")}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="basic" className="space-y-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">{t("common.name")}</Label>
+                  <Input
+                    id="edit-name"
+                    value={taskForm.name}
+                    onChange={(e) =>
+                      setTaskForm({ ...taskForm, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">
+                    {t("common.description")}
+                  </Label>
+                  <Textarea
+                    id="edit-description"
+                    value={taskForm.description}
+                    onChange={(e) =>
+                      setTaskForm({ ...taskForm, description: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-enabled"
+                    checked={taskForm.isEnabled}
+                    onCheckedChange={(checked) =>
+                      setTaskForm({ ...taskForm, isEnabled: checked })
+                    }
+                  />
+                  <Label htmlFor="edit-enabled">{t("common.enabled")}</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-cron">
+                    {t("fmtcMerchants.scraper.cronExpression")}
+                  </Label>
+                  <Input
+                    id="edit-cron"
+                    value={taskForm.cronExpression}
+                    onChange={(e) =>
+                      setTaskForm({
+                        ...taskForm,
+                        cronExpression: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="credentials" className="space-y-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-username">
+                    {t("fmtcMerchants.scraper.username")}
+                  </Label>
+                  <Input
+                    id="edit-username"
+                    type="text"
+                    value={taskForm.username}
+                    onChange={(e) =>
+                      setTaskForm({ ...taskForm, username: e.target.value })
+                    }
+                    placeholder="请输入用户名"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-password">
+                    {t("fmtcMerchants.scraper.password")}
+                  </Label>
+                  <Input
+                    id="edit-password"
+                    type="password"
+                    value={taskForm.password}
+                    onChange={(e) =>
+                      setTaskForm({ ...taskForm, password: e.target.value })
+                    }
+                    placeholder="请输入密码"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="config" className="space-y-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-maxPages">
+                    {t("fmtcMerchants.scraper.maxPages")}
+                  </Label>
+                  <Input
+                    id="edit-maxPages"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={taskForm.maxPages}
+                    onChange={(e) =>
+                      setTaskForm({
+                        ...taskForm,
+                        maxPages: parseInt(e.target.value) || 10,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-maxMerchants">
+                    {t("fmtcMerchants.scraper.maxMerchants")}
+                  </Label>
+                  <Input
+                    id="edit-maxMerchants"
+                    type="number"
+                    min="1"
+                    max="10000"
+                    value={taskForm.maxMerchants}
+                    onChange={(e) =>
+                      setTaskForm({
+                        ...taskForm,
+                        maxMerchants: parseInt(e.target.value) || 500,
+                      })
+                    }
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-includeDetails"
+                    checked={taskForm.includeDetails}
+                    onCheckedChange={(checked) =>
+                      setTaskForm({ ...taskForm, includeDetails: checked })
+                    }
+                  />
+                  <Label htmlFor="edit-includeDetails">
+                    {t("fmtcMerchants.scraper.includeDetails")}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-downloadImages"
+                    checked={taskForm.downloadImages}
+                    onCheckedChange={(checked) =>
+                      setTaskForm({ ...taskForm, downloadImages: checked })
+                    }
+                  />
+                  <Label htmlFor="edit-downloadImages">
+                    {t("fmtcMerchants.scraper.downloadImages")}
+                  </Label>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
               {t("common.cancel")}
             </Button>
-            <Button onClick={handleUpdateTask}>{t("common.save")}</Button>
+            <Button onClick={handleUpdateTask} disabled={updatingTask}>
+              {updatingTask ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t("fmtcMerchants.scraper.actions.updating")}
+                </>
+              ) : (
+                t("common.save")
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -766,7 +1150,9 @@ export function FMTCScraperPanel({
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">{t("common.status")}</p>
+                  <p className="text-sm font-medium">
+                    {t("common.columns.status")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {selectedTask.isEnabled
                       ? t("common.enabled")
@@ -792,13 +1178,13 @@ export function FMTCScraperPanel({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("common.status")}</TableHead>
+                        <TableHead>{t("common.columns.status")}</TableHead>
                         <TableHead>{t("common.startTime")}</TableHead>
                         <TableHead>{t("common.duration")}</TableHead>
                         <TableHead>
                           {t("fmtcMerchants.scraper.merchants")}
                         </TableHead>
-                        <TableHead>{t("common.error")}</TableHead>
+                        <TableHead>{t("common.errors.error")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -820,6 +1206,7 @@ export function FMTCScraperPanel({
                                   <span>
                                     {t(
                                       `fmtcMerchants.scraper.status.${execution.status.toLowerCase()}`,
+                                      { fallback: execution.status },
                                     )}
                                   </span>
                                 </div>

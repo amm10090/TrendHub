@@ -68,7 +68,7 @@ export async function POST(request: Request) {
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin-top: 30px;">
                     <tr>
                         <td style="background-color: #000000; border-radius: 6px;">
-                            <a href="${process.env.NEXT_PUBLIC_APP_URL}" style="display: inline-block; padding: 14px 30px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold;">Visit TrendHub</a>
+                            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}" style="display: inline-block; padding: 14px 30px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold;">Visit TrendHub</a>
                         </td>
                     </tr>
                 </table>

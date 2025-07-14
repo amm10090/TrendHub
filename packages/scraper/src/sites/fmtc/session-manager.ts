@@ -102,7 +102,10 @@ export class FMTCSessionManager {
       this.log.info("[SessionManager] 会话状态已保存");
       return true;
     } catch (error) {
-      this.log.error("[SessionManager] 保存会话状态失败:", error);
+      this.log.error(
+        "[SessionManager] 保存会话状态失败:",
+        error instanceof Error ? error.message : String(error),
+      );
       return false;
     }
   }
@@ -147,7 +150,10 @@ export class FMTCSessionManager {
       );
       return sessionData.state;
     } catch (error) {
-      this.log.warning("[SessionManager] 加载会话状态失败:", error);
+      this.log.warning(
+        "[SessionManager] 加载会话状态失败:",
+        error instanceof Error ? error.message : String(error),
+      );
       this.cleanupSessionState();
       return null;
     }
@@ -163,7 +169,10 @@ export class FMTCSessionManager {
         this.log.info("[SessionManager] 已清理会话状态");
       }
     } catch (error) {
-      this.log.warning("[SessionManager] 清理会话状态失败:", error);
+      this.log.warning(
+        "[SessionManager] 清理会话状态失败:",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 
@@ -199,17 +208,19 @@ export class FMTCSessionManager {
             return true;
           }
         } catch (error) {
-          this.log.warning("[SessionManager] 页面内容验证失败:", error);
+          this.log.warning(
+            "[SessionManager] 页面内容验证失败:",
+            error instanceof Error ? error.message : String(error),
+          );
         }
       }
 
       this.log.info("[SessionManager] 认证状态无效，需要重新登录");
       return false;
     } catch (error) {
-      this.log.warning(
-        "[SessionManager] 认证状态检查失败:",
-        (error as Error).message,
-      );
+      this.log.warning("[SessionManager] 认证状态检查失败:", {
+        error: (error as Error).message,
+      });
       return false;
     }
   }
@@ -230,7 +241,10 @@ export class FMTCSessionManager {
 
       return isValid;
     } catch (error) {
-      this.log.error("[SessionManager] 会话验证失败:", error);
+      this.log.error(
+        "[SessionManager] 会话验证失败:",
+        error instanceof Error ? error.message : String(error),
+      );
       this.cleanupSessionState();
       return false;
     }
@@ -254,7 +268,10 @@ export class FMTCSessionManager {
       writeFileSync(this.sessionFilePath, JSON.stringify(sessionData, null, 2));
       this.log.debug("[SessionManager] 已更新最后活动时间");
     } catch (error) {
-      this.log.warning("[SessionManager] 更新最后活动时间失败:", error);
+      this.log.warning(
+        "[SessionManager] 更新最后活动时间失败:",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 
@@ -278,7 +295,10 @@ export class FMTCSessionManager {
         username: sessionData.username,
       };
     } catch (error) {
-      this.log.warning("[SessionManager] 获取会话信息失败:", error);
+      this.log.warning(
+        "[SessionManager] 获取会话信息失败:",
+        error instanceof Error ? error.message : String(error),
+      );
       return { exists: false };
     }
   }

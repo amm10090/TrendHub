@@ -35,8 +35,12 @@ export async function POST(request: NextRequest) {
     const { executionId, level, message, context, timestamp } =
       validationResult.data;
 
-    // 1. 查询 ScraperTaskExecution 和关联的 TaskDefinition
-    const taskExecution = await db.scraperTaskExecution.findUnique({
+    // 1. 查询 ScraperTaskExecution 或 FMTCScraperExecution 和关联的 TaskDefinition
+    let taskExecution = null;
+    let isFMTCExecution = false;
+
+    // 首先尝试查找通用的抓取任务执行记录
+    taskExecution = await db.scraperTaskExecution.findUnique({
       where: { id: executionId },
       include: {
         taskDefinition: {
@@ -47,6 +51,32 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // 如果没有找到，尝试查找FMTC专用的执行记录
+    if (!taskExecution) {
+      const fmtcExecution = await db.fMTCScraperExecution.findUnique({
+        where: { id: executionId },
+        include: {
+          task: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (fmtcExecution) {
+        // 构造一个兼容的taskExecution对象
+        taskExecution = {
+          id: fmtcExecution.id,
+          taskDefinition: {
+            isDebugModeEnabled: true, // FMTC任务默认启用调试模式
+            targetSite: "FMTC",
+          },
+        };
+        isFMTCExecution = true;
+      }
+    }
 
     if (!taskExecution) {
       // 这个检查保留，以防万一 executionId 真的无效
@@ -103,16 +133,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. 将日志写入数据库 (保持原有逻辑)
-    await db.scraperTaskLog.create({
-      data: {
-        executionId,
-        level,
-        message,
-        context: context ? (context as Prisma.InputJsonValue) : Prisma.JsonNull,
-        timestamp: timestamp ? new Date(timestamp) : new Date(), // Use provided timestamp or now
-      },
-    });
+    // 3. 将日志写入数据库 (根据执行类型选择不同的日志表)
+    if (isFMTCExecution) {
+      // 为FMTC执行记录创建日志，使用通用的scraperTaskLog表但标记为FMTC类型
+      await db.scraperTaskLog.create({
+        data: {
+          executionId,
+          level,
+          message: `[FMTC] ${message}`, // 添加FMTC前缀以便识别
+          context: context
+            ? (context as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
+          timestamp: timestamp ? new Date(timestamp) : new Date(),
+        },
+      });
+    } else {
+      // 使用原有逻辑处理通用抓取任务
+      await db.scraperTaskLog.create({
+        data: {
+          executionId,
+          level,
+          message,
+          context: context
+            ? (context as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
+          timestamp: timestamp ? new Date(timestamp) : new Date(),
+        },
+      });
+    }
 
     return NextResponse.json({ message: "日志已接收" }, { status: 201 });
   } catch {

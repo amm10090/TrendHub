@@ -854,7 +854,7 @@ export class FMTCSearchHandler {
       const isVisibleAfterScroll = await element.isVisible();
       if (!isVisibleAfterScroll) {
         // 如果还不可见，尝试手动滚动
-        await element.evaluate((el) => {
+        await element.evaluate((el: Element) => {
           el.scrollIntoView({
             behavior: "smooth",
             block: "center",

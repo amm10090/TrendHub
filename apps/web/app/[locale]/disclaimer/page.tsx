@@ -34,12 +34,14 @@ export default function DisclaimerPage() {
     try {
       const items = t.raw(`sections.${section}.items`);
 
-      if (items && typeof items === 'object') {
+      if (items && typeof items === 'object' && !Array.isArray(items)) {
         return Object.values(items as Record<string, string>);
       }
 
       return [];
-    } catch {
+    } catch (error) {
+      console.warn(`Failed to get items for section ${section}:`, error);
+
       return [];
     }
   };
@@ -61,9 +63,9 @@ export default function DisclaimerPage() {
           <Mail className="w-4 h-4 text-text-primary-light dark:text-text-primary-dark" />
           <Link
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-            href={`mailto:${t.raw('sections.contact.email')}`}
+            href={`mailto:${t('sections.contact.email')}`}
           >
-            {t.raw('sections.contact.email')}
+            {t('sections.contact.email')}
           </Link>
         </div>
       )}

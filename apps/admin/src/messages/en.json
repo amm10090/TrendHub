@@ -692,6 +692,9 @@
       "error": "Error",
       "unknownApiError": "An unknown API error occurred. Please try again later or contact support."
     },
+    "startTime": "Start Time",
+    "duration": "Duration",
+    "error": "Error",
     "pagination": {
       "items": "items",
       "next": "Next",
@@ -2833,6 +2836,7 @@
       "username": "Username",
       "password": "Password",
       "maxPages": "Max Pages",
+      "maxMerchants": "Max Merchants",
       "includeDetails": "Include Details",
       "downloadImages": "Download Images",
       "enabledTasks": "Enabled Tasks",
@@ -2848,6 +2852,37 @@
         "completed": "Completed",
         "failed": "Failed",
         "cancelled": "Cancelled"
+      },
+      "actions": {
+        "start": "Start",
+        "stop": "Stop",
+        "enable": "Enable",
+        "disable": "Disable",
+        "reset": "Reset",
+        "starting": "Starting task...",
+        "stopping": "Stopping task...",
+        "enabling": "Enabling task...",
+        "disabling": "Disabling task...",
+        "resetting": "Resetting task...",
+        "creating": "Creating task...",
+        "updating": "Updating task...",
+        "deleting": "Deleting task...",
+        "executing": "Executing operation..."
+      },
+      "messages": {
+        "startSuccess": "Task started successfully",
+        "stopSuccess": "Task stopped successfully",
+        "enableSuccess": "Task enabled",
+        "disableSuccess": "Task disabled",
+        "resetSuccess": "Task reset",
+        "createSuccess": "Task created successfully",
+        "updateSuccess": "Task updated successfully",
+        "deleteSuccess": "Task deleted successfully",
+        "operationSuccess": "Operation completed successfully",
+        "operationFailed": "Operation failed",
+        "networkError": "Network error, please try again later",
+        "confirmStop": "Confirm stop task?",
+        "confirmStopMessage": "Stopping the task will interrupt the current scraping process. Are you sure you want to continue?"
       }
     },
     "filters": {

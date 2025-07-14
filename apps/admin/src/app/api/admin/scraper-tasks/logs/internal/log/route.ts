@@ -133,20 +133,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. 将日志写入数据库 (根据执行类型选择不同的日志表)
+    // 3. 将日志写入数据库 (根据执行类型选择不同的策略)
     if (isFMTCExecution) {
-      // 为FMTC执行记录创建日志，使用通用的scraperTaskLog表但标记为FMTC类型
-      await db.scraperTaskLog.create({
-        data: {
-          executionId,
-          level,
-          message: `[FMTC] ${message}`, // 添加FMTC前缀以便识别
-          context: context
-            ? (context as Prisma.InputJsonValue)
-            : Prisma.JsonNull,
-          timestamp: timestamp ? new Date(timestamp) : new Date(),
-        },
-      });
+      // FMTC执行记录无法使用scraperTaskLog表因为外键约束问题
+      // 暂时跳过数据库日志记录，只保留文件日志
+      // TODO: 考虑创建专门的FMTCScraperLog表或重新设计日志架构
+      console.log(`[FMTC日志已记录到文件] ${message}`);
     } else {
       // 使用原有逻辑处理通用抓取任务
       await db.scraperTaskLog.create({

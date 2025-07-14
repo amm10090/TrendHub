@@ -733,6 +733,108 @@ enum ImportType {
   API
 }
 
+// --- FMTC 配置管理模型 ---
+
+/// FMTC 爬虫全局配置
+model FMTCScraperConfig {
+  /// 唯一标识符
+  id                    String                  @id @default(cuid())
+  /// 配置名称 (唯一)
+  name                  String                  @unique @default("default")
+  /// 配置描述
+  description           String?
+  
+  // 基础配置
+  /// 默认用户名
+  defaultUsername       String?
+  /// 默认密码 (加密存储)
+  defaultPassword       String?
+  /// 默认最大页数
+  maxPages              Int                     @default(10)
+  /// 默认最大商户数
+  maxMerchants          Int                     @default(500)
+  /// 默认请求延迟(毫秒)
+  requestDelay          Int                     @default(2000)
+  /// 是否启用图片下载
+  enableImageDownload   Boolean                 @default(false)
+  /// 是否启用无头模式
+  headlessMode          Boolean                 @default(true)
+  /// 是否启用调试模式
+  debugMode             Boolean                 @default(false)
+  /// 默认最大并发数
+  maxConcurrency        Int                     @default(1)
+  
+  // reCAPTCHA 配置
+  /// reCAPTCHA 模式 (manual, auto, skip)
+  recaptchaMode         String                  @default("manual")
+  /// 手动超时时间(毫秒)
+  recaptchaManualTimeout    Int                 @default(120000)
+  /// 自动超时时间(毫秒)
+  recaptchaAutoTimeout      Int                 @default(180000)
+  /// reCAPTCHA 重试次数
+  recaptchaRetryAttempts    Int                 @default(3)
+  /// reCAPTCHA 重试延迟(毫秒)
+  recaptchaRetryDelay       Int                 @default(5000)
+  
+  // 2captcha 配置
+  /// 2captcha API 密钥
+  twoCaptchaApiKey      String?
+  /// 2captcha 软件ID
+  twoCaptchaSoftId      Int                     @default(4580)
+  /// 2captcha 服务器域名
+  twoCaptchaServerDomain String                @default("2captcha.com")
+  /// 2captcha 回调地址
+  twoCaptchaCallback    String?
+  
+  // 搜索配置
+  /// 默认搜索文本
+  searchText            String?
+  /// 默认网络ID
+  searchNetworkId       String?
+  /// 默认OPM提供商
+  searchOpmProvider     String?
+  /// 默认搜索分类
+  searchCategory        String?
+  /// 默认搜索国家
+  searchCountry         String?
+  /// 默认配送国家
+  searchShippingCountry String?
+  /// 默认显示类型 (all, accepting, not_accepting)
+  searchDisplayType     String                  @default("all")
+  
+  // 搜索行为配置
+  /// 是否启用随机延迟
+  searchEnableRandomDelay Boolean               @default(true)
+  /// 搜索最小延迟(毫秒)
+  searchMinDelay        Int                     @default(500)
+  /// 搜索最大延迟(毫秒)
+  searchMaxDelay        Int                     @default(2000)
+  /// 最小输入延迟(毫秒)
+  searchTypingDelayMin  Int                     @default(50)
+  /// 最大输入延迟(毫秒)
+  searchTypingDelayMax  Int                     @default(200)
+  /// 是否启用鼠标移动模拟
+  searchEnableMouseMovement Boolean             @default(true)
+  
+  // 高级配置
+  /// 会话超时时间(毫秒)
+  sessionTimeout        Int                     @default(1800000)
+  /// 最大连续错误数
+  maxConsecutiveErrors  Int                     @default(5)
+  /// 错误冷却时间(毫秒)
+  errorCooldownPeriod   Int                     @default(30000)
+  
+  /// 是否启用此配置
+  isEnabled             Boolean                 @default(true)
+  /// 创建时间
+  createdAt             DateTime                @default(now())
+  /// 更新时间
+  updatedAt             DateTime                @updatedAt
+  
+  @@index([isEnabled])
+  @@index([name])
+}
+
 // --- FMTC 商户管理模型 ---
 
 /// FMTC 商户信息

@@ -150,7 +150,58 @@ export function validateCredentials(
 }
 
 /**
- * 获取环境变量配置
+ * FMTC配置接口
+ */
+export interface FMTCConfig {
+  // 基础配置
+  username?: string;
+  password?: string;
+  maxPages?: number;
+  maxMerchants?: number;
+  requestDelay?: number;
+  enableImageDownload?: boolean;
+  headlessMode?: boolean;
+  debugMode?: boolean;
+  maxConcurrency?: number;
+  
+  // reCAPTCHA配置
+  recaptchaMode?: string;
+  recaptchaManualTimeout?: number;
+  recaptchaAutoTimeout?: number;
+  recaptchaRetryAttempts?: number;
+  recaptchaRetryDelay?: number;
+  
+  // 2captcha配置
+  twoCaptchaApiKey?: string;
+  twoCaptchaSoftId?: number;
+  twoCaptchaServerDomain?: string;
+  twoCaptchaCallback?: string;
+  
+  // 搜索配置
+  searchText?: string;
+  searchNetworkId?: string;
+  searchOpmProvider?: string;
+  searchCategory?: string;
+  searchCountry?: string;
+  searchShippingCountry?: string;
+  searchDisplayType?: string;
+  
+  // 搜索行为配置
+  searchEnableRandomDelay?: boolean;
+  searchMinDelay?: number;
+  searchMaxDelay?: number;
+  searchTypingDelayMin?: number;
+  searchTypingDelayMax?: number;
+  searchEnableMouseMovement?: boolean;
+  
+  // 高级配置
+  sessionTimeout?: number;
+  maxConsecutiveErrors?: number;
+  errorCooldownPeriod?: number;
+}
+
+/**
+ * 获取环境变量配置（向后兼容）
  */
 export function getEnvironmentConfig() {
   return {
@@ -167,17 +218,65 @@ export function getEnvironmentConfig() {
 }
 
 /**
- * 获取 reCAPTCHA 配置
+ * 基于配置参数获取配置
+ */
+export function getConfigFromParams(config?: FMTCConfig) {
+  const defaults = {
+    username: undefined,
+    password: undefined,
+    maxPages: 10,
+    maxMerchants: 500,
+    requestDelay: 2000,
+    enableImageDownload: false,
+    headlessMode: true,
+    debugMode: false,
+    maxConcurrency: 1,
+  };
+
+  if (!config) {
+    return defaults;
+  }
+
+  return {
+    username: config.username,
+    password: config.password,
+    maxPages: config.maxPages ?? defaults.maxPages,
+    maxMerchants: config.maxMerchants ?? defaults.maxMerchants,
+    requestDelay: config.requestDelay ?? defaults.requestDelay,
+    enableImageDownload: config.enableImageDownload ?? defaults.enableImageDownload,
+    headlessMode: config.headlessMode ?? defaults.headlessMode,
+    debugMode: config.debugMode ?? defaults.debugMode,
+    maxConcurrency: config.maxConcurrency ?? defaults.maxConcurrency,
+  };
+}
+
+/**
+ * 获取 reCAPTCHA 配置（从环境变量，向后兼容）
  */
 export function getRecaptchaConfig(): ReCAPTCHAConfig {
   // 确定reCAPTCHA模式
   let mode: ReCAPTCHAMode = ReCAPTCHAMode.MANUAL; // 默认手动模式
 
   const recaptchaMode = process.env.FMTC_RECAPTCHA_MODE?.toLowerCase();
+  const apiKey = process.env.FMTC_2CAPTCHA_API_KEY;
+  
+  // 添加调试日志
+  console.log(`[DEBUG] FMTC_RECAPTCHA_MODE: ${process.env.FMTC_RECAPTCHA_MODE}`);
+  console.log(`[DEBUG] FMTC_2CAPTCHA_API_KEY exists: ${!!apiKey}`);
+  console.log(`[DEBUG] recaptchaMode (lowercase): ${recaptchaMode}`);
+  
   if (recaptchaMode === "auto") {
-    mode = ReCAPTCHAMode.AUTO;
+    if (apiKey) {
+      mode = ReCAPTCHAMode.AUTO;
+      console.log(`[DEBUG] 设置为自动模式 (AUTO)`);
+    } else {
+      console.log(`[DEBUG] 自动模式需要API密钥，回退到手动模式`);
+    }
   } else if (recaptchaMode === "skip") {
     mode = ReCAPTCHAMode.SKIP;
+    console.log(`[DEBUG] 设置为跳过模式 (SKIP)`);
+  } else {
+    console.log(`[DEBUG] 使用默认手动模式 (MANUAL)`);
   }
 
   return {
@@ -205,6 +304,43 @@ export function getRecaptchaConfig(): ReCAPTCHAConfig {
           serverDomain:
             process.env.FMTC_2CAPTCHA_SERVER_DOMAIN || "2captcha.com",
           callback: process.env.FMTC_2CAPTCHA_CALLBACK,
+        }
+      : undefined,
+  };
+}
+
+/**
+ * 基于配置参数获取 reCAPTCHA 配置
+ */
+export function getRecaptchaConfigFromParams(config?: FMTCConfig): ReCAPTCHAConfig {
+  // 确定reCAPTCHA模式
+  let mode: ReCAPTCHAMode = ReCAPTCHAMode.MANUAL; // 默认手动模式
+
+  const recaptchaMode = config?.recaptchaMode?.toLowerCase() || "manual";
+  const apiKey = config?.twoCaptchaApiKey;
+  
+  if (recaptchaMode === "auto") {
+    if (apiKey) {
+      mode = ReCAPTCHAMode.AUTO;
+    } else {
+      console.log(`[DEBUG] 自动模式需要API密钥，回退到手动模式`);
+    }
+  } else if (recaptchaMode === "skip") {
+    mode = ReCAPTCHAMode.SKIP;
+  }
+
+  return {
+    mode,
+    manualTimeout: config?.recaptchaManualTimeout ?? FMTC_CONFIG.MANUAL_INTERVENTION_TIMEOUT,
+    autoTimeout: config?.recaptchaAutoTimeout ?? FMTC_CONFIG.RECAPTCHA_AUTO_TIMEOUT,
+    retryAttempts: config?.recaptchaRetryAttempts ?? FMTC_CONFIG.RECAPTCHA_RETRY_ATTEMPTS,
+    retryDelay: config?.recaptchaRetryDelay ?? FMTC_CONFIG.RECAPTCHA_RETRY_DELAY,
+    twoCaptcha: apiKey
+      ? {
+          apiKey,
+          softId: config?.twoCaptchaSoftId ?? 4580,
+          serverDomain: config?.twoCaptchaServerDomain ?? "2captcha.com",
+          callback: config?.twoCaptchaCallback,
         }
       : undefined,
   };
@@ -255,7 +391,7 @@ export function validateConfig(config: Record<string, unknown>): {
 }
 
 /**
- * 获取搜索配置
+ * 获取搜索配置（从环境变量，向后兼容）
  */
 export function getSearchConfig() {
   return {
@@ -279,6 +415,30 @@ export function getSearchConfig() {
     typingDelayMin: parseInt(process.env.FMTC_SEARCH_TYPING_DELAY_MIN || "50"),
     typingDelayMax: parseInt(process.env.FMTC_SEARCH_TYPING_DELAY_MAX || "200"),
     enableMouseMovement: process.env.FMTC_SEARCH_MOUSE_MOVEMENT !== "false",
+  };
+}
+
+/**
+ * 基于配置参数获取搜索配置
+ */
+export function getSearchConfigFromParams(config?: FMTCConfig) {
+  return {
+    // 搜索参数
+    searchText: config?.searchText || "",
+    networkId: config?.searchNetworkId || "",
+    opmProvider: config?.searchOpmProvider || "",
+    category: config?.searchCategory || "",
+    country: config?.searchCountry || "",
+    shippingCountry: config?.searchShippingCountry || "",
+    displayType: (config?.searchDisplayType as "all" | "accepting" | "not_accepting") || "all",
+
+    // 行为配置
+    enableRandomDelay: config?.searchEnableRandomDelay ?? true,
+    minDelay: config?.searchMinDelay ?? 500,
+    maxDelay: config?.searchMaxDelay ?? 2000,
+    typingDelayMin: config?.searchTypingDelayMin ?? 50,
+    typingDelayMax: config?.searchTypingDelayMax ?? 200,
+    enableMouseMovement: config?.searchEnableMouseMovement ?? true,
   };
 }
 

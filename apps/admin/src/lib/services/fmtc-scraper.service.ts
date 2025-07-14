@@ -4,7 +4,7 @@
  */
 
 import { ScraperTaskStatus } from "@prisma/client";
-import { fmtcScraper } from "@repo/scraper";
+import { scrapeFMTCWithConfig } from "@repo/scraper";
 import type {
   FMTCScraperOptions,
   FMTCScraperTask,
@@ -44,6 +44,85 @@ export interface ScraperSummary {
 }
 
 export class FMTCScraperService {
+  /**
+   * 获取FMTC配置
+   */
+  async getFMTCConfig() {
+    try {
+      let config = await db.fMTCScraperConfig.findFirst({
+        where: { name: "default" },
+      });
+
+      if (!config) {
+        // 创建默认配置
+        config = await db.fMTCScraperConfig.create({
+          data: {
+            name: "default",
+            description: "默认FMTC爬虫配置",
+          },
+        });
+      }
+
+      return config;
+    } catch (error) {
+      console.error("获取FMTC配置失败:", error);
+      return null;
+    }
+  }
+
+  /**
+   * 将数据库配置转换为爬虫配置
+   */
+  private convertToFMTCConfig(dbConfig: FMTCScraperConfig) {
+    return {
+      // 基础配置
+      username: dbConfig.defaultUsername,
+      password: dbConfig.defaultPassword,
+      maxPages: dbConfig.maxPages,
+      maxMerchants: dbConfig.maxMerchants,
+      requestDelay: dbConfig.requestDelay,
+      enableImageDownload: dbConfig.enableImageDownload,
+      headlessMode: dbConfig.headlessMode,
+      debugMode: dbConfig.debugMode,
+      maxConcurrency: dbConfig.maxConcurrency,
+      
+      // reCAPTCHA配置
+      recaptchaMode: dbConfig.recaptchaMode,
+      recaptchaManualTimeout: dbConfig.recaptchaManualTimeout,
+      recaptchaAutoTimeout: dbConfig.recaptchaAutoTimeout,
+      recaptchaRetryAttempts: dbConfig.recaptchaRetryAttempts,
+      recaptchaRetryDelay: dbConfig.recaptchaRetryDelay,
+      
+      // 2captcha配置
+      twoCaptchaApiKey: dbConfig.twoCaptchaApiKey,
+      twoCaptchaSoftId: dbConfig.twoCaptchaSoftId,
+      twoCaptchaServerDomain: dbConfig.twoCaptchaServerDomain,
+      twoCaptchaCallback: dbConfig.twoCaptchaCallback,
+      
+      // 搜索配置
+      searchText: dbConfig.searchText,
+      searchNetworkId: dbConfig.searchNetworkId,
+      searchOpmProvider: dbConfig.searchOpmProvider,
+      searchCategory: dbConfig.searchCategory,
+      searchCountry: dbConfig.searchCountry,
+      searchShippingCountry: dbConfig.searchShippingCountry,
+      searchDisplayType: dbConfig.searchDisplayType,
+      
+      // 搜索行为配置
+      searchEnableRandomDelay: dbConfig.searchEnableRandomDelay,
+      searchMinDelay: dbConfig.searchMinDelay,
+      searchMaxDelay: dbConfig.searchMaxDelay,
+      searchTypingDelayMin: dbConfig.searchTypingDelayMin,
+      searchTypingDelayMax: dbConfig.searchTypingDelayMax,
+      searchEnableMouseMovement: dbConfig.searchEnableMouseMovement,
+      
+      // 高级配置
+      sessionTimeout: dbConfig.sessionTimeout,
+      maxConsecutiveErrors: dbConfig.maxConsecutiveErrors,
+      errorCooldownPeriod: dbConfig.errorCooldownPeriod,
+    };
+  }
+
   /**
    * 创建抓取任务
    */
@@ -228,40 +307,53 @@ export class FMTCScraperService {
         },
       });
 
+      // 获取数据库中的FMTC配置
+      const dbConfig = await this.getFMTCConfig();
+      const fmtcConfig = dbConfig ? this.convertToFMTCConfig(dbConfig) : {};
+
       // 使用传入的配置或任务默认配置
       const config = taskConfig || task.config || {};
 
-      // 准备爬虫选项 - 使用与测试文件一致的配置
-      const scraperOptions: FMTCScraperOptions = {
-        credentials: task.credentials || {},
-        maxPages: config.maxPages || 5,
-        maxMerchants: config.maxMerchantsPerRun || 500,
-        includeDetails: config.includeDetails !== false,
-        downloadImages: config.downloadImages || false,
-        maxConcurrency: config.maxConcurrency || 1,
-        requestDelay: config.requestDelay || 2000,
-        headless: false, // 强制使用非无头模式，与测试文件一致
-        searchParams: config.searchParams || {},
+      // 合并配置：任务配置 > 传入配置 > 数据库配置 > 默认值
+      const credentials = task.credentials || {
+        username: fmtcConfig.username,
+        password: fmtcConfig.password,
       };
 
       // 验证基本的爬虫选项
-      if (
-        !scraperOptions.credentials?.username ||
-        !scraperOptions.credentials?.password
-      ) {
+      if (!credentials?.username || !credentials?.password) {
         throw new Error("FMTC 爬虫需要有效的登录凭据");
       }
+
+      // 准备爬虫选项 - 优先使用任务配置，然后是数据库配置
+      const scraperOptions: FMTCScraperOptions = {
+        credentials,
+        maxPages: config.maxPages || fmtcConfig.maxPages || 5,
+        maxMerchants: config.maxMerchantsPerRun || fmtcConfig.maxMerchants || 500,
+        includeDetails: config.includeDetails !== false,
+        downloadImages: config.downloadImages || fmtcConfig.enableImageDownload || false,
+        maxConcurrency: config.maxConcurrency || fmtcConfig.maxConcurrency || 1,
+        requestDelay: config.requestDelay || fmtcConfig.requestDelay || 2000,
+        headless: fmtcConfig.headlessMode !== false, // 使用数据库配置
+        searchParams: config.searchParams || {},
+      };
 
       console.log(`开始执行爬虫任务 ${executionId}, 配置:`, {
         maxPages: scraperOptions.maxPages,
         maxMerchants: scraperOptions.maxMerchants,
         includeDetails: scraperOptions.includeDetails,
         downloadImages: scraperOptions.downloadImages,
+        headless: scraperOptions.headless,
         credentials: scraperOptions.credentials?.username ? "已提供" : "未提供",
+        configSource: dbConfig ? "数据库配置" : "默认配置",
       });
 
-      // 执行真实的爬虫
-      const merchants = await fmtcScraper(scraperOptions, executionId);
+      // 使用新的带配置参数的爬虫函数
+      const merchants = await scrapeFMTCWithConfig(
+        scraperOptions,
+        fmtcConfig,
+        executionId
+      );
 
       console.log(
         `爬虫任务 ${executionId} 完成，获取到 ${merchants.length} 个商户`,
@@ -282,6 +374,7 @@ export class FMTCScraperService {
             withNetworks: merchants.filter(
               (m) => m.networks && m.networks.length > 0,
             ).length,
+            configUsed: dbConfig ? "database" : "default",
           },
         },
       });

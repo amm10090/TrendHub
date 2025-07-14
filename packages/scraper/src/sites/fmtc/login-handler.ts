@@ -37,20 +37,24 @@ export class FMTCLoginHandler {
     this.log = log;
     this.executionId = executionId;
 
-    // 创建默认的reCAPTCHA配置
+    // 创建reCAPTCHA配置，优先使用传入的配置，否则使用默认值
     const defaultRecaptchaConfig: ReCAPTCHAConfig = {
       mode: ReCAPTCHAMode.MANUAL,
       manualTimeout: 60000, // 60秒
       autoTimeout: 120000, // 2分钟
       retryAttempts: 3,
       retryDelay: 5000,
-      ...recaptchaConfig,
+    };
+
+    const finalRecaptchaConfig: ReCAPTCHAConfig = {
+      ...defaultRecaptchaConfig,
+      ...recaptchaConfig, // 传入的配置具有更高优先级
     };
 
     this.recaptchaService = new ReCAPTCHAService(
       page,
       log,
-      defaultRecaptchaConfig,
+      finalRecaptchaConfig,
     );
   }
 

@@ -464,10 +464,10 @@ export class ReCAPTCHAService {
                     recaptchaElement.getAttribute("data-callback");
                   if (
                     callback &&
-                    (window as Record<string, unknown>)[callback]
+                    (window as unknown as Record<string, unknown>)[callback]
                   ) {
                     (
-                      (window as Record<string, unknown>)[callback] as (
+                      (window as unknown as Record<string, unknown>)[callback] as (
                         token: string,
                       ) => void
                     )(token);

@@ -104,7 +104,7 @@ export class FMTCSessionManager {
     } catch (error) {
       this.log.error(
         "[SessionManager] 保存会话状态失败:",
-        error instanceof Error ? error.message : String(error),
+        { error: error instanceof Error ? error.message : String(error) },
       );
       return false;
     }
@@ -152,7 +152,7 @@ export class FMTCSessionManager {
     } catch (error) {
       this.log.warning(
         "[SessionManager] 加载会话状态失败:",
-        error instanceof Error ? error.message : String(error),
+        { error: error instanceof Error ? error.message : String(error) },
       );
       this.cleanupSessionState();
       return null;
@@ -171,7 +171,7 @@ export class FMTCSessionManager {
     } catch (error) {
       this.log.warning(
         "[SessionManager] 清理会话状态失败:",
-        error instanceof Error ? error.message : String(error),
+        { error: error instanceof Error ? error.message : String(error) },
       );
     }
   }
@@ -210,7 +210,7 @@ export class FMTCSessionManager {
         } catch (error) {
           this.log.warning(
             "[SessionManager] 页面内容验证失败:",
-            error instanceof Error ? error.message : String(error),
+            { error: error instanceof Error ? error.message : String(error) },
           );
         }
       }
@@ -243,7 +243,7 @@ export class FMTCSessionManager {
     } catch (error) {
       this.log.error(
         "[SessionManager] 会话验证失败:",
-        error instanceof Error ? error.message : String(error),
+        { error: error instanceof Error ? error.message : String(error) },
       );
       this.cleanupSessionState();
       return false;
@@ -270,7 +270,7 @@ export class FMTCSessionManager {
     } catch (error) {
       this.log.warning(
         "[SessionManager] 更新最后活动时间失败:",
-        error instanceof Error ? error.message : String(error),
+        { error: error instanceof Error ? error.message : String(error) },
       );
     }
   }
@@ -297,7 +297,7 @@ export class FMTCSessionManager {
     } catch (error) {
       this.log.warning(
         "[SessionManager] 获取会话信息失败:",
-        error instanceof Error ? error.message : String(error),
+        { error: error instanceof Error ? error.message : String(error) },
       );
       return { exists: false };
     }

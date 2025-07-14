@@ -101,15 +101,16 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
             sessionManager
               ? {
                   saveSessionState: async (
-                    context: PlaywrightCrawlingContext,
+                    context: unknown,
                     username?: string,
                   ) => {
-                    await sessionManager.saveSessionState(context, username);
+                    const crawlingContext = context as PlaywrightCrawlingContext;
+                    await sessionManager.saveSessionState(crawlingContext.page.context(), username);
                   },
                   checkAuthenticationStatus: async (
-                    page: PlaywrightCrawlingContext["page"],
+                    page: unknown,
                   ) => {
-                    return await sessionManager.checkAuthenticationStatus(page);
+                    return await sessionManager.checkAuthenticationStatus(page as PlaywrightCrawlingContext['page']);
                   },
                   cleanupSessionState: () => {
                     sessionManager.cleanupSessionState();
@@ -131,15 +132,16 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
             sessionManager
               ? {
                   saveSessionState: async (
-                    context: PlaywrightCrawlingContext,
+                    context: unknown,
                     username?: string,
                   ) => {
-                    await sessionManager.saveSessionState(context, username);
+                    const crawlingContext = context as PlaywrightCrawlingContext;
+                    await sessionManager.saveSessionState(crawlingContext.page.context(), username);
                   },
                   checkAuthenticationStatus: async (
-                    page: PlaywrightCrawlingContext["page"],
+                    page: unknown,
                   ) => {
-                    return await sessionManager.checkAuthenticationStatus(page);
+                    return await sessionManager.checkAuthenticationStatus(page as PlaywrightCrawlingContext['page']);
                   },
                   cleanupSessionState: () => {
                     sessionManager.cleanupSessionState();

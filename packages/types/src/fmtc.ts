@@ -146,6 +146,32 @@ export interface FMTCScraperOptions {
   storageDir?: string;
   /** 会话管理配置 */
   sessionConfig?: SessionConfig;
+  /** 搜索参数 */
+  searchParams?: Record<string, unknown>;
+  /** reCAPTCHA 配置 */
+  recaptchaConfig?: {
+    /** reCAPTCHA 处理模式 */
+    mode: "manual" | "auto" | "skip";
+    /** 手动处理超时时间 (毫秒) */
+    manualTimeout?: number;
+    /** 自动处理超时时间 (毫秒) */
+    autoTimeout?: number;
+    /** 重试次数 */
+    retryAttempts?: number;
+    /** 重试间隔 (毫秒) */
+    retryDelay?: number;
+    /** 2captcha 配置 */
+    twoCaptcha?: {
+      /** API 密钥 */
+      apiKey: string;
+      /** 软件 ID */
+      softId?: number;
+      /** 服务器域名 */
+      serverDomain?: string;
+      /** 回调地址 */
+      callback?: string;
+    };
+  };
 }
 
 /**

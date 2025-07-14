@@ -20,9 +20,319 @@ import {
   ensureDirectoryExists,
 } from "../../utils.js";
 import { createSessionManager, type SessionConfig } from "./session-manager.js";
+import { type FMTCConfig, getConfigFromParams, getRecaptchaConfigFromParams, getSearchConfigFromParams } from "./config.js";
 
 /**
- * FMTC 爬虫主函数
+ * FMTC 爬虫主函数（支持配置参数）
+ */
+export async function scrapeFMTCWithConfig(
+  options: FMTCScraperOptions,
+  config?: FMTCConfig,
+  executionId?: string,
+): Promise<FMTCMerchantData[]> {
+  const siteName = "FMTC";
+
+  // 验证必需参数
+  if (!options.credentials?.username || !options.credentials?.password) {
+    throw new Error("FMTC 爬虫需要有效的登录凭据");
+  }
+
+  // 创建会话管理器
+  const sessionConfig: Partial<SessionConfig> = {
+    sessionFile: `fmtc-session-${options.credentials.username.replace(/[^a-zA-Z0-9]/g, "_")}.json`,
+    maxAge: config?.sessionTimeout ?? 4 * 60 * 60 * 1000, // 4小时或配置值
+    autoSave: options.sessionConfig?.autoSave !== false, // 默认启用
+  };
+
+  const sessionManager = createSessionManager(crawleeLog, sessionConfig);
+
+  if (executionId) {
+    await sendLogToBackend(
+      executionId,
+      LocalScraperLogLevel.INFO,
+      `${siteName} 爬虫启动（使用配置参数）`,
+      {
+        options: {
+          maxPages: options.maxPages,
+          maxMerchants: options.maxMerchants,
+          includeDetails: options.includeDetails,
+          downloadImages: options.downloadImages,
+          maxConcurrency: options.maxConcurrency,
+        },
+        credentials: {
+          username: options.credentials.username,
+          // 不记录密码
+        },
+        configProvided: !!config,
+      },
+    );
+  }
+
+  const allScrapedMerchants: FMTCMerchantData[] = [];
+  const maxRequests = (options.maxPages || 10) * 10; // 估算请求数
+
+  // 设置存储目录
+  const baseStorageDir = path.resolve(process.cwd(), "scraper_storage_runs");
+  const runSpecificStorageDir = executionId
+    ? path.join(baseStorageDir, siteName, executionId)
+    : path.join(
+        baseStorageDir,
+        siteName,
+        `default_run_${new Date().getTime()}`,
+      );
+
+  crawleeLog.info(`${siteName}: 存储目录设置为: ${runSpecificStorageDir}`);
+
+  // 创建必需的目录
+  ensureDirectoryExists(
+    path.join(runSpecificStorageDir, "request_queues", "default"),
+    crawleeLog,
+  );
+  ensureDirectoryExists(
+    path.join(runSpecificStorageDir, "datasets", "default"),
+    crawleeLog,
+  );
+  ensureDirectoryExists(
+    path.join(runSpecificStorageDir, "key_value_stores", "default"),
+    crawleeLog,
+  );
+
+  if (options.downloadImages && options.storageDir) {
+    ensureDirectoryExists(options.storageDir, crawleeLog);
+  }
+
+  process.env.CRAWLEE_STORAGE_DIR = runSpecificStorageDir;
+
+  // 创建 Crawlee 配置
+  const crawleeConfig = new Configuration({
+    storageClientOptions: { storageDir: runSpecificStorageDir },
+  });
+
+  // 进度回调
+  const progressCallback: FMTCProgressCallback = {
+    onPageProgress: (progress) => {
+      crawleeLog.info(
+        `${siteName}: 页面进度 ${progress.currentPage}/${progress.totalPages}, 商户 ${progress.merchantsProcessed}/${progress.merchantsTotal}`,
+      );
+    },
+    onMerchantProcessed: (merchant) => {
+      crawleeLog.debug(`${siteName}: 处理商户 "${merchant.name}"`);
+    },
+    onError: (error, context) => {
+      crawleeLog.error(`${siteName}: 错误 - ${context}: ${error.message}`);
+    },
+    onWarning: (warning, context) => {
+      crawleeLog.warning(`${siteName}: 警告 - ${context}: ${warning}`);
+    },
+  };
+
+  // 检查是否有保存的会话状态
+  const savedSessionState = sessionManager.loadSessionState(
+    options.credentials.username,
+  );
+
+  // 反检测配置（使用配置参数或默认值）
+  const antiDetectionConfig: FMTCAntiDetectionConfig = {
+    enableRandomDelay: config?.searchEnableRandomDelay ?? true,
+    delayRange: {
+      min: config?.searchMinDelay ?? 1000,
+      max: config?.searchMaxDelay ?? 3000,
+    },
+    simulateMouseMovement: config?.searchEnableMouseMovement ?? true,
+    simulateScrolling: true,
+    detectAntiBot: true,
+    retryAttempts: 3,
+    sessionTimeout: config?.sessionTimeout ?? 30 * 60 * 1000, // 30分钟
+  };
+
+  // 创建爬虫
+  const crawler = new PlaywrightCrawler(
+    {
+      requestHandler: createFMTCRequestHandler({
+        allScrapedMerchants,
+        scraperOptions: options,
+        progressCallback,
+        antiDetectionConfig,
+        maxRetries: 3,
+        debugMode: config?.debugMode ?? false,
+        sessionManager,
+        fmtcConfig: config, // 传递配置参数
+      }),
+      failedRequestHandler: async ({ request, log }) => {
+        log.error(`${siteName}: 请求失败 ${request.url}`);
+
+        const currentExecutionId = (request.userData as FMTCUserData)
+          ?.executionId;
+        if (currentExecutionId) {
+          await sendLogToBackend(
+            currentExecutionId,
+            LocalScraperLogLevel.ERROR,
+            `请求失败: ${request.url}`,
+            {
+              error: request.errorMessages?.join("; "),
+              retryCount: request.retryCount,
+            },
+          );
+        }
+      },
+      launchContext: {
+        launcher: chromium,
+        launchOptions: {
+          headless: config?.headlessMode ?? false,
+          slowMo: 500,
+          args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-web-security",
+            "--disable-features=VizDisplayCompositor",
+            "--disable-blink-features=AutomationControlled",
+          ],
+        },
+      },
+      maxRequestsPerCrawl: maxRequests,
+      maxConcurrency: 1,
+      minConcurrency: 1,
+      autoscaledPoolOptions: {
+        desiredConcurrency: 1,
+        maxConcurrency: 1,
+      },
+      requestHandlerTimeoutSecs: 300,
+      navigationTimeoutSecs: 120,
+      maxRequestRetries: 3,
+      preNavigationHooks: [
+        async (crawlingContext) => {
+          const { page } = crawlingContext;
+
+          page.setDefaultTimeout(60000);
+          page.setDefaultNavigationTimeout(60000);
+
+          // 如果有保存的会话状态，在页面加载前设置存储状态
+          if (savedSessionState) {
+            try {
+              const storageState = savedSessionState as {
+                cookies?: Array<{
+                  name: string;
+                  value: string;
+                  domain: string;
+                  path: string;
+                  expires?: number;
+                  httpOnly?: boolean;
+                  secure?: boolean;
+                  sameSite?: "Strict" | "Lax" | "None";
+                }>;
+                origins?: Array<{
+                  origin: string;
+                  localStorage?: Array<{ name: string; value: string }>;
+                }>;
+              };
+
+              // 添加 cookies
+              if (storageState.cookies && storageState.cookies.length > 0) {
+                await page.context().addCookies(storageState.cookies);
+              }
+
+              // 设置 localStorage
+              if (storageState.origins) {
+                for (const origin of storageState.origins) {
+                  if (origin.localStorage && origin.localStorage.length > 0) {
+                    await page.addInitScript((items) => {
+                      for (const item of items) {
+                        localStorage.setItem(item.name, item.value);
+                      }
+                    }, origin.localStorage);
+                  }
+                }
+              }
+
+              crawleeLog.info(`${siteName}: 已加载保存的会话状态`);
+            } catch (error) {
+              crawleeLog.warning(
+                `${siteName}: 加载会话状态失败: ${(error as Error).message}`,
+              );
+            }
+          }
+        },
+      ],
+      useSessionPool: false,
+    },
+    crawleeConfig,
+  );
+
+  if (savedSessionState) {
+    crawleeLog.info(`${siteName}: 找到保存的会话状态，将跳过登录直接开始抓取`);
+  } else {
+    crawleeLog.info(`${siteName}: 未找到保存的会话，将执行登录流程`);
+  }
+
+  crawleeLog.info(`${siteName}: 反检测爬虫设置完成，开始抓取...`);
+
+  // 初始请求：始终从登录页面开始，确保会话状态正确
+  const initialRequest = {
+    url: "https://account.fmtc.co/cp/login",
+    label: "LOGIN",
+    userData: {
+      executionId,
+      label: "LOGIN",
+      credentials: options.credentials,
+      options: options,
+      hasExistingSession: !!savedSessionState,
+      fmtcConfig: config, // 传递配置参数
+    } as FMTCUserData,
+  };
+
+  try {
+    // 启动爬虫
+    await crawler.run([initialRequest]);
+
+    if (executionId) {
+      await sendLogToBackend(
+        executionId,
+        LocalScraperLogLevel.INFO,
+        `${siteName} 爬虫完成，总共收集 ${allScrapedMerchants.length} 个商户`,
+        {
+          totalMerchants: allScrapedMerchants.length,
+          withDetails: allScrapedMerchants.filter((m) => m.homepage || m.fmtcId)
+            .length,
+          withNetworks: allScrapedMerchants.filter(
+            (m) => m.networks && m.networks.length > 0,
+          ).length,
+        },
+      );
+    }
+
+    crawleeLog.info(
+      `${siteName} 爬虫完成，总共收集 ${allScrapedMerchants.length} 个商户`,
+    );
+
+    // 打印统计信息
+    const stats = generateStatistics(allScrapedMerchants);
+    crawleeLog.info(`${siteName} 统计信息:`, stats);
+
+    return allScrapedMerchants;
+  } catch (error) {
+    const errorMessage = `${siteName} 爬虫执行失败: ${(error as Error).message}`;
+
+    if (executionId) {
+      await sendLogToBackend(
+        executionId,
+        LocalScraperLogLevel.ERROR,
+        errorMessage,
+        {
+          error: (error as Error).message,
+          stack: (error as Error).stack,
+          partialResults: allScrapedMerchants.length,
+        },
+      );
+    }
+
+    crawleeLog.error(errorMessage);
+    throw error;
+  }
+}
+
+/**
+ * FMTC 爬虫主函数（环境变量版本，向后兼容）
  */
 export default async function scrapeFMTC(
   options: FMTCScraperOptions,
@@ -463,3 +773,7 @@ export { FMTCMerchantDetailHandler } from "./merchant-detail-handler.js";
 export { FMTCAntiDetection } from "./anti-detection.js";
 export { createFMTCRequestHandler } from "./request-handler.js";
 export { FMTC_SELECTORS, FMTC_URL_PATTERNS } from "./selectors.js";
+export { type FMTCConfig, getConfigFromParams, getRecaptchaConfigFromParams, getSearchConfigFromParams } from "./config.js";
+
+// 导出新的配置支持的爬虫函数
+export { scrapeFMTCWithConfig };

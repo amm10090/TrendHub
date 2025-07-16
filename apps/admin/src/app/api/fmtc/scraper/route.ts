@@ -9,6 +9,11 @@ import { auth } from "@/../auth";
 import { db } from "@/lib/db";
 import { FMTCScraperService } from "@/lib/services/fmtc-scraper.service";
 
+const logger = {
+  error: (message: string, context?: unknown) =>
+    console.error(`[FMTCScraperAPI ERROR] ${message}`, context || ""),
+};
+
 const fmtcScraperService = new FMTCScraperService();
 
 /**
@@ -103,7 +108,7 @@ export async function GET(request: NextRequest) {
         }
 
         // 这里应该从爬虫日志服务获取日志
-        const logs = await fmtcScraperService.getExecutionLogs(executionId);
+        const logs = await fmtcScraperService.getExecutionLogs();
 
         return NextResponse.json({
           success: true,
@@ -118,7 +123,7 @@ export async function GET(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error("获取抓取任务信息失败:", error);
+    logger.error("获取抓取任务信息失败:", error);
 
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
@@ -249,7 +254,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error("抓取任务操作失败:", error);
+    logger.error("抓取任务操作失败:", error);
 
     return NextResponse.json(
       { success: false, error: (error as Error).message },
@@ -310,7 +315,7 @@ export async function PUT(request: NextRequest) {
       message: "任务配置更新成功",
     });
   } catch (error) {
-    console.error("更新抓取任务配置失败:", error);
+    logger.error("更新抓取任务配置失败:", error);
 
     return NextResponse.json(
       { success: false, error: (error as Error).message },
@@ -369,7 +374,7 @@ export async function DELETE(request: NextRequest) {
       message: "任务删除成功",
     });
   } catch (error) {
-    console.error("删除抓取任务失败:", error);
+    logger.error("删除抓取任务失败:", error);
 
     return NextResponse.json(
       { success: false, error: (error as Error).message },

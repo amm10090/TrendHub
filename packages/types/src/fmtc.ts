@@ -201,6 +201,119 @@ export interface FMTCScraperConfig {
   };
 }
 
+/**
+ * 任务配置接口
+ */
+export interface TaskConfig {
+  maxPages?: number;
+  maxMerchantsPerRun?: number;
+  maxMerchants?: number;
+  includeDetails?: boolean;
+  downloadImages?: boolean;
+  maxConcurrency?: number;
+  requestDelay?: number;
+  searchParams?: Record<string, unknown>;
+}
+
+/**
+ * FMTC 数据库配置模型 (对应数据库 schema)
+ */
+export interface FMTCScraperDbConfig {
+  /** 唯一标识符 */
+  id: string;
+  /** 配置名称 */
+  name: string;
+  /** 配置描述 */
+  description?: string | null;
+
+  // 基础配置
+  /** 默认用户名 */
+  defaultUsername?: string | null;
+  /** 默认密码 */
+  defaultPassword?: string | null;
+  /** 默认最大页数 */
+  maxPages: number;
+  /** 默认最大商户数 */
+  maxMerchants: number;
+  /** 默认请求延迟(毫秒) */
+  requestDelay: number;
+  /** 是否启用图片下载 */
+  enableImageDownload: boolean;
+  /** 是否启用无头模式 */
+  headlessMode: boolean;
+  /** 是否启用调试模式 */
+  debugMode: boolean;
+  /** 默认最大并发数 */
+  maxConcurrency: number;
+
+  // reCAPTCHA 配置
+  /** reCAPTCHA 模式 */
+  recaptchaMode: string;
+  /** 手动超时时间(毫秒) */
+  recaptchaManualTimeout: number;
+  /** 自动超时时间(毫秒) */
+  recaptchaAutoTimeout: number;
+  /** reCAPTCHA 重试次数 */
+  recaptchaRetryAttempts: number;
+  /** reCAPTCHA 重试延迟(毫秒) */
+  recaptchaRetryDelay: number;
+
+  // 2captcha 配置
+  /** 2captcha API 密钥 */
+  twoCaptchaApiKey?: string | null;
+  /** 2captcha 软件ID */
+  twoCaptchaSoftId: number;
+  /** 2captcha 服务器域名 */
+  twoCaptchaServerDomain: string;
+  /** 2captcha 回调地址 */
+  twoCaptchaCallback?: string | null;
+
+  // 搜索配置
+  /** 默认搜索文本 */
+  searchText?: string | null;
+  /** 默认网络ID */
+  searchNetworkId?: string | null;
+  /** 默认OPM提供商 */
+  searchOpmProvider?: string | null;
+  /** 默认搜索分类 */
+  searchCategory?: string | null;
+  /** 默认搜索国家 */
+  searchCountry?: string | null;
+  /** 默认配送国家 */
+  searchShippingCountry?: string | null;
+  /** 默认显示类型 */
+  searchDisplayType: string;
+
+  // 搜索行为配置
+  /** 是否启用随机延迟 */
+  searchEnableRandomDelay: boolean;
+  /** 搜索最小延迟(毫秒) */
+  searchMinDelay: number;
+  /** 搜索最大延迟(毫秒) */
+  searchMaxDelay: number;
+  /** 最小输入延迟(毫秒) */
+  searchTypingDelayMin: number;
+  /** 最大输入延迟(毫秒) */
+  searchTypingDelayMax: number;
+  /** 是否启用鼠标移动模拟 */
+  searchEnableMouseMovement: boolean;
+
+  // 高级配置
+  /** 会话超时时间(毫秒) */
+  sessionTimeout: number;
+  /** 最大连续错误数 */
+  maxConsecutiveErrors: number;
+  /** 错误冷却时间(毫秒) */
+  errorCooldownPeriod: number;
+
+  /** 是否启用此配置 */
+  isEnabled: boolean;
+  /** 创建时间 */
+  createdAt: Date;
+  /** 更新时间 */
+  updatedAt: Date;
+}
+
 // === 抓取任务相关接口 ===
 
 /**
@@ -214,9 +327,9 @@ export interface FMTCScraperTask {
   /** 任务描述 */
   description?: string;
   /** 登录凭据 (加密) */
-  credentials: Record<string, unknown>;
+  credentials: FMTCCredentials | Record<string, unknown>;
   /** 抓取配置 */
-  config: FMTCScraperConfig;
+  config: Record<string, unknown>;
   /** 是否启用 */
   isEnabled: boolean;
   /** CRON 表达式 */

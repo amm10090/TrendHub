@@ -15,6 +15,7 @@ import type {
 } from "./types.js";
 import { FMTC_SELECTORS, FMTC_REGEX_PATTERNS } from "./selectors.js";
 import { sendLogToBackend, LocalScraperLogLevel, delay } from "../../utils.js";
+import { FMTC_CONFIG } from "./config.js";
 
 /**
  * FMTC 商户详情处理器类
@@ -35,6 +36,13 @@ export class FMTCMerchantDetailHandler {
     this.log = log;
     this.executionId = executionId;
     this.downloadDir = downloadDir;
+  }
+
+  /**
+   * 检查是否应该输出调试日志
+   */
+  private shouldLogDebug(): boolean {
+    return FMTC_CONFIG.DEBUG_MODE;
   }
 
   /**
@@ -105,9 +113,15 @@ export class FMTCMerchantDetailHandler {
    */
   private async navigateToDetailPage(merchantUrl: string): Promise<void> {
     try {
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "导航到商户详情页面", {
-        url: merchantUrl,
-      });
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "导航到商户详情页面",
+          {
+            url: merchantUrl,
+          },
+        );
+      }
 
       await this.page.goto(merchantUrl, {
         waitUntil: "networkidle",
@@ -126,7 +140,12 @@ export class FMTCMerchantDetailHandler {
    */
   private async waitForDetailPageLoad(): Promise<void> {
     try {
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "等待商户详情页面加载");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "等待商户详情页面加载",
+        );
+      }
 
       // 等待任一关键元素出现
       await this.page.waitForSelector(
@@ -144,7 +163,12 @@ export class FMTCMerchantDetailHandler {
       // 等待额外时间确保所有内容加载
       await delay(1500);
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "商户详情页面加载完成");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "商户详情页面加载完成",
+        );
+      }
     } catch (error) {
       throw new Error(`等待详情页面加载失败: ${(error as Error).message}`);
     }
@@ -155,7 +179,12 @@ export class FMTCMerchantDetailHandler {
    */
   private async extractMerchantDetails(): Promise<FMTCMerchantDetailData> {
     try {
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "开始提取商户详情数据");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "开始提取商户详情数据",
+        );
+      }
 
       const detail: FMTCMerchantDetailData = {};
 
@@ -183,11 +212,13 @@ export class FMTCMerchantDetailHandler {
         return debug;
       });
 
-      await this.logMessage(
-        LocalScraperLogLevel.DEBUG,
-        "页面结构调试信息",
-        pageStructure,
-      );
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "页面结构调试信息",
+          pageStructure,
+        );
+      }
 
       // 使用页面评估来批量提取所有信息 - 修复选择器问题
       const extractedData = await this.page.evaluate(() => {
@@ -340,36 +371,116 @@ export class FMTCMerchantDetailHandler {
                 });
                 // 确认FreshReach支持状态
                 data.freshReachSupported = true;
-              } else if (text.includes(" URL:")) {
-                // 通用联盟链接提取 - 匹配任何 "XXX URL:" 模式
-                const urlMatch = text.match(/(\w+)\s+URL:/);
-                if (urlMatch) {
-                  const networkName = urlMatch[1]; // 提取网络名称 (CJ, AW, RA等)
+              }
+            });
+          });
 
+          // 专门处理Links部分 - 更健壮的方式
+          const linksGroups = toolsSection.querySelectorAll("ul.list-group");
+          linksGroups.forEach((ulGroup) => {
+            const headerItem = ulGroup.querySelector(
+              "li.list-group-item.fmtc-bg-primary",
+            );
+            if (headerItem && headerItem.textContent?.includes("Links")) {
+              // 找到Links部分，遍历所有非标题的li项
+              const linkItems = ulGroup.querySelectorAll(
+                "li.list-group-item:not(.fmtc-bg-primary)",
+              );
+
+              linkItems.forEach((linkItem) => {
+                const text = linkItem.textContent || "";
+
+                // 跳过Preview Deals，因为已经在前面处理过
+                if (text.includes("Preview Deals")) {
+                  return;
+                }
+
+                // 跳过FreshReach，因为已经在前面处理过
+                if (text.includes("FreshReach")) {
+                  return;
+                }
+
+                // 查找该li项中的所有a标签
+                const links = linkItem.querySelectorAll("a");
+                links.forEach((link) => {
+                  const href = (link as HTMLAnchorElement).href;
+                  if (
+                    !href ||
+                    href.startsWith("#") ||
+                    href.includes("javascript:")
+                  ) {
+                    return; // 跳过无效链接
+                  }
+
+                  // 尝试从文本中提取网络名称
+                  let networkName = "OTHER"; // 默认分组
+
+                  // 检查常见的网络名称模式
+                  const networkPatterns = [
+                    { pattern: /\b(AW|Awin)\b/i, name: "AW" },
+                    { pattern: /\b(CJ|Commission Junction)\b/i, name: "CJ" },
+                    { pattern: /\b(RA|Rakuten)\b/i, name: "RA" },
+                    { pattern: /\b(LS|LinkShare)\b/i, name: "LS" },
+                    { pattern: /\b(SAS|ShareASale)\b/i, name: "SAS" },
+                    { pattern: /\b(PJ|PartnerJunction)\b/i, name: "PJ" },
+                    { pattern: /\b(TC|TradeTracker)\b/i, name: "TC" },
+                    { pattern: /\b(WB|WebGains)\b/i, name: "WB" },
+                    { pattern: /\b(PH|PHG)\b/i, name: "PH" },
+                    { pattern: /\b(AN|Affiliate Network)\b/i, name: "AN" },
+                  ];
+
+                  // 检查文本中是否包含已知的网络名称
+                  for (const { pattern, name } of networkPatterns) {
+                    if (pattern.test(text)) {
+                      networkName = name;
+                      break;
+                    }
+                  }
+
+                  // 如果没有匹配到已知网络，尝试从URL中判断
+                  if (networkName === "OTHER") {
+                    if (href.includes("awin") || href.includes("awclick")) {
+                      networkName = "AW";
+                    } else if (
+                      href.includes("cj.com") ||
+                      href.includes("commission")
+                    ) {
+                      networkName = "CJ";
+                    } else if (
+                      href.includes("rakuten") ||
+                      href.includes("linksynergy")
+                    ) {
+                      networkName = "RA";
+                    } else if (href.includes("shareasale")) {
+                      networkName = "SAS";
+                    } else if (href.includes("partnerize")) {
+                      networkName = "PJ";
+                    } else if (href.includes("webgains")) {
+                      networkName = "WB";
+                    } else if (href.includes("tradedoubler")) {
+                      networkName = "TD";
+                    } else if (href.includes("impact")) {
+                      networkName = "IR";
+                    }
+                  }
+
+                  // 初始化affiliateLinks对象
                   if (!data.affiliateLinks) data.affiliateLinks = {};
                   if (!data.affiliateLinks[networkName])
                     data.affiliateLinks[networkName] = [];
 
-                  const affiliateLinks = item.querySelectorAll("a");
-                  affiliateLinks.forEach((affLink) => {
-                    const href = (affLink as HTMLAnchorElement).href;
-                    if (
-                      href &&
-                      !data.affiliateLinks![networkName].includes(href)
-                    ) {
-                      data.affiliateLinks![networkName].push(href);
-                    }
-                  });
+                  // 添加链接（去重）
+                  if (!data.affiliateLinks[networkName].includes(href)) {
+                    data.affiliateLinks[networkName].push(href);
+                  }
 
                   // 为了向后兼容，保留原有的affiliateUrl字段（使用第一个找到的链接）
-                  if (!data.affiliateUrl && affiliateLinks.length > 0) {
-                    data.affiliateUrl = (
-                      affiliateLinks[0] as HTMLAnchorElement
-                    ).href;
+                  if (!data.affiliateUrl) {
+                    data.affiliateUrl = href;
                   }
-                }
-              }
-            });
+                });
+              });
+            }
           });
         }
 
@@ -378,9 +489,24 @@ export class FMTCMerchantDetailHandler {
         for (const span of spans) {
           const text = span.textContent || "";
           if (text.includes("FreshReach")) {
-            data.freshReachSupported = text.toLowerCase().includes("supported");
+            // 检查是否有success或supported class/text
+            const hasSuccess =
+              span.classList.contains("label-success") ||
+              (span.classList.contains("label-xlg") &&
+                span.classList.contains("label-success"));
+            const hasSupported = text.toLowerCase().includes("supported");
+            data.freshReachSupported = hasSuccess || hasSupported;
             break;
           }
+        }
+
+        // 如果没有找到FreshReach span，检查是否有FreshReach链接
+        if (
+          data.freshReachSupported === undefined &&
+          data.freshReachUrls &&
+          data.freshReachUrls.length > 0
+        ) {
+          data.freshReachSupported = true;
         }
 
         // 从URL中提取FMTC ID
@@ -401,6 +527,22 @@ export class FMTCMerchantDetailHandler {
           toolsLinksCount: toolsSection
             ? toolsSection.querySelectorAll("a").length
             : 0,
+          linksGroupsFound: toolsSection
+            ? toolsSection.querySelectorAll("ul.list-group").length
+            : 0,
+          linksHeadersFound: toolsSection
+            ? Array.from(
+                toolsSection.querySelectorAll(
+                  "li.list-group-item.fmtc-bg-primary",
+                ),
+              )
+                .map((header) => header.textContent?.trim())
+                .filter((text) => text?.includes("Links"))
+            : [],
+          affiliateLinksExtracted: data.affiliateLinks
+            ? Object.keys(data.affiliateLinks).length
+            : 0,
+          affiliateLinksDetails: data.affiliateLinks || {},
         };
 
         return data;
@@ -454,35 +596,45 @@ export class FMTCMerchantDetailHandler {
         | string[]
         | undefined;
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "数据提取调试信息", {
-        extractedDataDebug: extractedData._debug,
-        extractedFields: Object.keys(extractedData).filter(
-          (key) => key !== "_debug",
-        ),
-        extractedData: extractedData,
-      });
+      // 获取主要网络ID（从网络关联中提取第一个网络的ID）
+      const networks = await this.extractNetworks();
+      if (networks.length > 0) {
+        detail.networkId = networks[0].networkId;
+      }
 
-      await this.logMessage(
-        LocalScraperLogLevel.DEBUG,
-        "商户详情数据提取完成",
-        {
-          homepage: detail.homepage,
-          fmtcId: detail.fmtcId,
-          primaryCategory: detail.primaryCategory,
-          hasLogos: !!(detail.logo120x60 || detail.logo88x31),
-          hasScreenshots: !!(
-            detail.screenshot280x210 || detail.screenshot600x450
+      if (this.shouldLogDebug()) {
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "数据提取调试信息", {
+          extractedDataDebug: extractedData._debug,
+          extractedFields: Object.keys(extractedData).filter(
+            (key) => key !== "_debug",
           ),
-          affiliateLinksNetworks: detail.affiliateLinks
-            ? Object.keys(detail.affiliateLinks)
-            : [],
-          affiliateLinksCount: detail.affiliateLinks
-            ? Object.values(detail.affiliateLinks).flat().length
-            : 0,
-          freshReachUrlsCount: detail.freshReachUrls?.length || 0,
-          freshReachSupported: detail.freshReachSupported,
-        },
-      );
+          extractedData: extractedData,
+        });
+      }
+
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "商户详情数据提取完成",
+          {
+            homepage: detail.homepage,
+            fmtcId: detail.fmtcId,
+            primaryCategory: detail.primaryCategory,
+            hasLogos: !!(detail.logo120x60 || detail.logo88x31),
+            hasScreenshots: !!(
+              detail.screenshot280x210 || detail.screenshot600x450
+            ),
+            affiliateLinksNetworks: detail.affiliateLinks
+              ? Object.keys(detail.affiliateLinks)
+              : [],
+            affiliateLinksCount: detail.affiliateLinks
+              ? Object.values(detail.affiliateLinks).flat().length
+              : 0,
+            freshReachUrlsCount: detail.freshReachUrls?.length || 0,
+            freshReachSupported: detail.freshReachSupported,
+          },
+        );
+      }
 
       return detail;
     } catch (error) {
@@ -502,7 +654,12 @@ export class FMTCMerchantDetailHandler {
    */
   async extractNetworks(): Promise<FMTCMerchantNetworkData[]> {
     try {
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "开始提取网络关联信息");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "开始提取网络关联信息",
+        );
+      }
 
       const networks: FMTCMerchantNetworkData[] = [];
 
@@ -663,11 +820,13 @@ export class FMTCMerchantDetailHandler {
         return { networkList, debugInfo } as NetworkDataResult;
       });
 
-      await this.logMessage(
-        LocalScraperLogLevel.DEBUG,
-        "网络数据提取调试信息",
-        networkData.debugInfo,
-      );
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "网络数据提取调试信息",
+          networkData.debugInfo,
+        );
+      }
 
       // 转换为FMTCMerchantNetworkData格式
       for (const item of networkData.networkList) {
@@ -681,22 +840,26 @@ export class FMTCMerchantDetailHandler {
 
         networks.push(networkInfo);
 
-        await this.logMessage(LocalScraperLogLevel.DEBUG, `提取网络关联`, {
-          fmtcId: networkInfo.fmtcId,
-          networkName: networkInfo.networkName,
-          networkId: networkInfo.networkId,
-          status: networkInfo.status,
-          hasJoinUrl: !!networkInfo.joinUrl,
-        });
+        if (this.shouldLogDebug()) {
+          await this.logMessage(LocalScraperLogLevel.DEBUG, `提取网络关联`, {
+            fmtcId: networkInfo.fmtcId,
+            networkName: networkInfo.networkName,
+            networkId: networkInfo.networkId,
+            status: networkInfo.status,
+            hasJoinUrl: !!networkInfo.joinUrl,
+          });
+        }
       }
 
-      await this.logMessage(
-        LocalScraperLogLevel.DEBUG,
-        `网络关联信息提取完成`,
-        {
-          networksCount: networks.length,
-        },
-      );
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          `网络关联信息提取完成`,
+          {
+            networksCount: networks.length,
+          },
+        );
+      }
 
       return networks;
     } catch (error) {

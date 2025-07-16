@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { ScraperLogLevel, Prisma } from "@prisma/client"; // Import the Prisma enum
-import { NextResponse, NextRequest } from "next/server";
+import { Prisma, ScraperLogLevel } from "@prisma/client"; // Import the Prisma enum
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { db } from "@/lib/db";

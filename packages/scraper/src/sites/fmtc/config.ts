@@ -63,9 +63,9 @@ export const FMTC_CONFIG = {
   // 验证码配置
   CAPTCHA_WAIT_TIMEOUT: 60000, // 等待验证码完成的最大时间
   MANUAL_INTERVENTION_TIMEOUT: 120000, // 等待手动干预的最大时间
-  RECAPTCHA_AUTO_TIMEOUT: 180000, // 自动解决reCAPTCHA的最大时间
-  RECAPTCHA_RETRY_ATTEMPTS: 3, // reCAPTCHA重试次数
-  RECAPTCHA_RETRY_DELAY: 5000, // reCAPTCHA重试延迟
+  RECAPTCHA_AUTO_TIMEOUT: 60000, // 自动解决reCAPTCHA的最大时间 - 改为1分钟
+  RECAPTCHA_RETRY_ATTEMPTS: 5, // reCAPTCHA重试次数 - 增加重试次数
+  RECAPTCHA_RETRY_DELAY: 8000, // reCAPTCHA重试延迟 - 增加延迟时间
 
   // 抓取限制
   MAX_PAGES_PER_SESSION: 50,
@@ -163,20 +163,20 @@ export interface FMTCConfig {
   headlessMode?: boolean;
   debugMode?: boolean;
   maxConcurrency?: number;
-  
+
   // reCAPTCHA配置
   recaptchaMode?: string;
   recaptchaManualTimeout?: number;
   recaptchaAutoTimeout?: number;
   recaptchaRetryAttempts?: number;
   recaptchaRetryDelay?: number;
-  
+
   // 2captcha配置
   twoCaptchaApiKey?: string;
   twoCaptchaSoftId?: number;
   twoCaptchaServerDomain?: string;
   twoCaptchaCallback?: string;
-  
+
   // 搜索配置
   searchText?: string;
   searchNetworkId?: string;
@@ -185,7 +185,7 @@ export interface FMTCConfig {
   searchCountry?: string;
   searchShippingCountry?: string;
   searchDisplayType?: string;
-  
+
   // 搜索行为配置
   searchEnableRandomDelay?: boolean;
   searchMinDelay?: number;
@@ -193,7 +193,7 @@ export interface FMTCConfig {
   searchTypingDelayMin?: number;
   searchTypingDelayMax?: number;
   searchEnableMouseMovement?: boolean;
-  
+
   // 高级配置
   sessionTimeout?: number;
   maxConsecutiveErrors?: number;
@@ -243,7 +243,8 @@ export function getConfigFromParams(config?: FMTCConfig) {
     maxPages: config.maxPages ?? defaults.maxPages,
     maxMerchants: config.maxMerchants ?? defaults.maxMerchants,
     requestDelay: config.requestDelay ?? defaults.requestDelay,
-    enableImageDownload: config.enableImageDownload ?? defaults.enableImageDownload,
+    enableImageDownload:
+      config.enableImageDownload ?? defaults.enableImageDownload,
     headlessMode: config.headlessMode ?? defaults.headlessMode,
     debugMode: config.debugMode ?? defaults.debugMode,
     maxConcurrency: config.maxConcurrency ?? defaults.maxConcurrency,
@@ -259,24 +260,13 @@ export function getRecaptchaConfig(): ReCAPTCHAConfig {
 
   const recaptchaMode = process.env.FMTC_RECAPTCHA_MODE?.toLowerCase();
   const apiKey = process.env.FMTC_2CAPTCHA_API_KEY;
-  
-  // 添加调试日志
-  console.log(`[DEBUG] FMTC_RECAPTCHA_MODE: ${process.env.FMTC_RECAPTCHA_MODE}`);
-  console.log(`[DEBUG] FMTC_2CAPTCHA_API_KEY exists: ${!!apiKey}`);
-  console.log(`[DEBUG] recaptchaMode (lowercase): ${recaptchaMode}`);
-  
+
   if (recaptchaMode === "auto") {
     if (apiKey) {
       mode = ReCAPTCHAMode.AUTO;
-      console.log(`[DEBUG] 设置为自动模式 (AUTO)`);
-    } else {
-      console.log(`[DEBUG] 自动模式需要API密钥，回退到手动模式`);
     }
   } else if (recaptchaMode === "skip") {
     mode = ReCAPTCHAMode.SKIP;
-    console.log(`[DEBUG] 设置为跳过模式 (SKIP)`);
-  } else {
-    console.log(`[DEBUG] 使用默认手动模式 (MANUAL)`);
   }
 
   return {
@@ -312,18 +302,18 @@ export function getRecaptchaConfig(): ReCAPTCHAConfig {
 /**
  * 基于配置参数获取 reCAPTCHA 配置
  */
-export function getRecaptchaConfigFromParams(config?: FMTCConfig): ReCAPTCHAConfig {
+export function getRecaptchaConfigFromParams(
+  config?: FMTCConfig,
+): ReCAPTCHAConfig {
   // 确定reCAPTCHA模式
   let mode: ReCAPTCHAMode = ReCAPTCHAMode.MANUAL; // 默认手动模式
 
   const recaptchaMode = config?.recaptchaMode?.toLowerCase() || "manual";
-  const apiKey = config?.twoCaptchaApiKey;
-  
+  const apiKey = config?.twoCaptchaApiKey?.trim(); // 去除空白字符
+
   if (recaptchaMode === "auto") {
-    if (apiKey) {
+    if (apiKey && apiKey.length > 0) {
       mode = ReCAPTCHAMode.AUTO;
-    } else {
-      console.log(`[DEBUG] 自动模式需要API密钥，回退到手动模式`);
     }
   } else if (recaptchaMode === "skip") {
     mode = ReCAPTCHAMode.SKIP;
@@ -331,10 +321,14 @@ export function getRecaptchaConfigFromParams(config?: FMTCConfig): ReCAPTCHAConf
 
   return {
     mode,
-    manualTimeout: config?.recaptchaManualTimeout ?? FMTC_CONFIG.MANUAL_INTERVENTION_TIMEOUT,
-    autoTimeout: config?.recaptchaAutoTimeout ?? FMTC_CONFIG.RECAPTCHA_AUTO_TIMEOUT,
-    retryAttempts: config?.recaptchaRetryAttempts ?? FMTC_CONFIG.RECAPTCHA_RETRY_ATTEMPTS,
-    retryDelay: config?.recaptchaRetryDelay ?? FMTC_CONFIG.RECAPTCHA_RETRY_DELAY,
+    manualTimeout:
+      config?.recaptchaManualTimeout ?? FMTC_CONFIG.MANUAL_INTERVENTION_TIMEOUT,
+    autoTimeout:
+      config?.recaptchaAutoTimeout ?? FMTC_CONFIG.RECAPTCHA_AUTO_TIMEOUT,
+    retryAttempts:
+      config?.recaptchaRetryAttempts ?? FMTC_CONFIG.RECAPTCHA_RETRY_ATTEMPTS,
+    retryDelay:
+      config?.recaptchaRetryDelay ?? FMTC_CONFIG.RECAPTCHA_RETRY_DELAY,
     twoCaptcha: apiKey
       ? {
           apiKey,
@@ -419,6 +413,158 @@ export function getSearchConfig() {
 }
 
 /**
+ * 分类映射表 - 将文本映射到对应的Chosen.js索引
+ * 基于实际FMTC页面的HTML结构更新 - 完整版本
+ */
+export const CATEGORY_MAP = new Map([
+  // 主要分类 (基于实际HTML data-option-array-index)
+  ["Alcohol / Beer", "1"],
+  ["Animals & Pet Supplies", "6"],
+  ["Arts & Entertainment", "11"],
+  ["Auctions", "24"],
+  ["B2B", "25"],
+  ["Babies & Kids", "35"],
+  ["Charity", "43"],
+  ["Clothing & Apparel", "44"], // 目标分类
+  ["Computers & Accessories", "69"],
+  ["Consumer Electronics", "90"],
+  ["Consumer Services", "113"],
+  ["COVID Related", "119"],
+  ["Curbside Pickup", "120"],
+  ["Department Stores", "121"],
+  ["Education", "122"],
+  ["Erotic", "126"],
+  ["Financial", "132"],
+  ["Food & Gourmet", "146"],
+  ["Gambling", "164"],
+  ["Gifts", "165"],
+  ["Green Living (Eco-Friendly)", "172"],
+  ["Group Discount", "173"],
+  ["Hardware", "183"],
+  ["Health & Beauty", "186"],
+  ["Holidays & Occasions", "195"],
+  ["Household", "239"],
+  ["Kids", "253"],
+  ["Local Deals", "254"],
+  ["Luggage & Bags", "282"],
+  ["Media", "284"],
+  ["Mens", "288"],
+  ["Office", "289"],
+  ["Sporting Goods", "294"],
+  ["Tobacco", "321"],
+  ["Toys & Games", "324"],
+  ["Travel", "338"],
+  ["Vehicles & Parts", "344"],
+  ["Weapons", "352"],
+  ["Womens", "353"],
+
+  // 常用别名和简化名称
+  ["Clothing", "44"],
+  ["Apparel", "44"],
+  ["Fashion", "44"],
+  ["Electronics", "90"],
+  ["Computers", "69"],
+  ["Travel & Tourism", "338"],
+  ["Health", "186"],
+  ["Beauty", "186"],
+  ["Sports", "294"],
+  ["Home", "239"],
+  ["Baby", "35"],
+  ["Kids & Baby", "35"],
+  ["Toys", "324"],
+  ["Games", "324"],
+  ["Food", "146"],
+  ["Gourmet", "146"],
+  ["Books", "284"],
+  ["Movies", "284"],
+  ["Music", "284"],
+]);
+
+/**
+ * URL分类ID映射表 - 将文本映射到URL中的分类ID
+ * 这个ID用于构建最终的搜索URL
+ */
+export const CATEGORY_URL_MAP = new Map([
+  ["Clothing & Apparel", "2"], // URL中的分类ID
+  ["Animals & Pet Supplies", "6"],
+  ["Arts & Entertainment", "11"],
+  ["Auctions", "24"],
+  ["B2B", "25"],
+  ["Babies & Kids", "35"],
+  ["Charity", "43"],
+  ["Computers & Accessories", "69"],
+  ["Consumer Electronics", "90"],
+  ["Consumer Services", "113"],
+  ["COVID Related", "119"],
+  ["Curbside Pickup", "120"],
+  ["Department Stores", "121"],
+  ["Education", "122"],
+  ["Erotic", "126"],
+  ["Financial", "132"],
+  ["Food & Gourmet", "146"],
+  ["Gambling", "164"],
+  ["Gifts", "165"],
+  ["Green Living (Eco-Friendly)", "172"],
+  ["Group Discount", "173"],
+  ["Hardware", "183"],
+  ["Health & Beauty", "186"],
+  ["Holidays & Occasions", "195"],
+  ["Household", "239"],
+  ["Kids", "253"],
+  ["Local Deals", "254"],
+  ["Luggage & Bags", "282"],
+  ["Media", "284"],
+  ["Mens", "288"],
+  ["Office", "289"],
+  ["Sporting Goods", "294"],
+  ["Tobacco", "321"],
+  ["Toys & Games", "324"],
+  ["Travel", "338"],
+  ["Vehicles & Parts", "344"],
+  ["Weapons", "352"],
+  ["Womens", "353"],
+]);
+
+/**
+ * 智能分类匹配 - 支持文本和数字输入
+ */
+export function resolveCategoryValue(input: string): string {
+  if (!input) return "";
+
+  const trimmedInput = input.trim();
+
+  // 1. 如果是数字，直接返回
+  if (/^\d+$/.test(trimmedInput)) {
+    return trimmedInput;
+  }
+
+  // 2. 精确文本匹配
+  if (CATEGORY_MAP.has(trimmedInput)) {
+    return CATEGORY_MAP.get(trimmedInput)!;
+  }
+
+  // 3. 大小写不敏感的匹配
+  for (const [key, value] of CATEGORY_MAP) {
+    if (key.toLowerCase() === trimmedInput.toLowerCase()) {
+      return value;
+    }
+  }
+
+  // 4. 包含匹配
+  for (const [key, value] of CATEGORY_MAP) {
+    if (
+      key.toLowerCase().includes(trimmedInput.toLowerCase()) ||
+      trimmedInput.toLowerCase().includes(key.toLowerCase())
+    ) {
+      return value;
+    }
+  }
+
+  // 5. 如果都不匹配，返回原始输入
+  return trimmedInput;
+}
+
+/**
  * 基于配置参数获取搜索配置
  */
 export function getSearchConfigFromParams(config?: FMTCConfig) {
@@ -427,10 +573,12 @@ export function getSearchConfigFromParams(config?: FMTCConfig) {
     searchText: config?.searchText || "",
     networkId: config?.searchNetworkId || "",
     opmProvider: config?.searchOpmProvider || "",
-    category: config?.searchCategory || "",
+    category: resolveCategoryValue(config?.searchCategory || ""),
     country: config?.searchCountry || "",
     shippingCountry: config?.searchShippingCountry || "",
-    displayType: (config?.searchDisplayType as "all" | "accepting" | "not_accepting") || "all",
+    displayType:
+      (config?.searchDisplayType as "all" | "accepting" | "not_accepting") ||
+      "all",
 
     // 行为配置
     enableRandomDelay: config?.searchEnableRandomDelay ?? true,

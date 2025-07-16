@@ -245,9 +245,6 @@ importers:
       '@types/papaparse':
         specifier: 5.3.16
         version: 5.3.16
-      '@types/ws':
-        specifier: 8.18.1
-        version: 8.18.1
       ace-builds:
         specifier: 1.43.1
         version: 1.43.1
@@ -344,9 +341,6 @@ importers:
       winston:
         specifier: 3.17.0
         version: 3.17.0
-      ws:
-        specifier: 8.18.3
-        version: 8.18.3
       zod:
         specifier: ^3.24.4
         version: 3.24.4
@@ -5374,9 +5368,6 @@ packages:
   '@types/uuid@10.0.0':
     resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
 
-  '@types/ws@8.18.1':
-    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
-
   '@types/yauzl@2.10.3':
     resolution: {integrity: sha512-oJoftv0LSuaDZE3Le4DbKX+KS9G36NzOeSap90UIK0yMA/NhKJhqlSGtNDORNRaIbQfzjXDrQa0ytJ6mNRGz/Q==}
 
@@ -9351,18 +9342,6 @@ packages:
 
   ws@8.18.2:
     resolution: {integrity: sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
-  ws@8.18.3:
-    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -16216,10 +16195,6 @@ snapshots:
 
   '@types/uuid@10.0.0': {}
 
-  '@types/ws@8.18.1':
-    dependencies:
-      '@types/node': 24.0.3
-
   '@types/yauzl@2.10.3':
     dependencies:
       '@types/node': 24.0.3
@@ -20935,8 +20910,6 @@ snapshots:
   wrappy@1.0.2: {}
 
   ws@8.18.2: {}
-
-  ws@8.18.3: {}
 
   xml-name-validator@5.0.0: {}
 

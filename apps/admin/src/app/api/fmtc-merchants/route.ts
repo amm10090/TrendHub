@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     const network = searchParams.get("network") || "";
     const status = searchParams.get("status") || "";
     const brandMatched = searchParams.get("brandMatched") || "";
+    const activeStatus = searchParams.get("activeStatus") || ""; // 新增：商户活跃状态筛选
 
     const offset = (page - 1) * limit;
 
@@ -59,8 +60,15 @@ export async function GET(request: NextRequest) {
       andConditions.push({ brandId: null });
     }
 
+    // 添加活跃状态筛选
+    if (activeStatus === "active") {
+      andConditions.push({ isActive: true });
+    } else if (activeStatus === "inactive") {
+      andConditions.push({ isActive: false });
+    }
+    // 如果不指定activeStatus或为"all"，则显示所有商户
+
     const where: Prisma.FMTCMerchantWhereInput = {
-      isActive: true,
       ...(andConditions.length > 0 && { AND: andConditions }),
     };
 
@@ -91,16 +99,21 @@ export async function GET(request: NextRequest) {
       db.fMTCMerchant.count({ where }),
     ]);
 
-    // 获取统计信息
+    // 获取统计信息 - 包含所有商户状态
     const stats = await Promise.all([
+      // 总商户数（包括活跃和禁用的）
+      db.fMTCMerchant.count(),
+      // 活跃商户数
       db.fMTCMerchant.count({ where: { isActive: true } }),
-      db.fMTCMerchant.count({
-        where: { isActive: true, brandId: { not: null } },
-      }),
-      db.fMTCMerchant.count({ where: { isActive: true, brandId: null } }),
+      // 禁用商户数
+      db.fMTCMerchant.count({ where: { isActive: false } }),
+      // 品牌匹配数（所有商户）
+      db.fMTCMerchant.count({ where: { brandId: { not: null } } }),
+      // 未匹配数（所有商户）
+      db.fMTCMerchant.count({ where: { brandId: null } }),
+      // 最近更新数（所有商户）
       db.fMTCMerchant.count({
         where: {
-          isActive: true,
           lastScrapedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
         },
       }),
@@ -118,9 +131,11 @@ export async function GET(request: NextRequest) {
         },
         stats: {
           totalMerchants: stats[0],
-          brandMatched: stats[1],
-          unmatched: stats[2],
-          recentlyUpdated: stats[3],
+          activeMerchants: stats[1],
+          inactiveMerchants: stats[2],
+          brandMatched: stats[3],
+          unmatched: stats[4],
+          recentlyUpdated: stats[5],
         },
       },
     });
@@ -240,9 +255,17 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { ids, action, data } = body;
 
-    if (!ids || !Array.isArray(ids) || !action) {
+    // 改进的参数验证
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json(
-        { success: false, error: "参数不完整" },
+        { success: false, error: "商户ID列表不能为空" },
+        { status: 400 },
+      );
+    }
+
+    if (!action || typeof action !== "string") {
+      return NextResponse.json(
+        { success: false, error: "操作类型不能为空" },
         { status: 400 },
       );
     }
@@ -292,9 +315,20 @@ export async function PUT(request: NextRequest) {
         });
         break;
 
+      case "delete":
+        // 软删除 - 标记为不活跃
+        result = await db.fMTCMerchant.updateMany({
+          where: {
+            id: { in: ids },
+            isActive: true, // 只更新当前活跃的商户
+          },
+          data: { isActive: false },
+        });
+        break;
+
       default:
         return NextResponse.json(
-          { success: false, error: "不支持的操作" },
+          { success: false, error: `不支持的操作: ${action}` },
           { status: 400 },
         );
     }

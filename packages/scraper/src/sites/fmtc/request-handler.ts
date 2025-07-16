@@ -3,6 +3,7 @@
  */
 
 import type { PlaywrightCrawlingContext, Log } from "crawlee";
+import type { BrowserContext } from "playwright";
 import type {
   FMTCRequestHandlerOptions,
   FMTCUserData,
@@ -17,7 +18,7 @@ import { FMTCMerchantListHandler } from "./merchant-list-handler.js";
 import { FMTCMerchantDetailHandler } from "./merchant-detail-handler.js";
 import { FMTCAntiDetection } from "./anti-detection.js";
 import { sendLogToBackend, LocalScraperLogLevel, delay } from "../../utils.js";
-import { getRecaptchaConfig } from "./config.js";
+import { getRecaptchaConfig, getRecaptchaConfigFromParams } from "./config.js";
 
 /**
  * 创建 FMTC 请求处理器
@@ -40,7 +41,10 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
     const userData = request.userData as FMTCUserData;
 
     // 创建处理器实例
-    const recaptchaConfig = getRecaptchaConfig();
+    // 优先使用传递的配置参数，如果没有则使用环境变量
+    const recaptchaConfig = userData.fmtcConfig
+      ? getRecaptchaConfigFromParams(userData.fmtcConfig)
+      : getRecaptchaConfig();
     const loginHandler = new FMTCLoginHandler(
       page,
       log,
@@ -48,7 +52,7 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
       recaptchaConfig,
     );
     const navigationHandler = new FMTCNavigationHandler(page, log);
-    const searchHandler = new FMTCSearchHandler(page, log);
+    const searchHandler = new FMTCSearchHandler(page, log, userData.fmtcConfig);
     const resultsParser = new FMTCResultsParser(page, log);
     const listHandler = new FMTCMerchantListHandler(
       page,
@@ -104,13 +108,41 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
                     context: unknown,
                     username?: string,
                   ) => {
-                    const crawlingContext = context as PlaywrightCrawlingContext;
-                    await sessionManager.saveSessionState(crawlingContext.page.context(), username);
+                    try {
+                      // 修复：检查是否是 BrowserContext 类型
+                      if (
+                        context &&
+                        typeof context === "object" &&
+                        "storageState" in context
+                      ) {
+                        const result = await sessionManager.saveSessionState(
+                          context as BrowserContext,
+                          username,
+                        );
+                        await logMessage(
+                          log,
+                          userData.executionId,
+                          LocalScraperLogLevel.INFO,
+                          "[包装函数] 会话状态已保存",
+                        );
+                        return result;
+                      } else {
+                        throw new Error("无效的浏览器上下文对象");
+                      }
+                    } catch (error) {
+                      await logMessage(
+                        log,
+                        userData.executionId,
+                        LocalScraperLogLevel.WARN,
+                        `[包装函数] 会话保存失败: ${(error as Error).message}`,
+                      );
+                      return false;
+                    }
                   },
-                  checkAuthenticationStatus: async (
-                    page: unknown,
-                  ) => {
-                    return await sessionManager.checkAuthenticationStatus(page as PlaywrightCrawlingContext['page']);
+                  checkAuthenticationStatus: async (page: unknown) => {
+                    return await sessionManager.checkAuthenticationStatus(
+                      page as PlaywrightCrawlingContext["page"],
+                    );
                   },
                   cleanupSessionState: () => {
                     sessionManager.cleanupSessionState();
@@ -135,13 +167,41 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
                     context: unknown,
                     username?: string,
                   ) => {
-                    const crawlingContext = context as PlaywrightCrawlingContext;
-                    await sessionManager.saveSessionState(crawlingContext.page.context(), username);
+                    try {
+                      // 修复：检查是否是 BrowserContext 类型
+                      if (
+                        context &&
+                        typeof context === "object" &&
+                        "storageState" in context
+                      ) {
+                        const result = await sessionManager.saveSessionState(
+                          context as BrowserContext,
+                          username,
+                        );
+                        await logMessage(
+                          log,
+                          userData.executionId,
+                          LocalScraperLogLevel.INFO,
+                          "[包装函数] 会话状态已保存",
+                        );
+                        return result;
+                      } else {
+                        throw new Error("无效的浏览器上下文对象");
+                      }
+                    } catch (error) {
+                      await logMessage(
+                        log,
+                        userData.executionId,
+                        LocalScraperLogLevel.WARN,
+                        `[包装函数] 会话保存失败: ${(error as Error).message}`,
+                      );
+                      return false;
+                    }
                   },
-                  checkAuthenticationStatus: async (
-                    page: unknown,
-                  ) => {
-                    return await sessionManager.checkAuthenticationStatus(page as PlaywrightCrawlingContext['page']);
+                  checkAuthenticationStatus: async (page: unknown) => {
+                    return await sessionManager.checkAuthenticationStatus(
+                      page as PlaywrightCrawlingContext["page"],
+                    );
                   },
                   cleanupSessionState: () => {
                     sessionManager.cleanupSessionState();
@@ -234,7 +294,7 @@ async function handleLogin(
   userData: FMTCUserData,
   log: Log,
   sessionManager?: {
-    saveSessionState: (context: unknown, username?: string) => Promise<void>;
+    saveSessionState: (context: unknown, username?: string) => Promise<boolean>;
     checkAuthenticationStatus: (page: unknown) => Promise<boolean>;
     cleanupSessionState: () => void;
   },
@@ -309,29 +369,48 @@ async function handleLogin(
       log,
       userData.executionId,
       LocalScraperLogLevel.INFO,
-      "登录成功，导航到Directory页面",
+      "登录成功，立即保存会话状态",
     );
 
-    // 保存会话状态
+    // 保存会话状态（主逻辑）- 在登录成功后立即保存
     if (sessionManager) {
       try {
+        // 检查 page 和 context 是否可用
+        if (!context.page) {
+          throw new Error("页面对象不可用");
+        }
+
         const browserContext = context.page.context();
-        await sessionManager.saveSessionState(
+        if (!browserContext) {
+          throw new Error("浏览器上下文不可用");
+        }
+
+        const saveResult: boolean = await sessionManager.saveSessionState(
           browserContext,
           userData.credentials?.username,
         );
-        await logMessage(
-          log,
-          userData.executionId,
-          LocalScraperLogLevel.INFO,
-          "会话状态已保存",
-        );
+
+        if (saveResult) {
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.INFO,
+            "[主逻辑] 会话状态保存成功",
+          );
+        } else {
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.WARN,
+            "[主逻辑] 会话状态保存失败",
+          );
+        }
       } catch (error) {
         await logMessage(
           log,
           userData.executionId,
-          LocalScraperLogLevel.WARN,
-          `保存会话状态失败: ${(error as Error).message}`,
+          LocalScraperLogLevel.ERROR,
+          `[主逻辑] 保存会话状态异常: ${(error as Error).message}`,
         );
       }
     }
@@ -380,7 +459,7 @@ async function handleSearch(
   progressCallback?: FMTCProgressCallback,
   log?: Log,
   sessionManager?: {
-    saveSessionState: (context: unknown, username?: string) => Promise<void>;
+    saveSessionState: (context: unknown, username?: string) => Promise<boolean>;
     checkAuthenticationStatus: (page: unknown) => Promise<boolean>;
     cleanupSessionState: () => void;
   },
@@ -467,7 +546,10 @@ async function handleSearch(
       );
 
       // 处理解析出的商户数据
-      for (const merchant of parsedResults.merchants) {
+      const merchantsToProcess = parsedResults.merchants;
+      for (let index = 0; index < merchantsToProcess.length; index++) {
+        const merchant = merchantsToProcess[index];
+
         // 检查是否已达到最大商家数量限制
         const maxMerchants = userData.options?.maxMerchants;
         const currentMerchantCount = allScrapedMerchants.length;
@@ -489,14 +571,35 @@ async function handleSearch(
             name: merchant.name,
             country: merchant.country,
             network: merchant.network,
+            dateAdded: merchant.dateAdded
+              ? new Date(merchant.dateAdded)
+              : undefined,
             sourceUrl: merchant.detailUrl || context.request.url,
             fmtcId: merchant.id,
+            status: merchant.status,
             rawData: {
               source: "search_results",
               dateAdded: merchant.dateAdded,
               status: merchant.status,
+              originalCountry: merchant.country,
+              originalNetwork: merchant.network,
             },
           };
+
+          // 调试日志：记录网络字段
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.DEBUG,
+            `搜索结果商户数据转换`,
+            {
+              name: merchant.name,
+              country: merchant.country,
+              network: merchant.network,
+              countryLength: merchant.country?.length || 0,
+              networkLength: merchant.network?.length || 0,
+            },
+          );
 
           // 如果有详情URL且启用详情抓取，将详情页加入队列
           if (merchant.detailUrl && userData.options?.includeDetails) {
@@ -509,6 +612,8 @@ async function handleSearch(
                   label: "MERCHANT_DETAIL",
                   merchantUrl: merchant.detailUrl,
                   merchantName: merchant.name,
+                  merchantDetailIndex: index,
+                  totalDetailsToProcess: merchantsToProcess.length,
                 },
               },
             ]);
@@ -643,7 +748,10 @@ async function handleMerchantList(
     }
 
     // 处理每个商户
-    for (const merchant of listResult.merchants) {
+    const merchantsToProcess = listResult.merchants;
+    for (let index = 0; index < merchantsToProcess.length; index++) {
+      const merchant = merchantsToProcess[index];
+
       try {
         // 将基本信息添加到结果中
         const merchantData: FMTCMerchantData = {
@@ -663,11 +771,28 @@ async function handleMerchantList(
                 label: "MERCHANT_DETAIL",
                 merchantUrl: merchant.detailUrl,
                 merchantName: merchant.name,
+                merchantDetailIndex: index,
+                totalDetailsToProcess: merchantsToProcess.length,
               },
             },
           ]);
         } else {
           // 直接添加到结果中（只有基本信息）
+
+          // 调试：记录列表页数据添加（无详情）
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.DEBUG,
+            `添加商户列表数据（无详情）`,
+            {
+              merchantName: merchant.name,
+              country: merchant.country,
+              network: merchant.network,
+              detailUrl: merchant.detailUrl,
+            },
+          );
+
           allScrapedMerchants.push(merchantData);
 
           if (progressCallback?.onMerchantProcessed) {
@@ -728,6 +853,29 @@ async function handleMerchantDetail(
     throw new Error("商户详情URL未提供");
   }
 
+  // 计算当前进度
+  const currentDetailIndex = userData.merchantDetailIndex || 0;
+  const totalDetailsToProcess = userData.totalDetailsToProcess || 1;
+  const currentMerchantCount = allScrapedMerchants.length;
+  const maxMerchants = userData.options?.maxMerchants || 500;
+
+  // 记录进度日志
+  await logMessage(
+    log,
+    userData.executionId,
+    LocalScraperLogLevel.INFO,
+    `处理商户详情 [${currentDetailIndex + 1}/${totalDetailsToProcess}]: ${userData.merchantName}`,
+    {
+      currentDetailIndex: currentDetailIndex + 1,
+      totalDetailsToProcess,
+      currentMerchantCount,
+      maxMerchants,
+      progressPercentage: Math.round(
+        ((currentDetailIndex + 1) / totalDetailsToProcess) * 100,
+      ),
+    },
+  );
+
   // 抓取商户详情
   const detailResult = await detailHandler.scrapeMerchantDetails(
     userData.merchantUrl,
@@ -736,24 +884,98 @@ async function handleMerchantDetail(
 
   if (detailResult.success) {
     // 查找对应的基本信息并合并
-    const existingMerchantIndex = allScrapedMerchants.findIndex(
+    // 先尝试精确匹配商户名称
+    let existingMerchantIndex = allScrapedMerchants.findIndex(
       (m) => m.name === userData.merchantName,
     );
+
+    // 如果精确匹配失败，尝试模糊匹配（去除空格和特殊字符）
+    if (existingMerchantIndex === -1) {
+      const normalizedName = userData.merchantName
+        ?.toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/[^\w]/g, "");
+      existingMerchantIndex = allScrapedMerchants.findIndex(
+        (m) =>
+          m.name.toLowerCase().replace(/\s+/g, "").replace(/[^\w]/g, "") ===
+          normalizedName,
+      );
+    }
+
+    // 如果仍然没有找到，尝试通过detailUrl匹配
+    if (existingMerchantIndex === -1) {
+      existingMerchantIndex = allScrapedMerchants.findIndex(
+        (m) => m.detailUrl === userData.merchantUrl,
+      );
+    }
+
+    // 获取现有的基本信息（包含 country 和 network）
+    const existingData =
+      existingMerchantIndex >= 0
+        ? allScrapedMerchants[existingMerchantIndex]
+        : null;
+
+    // 如果仍然没有找到匹配的数据，记录调试信息
+    if (!existingData) {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.WARN,
+        `未找到商户 "${userData.merchantName}" 的列表页数据，network字段可能丢失`,
+        {
+          merchantName: userData.merchantName,
+          merchantUrl: userData.merchantUrl,
+          totalScrapedMerchants: allScrapedMerchants.length,
+          availableNames: allScrapedMerchants.slice(0, 5).map((m) => m.name),
+        },
+      );
+    }
 
     const completeData: FMTCMerchantData = {
       // 基本信息
       name: userData.merchantName || "",
-      ...(existingMerchantIndex >= 0
-        ? allScrapedMerchants[existingMerchantIndex]
-        : {}),
+      ...(existingData || {}),
       // 详情信息
       ...detailResult.merchantDetail,
+      // 确保列表页的关键字段不被覆盖
+      country:
+        existingData?.country || detailResult.merchantDetail.primaryCountry,
+      network:
+        existingData?.network ||
+        (detailResult.merchantDetail.networks &&
+        detailResult.merchantDetail.networks.length > 0
+          ? detailResult.merchantDetail.networks[0].networkName
+          : undefined), // 优先使用列表页的network字段，若无则尝试从详情页的networks中获取第一个
       sourceUrl: userData.merchantUrl,
       rawData: {
         source: "merchant_detail",
         scrapedAt: detailResult.scrapedAt,
+        originalListData:
+          existingData && (existingData.country || existingData.network)
+            ? {
+                country: existingData.country,
+                network: existingData.network,
+              }
+            : undefined,
       },
     };
+
+    // 调试：记录数据合并结果
+    await logMessage(
+      log,
+      userData.executionId,
+      LocalScraperLogLevel.DEBUG,
+      `商户详情数据合并完成`,
+      {
+        merchantName: userData.merchantName,
+        hasExistingData: !!existingData,
+        existingNetwork: existingData?.network,
+        finalNetwork: completeData.network,
+        networksFromDetail: detailResult.merchantDetail.networks?.map(
+          (n) => n.networkName,
+        ),
+      },
+    );
 
     if (existingMerchantIndex >= 0) {
       // 更新现有数据
@@ -767,10 +989,15 @@ async function handleMerchantDetail(
       log,
       userData.executionId,
       LocalScraperLogLevel.INFO,
-      `商户详情抓取完成: ${userData.merchantName}`,
+      `商户详情抓取完成 [${currentDetailIndex + 1}/${totalDetailsToProcess}]: ${userData.merchantName}`,
       {
         fmtcId: detailResult.merchantDetail.fmtcId,
         networksCount: detailResult.merchantDetail.networks?.length || 0,
+        currentDetailIndex: currentDetailIndex + 1,
+        totalDetailsToProcess,
+        progressPercentage: Math.round(
+          ((currentDetailIndex + 1) / totalDetailsToProcess) * 100,
+        ),
       },
     );
 
@@ -802,9 +1029,11 @@ async function handleMerchantDetail(
       log,
       userData.executionId,
       LocalScraperLogLevel.ERROR,
-      `商户详情抓取失败: ${userData.merchantName}`,
+      `商户详情抓取失败 [${currentDetailIndex + 1}/${totalDetailsToProcess}]: ${userData.merchantName}`,
       {
         error: detailResult.error,
+        currentDetailIndex: currentDetailIndex + 1,
+        totalDetailsToProcess,
       },
     );
 

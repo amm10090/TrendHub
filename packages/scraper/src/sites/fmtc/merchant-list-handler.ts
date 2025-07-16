@@ -288,46 +288,64 @@ export class FMTCMerchantListHandler {
     try {
       const merchant: Partial<FMTCMerchantListData> = {};
 
-      // 提取商户名称和详情链接
-      const nameElement = await row.$(FMTC_SELECTORS.merchantList.merchantName);
-      if (nameElement) {
-        merchant.name = (await nameElement.textContent()) || "";
-        merchant.detailUrl = (await nameElement.getAttribute("href")) || "";
+      // 获取所有表格单元格
+      const cells = await row.$$("td");
 
-        // 确保详情链接是完整URL
-        if (merchant.detailUrl && !merchant.detailUrl.startsWith("http")) {
-          const baseUrl = "https://account.fmtc.co";
-          merchant.detailUrl = new URL(merchant.detailUrl, baseUrl).toString();
+      if (cells.length < 6) {
+        await this.logMessage(
+          LocalScraperLogLevel.WARN,
+          `第 ${index} 行数据列数不足 (${cells.length} < 6)，跳过`,
+        );
+        return null;
+      }
+
+      // 根据真实HTML结构解析：
+      // cells[0] = Favorite Merchant (收藏按钮)
+      // cells[1] = Name (商户名称)
+      // cells[2] = Country (国家)
+      // cells[3] = Network (网络)
+      // cells[4] = Date Added (添加日期)
+      // cells[5] = Premium Feed Deals (优惠数量)
+
+      // 第1列：Name (包含链接到详情页)
+      const nameCell = cells[1];
+      const nameLink = await nameCell.$("a");
+      if (nameLink) {
+        merchant.name = (await nameLink.textContent())?.trim() || "";
+        // 构建完整的详情URL
+        const href = await nameLink.getAttribute("href");
+        if (href && href.startsWith("/")) {
+          merchant.detailUrl = `https://account.fmtc.co${href}`;
+        } else {
+          merchant.detailUrl = href || "";
         }
+      } else {
+        merchant.name = (await nameCell.textContent())?.trim() || "";
       }
 
-      // 提取国家
-      const countryElement = await row.$(
-        FMTC_SELECTORS.merchantList.merchantCountry,
-      );
-      if (countryElement) {
-        merchant.country = (await countryElement.textContent()) || "";
-      }
+      // 第2列：Country
+      const countryText = (await cells[2].textContent())?.trim() || "";
+      merchant.country = countryText || undefined;
 
-      // 提取网络平台
-      const networkElement = await row.$(FMTC_SELECTORS.merchantList.network);
-      if (networkElement) {
-        merchant.network = (await networkElement.textContent()) || "";
-      }
+      // 第3列：Network
+      const networkText = (await cells[3].textContent())?.trim() || "";
+      merchant.network = networkText || undefined;
 
-      // 提取添加日期
-      const dateElement = await row.$(FMTC_SELECTORS.merchantList.dateAdded);
-      if (dateElement) {
-        const dateText = (await dateElement.textContent()) || "";
-        merchant.dateAdded = this.parseDate(dateText);
-      }
+      // 第4列：Date Added
+      const dateText = (await cells[4].textContent())?.trim() || "";
+      merchant.dateAdded = this.parseDate(dateText);
 
-      // 提取高级订阅数
-      const premiumElement = await row.$(
-        FMTC_SELECTORS.merchantList.premiumSubscriptions,
-      );
-      if (premiumElement) {
-        const premiumText = (await premiumElement.textContent()) || "";
+      // 第5列：Premium Feed Deals (优惠数量)
+      const premiumCell = cells[5];
+      const premiumText = (await premiumCell.textContent())?.trim() || "";
+      const premiumLink = await premiumCell.$("a");
+      if (premiumLink) {
+        const linkText = (await premiumLink.textContent())?.trim() || "";
+        const numbers = linkText.match(FMTC_REGEX_PATTERNS.NUMBERS);
+        if (numbers && numbers.length > 0) {
+          merchant.premiumSubscriptions = parseInt(numbers[0]);
+        }
+      } else {
         const numbers = premiumText.match(FMTC_REGEX_PATTERNS.NUMBERS);
         if (numbers && numbers.length > 0) {
           merchant.premiumSubscriptions = parseInt(numbers[0]);
@@ -352,6 +370,17 @@ export class FMTCMerchantListHandler {
         premiumSubscriptions: merchant.premiumSubscriptions || 0,
         detailUrl: merchant.detailUrl || undefined,
       };
+
+      // 添加调试日志
+      await this.logMessage(LocalScraperLogLevel.DEBUG, `解析商户数据`, {
+        name: cleanedMerchant.name,
+        country: cleanedMerchant.country,
+        network: cleanedMerchant.network,
+        dateAdded: cleanedMerchant.dateAdded,
+        premiumSubscriptions: cleanedMerchant.premiumSubscriptions,
+        detailUrl: cleanedMerchant.detailUrl,
+        rawNetworkText: networkText,
+      });
 
       return cleanedMerchant;
     } catch (error) {

@@ -2349,6 +2349,58 @@
         "confidenceDescription": "Minimum confidence for brand matching (0.1-1.0)",
         "fuzzyMatch": "Enable fuzzy matching",
         "fuzzyMatchDescription": "Enable fuzzy matching algorithm"
+      },
+      "fmtc": {
+        "title": "FMTC Configuration",
+        "basic": {
+          "title": "Basic Settings",
+          "description": "Configure basic FMTC scraper settings",
+          "username": "Username",
+          "password": "Password",
+          "maxPages": "Max Pages",
+          "maxMerchants": "Max Merchants",
+          "requestDelay": "Request Delay (ms)",
+          "requestDelayHint": "Delay between requests in milliseconds",
+          "maxConcurrency": "Max Concurrency",
+          "enableImageDownload": "Enable Image Download",
+          "headlessMode": "Headless Mode",
+          "debugMode": "Debug Mode"
+        },
+        "recaptcha": {
+          "title": "reCAPTCHA Configuration",
+          "description": "Configure reCAPTCHA handling settings",
+          "mode": "reCAPTCHA Mode",
+          "manual": "Manual",
+          "auto": "Auto",
+          "skip": "Skip",
+          "manualTimeout": "Manual Timeout (ms)",
+          "autoTimeout": "Auto Timeout (ms)",
+          "retryAttempts": "Retry Attempts",
+          "retryDelay": "Retry Delay (ms)"
+        },
+        "twoCaptcha": {
+          "title": "2captcha Configuration",
+          "description": "Configure 2captcha service settings",
+          "apiKey": "API Key",
+          "softId": "Soft ID",
+          "serverDomain": "Server Domain",
+          "callback": "Callback URL"
+        },
+        "search": {
+          "title": "Search Configuration",
+          "description": "Configure search parameters",
+          "searchText": "Search Text",
+          "searchTextPlaceholder": "Enter search terms...",
+          "category": "Category",
+          "categoryPlaceholder": "Select category or enter custom value",
+          "networkId": "Network ID",
+          "country": "Country",
+          "shippingCountry": "Shipping Country",
+          "displayType": "Display Type",
+          "displayAll": "All",
+          "displayAccepting": "Accepting",
+          "displayNotAccepting": "Not Accepting"
+        }
       }
     },
     "import": {
@@ -2807,6 +2859,8 @@
     "description": "Manage merchant information scraped from FMTC platform",
     "stats": {
       "totalMerchants": "Total Merchants",
+      "activeMerchants": "Active Merchants",
+      "inactiveMerchants": "Inactive Merchants",
       "brandMatched": "Brand Matched",
       "unmatched": "Unmatched",
       "lastUpdate": "Last Update",
@@ -2895,6 +2949,8 @@
       "selectNetwork": "Select Network",
       "brandStatus": "Brand Match Status",
       "selectBrandStatus": "Select Brand Status",
+      "activeStatus": "Active Status",
+      "selectActiveStatus": "Select Active Status",
       "matched": "Matched",
       "unmatched": "Unmatched",
       "confirmed": "Confirmed",
@@ -2908,6 +2964,7 @@
       "brandMatch": "Brand Match",
       "confidence": "Confidence",
       "lastUpdate": "Last Update",
+      "status": "Status",
       "homepage": "Homepage",
       "merchant": "Merchant",
       "suggestedBrand": "Suggested Brand"
@@ -2924,7 +2981,9 @@
     "status": {
       "unmatched": "Unmatched",
       "confirmed": "Confirmed",
-      "needsConfirmation": "Needs Confirmation"
+      "needsConfirmation": "Needs Confirmation",
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "noResults": "No merchants found",
     "brandMatching": {
@@ -2960,14 +3019,55 @@
       "noBrandMatch": "No brand match",
       "noNetworks": "No network associations",
       "affiliateUrl": "Affiliate URL",
-      "previewDealsUrl": "Preview Deals URL"
+      "previewDealsUrl": "Preview Deals URL",
+      "affiliateLinksInfo": "Affiliate Links Info",
+      "primaryAffiliateLink": "Primary Affiliate Link",
+      "affiliateLinksDetails": "Affiliate Links Details",
+      "freshReachLinks": "FreshReach Links",
+      "previewDealsLink": "Preview Deals Link",
+      "linkCount": "{count} links"
+    },
+    "bulkActions": {
+      "title": "Bulk Actions",
+      "activate": "Bulk Activate",
+      "deactivate": "Bulk Deactivate",
+      "delete": "Bulk Delete",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "selectedCount": "{count} items selected",
+      "confirmDelete": "Confirm Delete {count} Merchants?",
+      "confirmDeleteMessage": "Are you sure you want to delete the selected {count} merchants? This action cannot be undone.",
+      "bulkActivateSuccess": "Successfully activated {count} merchants",
+      "bulkDeactivateSuccess": "Successfully deactivated {count} merchants",
+      "bulkDeleteSuccess": "Successfully deleted {count} merchants",
+      "bulkUpdateError": "Bulk operation failed",
+      "bulkDeleteError": "Bulk delete failed",
+      "noSelection": "Please select merchants to operate on first"
     },
     "tabs": {
       "merchants": "Merchant Management",
       "scraper": "Scraper Tasks",
       "brandMatching": "Brand Matching",
       "networks": "Network Associations",
+      "links": "Links Info",
       "media": "Media Resources"
+    },
+    "export": {
+      "title": "Export Data",
+      "button": "Export",
+      "selectFormat": "Select Export Format",
+      "formats": {
+        "csv": "CSV File",
+        "excel": "Excel File",
+        "json": "JSON File"
+      },
+      "description": "Export merchant data with current filters applied",
+      "exporting": "Exporting...",
+      "exportSuccess": "Data exported successfully",
+      "exportError": "Export failed, please try again",
+      "exportCount": "Will export {count} merchant records",
+      "downloadStarted": "Download started",
+      "noData": "No data to export"
     }
   }
 }

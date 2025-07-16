@@ -10,7 +10,7 @@ import { resolve, join } from "path";
 // 手动解析 .env 文件
 try {
   // 从当前测试目录向上查找项目根目录的 .env 文件
-  const projectRoot = resolve(process.cwd(), "../../../../../");
+  const projectRoot = process.cwd();
   const envPath = resolve(projectRoot, ".env");
   const envContent = readFileSync(envPath, "utf8");
   const envLines = envContent.split("\n");
@@ -1176,7 +1176,7 @@ async function runCompleteTest() {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const fs = await import("fs");
       await fs.promises.writeFile(
-        `/root/TrendHub/fmtc-test-report-${timestamp}.json`,
+        `${process.cwd()}/fmtc-test-report-${timestamp}.json`,
         report,
         "utf8",
       );

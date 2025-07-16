@@ -22,7 +22,18 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,9 +58,16 @@ import {
 
 import { FMTCMerchantDetailModal } from "./FMTCMerchantDetailModal";
 
+const logger = {
+  error: (message: string, context?: unknown) =>
+    console.error(`[FMTCMerchantsDataTable ERROR] ${message}`, context || ""),
+};
+
 // 商户统计接口定义
 interface FMTCMerchantStats {
   totalMerchants: number;
+  activeMerchants: number;
+  inactiveMerchants: number;
   brandMatched: number;
   unmatched: number;
   recentlyUpdated: number;
@@ -93,6 +111,7 @@ interface FMTCMerchantsDataTableProps {
   selectedCountry: string;
   selectedNetwork: string;
   brandMatchStatus: string;
+  selectedActiveStatus: string;
   refreshTrigger: number;
   onStatsUpdate: (stats: FMTCMerchantStats) => void;
 }
@@ -102,6 +121,7 @@ export function FMTCMerchantsDataTable({
   selectedCountry,
   selectedNetwork,
   brandMatchStatus,
+  selectedActiveStatus,
   refreshTrigger,
   onStatsUpdate,
 }: FMTCMerchantsDataTableProps) {
@@ -119,6 +139,8 @@ export function FMTCMerchantsDataTable({
     null,
   );
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isBulkOperating, setIsBulkOperating] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const pageSize = 20;
 
@@ -130,9 +152,14 @@ export function FMTCMerchantsDataTable({
     });
 
     if (searchTerm) params.append("search", searchTerm);
-    if (selectedCountry) params.append("country", selectedCountry);
-    if (selectedNetwork) params.append("network", selectedNetwork);
-    if (brandMatchStatus) params.append("brandMatched", brandMatchStatus);
+    if (selectedCountry && selectedCountry !== "all")
+      params.append("country", selectedCountry);
+    if (selectedNetwork && selectedNetwork !== "all")
+      params.append("network", selectedNetwork);
+    if (brandMatchStatus && brandMatchStatus !== "all")
+      params.append("brandMatched", brandMatchStatus);
+    if (selectedActiveStatus && selectedActiveStatus !== "all")
+      params.append("activeStatus", selectedActiveStatus);
 
     return params.toString();
   }, [
@@ -141,6 +168,7 @@ export function FMTCMerchantsDataTable({
     selectedCountry,
     selectedNetwork,
     brandMatchStatus,
+    selectedActiveStatus,
   ]);
 
   // 获取商户数据
@@ -159,11 +187,11 @@ export function FMTCMerchantsDataTable({
           setTotalCount(result.data.pagination.totalCount);
           onStatsUpdate(result.data.stats);
         } else {
-          console.error("获取商户数据失败:", result.error);
+          logger.error("获取商户数据失败:", result.error);
         }
       }
     } catch (error) {
-      console.error("获取商户数据出错:", error);
+      logger.error("获取商户数据出错:", error);
     } finally {
       setIsLoading(false);
     }
@@ -173,9 +201,20 @@ export function FMTCMerchantsDataTable({
   const handleBatchAction = async (action: string, data?: unknown) => {
     const selectedIds = Object.keys(rowSelection);
 
-    if (selectedIds.length === 0) return;
+    if (selectedIds.length === 0) {
+      toast.error(t("fmtcMerchants.bulkActions.noSelection"));
+
+      return;
+    }
+
+    if (action === "delete") {
+      setShowDeleteDialog(true);
+
+      return;
+    }
 
     try {
+      setIsBulkOperating(true);
       const response = await fetch("/api/fmtc-merchants", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -188,10 +227,66 @@ export function FMTCMerchantsDataTable({
         if (result.success) {
           setRowSelection({});
           fetchMerchants();
+
+          // 显示成功消息
+          const successKey = `fmtcMerchants.bulkActions.bulk${action.charAt(0).toUpperCase() + action.slice(1)}Success`;
+
+          toast.success(t(successKey, { count: result.data.updatedCount }));
+        } else {
+          toast.error(
+            result.error || t("fmtcMerchants.bulkActions.bulkUpdateError"),
+          );
         }
+      } else {
+        toast.error(t("fmtcMerchants.bulkActions.bulkUpdateError"));
       }
     } catch (error) {
-      console.error("批量操作失败:", error);
+      logger.error("批量操作失败:", error);
+      toast.error(t("fmtcMerchants.bulkActions.bulkUpdateError"));
+    } finally {
+      setIsBulkOperating(false);
+    }
+  };
+
+  // 确认批量删除
+  const handleConfirmBulkDelete = async () => {
+    const selectedIds = Object.keys(rowSelection);
+
+    try {
+      setIsBulkOperating(true);
+      const response = await fetch("/api/fmtc-merchants", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds, action: "delete" }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        if (result.success) {
+          setRowSelection({});
+          setShowDeleteDialog(false);
+          fetchMerchants();
+
+          // 显示成功消息
+          toast.success(
+            t("fmtcMerchants.bulkActions.bulkDeleteSuccess", {
+              count: result.data.updatedCount,
+            }),
+          );
+        } else {
+          toast.error(
+            result.error || t("fmtcMerchants.bulkActions.bulkDeleteError"),
+          );
+        }
+      } else {
+        toast.error(t("fmtcMerchants.bulkActions.bulkDeleteError"));
+      }
+    } catch (error) {
+      logger.error("批量删除失败:", error);
+      toast.error(t("fmtcMerchants.bulkActions.bulkDeleteError"));
+    } finally {
+      setIsBulkOperating(false);
     }
   };
 
@@ -213,7 +308,7 @@ export function FMTCMerchantsDataTable({
           }
         }
       } catch (error) {
-        console.error("商户操作失败:", error);
+        logger.error("商户操作失败:", error);
       }
     },
     [fetchMerchants],
@@ -402,6 +497,27 @@ export function FMTCMerchantsDataTable({
         },
       },
       {
+        accessorKey: "isActive",
+        header: t("fmtcMerchants.columns.status"),
+        cell: ({ row }) => {
+          const isActive = row.getValue("isActive") as boolean;
+
+          return (
+            <Badge
+              className={
+                isActive
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                  : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+              }
+            >
+              {isActive
+                ? t("fmtcMerchants.status.active")
+                : t("fmtcMerchants.status.inactive")}
+            </Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         header: t("common.actions.title"),
         cell: ({ row }) => {
@@ -498,6 +614,7 @@ export function FMTCMerchantsDataTable({
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
+    getRowId: (row) => row.id, // 使用实际的商户ID作为行键
     state: {
       sorting,
       rowSelection,
@@ -507,7 +624,13 @@ export function FMTCMerchantsDataTable({
   // 监听筛选条件变化
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCountry, selectedNetwork, brandMatchStatus]);
+  }, [
+    searchTerm,
+    selectedCountry,
+    selectedNetwork,
+    brandMatchStatus,
+    selectedActiveStatus,
+  ]);
 
   // 获取数据
   useEffect(() => {
@@ -529,6 +652,7 @@ export function FMTCMerchantsDataTable({
               variant="outline"
               size="sm"
               onClick={() => handleBatchAction("activate")}
+              disabled={isBulkOperating}
             >
               {React.createElement(CheckCircle, { className: "mr-2 h-4 w-4" })}
               {t("common.activate")}
@@ -537,6 +661,7 @@ export function FMTCMerchantsDataTable({
               variant="outline"
               size="sm"
               onClick={() => handleBatchAction("deactivate")}
+              disabled={isBulkOperating}
             >
               {React.createElement(XCircle, { className: "mr-2 h-4 w-4" })}
               {t("common.deactivate")}
@@ -545,9 +670,19 @@ export function FMTCMerchantsDataTable({
               variant="destructive"
               size="sm"
               onClick={() => handleBatchAction("delete")}
+              disabled={isBulkOperating}
             >
-              {React.createElement(Trash2, { className: "mr-2 h-4 w-4" })}
-              {t("common.delete")}
+              {isBulkOperating ? (
+                <div className="flex items-center">
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  {t("common.deleting")}
+                </div>
+              ) : (
+                <>
+                  {React.createElement(Trash2, { className: "mr-2 h-4 w-4" })}
+                  {t("common.delete")}
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -633,6 +768,43 @@ export function FMTCMerchantsDataTable({
         }}
         onUpdate={fetchMerchants}
       />
+
+      {/* 批量删除确认对话框 */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("fmtcMerchants.bulkActions.confirmDelete", {
+                count: selectedRowCount,
+              })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("fmtcMerchants.bulkActions.confirmDeleteMessage", {
+                count: selectedRowCount,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkOperating}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmBulkDelete}
+              disabled={isBulkOperating}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isBulkOperating ? (
+                <div className="flex items-center">
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  {t("common.deleting")}
+                </div>
+              ) : (
+                t("common.delete")
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

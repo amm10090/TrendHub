@@ -1,10 +1,12 @@
 "use client";
 
 import { Settings, Loader2, Save } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,6 +38,231 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 interface DiscountSettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+// FMTC 分类选项映射 - 基于实际FMTC网站结构
+const FMTC_CATEGORY_OPTIONS = [
+  { value: "Alcohol / Beer", label: "Alcohol / Beer", id: "1" },
+  { value: "Animals & Pet Supplies", label: "Animals & Pet Supplies", id: "6" },
+  { value: "Arts & Entertainment", label: "Arts & Entertainment", id: "11" },
+  { value: "Auctions", label: "Auctions", id: "24" },
+  { value: "B2B", label: "B2B", id: "25" },
+  { value: "Babies & Kids", label: "Babies & Kids", id: "35" },
+  { value: "Charity", label: "Charity", id: "43" },
+  { value: "Clothing & Apparel", label: "Clothing & Apparel", id: "44" },
+  {
+    value: "Computers & Accessories",
+    label: "Computers & Accessories",
+    id: "69",
+  },
+  { value: "Consumer Electronics", label: "Consumer Electronics", id: "90" },
+  { value: "Consumer Services", label: "Consumer Services", id: "113" },
+  { value: "COVID Related", label: "COVID Related", id: "119" },
+  { value: "Curbside Pickup", label: "Curbside Pickup", id: "120" },
+  { value: "Department Stores", label: "Department Stores", id: "121" },
+  { value: "Education", label: "Education", id: "122" },
+  { value: "Erotic", label: "Erotic", id: "126" },
+  { value: "Financial", label: "Financial", id: "132" },
+  { value: "Food & Gourmet", label: "Food & Gourmet", id: "146" },
+  { value: "Gambling", label: "Gambling", id: "164" },
+  { value: "Gifts", label: "Gifts", id: "165" },
+  {
+    value: "Green Living (Eco-Friendly)",
+    label: "Green Living (Eco-Friendly)",
+    id: "172",
+  },
+  { value: "Group Discount", label: "Group Discount", id: "173" },
+  { value: "Hardware", label: "Hardware", id: "183" },
+  { value: "Health & Beauty", label: "Health & Beauty", id: "186" },
+  { value: "Holidays & Occasions", label: "Holidays & Occasions", id: "195" },
+  { value: "Household", label: "Household", id: "239" },
+  { value: "Kids", label: "Kids", id: "253" },
+  { value: "Local Deals", label: "Local Deals", id: "254" },
+  { value: "Luggage & Bags", label: "Luggage & Bags", id: "282" },
+  { value: "Media", label: "Media", id: "284" },
+  { value: "Mens", label: "Mens", id: "288" },
+  { value: "Office", label: "Office", id: "289" },
+  { value: "Sporting Goods", label: "Sporting Goods", id: "294" },
+  { value: "Tobacco", label: "Tobacco", id: "321" },
+  { value: "Toys & Games", label: "Toys & Games", id: "324" },
+  { value: "Travel", label: "Travel", id: "338" },
+  { value: "Vehicles & Parts", label: "Vehicles & Parts", id: "344" },
+  { value: "Weapons", label: "Weapons", id: "352" },
+  { value: "Womens", label: "Womens", id: "353" },
+];
+
+// 分类智能匹配函数
+function matchCategory(input: string) {
+  const trimmedInput = input.trim();
+
+  // 1. 精确文字匹配（优先级最高）
+  const exactMatch = FMTC_CATEGORY_OPTIONS.find(
+    (option) => option.value.toLowerCase() === trimmedInput.toLowerCase(),
+  );
+
+  if (exactMatch) {
+    return { type: "exact", match: exactMatch };
+  }
+
+  // 2. 包含文字匹配
+  const containsMatch = FMTC_CATEGORY_OPTIONS.find(
+    (option) =>
+      option.value.toLowerCase().includes(trimmedInput.toLowerCase()) ||
+      trimmedInput.toLowerCase().includes(option.value.toLowerCase()),
+  );
+
+  if (containsMatch) {
+    return { type: "contains", match: containsMatch };
+  }
+
+  // 3. ID 匹配
+  const idMatch = FMTC_CATEGORY_OPTIONS.find(
+    (option) => option.id === trimmedInput,
+  );
+
+  if (idMatch) {
+    return { type: "id", match: idMatch };
+  }
+
+  // 4. 如果都不匹配，返回原始输入
+  return { type: "custom", value: trimmedInput };
+}
+
+// 分类选择器组件
+function CategorySelector({
+  value,
+  onChange,
+  placeholder = "Select category or enter custom value",
+  disabled = false,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const [isCustomInput, setIsCustomInput] = useState(false);
+  const [customValue, setCustomValue] = useState(value);
+
+  const matchResult = matchCategory(value);
+
+  const handleSelectChange = (selectedValue: string) => {
+    if (selectedValue === "__custom__") {
+      setIsCustomInput(true);
+      setCustomValue(value);
+    } else {
+      setIsCustomInput(false);
+      onChange(selectedValue);
+    }
+  };
+
+  const handleCustomInputChange = (inputValue: string) => {
+    setCustomValue(inputValue);
+    onChange(inputValue);
+  };
+
+  const handleToggleCustom = () => {
+    if (isCustomInput) {
+      setIsCustomInput(false);
+      // 如果有匹配项，使用匹配项的值，否则保持当前值
+      const match = matchCategory(customValue);
+
+      if (match.type !== "custom") {
+        onChange(match.match!.value);
+      }
+    } else {
+      setIsCustomInput(true);
+      setCustomValue(value);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        {!isCustomInput ? (
+          <Select
+            value={value}
+            onValueChange={handleSelectChange}
+            disabled={disabled}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {FMTC_CATEGORY_OPTIONS.map((option) => (
+                <SelectItem key={option.id} value={option.value}>
+                  <div className="flex items-center justify-between w-full">
+                    <span>{option.label}</span>
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      ID: {option.id}
+                    </Badge>
+                  </div>
+                </SelectItem>
+              ))}
+              <SelectItem value="__custom__">
+                <div className="flex items-center text-muted-foreground">
+                  <span>Custom input...</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <Input
+            value={customValue}
+            onChange={(e) => handleCustomInputChange(e.target.value)}
+            placeholder="Enter category name or ID"
+            className="flex-1"
+            disabled={disabled}
+          />
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleToggleCustom}
+          disabled={disabled}
+        >
+          {isCustomInput ? <X className="w-4 h-4" /> : "Custom"}
+        </Button>
+      </div>
+
+      {/* 显示匹配结果 */}
+      {value && (
+        <div className="text-sm text-muted-foreground">
+          {matchResult.type === "exact" && (
+            <div className="flex items-center gap-1 text-green-600">
+              <Check className="w-3 h-3" />
+              <span>
+                Exact match: {matchResult.match.label} (ID:{" "}
+                {matchResult.match.id})
+              </span>
+            </div>
+          )}
+          {matchResult.type === "contains" && (
+            <div className="flex items-center gap-1 text-blue-600">
+              <Check className="w-3 h-3" />
+              <span>
+                Partial match: {matchResult.match.label} (ID:{" "}
+                {matchResult.match.id})
+              </span>
+            </div>
+          )}
+          {matchResult.type === "id" && (
+            <div className="flex items-center gap-1 text-purple-600">
+              <Check className="w-3 h-3" />
+              <span>
+                ID match: {matchResult.match.label} (ID: {matchResult.match.id})
+              </span>
+            </div>
+          )}
+          {matchResult.type === "custom" && (
+            <div className="flex items-center gap-1 text-orange-600">
+              <span>Custom input: &quot;{matchResult.value}&quot;</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 interface DiscountSettings {
@@ -71,20 +298,20 @@ interface DiscountSettings {
     headlessMode: boolean;
     debugMode: boolean;
     maxConcurrency: number;
-    
+
     // reCAPTCHA配置
     recaptchaMode: string;
     recaptchaManualTimeout: number;
     recaptchaAutoTimeout: number;
     recaptchaRetryAttempts: number;
     recaptchaRetryDelay: number;
-    
+
     // 2captcha配置
     twoCaptchaApiKey: string;
     twoCaptchaSoftId: number;
     twoCaptchaServerDomain: string;
     twoCaptchaCallback: string;
-    
+
     // 搜索配置
     searchText: string;
     searchNetworkId: string;
@@ -93,7 +320,7 @@ interface DiscountSettings {
     searchCountry: string;
     searchShippingCountry: string;
     searchDisplayType: string;
-    
+
     // 搜索行为配置
     searchEnableRandomDelay: boolean;
     searchMinDelay: number;
@@ -101,13 +328,39 @@ interface DiscountSettings {
     searchTypingDelayMin: number;
     searchTypingDelayMax: number;
     searchEnableMouseMovement: boolean;
-    
+
     // 高级配置
     sessionTimeout: number;
     maxConsecutiveErrors: number;
     errorCooldownPeriod: number;
   };
 }
+
+// 处理从 API 加载的数据，确保字符串字段不为 null
+const sanitizeSettings = (
+  settings: Record<string, unknown>,
+): Record<string, unknown> => {
+  if (!settings || typeof settings !== "object") {
+    return settings;
+  }
+
+  const sanitized = { ...settings };
+
+  // 遍历所有属性
+  for (const key in sanitized) {
+    if (sanitized[key] === null) {
+      // 如果是 null，设置为空字符串
+      sanitized[key] = "";
+    } else if (typeof sanitized[key] === "object" && sanitized[key] !== null) {
+      // 如果是对象，递归处理
+      sanitized[key] = sanitizeSettings(
+        sanitized[key] as Record<string, unknown>,
+      );
+    }
+  }
+
+  return sanitized;
+};
 
 const defaultSettings: DiscountSettings = {
   scheduler: {
@@ -142,20 +395,20 @@ const defaultSettings: DiscountSettings = {
     headlessMode: true,
     debugMode: false,
     maxConcurrency: 1,
-    
+
     // reCAPTCHA配置
     recaptchaMode: "manual",
     recaptchaManualTimeout: 120000,
     recaptchaAutoTimeout: 180000,
     recaptchaRetryAttempts: 3,
     recaptchaRetryDelay: 5000,
-    
+
     // 2captcha配置
     twoCaptchaApiKey: "",
     twoCaptchaSoftId: 4580,
     twoCaptchaServerDomain: "2captcha.com",
     twoCaptchaCallback: "",
-    
+
     // 搜索配置
     searchText: "",
     searchNetworkId: "",
@@ -164,7 +417,7 @@ const defaultSettings: DiscountSettings = {
     searchCountry: "",
     searchShippingCountry: "",
     searchDisplayType: "all",
-    
+
     // 搜索行为配置
     searchEnableRandomDelay: true,
     searchMinDelay: 500,
@@ -172,7 +425,7 @@ const defaultSettings: DiscountSettings = {
     searchTypingDelayMin: 50,
     searchTypingDelayMax: 200,
     searchEnableMouseMovement: true,
-    
+
     // 高级配置
     sessionTimeout: 1800000,
     maxConsecutiveErrors: 5,
@@ -189,14 +442,7 @@ export function DiscountSettingsModal({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // 加载设置
-  useEffect(() => {
-    if (open) {
-      loadSettings();
-    }
-  }, [open, loadSettings]);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
       // 并行加载折扣设置和FMTC配置
@@ -214,25 +460,33 @@ export function DiscountSettingsModal({
 
       if (fmtcResponse.ok) {
         const fmtcData = await fmtcResponse.json();
+
         if (fmtcData.success && fmtcData.data) {
           fmtcSettings = fmtcData.data;
         }
       }
 
-      setSettings({ 
-        ...defaultSettings, 
-        ...discountSettings,
+      setSettings({
+        ...defaultSettings,
+        ...sanitizeSettings(discountSettings),
         fmtc: {
           ...defaultSettings.fmtc,
-          ...fmtcSettings,
-        }
+          ...sanitizeSettings(fmtcSettings),
+        },
       });
     } catch {
       toast.error(t("loadingError"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  // 加载设置
+  useEffect(() => {
+    if (open) {
+      loadSettings();
+    }
+  }, [open, loadSettings]);
 
   const saveSettings = async () => {
     setSaving(true);
@@ -352,9 +606,7 @@ export function DiscountSettingsModal({
             <TabsTrigger value="brandMatching">
               {t("brandMatching.title")}
             </TabsTrigger>
-            <TabsTrigger value="fmtc">
-              {t("fmtc.title")}
-            </TabsTrigger>
+            <TabsTrigger value="fmtc">{t("fmtc.title")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="scheduler" className="space-y-4">
@@ -652,11 +904,15 @@ export function DiscountSettingsModal({
               <Card>
                 <CardHeader>
                   <CardTitle>{t("fmtc.basic.title")}</CardTitle>
-                  <CardDescription>{t("fmtc.basic.description")}</CardDescription>
+                  <CardDescription>
+                    {t("fmtc.basic.description")}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fmtc-username">{t("fmtc.basic.username")}</Label>
+                    <Label htmlFor="fmtc-username">
+                      {t("fmtc.basic.username")}
+                    </Label>
                     <Input
                       id="fmtc-username"
                       type="email"
@@ -669,7 +925,9 @@ export function DiscountSettingsModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="fmtc-password">{t("fmtc.basic.password")}</Label>
+                    <Label htmlFor="fmtc-password">
+                      {t("fmtc.basic.password")}
+                    </Label>
                     <Input
                       id="fmtc-password"
                       type="password"
@@ -683,7 +941,9 @@ export function DiscountSettingsModal({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-max-pages">{t("fmtc.basic.maxPages")}</Label>
+                      <Label htmlFor="fmtc-max-pages">
+                        {t("fmtc.basic.maxPages")}
+                      </Label>
                       <Input
                         id="fmtc-max-pages"
                         type="number"
@@ -691,13 +951,18 @@ export function DiscountSettingsModal({
                         max="100"
                         value={settings.fmtc.maxPages}
                         onChange={(e) =>
-                          updateFMTCSettings("maxPages", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "maxPages",
+                            parseInt(e.target.value),
+                          )
                         }
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-max-merchants">{t("fmtc.basic.maxMerchants")}</Label>
+                      <Label htmlFor="fmtc-max-merchants">
+                        {t("fmtc.basic.maxMerchants")}
+                      </Label>
                       <Input
                         id="fmtc-max-merchants"
                         type="number"
@@ -705,7 +970,10 @@ export function DiscountSettingsModal({
                         max="10000"
                         value={settings.fmtc.maxMerchants}
                         onChange={(e) =>
-                          updateFMTCSettings("maxMerchants", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "maxMerchants",
+                            parseInt(e.target.value),
+                          )
                         }
                       />
                     </div>
@@ -713,7 +981,9 @@ export function DiscountSettingsModal({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-request-delay">{t("fmtc.basic.requestDelay")}</Label>
+                      <Label htmlFor="fmtc-request-delay">
+                        {t("fmtc.basic.requestDelay")}
+                      </Label>
                       <Input
                         id="fmtc-request-delay"
                         type="number"
@@ -721,7 +991,10 @@ export function DiscountSettingsModal({
                         max="10000"
                         value={settings.fmtc.requestDelay}
                         onChange={(e) =>
-                          updateFMTCSettings("requestDelay", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "requestDelay",
+                            parseInt(e.target.value),
+                          )
                         }
                       />
                       <p className="text-xs text-muted-foreground">
@@ -730,7 +1003,9 @@ export function DiscountSettingsModal({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-max-concurrency">{t("fmtc.basic.maxConcurrency")}</Label>
+                      <Label htmlFor="fmtc-max-concurrency">
+                        {t("fmtc.basic.maxConcurrency")}
+                      </Label>
                       <Input
                         id="fmtc-max-concurrency"
                         type="number"
@@ -738,7 +1013,10 @@ export function DiscountSettingsModal({
                         max="5"
                         value={settings.fmtc.maxConcurrency}
                         onChange={(e) =>
-                          updateFMTCSettings("maxConcurrency", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "maxConcurrency",
+                            parseInt(e.target.value),
+                          )
                         }
                       />
                     </div>
@@ -750,10 +1028,15 @@ export function DiscountSettingsModal({
                         id="fmtc-image-download"
                         checked={settings.fmtc.enableImageDownload}
                         onCheckedChange={(checked) =>
-                          updateFMTCSettings("enableImageDownload", checked as boolean)
+                          updateFMTCSettings(
+                            "enableImageDownload",
+                            checked as boolean,
+                          )
                         }
                       />
-                      <Label htmlFor="fmtc-image-download">{t("fmtc.basic.enableImageDownload")}</Label>
+                      <Label htmlFor="fmtc-image-download">
+                        {t("fmtc.basic.enableImageDownload")}
+                      </Label>
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -764,7 +1047,9 @@ export function DiscountSettingsModal({
                           updateFMTCSettings("headlessMode", checked as boolean)
                         }
                       />
-                      <Label htmlFor="fmtc-headless">{t("fmtc.basic.headlessMode")}</Label>
+                      <Label htmlFor="fmtc-headless">
+                        {t("fmtc.basic.headlessMode")}
+                      </Label>
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -775,7 +1060,9 @@ export function DiscountSettingsModal({
                           updateFMTCSettings("debugMode", checked as boolean)
                         }
                       />
-                      <Label htmlFor="fmtc-debug">{t("fmtc.basic.debugMode")}</Label>
+                      <Label htmlFor="fmtc-debug">
+                        {t("fmtc.basic.debugMode")}
+                      </Label>
                     </div>
                   </div>
                 </CardContent>
@@ -785,11 +1072,15 @@ export function DiscountSettingsModal({
               <Card>
                 <CardHeader>
                   <CardTitle>{t("fmtc.recaptcha.title")}</CardTitle>
-                  <CardDescription>{t("fmtc.recaptcha.description")}</CardDescription>
+                  <CardDescription>
+                    {t("fmtc.recaptcha.description")}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fmtc-recaptcha-mode">{t("fmtc.recaptcha.mode")}</Label>
+                    <Label htmlFor="fmtc-recaptcha-mode">
+                      {t("fmtc.recaptcha.mode")}
+                    </Label>
                     <Select
                       value={settings.fmtc.recaptchaMode}
                       onValueChange={(value) =>
@@ -800,16 +1091,24 @@ export function DiscountSettingsModal({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="manual">{t("fmtc.recaptcha.manual")}</SelectItem>
-                        <SelectItem value="auto">{t("fmtc.recaptcha.auto")}</SelectItem>
-                        <SelectItem value="skip">{t("fmtc.recaptcha.skip")}</SelectItem>
+                        <SelectItem value="manual">
+                          {t("fmtc.recaptcha.manual")}
+                        </SelectItem>
+                        <SelectItem value="auto">
+                          {t("fmtc.recaptcha.auto")}
+                        </SelectItem>
+                        <SelectItem value="skip">
+                          {t("fmtc.recaptcha.skip")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-manual-timeout">{t("fmtc.recaptcha.manualTimeout")}</Label>
+                      <Label htmlFor="fmtc-manual-timeout">
+                        {t("fmtc.recaptcha.manualTimeout")}
+                      </Label>
                       <Input
                         id="fmtc-manual-timeout"
                         type="number"
@@ -817,13 +1116,18 @@ export function DiscountSettingsModal({
                         max="300000"
                         value={settings.fmtc.recaptchaManualTimeout}
                         onChange={(e) =>
-                          updateFMTCSettings("recaptchaManualTimeout", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "recaptchaManualTimeout",
+                            parseInt(e.target.value),
+                          )
                         }
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-auto-timeout">{t("fmtc.recaptcha.autoTimeout")}</Label>
+                      <Label htmlFor="fmtc-auto-timeout">
+                        {t("fmtc.recaptcha.autoTimeout")}
+                      </Label>
                       <Input
                         id="fmtc-auto-timeout"
                         type="number"
@@ -831,7 +1135,10 @@ export function DiscountSettingsModal({
                         max="600000"
                         value={settings.fmtc.recaptchaAutoTimeout}
                         onChange={(e) =>
-                          updateFMTCSettings("recaptchaAutoTimeout", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "recaptchaAutoTimeout",
+                            parseInt(e.target.value),
+                          )
                         }
                         disabled={settings.fmtc.recaptchaMode !== "auto"}
                       />
@@ -840,7 +1147,9 @@ export function DiscountSettingsModal({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-retry-attempts">{t("fmtc.recaptcha.retryAttempts")}</Label>
+                      <Label htmlFor="fmtc-retry-attempts">
+                        {t("fmtc.recaptcha.retryAttempts")}
+                      </Label>
                       <Input
                         id="fmtc-retry-attempts"
                         type="number"
@@ -848,13 +1157,18 @@ export function DiscountSettingsModal({
                         max="10"
                         value={settings.fmtc.recaptchaRetryAttempts}
                         onChange={(e) =>
-                          updateFMTCSettings("recaptchaRetryAttempts", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "recaptchaRetryAttempts",
+                            parseInt(e.target.value),
+                          )
                         }
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-retry-delay">{t("fmtc.recaptcha.retryDelay")}</Label>
+                      <Label htmlFor="fmtc-retry-delay">
+                        {t("fmtc.recaptcha.retryDelay")}
+                      </Label>
                       <Input
                         id="fmtc-retry-delay"
                         type="number"
@@ -862,7 +1176,10 @@ export function DiscountSettingsModal({
                         max="30000"
                         value={settings.fmtc.recaptchaRetryDelay}
                         onChange={(e) =>
-                          updateFMTCSettings("recaptchaRetryDelay", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "recaptchaRetryDelay",
+                            parseInt(e.target.value),
+                          )
                         }
                       />
                     </div>
@@ -874,11 +1191,15 @@ export function DiscountSettingsModal({
               <Card>
                 <CardHeader>
                   <CardTitle>{t("fmtc.twoCaptcha.title")}</CardTitle>
-                  <CardDescription>{t("fmtc.twoCaptcha.description")}</CardDescription>
+                  <CardDescription>
+                    {t("fmtc.twoCaptcha.description")}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fmtc-2captcha-api">{t("fmtc.twoCaptcha.apiKey")}</Label>
+                    <Label htmlFor="fmtc-2captcha-api">
+                      {t("fmtc.twoCaptcha.apiKey")}
+                    </Label>
                     <Input
                       id="fmtc-2captcha-api"
                       type="password"
@@ -893,26 +1214,36 @@ export function DiscountSettingsModal({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-2captcha-soft-id">{t("fmtc.twoCaptcha.softId")}</Label>
+                      <Label htmlFor="fmtc-2captcha-soft-id">
+                        {t("fmtc.twoCaptcha.softId")}
+                      </Label>
                       <Input
                         id="fmtc-2captcha-soft-id"
                         type="number"
                         value={settings.fmtc.twoCaptchaSoftId}
                         onChange={(e) =>
-                          updateFMTCSettings("twoCaptchaSoftId", parseInt(e.target.value))
+                          updateFMTCSettings(
+                            "twoCaptchaSoftId",
+                            parseInt(e.target.value),
+                          )
                         }
                         disabled={settings.fmtc.recaptchaMode !== "auto"}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-2captcha-domain">{t("fmtc.twoCaptcha.serverDomain")}</Label>
+                      <Label htmlFor="fmtc-2captcha-domain">
+                        {t("fmtc.twoCaptcha.serverDomain")}
+                      </Label>
                       <Input
                         id="fmtc-2captcha-domain"
                         type="text"
                         value={settings.fmtc.twoCaptchaServerDomain}
                         onChange={(e) =>
-                          updateFMTCSettings("twoCaptchaServerDomain", e.target.value)
+                          updateFMTCSettings(
+                            "twoCaptchaServerDomain",
+                            e.target.value,
+                          )
                         }
                         disabled={settings.fmtc.recaptchaMode !== "auto"}
                       />
@@ -920,7 +1251,9 @@ export function DiscountSettingsModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="fmtc-2captcha-callback">{t("fmtc.twoCaptcha.callback")}</Label>
+                    <Label htmlFor="fmtc-2captcha-callback">
+                      {t("fmtc.twoCaptcha.callback")}
+                    </Label>
                     <Input
                       id="fmtc-2captcha-callback"
                       type="url"
@@ -939,11 +1272,15 @@ export function DiscountSettingsModal({
               <Card>
                 <CardHeader>
                   <CardTitle>{t("fmtc.search.title")}</CardTitle>
-                  <CardDescription>{t("fmtc.search.description")}</CardDescription>
+                  <CardDescription>
+                    {t("fmtc.search.description")}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fmtc-search-text">{t("fmtc.search.searchText")}</Label>
+                    <Label htmlFor="fmtc-search-text">
+                      {t("fmtc.search.searchText")}
+                    </Label>
                     <Input
                       id="fmtc-search-text"
                       type="text"
@@ -957,20 +1294,22 @@ export function DiscountSettingsModal({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-search-category">{t("fmtc.search.category")}</Label>
-                      <Input
-                        id="fmtc-search-category"
-                        type="text"
+                      <Label htmlFor="fmtc-search-category">
+                        {t("fmtc.search.category")}
+                      </Label>
+                      <CategorySelector
                         value={settings.fmtc.searchCategory}
-                        onChange={(e) =>
-                          updateFMTCSettings("searchCategory", e.target.value)
+                        onChange={(value) =>
+                          updateFMTCSettings("searchCategory", value)
                         }
-                        placeholder="2"
+                        placeholder={t("fmtc.search.categoryPlaceholder")}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-search-network">{t("fmtc.search.networkId")}</Label>
+                      <Label htmlFor="fmtc-search-network">
+                        {t("fmtc.search.networkId")}
+                      </Label>
                       <Input
                         id="fmtc-search-network"
                         type="text"
@@ -985,7 +1324,9 @@ export function DiscountSettingsModal({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-search-country">{t("fmtc.search.country")}</Label>
+                      <Label htmlFor="fmtc-search-country">
+                        {t("fmtc.search.country")}
+                      </Label>
                       <Input
                         id="fmtc-search-country"
                         type="text"
@@ -998,13 +1339,18 @@ export function DiscountSettingsModal({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="fmtc-search-shipping">{t("fmtc.search.shippingCountry")}</Label>
+                      <Label htmlFor="fmtc-search-shipping">
+                        {t("fmtc.search.shippingCountry")}
+                      </Label>
                       <Input
                         id="fmtc-search-shipping"
                         type="text"
                         value={settings.fmtc.searchShippingCountry}
                         onChange={(e) =>
-                          updateFMTCSettings("searchShippingCountry", e.target.value)
+                          updateFMTCSettings(
+                            "searchShippingCountry",
+                            e.target.value,
+                          )
                         }
                         placeholder="US"
                       />
@@ -1012,7 +1358,9 @@ export function DiscountSettingsModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="fmtc-display-type">{t("fmtc.search.displayType")}</Label>
+                    <Label htmlFor="fmtc-display-type">
+                      {t("fmtc.search.displayType")}
+                    </Label>
                     <Select
                       value={settings.fmtc.searchDisplayType}
                       onValueChange={(value) =>
@@ -1023,9 +1371,15 @@ export function DiscountSettingsModal({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">{t("fmtc.search.displayAll")}</SelectItem>
-                        <SelectItem value="accepting">{t("fmtc.search.displayAccepting")}</SelectItem>
-                        <SelectItem value="not_accepting">{t("fmtc.search.displayNotAccepting")}</SelectItem>
+                        <SelectItem value="all">
+                          {t("fmtc.search.displayAll")}
+                        </SelectItem>
+                        <SelectItem value="accepting">
+                          {t("fmtc.search.displayAccepting")}
+                        </SelectItem>
+                        <SelectItem value="not_accepting">
+                          {t("fmtc.search.displayNotAccepting")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

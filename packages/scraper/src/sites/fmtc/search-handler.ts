@@ -5,7 +5,13 @@
 import type { Page, ElementHandle } from "playwright";
 import type { Log } from "crawlee";
 import { delay } from "../../utils.js";
-import { getSearchConfig, validateSearchConfig } from "./config.js";
+import {
+  getSearchConfig,
+  getSearchConfigFromParams,
+  validateSearchConfig,
+  CATEGORY_MAP,
+  type FMTCConfig,
+} from "./config.js";
 
 /**
  * 搜索参数接口
@@ -39,16 +45,29 @@ export class FMTCSearchHandler {
   private log: Log;
   private config: ReturnType<typeof getSearchConfig>;
 
-  constructor(page: Page, log: Log) {
+  constructor(page: Page, log: Log, fmtcConfig?: FMTCConfig) {
     this.page = page;
     this.log = log;
-    this.config = getSearchConfig();
+
+    // 优先使用传入的配置，否则使用环境变量配置
+    this.config = fmtcConfig
+      ? getSearchConfigFromParams(fmtcConfig)
+      : getSearchConfig();
 
     // 验证配置
     const validation = validateSearchConfig(this.config);
     if (!validation.valid) {
       this.log.warning("搜索配置验证失败:", validation.errors);
     }
+
+    // 输出配置用于调试
+    this.log.info("搜索处理器配置:", {
+      searchText: this.config.searchText,
+      category: this.config.category,
+      networkId: this.config.networkId,
+      displayType: this.config.displayType,
+      configSource: fmtcConfig ? "database" : "environment",
+    });
   }
 
   /**
@@ -478,7 +497,10 @@ export class FMTCSearchHandler {
       // 等待搜索结果元素出现，但不要等太久
       await this.page.waitForTimeout(2000);
 
-      const resultsInfo = await this.page.evaluate(() => {
+      // 将调试模式传递给浏览器环境
+      const debugMode = process.env.NODE_ENV === "development";
+
+      const resultsInfo = await this.page.evaluate((debugMode) => {
         // 查找结果表格或列表
         const resultSelectors = [
           "table.results",
@@ -508,9 +530,12 @@ export class FMTCSearchHandler {
           if (dataRows.length > 0) {
             resultElements = dataRows;
             resultCount = dataRows.length;
-            console.log(
-              `找到搜索结果，使用选择器: ${selector}, 结果数: ${resultCount}`,
-            );
+            // 仅在开发模式下记录调试信息
+            if (debugMode) {
+              console.log(
+                `找到搜索结果，使用选择器: ${selector}, 结果数: ${resultCount}`,
+              );
+            }
             break;
           }
         }
@@ -549,7 +574,7 @@ export class FMTCSearchHandler {
           pageTitle: document.title,
           hasSearchParams: hasSearchParams,
         };
-      });
+      }, debugMode);
 
       const finalCount = Math.max(
         resultsInfo.elementCount,
@@ -790,29 +815,52 @@ export class FMTCSearchHandler {
         return false;
       }
 
-      // 6. 优先使用文本匹配查找"Clothing & Apparel"分类
+      // 6. 智能分类匹配逻辑
       const allOptions = await chosenResults.$$("li.active-result");
+
+      // 1. 首先尝试精确文本匹配
       for (const opt of allOptions) {
         const text = await opt.textContent();
-        if (text && text.trim().includes("Clothing & Apparel")) {
+        if (text && text.trim() === value) {
           await this.ensureElementVisible(opt);
           await this.safeClick(opt);
           await this.humanDelay(200, 400);
-          this.log.info(`✅ 通过文本匹配选择Chosen选项: ${text.trim()}`);
+          this.log.info(`✅ 通过精确文本匹配选择Chosen选项: ${text.trim()}`);
           return true;
         }
       }
 
-      // 7. 如果没找到"Clothing & Apparel"，尝试根据data-option-array-index匹配
+      // 2. 通过文本包含匹配
+      for (const opt of allOptions) {
+        const text = await opt.textContent();
+        if (text && text.trim().toLowerCase().includes(value.toLowerCase())) {
+          await this.ensureElementVisible(opt);
+          await this.safeClick(opt);
+          await this.humanDelay(200, 400);
+          this.log.info(`✅ 通过文本包含匹配选择Chosen选项: ${text.trim()}`);
+          return true;
+        }
+      }
+
+      // 3. 如果输入的是文本，查找对应的ID
+      let targetId = value;
+      if (CATEGORY_MAP.has(value)) {
+        targetId = CATEGORY_MAP.get(value)!;
+        this.log.info(`分类文本 "${value}" 映射到 ID: ${targetId}`);
+      }
+
+      // 4. 通过data-option-array-index匹配
       const option = await chosenResults.$(
-        `li.active-result[data-option-array-index="${value}"]`,
+        `li.active-result[data-option-array-index="${targetId}"]`,
       );
       if (option) {
         const text = await option.textContent();
         await this.ensureElementVisible(option);
         await this.safeClick(option);
         await this.humanDelay(200, 400);
-        this.log.info(`✅ 通过索引选择Chosen选项: ${value} (${text?.trim()})`);
+        this.log.info(
+          `✅ 通过索引选择Chosen选项: ${targetId} (${text?.trim()})`,
+        );
         return true;
       }
 

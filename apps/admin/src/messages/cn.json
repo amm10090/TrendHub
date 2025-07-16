@@ -2005,6 +2005,58 @@
         "confidenceDescription": "品牌匹配的最低置信度（0.1-1.0）",
         "fuzzyMatch": "启用模糊匹配",
         "fuzzyMatchDescription": "启用模糊匹配算法"
+      },
+      "fmtc": {
+        "title": "FMTC配置",
+        "basic": {
+          "title": "基础设置",
+          "description": "配置FMTC爬虫的基本参数",
+          "username": "用户名",
+          "password": "密码",
+          "maxPages": "最大页数",
+          "maxMerchants": "最大商户数",
+          "requestDelay": "请求延迟（毫秒）",
+          "requestDelayHint": "请求之间的延迟时间（毫秒）",
+          "maxConcurrency": "最大并发数",
+          "enableImageDownload": "启用图片下载",
+          "headlessMode": "无头模式",
+          "debugMode": "调试模式"
+        },
+        "recaptcha": {
+          "title": "reCAPTCHA配置",
+          "description": "配置reCAPTCHA验证处理设置",
+          "mode": "reCAPTCHA模式",
+          "manual": "手动",
+          "auto": "自动",
+          "skip": "跳过",
+          "manualTimeout": "手动超时（毫秒）",
+          "autoTimeout": "自动超时（毫秒）",
+          "retryAttempts": "重试次数",
+          "retryDelay": "重试延迟（毫秒）"
+        },
+        "twoCaptcha": {
+          "title": "2captcha配置",
+          "description": "配置2captcha服务设置",
+          "apiKey": "API密钥",
+          "softId": "软件ID",
+          "serverDomain": "服务器域名",
+          "callback": "回调地址"
+        },
+        "search": {
+          "title": "搜索配置",
+          "description": "配置搜索参数",
+          "searchText": "搜索文本",
+          "searchTextPlaceholder": "输入搜索关键词...",
+          "category": "分类",
+          "categoryPlaceholder": "选择分类或输入自定义值",
+          "networkId": "网络ID",
+          "country": "国家",
+          "shippingCountry": "发货国家",
+          "displayType": "显示类型",
+          "displayAll": "全部",
+          "displayAccepting": "接受中",
+          "displayNotAccepting": "不接受"
+        }
       }
     },
     "import": {
@@ -2467,6 +2519,8 @@
     "description": "管理从 FMTC 平台抓取的商户信息",
     "stats": {
       "totalMerchants": "总商户数",
+      "activeMerchants": "活跃商户",
+      "inactiveMerchants": "已禁用商户",
       "brandMatched": "已匹配品牌",
       "unmatched": "未匹配",
       "lastUpdate": "最后更新",
@@ -2555,6 +2609,8 @@
       "selectNetwork": "选择网络平台",
       "brandStatus": "品牌匹配状态",
       "selectBrandStatus": "选择品牌状态",
+      "activeStatus": "活跃状态",
+      "selectActiveStatus": "选择活跃状态",
       "matched": "已匹配",
       "unmatched": "未匹配",
       "confirmed": "已确认",
@@ -2568,6 +2624,7 @@
       "brandMatch": "品牌匹配",
       "confidence": "置信度",
       "lastUpdate": "最后更新",
+      "status": "状态",
       "homepage": "官方网站",
       "merchant": "商户",
       "suggestedBrand": "建议品牌"
@@ -2584,7 +2641,9 @@
     "status": {
       "unmatched": "未匹配",
       "confirmed": "已确认",
-      "needsConfirmation": "需要确认"
+      "needsConfirmation": "需要确认",
+      "active": "活跃",
+      "inactive": "已禁用"
     },
     "noResults": "未找到商户",
     "brandMatching": {
@@ -2620,14 +2679,55 @@
       "noBrandMatch": "暂无品牌匹配",
       "noNetworks": "暂无网络关联",
       "affiliateUrl": "联盟链接",
-      "previewDealsUrl": "预览优惠链接"
+      "previewDealsUrl": "预览优惠链接",
+      "affiliateLinksInfo": "联盟链接信息",
+      "primaryAffiliateLink": "主要联盟链接",
+      "affiliateLinksDetails": "联盟链接详情",
+      "freshReachLinks": "FreshReach 链接",
+      "previewDealsLink": "预览优惠链接",
+      "linkCount": "{count} 个链接"
+    },
+    "bulkActions": {
+      "title": "批量操作",
+      "activate": "批量激活",
+      "deactivate": "批量禁用",
+      "delete": "批量删除",
+      "selectAll": "全选",
+      "deselectAll": "取消全选",
+      "selectedCount": "已选择 {count} 项",
+      "confirmDelete": "确认删除 {count} 个商户？",
+      "confirmDeleteMessage": "您确定要删除选中的 {count} 个商户吗？此操作无法撤销。",
+      "bulkActivateSuccess": "已成功激活 {count} 个商户",
+      "bulkDeactivateSuccess": "已成功禁用 {count} 个商户",
+      "bulkDeleteSuccess": "已成功删除 {count} 个商户",
+      "bulkUpdateError": "批量操作失败",
+      "bulkDeleteError": "批量删除失败",
+      "noSelection": "请先选择要操作的商户"
     },
     "tabs": {
       "merchants": "商户管理",
       "scraper": "抓取任务",
       "brandMatching": "品牌匹配",
       "networks": "网络关联",
+      "links": "链接信息",
       "media": "媒体资源"
+    },
+    "export": {
+      "title": "导出数据",
+      "button": "导出",
+      "selectFormat": "选择导出格式",
+      "formats": {
+        "csv": "CSV文件",
+        "excel": "Excel文件",
+        "json": "JSON文件"
+      },
+      "description": "导出当前筛选条件下的商户数据",
+      "exporting": "导出中...",
+      "exportSuccess": "数据导出成功",
+      "exportError": "导出失败，请重试",
+      "exportCount": "将导出 {count} 条商户记录",
+      "downloadStarted": "下载已开始",
+      "noData": "没有可导出的数据"
     }
   }
 }

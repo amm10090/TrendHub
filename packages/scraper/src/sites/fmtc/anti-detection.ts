@@ -7,6 +7,7 @@ import type { Log } from "crawlee";
 import type { FMTCAntiDetectionConfig } from "./types.js";
 import { FMTC_ERROR_PATTERNS } from "./selectors.js";
 import { sendLogToBackend, LocalScraperLogLevel, delay } from "../../utils.js";
+import { FMTC_CONFIG } from "./config.js";
 
 /**
  * FMTC 反检测策略类
@@ -43,11 +44,23 @@ export class FMTCAntiDetection {
   }
 
   /**
+   * 检查是否应该输出调试日志
+   */
+  private shouldLogDebug(): boolean {
+    return FMTC_CONFIG.DEBUG_MODE;
+  }
+
+  /**
    * 模拟真实用户行为
    */
   async simulateRealUserBehavior(): Promise<void> {
     try {
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "开始模拟真实用户行为");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "开始模拟真实用户行为",
+        );
+      }
 
       // 1. 随机延迟
       if (this.config.enableRandomDelay) {
@@ -70,7 +83,9 @@ export class FMTCAntiDetection {
       // 5. 更新行为计数
       this.updateActionMetrics();
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "用户行为模拟完成");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "用户行为模拟完成");
+      }
     } catch (error) {
       await this.logMessage(LocalScraperLogLevel.WARN, "模拟用户行为时出错", {
         error: (error as Error).message,
@@ -112,7 +127,9 @@ export class FMTCAntiDetection {
    */
   async detectBlocking(): Promise<boolean> {
     try {
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "检测反爬虫机制");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "检测反爬虫机制");
+      }
 
       // 1. 检查HTTP状态码
       const response = await this.page
@@ -205,10 +222,12 @@ export class FMTCAntiDetection {
 
       // 2. 等待较长时间 (模拟用户离开后重新访问)
       const waitTime = Math.random() * 300000 + 60000; // 1-6分钟
-      await this.logMessage(
-        LocalScraperLogLevel.DEBUG,
-        `等待 ${Math.round(waitTime / 1000)} 秒后重新建立会话`,
-      );
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          `等待 ${Math.round(waitTime / 1000)} 秒后重新建立会话`,
+        );
+      }
       await delay(waitTime);
 
       // 3. 更换User-Agent (如果可能)
@@ -448,7 +467,9 @@ export class FMTCAntiDetection {
         sessionStorage.clear();
       });
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "浏览器数据清除完成");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "浏览器数据清除完成");
+      }
     } catch (error) {
       await this.logMessage(LocalScraperLogLevel.WARN, "清除浏览器数据失败", {
         error: (error as Error).message,
@@ -474,7 +495,9 @@ export class FMTCAntiDetection {
         "User-Agent": randomUA,
       });
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "User-Agent 已轮换");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "User-Agent 已轮换");
+      }
     } catch (error) {
       await this.logMessage(LocalScraperLogLevel.WARN, "轮换 User-Agent 失败", {
         error: (error as Error).message,
@@ -496,7 +519,12 @@ export class FMTCAntiDetection {
       await this.simulateMouseMovement();
       await delay(1000);
 
-      await this.logMessage(LocalScraperLogLevel.DEBUG, "正常浏览行为模拟完成");
+      if (this.shouldLogDebug()) {
+        await this.logMessage(
+          LocalScraperLogLevel.DEBUG,
+          "正常浏览行为模拟完成",
+        );
+      }
     } catch {
       // 忽略错误
     }

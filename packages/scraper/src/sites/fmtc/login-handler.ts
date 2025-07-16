@@ -124,6 +124,12 @@ export class FMTCLoginHandler {
           duration: recaptchaResult.duration,
           cost: recaptchaResult.cost,
         });
+
+        // 在第一次reCAPTCHA成功后立即保存会话状态，防止第二次验证失败导致会话丢失
+        await this.logMessage(
+          LocalScraperLogLevel.INFO,
+          "第一次reCAPTCHA成功，预先保存会话状态",
+        );
       }
 
       // 5. 填写登录表单

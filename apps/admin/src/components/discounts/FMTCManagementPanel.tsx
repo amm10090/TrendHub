@@ -8,11 +8,14 @@ import {
   ExternalLink,
   Search,
   Filter,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 
 import { FMTCBrandMatchingPanel } from "@/components/fmtc-merchants/FMTCBrandMatchingPanel";
+import { FMTCMerchantExportButton } from "@/components/fmtc-merchants/FMTCMerchantExportButton";
 import { FMTCMerchantsDataTable } from "@/components/fmtc-merchants/FMTCMerchantsDataTable";
 import { FMTCScraperPanel } from "@/components/fmtc-merchants/FMTCScraperPanel";
 import { Button } from "@/components/ui/button";
@@ -30,6 +33,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // 统计接口
 interface FMTCMerchantStats {
   totalMerchants: number;
+  activeMerchants: number;
+  inactiveMerchants: number;
   brandMatched: number;
   unmatched: number;
   recentlyUpdated: number;
@@ -49,6 +54,8 @@ export function FMTCManagementPanel() {
   // 状态管理
   const [stats, setStats] = useState<FMTCMerchantStats>({
     totalMerchants: 0,
+    activeMerchants: 0,
+    inactiveMerchants: 0,
     brandMatched: 0,
     unmatched: 0,
     recentlyUpdated: 0,
@@ -69,6 +76,7 @@ export function FMTCManagementPanel() {
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [selectedNetwork, setSelectedNetwork] = useState("all");
   const [brandMatchStatus, setBrandMatchStatus] = useState("all");
+  const [selectedActiveStatus, setSelectedActiveStatus] = useState("all");
 
   // 获取统计数据
   const fetchStats = async () => {
@@ -137,6 +145,14 @@ export function FMTCManagementPanel() {
           </p>
         </div>
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
+          <FMTCMerchantExportButton
+            searchTerm={searchTerm}
+            selectedCountry={selectedCountry}
+            selectedNetwork={selectedNetwork}
+            brandMatchStatus={brandMatchStatus}
+            selectedActiveStatus={selectedActiveStatus}
+            totalCount={stats.totalMerchants}
+          />
           <Button variant="outline" onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
             {t("common.refresh")}
@@ -149,7 +165,7 @@ export function FMTCManagementPanel() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -193,6 +209,46 @@ export function FMTCManagementPanel() {
             <div className="text-2xl font-bold text-orange-600">
               {stats.unmatched}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t("fmtcMerchants.stats.activeMerchants")}
+            </CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.activeMerchants}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats.totalMerchants > 0
+                ? `${((stats.activeMerchants / stats.totalMerchants) * 100).toFixed(1)}%`
+                : "0%"}{" "}
+              {t("fmtcMerchants.status.active")}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t("fmtcMerchants.stats.inactiveMerchants")}
+            </CardTitle>
+            <XCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.inactiveMerchants}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats.totalMerchants > 0
+                ? `${((stats.inactiveMerchants / stats.totalMerchants) * 100).toFixed(1)}%`
+                : "0%"}{" "}
+              {t("fmtcMerchants.status.inactive")}
+            </p>
           </CardContent>
         </Card>
 
@@ -265,7 +321,7 @@ export function FMTCManagementPanel() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-2">
               <label className="text-sm font-medium">
                 {t("fmtcMerchants.filters.search")}
@@ -361,6 +417,31 @@ export function FMTCManagementPanel() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("fmtcMerchants.filters.activeStatus")}
+              </label>
+              <Select
+                value={selectedActiveStatus}
+                onValueChange={setSelectedActiveStatus}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={t("fmtcMerchants.filters.selectActiveStatus")}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all")}</SelectItem>
+                  <SelectItem value="active">
+                    {t("fmtcMerchants.status.active")}
+                  </SelectItem>
+                  <SelectItem value="inactive">
+                    {t("fmtcMerchants.status.inactive")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -389,6 +470,7 @@ export function FMTCManagementPanel() {
             selectedCountry={selectedCountry}
             selectedNetwork={selectedNetwork}
             brandMatchStatus={brandMatchStatus}
+            selectedActiveStatus={selectedActiveStatus}
             refreshTrigger={refreshTrigger}
             onStatsUpdate={setStats}
           />

@@ -887,6 +887,10 @@ model FMTCMerchant {
   affiliateUrl          String?
   /// 预览优惠链接
   previewDealsUrl       String?
+  /// 联盟链接详情 (JSON: {"AW": ["url1", "url2"], "CJ": ["url3"]})
+  affiliateLinks        Json?
+  /// FreshReach 链接列表
+  freshReachUrls        String[]             @default([])
   
   // 数据管理
   /// 数据来源页面 URL

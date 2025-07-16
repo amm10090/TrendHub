@@ -10,14 +10,27 @@ import { db } from "@/lib/db";
 export interface CreateMerchantData {
   name: string;
   homepage?: string;
-  description?: string;
   country?: string;
   network?: string;
   primaryCategory?: string;
   status?: string;
-  merchantId?: string;
-  logoUrl?: string;
+  fmtcId?: string;
+  logo120x60?: string;
+  logo88x31?: string;
   brandId?: string;
+  affiliateLinks?: Record<string, string[]>;
+  affiliateUrl?: string;
+  freshReachUrls?: string[];
+  previewDealsUrl?: string;
+  screenshot280x210?: string;
+  screenshot600x450?: string;
+  primaryCountry?: string;
+  shipsTo?: string[];
+  networkId?: string;
+  freshReachSupported?: boolean;
+  dateAdded?: Date;
+  premiumSubscriptions?: number;
+  sourceUrl?: string;
 }
 
 export interface ImportResult {

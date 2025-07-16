@@ -66,14 +66,39 @@ export class FMTCSessionManager {
   private findProjectRoot(): string {
     let currentDir = process.cwd();
 
-    // 向上查找，直到找到 package.json 或到达根目录
+    // 向上查找，直到找到根目录的标识文件
     while (currentDir !== "/" && currentDir !== ".") {
-      if (existsSync(join(currentDir, "package.json"))) {
+      // 查找包含 pnpm-workspace.yaml 或 pnpm-lock.yaml 的目录（monorepo 根目录）
+      if (
+        existsSync(join(currentDir, "pnpm-workspace.yaml")) ||
+        existsSync(join(currentDir, "pnpm-lock.yaml"))
+      ) {
+        this.log.debug(`[SessionManager] 找到项目根目录: ${currentDir}`);
         return currentDir;
       }
+
+      // 查找包含 .git 的目录
+      if (existsSync(join(currentDir, ".git"))) {
+        this.log.debug(
+          `[SessionManager] 通过 .git 找到项目根目录: ${currentDir}`,
+        );
+        return currentDir;
+      }
+
+      // 查找包含 package.json 的目录
+      if (existsSync(join(currentDir, "package.json"))) {
+        this.log.debug(
+          `[SessionManager] 通过 package.json 找到目录: ${currentDir}`,
+        );
+        return currentDir;
+      }
+
       currentDir = resolve(currentDir, "..");
     }
 
+    this.log.warning(
+      `[SessionManager] 未找到项目根目录，使用当前工作目录: ${process.cwd()}`,
+    );
     return process.cwd(); // 如果找不到，使用当前工作目录
   }
 
@@ -102,10 +127,9 @@ export class FMTCSessionManager {
       this.log.info("[SessionManager] 会话状态已保存");
       return true;
     } catch (error) {
-      this.log.error(
-        "[SessionManager] 保存会话状态失败:",
-        { error: error instanceof Error ? error.message : String(error) },
-      );
+      this.log.error("[SessionManager] 保存会话状态失败:", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return false;
     }
   }
@@ -115,6 +139,8 @@ export class FMTCSessionManager {
    */
   loadSessionState(username?: string): unknown | null {
     try {
+      this.log.debug(`[SessionManager] 检查会话文件: ${this.sessionFilePath}`);
+
       if (!existsSync(this.sessionFilePath)) {
         this.log.info("[SessionManager] 未找到保存的会话状态");
         return null;
@@ -126,9 +152,16 @@ export class FMTCSessionManager {
 
       // 检查会话是否过期
       const age = Date.now() - sessionData.timestamp;
+      const ageMinutes = Math.round(age / 1000 / 60);
+      const maxAgeMinutes = Math.round(this.config.maxAge / 1000 / 60);
+
+      this.log.debug(
+        `[SessionManager] 会话状态检查: 年龄=${ageMinutes}分钟, 最大年龄=${maxAgeMinutes}分钟, 保存用户=${sessionData.username}, 请求用户=${username}`,
+      );
+
       if (age > this.config.maxAge) {
         this.log.info(
-          `[SessionManager] 会话状态已过期 (${Math.round(age / 1000 / 60)}分钟前保存)，将重新登录`,
+          `[SessionManager] 会话状态已过期 (${ageMinutes}分钟前保存，最大允许${maxAgeMinutes}分钟)，将重新登录`,
         );
         this.cleanupSessionState();
         return null;
@@ -140,20 +173,21 @@ export class FMTCSessionManager {
         sessionData.username &&
         sessionData.username !== username
       ) {
-        this.log.info("[SessionManager] 用户名不匹配，将重新登录");
+        this.log.info(
+          `[SessionManager] 用户名不匹配 (保存: ${sessionData.username}, 请求: ${username})，将重新登录`,
+        );
         this.cleanupSessionState();
         return null;
       }
 
       this.log.info(
-        `[SessionManager] 找到有效的会话状态 (${Math.round(age / 1000 / 60)}分钟前保存)`,
+        `[SessionManager] 找到有效的会话状态 (${ageMinutes}分钟前保存，用户: ${sessionData.username})`,
       );
       return sessionData.state;
     } catch (error) {
-      this.log.warning(
-        "[SessionManager] 加载会话状态失败:",
-        { error: error instanceof Error ? error.message : String(error) },
-      );
+      this.log.warning("[SessionManager] 加载会话状态失败:", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       this.cleanupSessionState();
       return null;
     }
@@ -169,10 +203,9 @@ export class FMTCSessionManager {
         this.log.info("[SessionManager] 已清理会话状态");
       }
     } catch (error) {
-      this.log.warning(
-        "[SessionManager] 清理会话状态失败:",
-        { error: error instanceof Error ? error.message : String(error) },
-      );
+      this.log.warning("[SessionManager] 清理会话状态失败:", {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -208,10 +241,9 @@ export class FMTCSessionManager {
             return true;
           }
         } catch (error) {
-          this.log.warning(
-            "[SessionManager] 页面内容验证失败:",
-            { error: error instanceof Error ? error.message : String(error) },
-          );
+          this.log.warning("[SessionManager] 页面内容验证失败:", {
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       }
 
@@ -241,10 +273,9 @@ export class FMTCSessionManager {
 
       return isValid;
     } catch (error) {
-      this.log.error(
-        "[SessionManager] 会话验证失败:",
-        { error: error instanceof Error ? error.message : String(error) },
-      );
+      this.log.error("[SessionManager] 会话验证失败:", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       this.cleanupSessionState();
       return false;
     }
@@ -268,10 +299,9 @@ export class FMTCSessionManager {
       writeFileSync(this.sessionFilePath, JSON.stringify(sessionData, null, 2));
       this.log.debug("[SessionManager] 已更新最后活动时间");
     } catch (error) {
-      this.log.warning(
-        "[SessionManager] 更新最后活动时间失败:",
-        { error: error instanceof Error ? error.message : String(error) },
-      );
+      this.log.warning("[SessionManager] 更新最后活动时间失败:", {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -295,10 +325,9 @@ export class FMTCSessionManager {
         username: sessionData.username,
       };
     } catch (error) {
-      this.log.warning(
-        "[SessionManager] 获取会话信息失败:",
-        { error: error instanceof Error ? error.message : String(error) },
-      );
+      this.log.warning("[SessionManager] 获取会话信息失败:", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return { exists: false };
     }
   }

@@ -13,6 +13,7 @@ import type {
   SessionConfig,
 } from "@repo/types";
 import type { FMTCSessionManager } from "./session-manager.js";
+import type { FMTCConfig } from "./config.js";
 
 // 重新导出需要的类型
 export type {
@@ -59,6 +60,12 @@ export interface FMTCUserData {
   };
   /** 是否有现有会话 */
   hasExistingSession?: boolean;
+  /** FMTC 配置参数 */
+  fmtcConfig?: FMTCConfig;
+  /** 商户详情索引 (用于进度跟踪) */
+  merchantDetailIndex?: number;
+  /** 待处理的详情总数 (用于进度跟踪) */
+  totalDetailsToProcess?: number;
 }
 
 /**
@@ -326,4 +333,6 @@ export interface FMTCRequestHandlerOptions {
   debugMode?: boolean;
   /** 会话管理器 */
   sessionManager?: FMTCSessionManager;
+  /** FMTC 配置参数 */
+  fmtcConfig?: FMTCConfig;
 }

@@ -2,7 +2,7 @@
  * FMTC 爬虫主入口
  */
 
-import { Configuration, log as crawleeLog } from "crawlee";
+import { Configuration, log as crawleeLog, LogLevel } from "crawlee";
 import type { FMTCMerchantData } from "@repo/types";
 import * as path from "path";
 import type {
@@ -20,7 +20,7 @@ import {
   ensureDirectoryExists,
 } from "../../utils.js";
 import { createSessionManager, type SessionConfig } from "./session-manager.js";
-import { type FMTCConfig, getConfigFromParams, getRecaptchaConfigFromParams, getSearchConfigFromParams } from "./config.js";
+import { type FMTCConfig } from "./config.js";
 
 /**
  * FMTC 爬虫主函数（支持配置参数）
@@ -132,6 +132,9 @@ export async function scrapeFMTCWithConfig(
   );
 
   // 反检测配置（使用配置参数或默认值）
+  // 设置Crawlee日志级别为INFO，避免DEBUG日志
+  crawleeLog.setLevel(LogLevel.INFO);
+
   const antiDetectionConfig: FMTCAntiDetectionConfig = {
     enableRandomDelay: config?.searchEnableRandomDelay ?? true,
     delayRange: {
@@ -145,7 +148,7 @@ export async function scrapeFMTCWithConfig(
     sessionTimeout: config?.sessionTimeout ?? 30 * 60 * 1000, // 30分钟
   };
 
-  // 创建爬虫
+  // 创建爬虫 - 使用与测试文件相同的浏览器上下文创建方式
   const crawler = new PlaywrightCrawler(
     {
       requestHandler: createFMTCRequestHandler({
@@ -191,11 +194,11 @@ export async function scrapeFMTCWithConfig(
         },
       },
       maxRequestsPerCrawl: maxRequests,
-      maxConcurrency: 1,
+      maxConcurrency: options.maxConcurrency || 1,
       minConcurrency: 1,
       autoscaledPoolOptions: {
-        desiredConcurrency: 1,
-        maxConcurrency: 1,
+        desiredConcurrency: options.maxConcurrency || 1,
+        maxConcurrency: options.maxConcurrency || 1,
       },
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,
@@ -207,9 +210,15 @@ export async function scrapeFMTCWithConfig(
           page.setDefaultTimeout(60000);
           page.setDefaultNavigationTimeout(60000);
 
-          // 如果有保存的会话状态，在页面加载前设置存储状态
+          // 如果有保存的会话状态，直接设置到浏览器上下文
           if (savedSessionState) {
             try {
+              // 使用与测试文件相同的方式设置会话状态
+              await page.context().addInitScript(() => {
+                // 这个脚本会在每个页面加载前执行
+              });
+
+              // 设置存储状态
               const storageState = savedSessionState as {
                 cookies?: Array<{
                   name: string;
@@ -232,20 +241,35 @@ export async function scrapeFMTCWithConfig(
                 await page.context().addCookies(storageState.cookies);
               }
 
-              // 设置 localStorage
+              // 设置 localStorage (改进版本)
               if (storageState.origins) {
                 for (const origin of storageState.origins) {
                   if (origin.localStorage && origin.localStorage.length > 0) {
-                    await page.addInitScript((items) => {
-                      for (const item of items) {
-                        localStorage.setItem(item.name, item.value);
-                      }
-                    }, origin.localStorage);
+                    await page.addInitScript(
+                      (originData) => {
+                        if (window.location.origin === originData.origin) {
+                          for (const item of originData.localStorage) {
+                            try {
+                              localStorage.setItem(item.name, item.value);
+                            } catch (e) {
+                              console.warn(
+                                "Failed to set localStorage item:",
+                                e,
+                              );
+                            }
+                          }
+                        }
+                      },
+                      {
+                        origin: origin.origin,
+                        localStorage: origin.localStorage,
+                      },
+                    );
                   }
                 }
               }
 
-              crawleeLog.info(`${siteName}: 已加载保存的会话状态`);
+              crawleeLog.info(`${siteName}: 已通过优化的hooks加载会话状态`);
             } catch (error) {
               crawleeLog.warning(
                 `${siteName}: 加载会话状态失败: ${(error as Error).message}`,
@@ -265,7 +289,11 @@ export async function scrapeFMTCWithConfig(
     crawleeLog.info(`${siteName}: 未找到保存的会话，将执行登录流程`);
   }
 
-  crawleeLog.info(`${siteName}: 反检测爬虫设置完成，开始抓取...`);
+  crawleeLog.info(`${siteName}: 爬虫配置完成（配置版本），开始抓取...`, {
+    maxConcurrency: options.maxConcurrency || 1,
+    maxPages: options.maxPages,
+    maxMerchants: options.maxMerchants,
+  });
 
   // 初始请求：始终从登录页面开始，确保会话状态正确
   const initialRequest = {
@@ -452,7 +480,7 @@ export default async function scrapeFMTC(
     sessionTimeout: 30 * 60 * 1000, // 30分钟
   };
 
-  // 创建爬虫 - 完全模拟测试文件的简单Playwright配置，避免复杂的反检测
+  // 创建爬虫 - 使用与测试文件相同的浏览器上下文创建方式
   const crawler = new PlaywrightCrawler(
     {
       requestHandler: createFMTCRequestHandler({
@@ -500,11 +528,11 @@ export default async function scrapeFMTC(
         },
       },
       maxRequestsPerCrawl: maxRequests,
-      maxConcurrency: 1, // 与测试文件保持单并发
+      maxConcurrency: options.maxConcurrency || 1,
       minConcurrency: 1,
       autoscaledPoolOptions: {
-        desiredConcurrency: 1,
-        maxConcurrency: 1,
+        desiredConcurrency: options.maxConcurrency || 1,
+        maxConcurrency: options.maxConcurrency || 1,
       },
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,
@@ -518,10 +546,15 @@ export default async function scrapeFMTC(
           page.setDefaultTimeout(60000); // 与测试文件一致
           page.setDefaultNavigationTimeout(60000); // 与测试文件一致
 
-          // 如果有保存的会话状态，在页面加载前设置存储状态
+          // 如果有保存的会话状态，直接设置到浏览器上下文
           if (savedSessionState) {
             try {
-              // savedSessionState 是 Playwright 的 storageState 格式
+              // 使用与测试文件相同的方式设置会话状态
+              await page.context().addInitScript(() => {
+                // 这个脚本会在每个页面加载前执行
+              });
+
+              // 设置存储状态
               const storageState = savedSessionState as {
                 cookies?: Array<{
                   name: string;
@@ -544,20 +577,35 @@ export default async function scrapeFMTC(
                 await page.context().addCookies(storageState.cookies);
               }
 
-              // 设置 localStorage
+              // 设置 localStorage (改进版本)
               if (storageState.origins) {
                 for (const origin of storageState.origins) {
                   if (origin.localStorage && origin.localStorage.length > 0) {
-                    await page.addInitScript((items) => {
-                      for (const item of items) {
-                        localStorage.setItem(item.name, item.value);
-                      }
-                    }, origin.localStorage);
+                    await page.addInitScript(
+                      (originData) => {
+                        if (window.location.origin === originData.origin) {
+                          for (const item of originData.localStorage) {
+                            try {
+                              localStorage.setItem(item.name, item.value);
+                            } catch (e) {
+                              console.warn(
+                                "Failed to set localStorage item:",
+                                e,
+                              );
+                            }
+                          }
+                        }
+                      },
+                      {
+                        origin: origin.origin,
+                        localStorage: origin.localStorage,
+                      },
+                    );
                   }
                 }
               }
 
-              crawleeLog.info(`${siteName}: 已加载保存的会话状态`);
+              crawleeLog.info(`${siteName}: 已通过优化的hooks加载会话状态`);
             } catch (error) {
               crawleeLog.warning(
                 `${siteName}: 加载会话状态失败: ${(error as Error).message}`,
@@ -578,7 +626,11 @@ export default async function scrapeFMTC(
     crawleeLog.info(`${siteName}: 未找到保存的会话，将执行登录流程`);
   }
 
-  crawleeLog.info(`${siteName}: 反检测爬虫设置完成，开始抓取...`);
+  crawleeLog.info(`${siteName}: 爬虫配置完成（环境变量版本），开始抓取...`, {
+    maxConcurrency: options.maxConcurrency || 1,
+    maxPages: options.maxPages,
+    maxMerchants: options.maxMerchants,
+  });
 
   // 初始请求：始终从登录页面开始，确保会话状态正确
   const initialRequest = {
@@ -773,7 +825,11 @@ export { FMTCMerchantDetailHandler } from "./merchant-detail-handler.js";
 export { FMTCAntiDetection } from "./anti-detection.js";
 export { createFMTCRequestHandler } from "./request-handler.js";
 export { FMTC_SELECTORS, FMTC_URL_PATTERNS } from "./selectors.js";
-export { type FMTCConfig, getConfigFromParams, getRecaptchaConfigFromParams, getSearchConfigFromParams } from "./config.js";
+export {
+  type FMTCConfig,
+  getConfigFromParams,
+  getRecaptchaConfigFromParams,
+  getSearchConfigFromParams,
+} from "./config.js";
 
-// 导出新的配置支持的爬虫函数
-export { scrapeFMTCWithConfig };
+// 导出新的配置支持的爬虫函数已在上面直接导出

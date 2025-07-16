@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 const FMTCConfigSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
-  
+
   // 基础配置
   defaultUsername: z.string().optional(),
   defaultPassword: z.string().optional(),
@@ -18,20 +18,25 @@ const FMTCConfigSchema = z.object({
   headlessMode: z.boolean().optional(),
   debugMode: z.boolean().optional(),
   maxConcurrency: z.number().min(1).max(5).optional(),
-  
+
   // reCAPTCHA配置
   recaptchaMode: z.enum(["manual", "auto", "skip"]).optional(),
   recaptchaManualTimeout: z.number().min(10000).max(300000).optional(),
-  recaptchaAutoTimeout: z.number().min(30000).max(600000).optional(),
+  recaptchaAutoTimeout: z
+    .number()
+    .min(30000)
+    .max(600000)
+    .default(60000)
+    .optional(),
   recaptchaRetryAttempts: z.number().min(1).max(10).optional(),
   recaptchaRetryDelay: z.number().min(1000).max(30000).optional(),
-  
+
   // 2captcha配置
   twoCaptchaApiKey: z.string().optional(),
   twoCaptchaSoftId: z.number().optional(),
   twoCaptchaServerDomain: z.string().optional(),
   twoCaptchaCallback: z.string().optional(),
-  
+
   // 搜索配置
   searchText: z.string().optional(),
   searchNetworkId: z.string().optional(),
@@ -40,7 +45,7 @@ const FMTCConfigSchema = z.object({
   searchCountry: z.string().optional(),
   searchShippingCountry: z.string().optional(),
   searchDisplayType: z.enum(["all", "accepting", "not_accepting"]).optional(),
-  
+
   // 搜索行为配置
   searchEnableRandomDelay: z.boolean().optional(),
   searchMinDelay: z.number().min(0).max(10000).optional(),
@@ -48,12 +53,12 @@ const FMTCConfigSchema = z.object({
   searchTypingDelayMin: z.number().min(0).max(1000).optional(),
   searchTypingDelayMax: z.number().min(0).max(2000).optional(),
   searchEnableMouseMovement: z.boolean().optional(),
-  
+
   // 高级配置
   sessionTimeout: z.number().min(60000).max(7200000).optional(),
   maxConsecutiveErrors: z.number().min(1).max(20).optional(),
   errorCooldownPeriod: z.number().min(1000).max(120000).optional(),
-  
+
   isEnabled: z.boolean().optional(),
 });
 
@@ -83,12 +88,13 @@ export async function GET() {
     });
   } catch (error) {
     console.error("获取FMTC配置失败:", error);
+
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: "Failed to get FMTC configuration" 
+        error: "Failed to get FMTC configuration",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -99,17 +105,18 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // 验证请求数据
     const validationResult = FMTCConfigSchema.safeParse(body);
+
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: "Invalid configuration data",
-          details: validationResult.error.errors 
+          details: validationResult.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -147,12 +154,13 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error("更新FMTC配置失败:", error);
+
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: "Failed to update FMTC configuration" 
+        error: "Failed to update FMTC configuration",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -182,12 +190,13 @@ export async function DELETE() {
     });
   } catch (error) {
     console.error("重置FMTC配置失败:", error);
+
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: "Failed to reset FMTC configuration" 
+        error: "Failed to reset FMTC configuration",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

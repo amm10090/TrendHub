@@ -64,6 +64,8 @@ interface FMTCMerchantDetail {
   screenshot280x210?: string;
   screenshot600x450?: string;
   affiliateUrl?: string;
+  affiliateLinks?: Record<string, string[]>;
+  freshReachUrls?: string[];
   previewDealsUrl?: string;
   brandId?: string;
   brand?: {
@@ -334,13 +336,16 @@ export function FMTCMerchantDetailModal({
           onValueChange={setActiveTab}
           className="space-y-4"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">{t("common.basic")}</TabsTrigger>
             <TabsTrigger value="brand">
               {t("fmtcMerchants.tabs.brandMatching")}
             </TabsTrigger>
             <TabsTrigger value="networks">
               {t("fmtcMerchants.tabs.networks")}
+            </TabsTrigger>
+            <TabsTrigger value="links">
+              {t("fmtcMerchants.tabs.links")}
             </TabsTrigger>
             <TabsTrigger value="media">
               {t("fmtcMerchants.tabs.media")}
@@ -449,7 +454,7 @@ export function FMTCMerchantDetailModal({
 
                     <div className="space-y-1">
                       <Label className="text-sm font-medium">
-                        {t("common.status")}
+                        {t("common.columns.status")}
                       </Label>
                       {isEditing ? (
                         <Select
@@ -746,6 +751,140 @@ export function FMTCMerchantDetailModal({
             </Card>
           </TabsContent>
 
+          <TabsContent value="links" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  {t("fmtcMerchants.details.affiliateLinksInfo")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    {t("fmtcMerchants.details.primaryAffiliateLink")}
+                  </Label>
+                  {merchant.affiliateUrl ? (
+                    <div className="flex items-center space-x-2">
+                      <Link className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={merchant.affiliateUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm break-all"
+                      >
+                        {merchant.affiliateUrl}
+                      </a>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">-</div>
+                  )}
+                </div>
+
+                {/* 联盟链接详情 */}
+                {merchant.affiliateLinks &&
+                  Object.keys(merchant.affiliateLinks).length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        {t("fmtcMerchants.details.affiliateLinksDetails")}
+                      </Label>
+                      <div className="space-y-3">
+                        {Object.entries(merchant.affiliateLinks).map(
+                          ([network, urls]) => (
+                            <div
+                              key={network}
+                              className="border rounded-lg p-3"
+                            >
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {network}
+                                </Badge>
+                                <span className="text-sm text-muted-foreground">
+                                  {t("fmtcMerchants.details.linkCount", {
+                                    count: urls.length,
+                                  })}
+                                </span>
+                              </div>
+                              <div className="space-y-1">
+                                {urls.map((url, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center space-x-2"
+                                  >
+                                    <Link className="h-3 w-3 text-muted-foreground" />
+                                    <a
+                                      href={url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline text-xs break-all"
+                                    >
+                                      {url}
+                                    </a>
+                                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {/* FreshReach 链接 */}
+                {merchant.freshReachUrls &&
+                  merchant.freshReachUrls.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        {t("fmtcMerchants.details.freshReachLinks")}
+                      </Label>
+                      <div className="space-y-1">
+                        {merchant.freshReachUrls.map((url, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center space-x-2"
+                          >
+                            <Link className="h-4 w-4 text-muted-foreground" />
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline text-sm break-all"
+                            >
+                              {url}
+                            </a>
+                            <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    {t("fmtcMerchants.details.previewDealsLink")}
+                  </Label>
+                  {merchant.previewDealsUrl ? (
+                    <div className="flex items-center space-x-2">
+                      <Link className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={merchant.previewDealsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm break-all"
+                      >
+                        {merchant.previewDealsUrl}
+                      </a>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">-</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="media" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
@@ -866,59 +1005,6 @@ export function FMTCMerchantDetailModal({
                 </CardContent>
               </Card>
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {t("fmtcMerchants.details.links")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    {t("fmtcMerchants.details.affiliateUrl")}
-                  </Label>
-                  {merchant.affiliateUrl ? (
-                    <div className="flex items-center space-x-2">
-                      <Link className="h-4 w-4 text-muted-foreground" />
-                      <a
-                        href={merchant.affiliateUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline text-sm"
-                      >
-                        {merchant.affiliateUrl}
-                      </a>
-                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">-</div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    {t("fmtcMerchants.details.previewDealsUrl")}
-                  </Label>
-                  {merchant.previewDealsUrl ? (
-                    <div className="flex items-center space-x-2">
-                      <Link className="h-4 w-4 text-muted-foreground" />
-                      <a
-                        href={merchant.previewDealsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline text-sm"
-                      >
-                        {merchant.previewDealsUrl}
-                      </a>
-                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">-</div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
 
@@ -931,6 +1017,7 @@ export function FMTCMerchantDetailModal({
                     href={merchant.homepage}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="flex items-center"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     {t("fmtcMerchants.actions.visitSite")}

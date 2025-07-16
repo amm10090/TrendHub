@@ -78,7 +78,10 @@ export class FMTCResultsParser {
     this.log.info("开始解析搜索结果");
 
     try {
-      const parsedData = await this.page.evaluate(() => {
+      // 将调试模式传递给浏览器环境
+      const debugMode = process.env.NODE_ENV === "development";
+
+      const parsedData = await this.page.evaluate((debugMode) => {
         const merchants: MerchantInfo[] = [];
 
         // 基于真实HTML结构的表格选择器
@@ -95,9 +98,12 @@ export class FMTCResultsParser {
           const elements = document.querySelectorAll(selector);
           if (elements.length > 0) {
             rows = elements;
-            console.log(
-              `找到表格行 ${elements.length} 条，选择器: ${selector}`,
-            );
+            // 仅在开发模式下记录调试信息
+            if (debugMode) {
+              console.log(
+                `找到表格行 ${elements.length} 条，选择器: ${selector}`,
+              );
+            }
             break;
           }
         }
@@ -160,10 +166,12 @@ export class FMTCResultsParser {
             }
 
             // 第2列：Country
-            merchant.country = cells[2]?.textContent?.trim() || "";
+            const countryText = cells[2]?.textContent?.trim() || "";
+            merchant.country = countryText;
 
             // 第3列：Network
-            merchant.network = cells[3]?.textContent?.trim() || "";
+            const networkText = cells[3]?.textContent?.trim() || "";
+            merchant.network = networkText;
 
             // 第4列：Date Added
             merchant.dateAdded = cells[4]?.textContent?.trim() || "";
@@ -172,6 +180,13 @@ export class FMTCResultsParser {
             // 获取单元格，但不处理，仅为了保持与真实HTML结构的一致性
             // const premiumCell = cells[5];
             // const premiumLink = premiumCell.querySelector("a");
+
+            // 调试日志：记录提取的字段
+            if (debugMode) {
+              console.log(
+                `解析商户 ${index + 1}: 名称="${merchant.name}" | 国家="${countryText}" | 网络="${networkText}" | 日期="${merchant.dateAdded}"`,
+              );
+            }
 
             // 生成唯一ID（从详情URL或名称生成）
             if (merchant.detailUrl) {
@@ -198,9 +213,12 @@ export class FMTCResultsParser {
             }
 
             // 记录调试信息
-            console.log(
-              `解析商户 ${index + 1}: ${merchant.name} | ${merchant.country} | ${merchant.network} | ${merchant.dateAdded}`,
-            );
+            // 仅在开发模式下记录调试信息
+            if (debugMode) {
+              console.log(
+                `解析商户 ${index + 1}: ${merchant.name} | ${merchant.country} | ${merchant.network} | ${merchant.dateAdded}`,
+              );
+            }
 
             merchants.push(merchant);
           } catch (error) {
@@ -218,7 +236,10 @@ export class FMTCResultsParser {
         const dtInfo = document.querySelector("#program_directory_table_info");
         if (dtInfo && dtInfo.textContent) {
           const infoText = dtInfo.textContent.trim();
-          console.log(`DataTables info: ${infoText}`);
+          // 仅在开发模式下记录调试信息
+          if (debugMode) {
+            console.log(`DataTables info: ${infoText}`);
+          }
 
           // 匹配类似 "Showing 1 to 50 of 139 entries" 的文本
           const infoMatch = infoText.match(
@@ -233,23 +254,32 @@ export class FMTCResultsParser {
             const pageSize = end - start + 1;
             currentPage = Math.ceil(start / pageSize);
 
-            console.log(
-              `分页信息: start=${start}, end=${end}, total=${total}, pageSize=${pageSize}, currentPage=${currentPage}`,
-            );
+            // 仅在开发模式下记录调试信息
+            if (debugMode) {
+              console.log(
+                `分页信息: start=${start}, end=${end}, total=${total}, pageSize=${pageSize}, currentPage=${currentPage}`,
+              );
+            }
           } else {
             // 如果无法解析DataTables信息，但有实际数据，则使用实际数据量
             if (merchants.length > 0) {
               totalCount = merchants.length;
-              console.log(`使用实际解析数量作为总数: ${totalCount}`);
+              // 仅在开发模式下记录调试信息
+              if (debugMode) {
+                console.log(`使用实际解析数量作为总数: ${totalCount}`);
+              }
             }
           }
         } else {
           // 如果没有DataTables info，但有实际数据，则使用实际数据量
           if (merchants.length > 0) {
             totalCount = merchants.length;
-            console.log(
-              `未找到DataTables info，使用实际解析数量: ${totalCount}`,
-            );
+            // 仅在开发模式下记录调试信息
+            if (debugMode) {
+              console.log(
+                `未找到DataTables info，使用实际解析数量: ${totalCount}`,
+              );
+            }
           }
         }
 
@@ -269,14 +299,23 @@ export class FMTCResultsParser {
             nextPageUrl = window.location.href; // 保持当前URL，由调用方处理分页
           }
 
-          console.log(`分页控件: hasNextPage=${hasNextPage}`);
+          // 仅在开发模式下记录调试信息
+          if (debugMode) {
+            console.log(`分页控件: hasNextPage=${hasNextPage}`);
+          }
         } else {
-          console.log("未找到DataTables分页控件");
+          // 仅在开发模式下记录调试信息
+          if (debugMode) {
+            console.log("未找到DataTables分页控件");
+          }
         }
 
-        console.log(
-          `解析完成: 找到 ${merchants.length} 个商户，总计 ${totalCount} 个，当前第 ${currentPage} 页，有下一页: ${hasNextPage}`,
-        );
+        // 仅在开发模式下记录调试信息
+        if (debugMode) {
+          console.log(
+            `解析完成: 找到 ${merchants.length} 个商户，总计 ${totalCount} 个，当前第 ${currentPage} 页，有下一页: ${hasNextPage}`,
+          );
+        }
 
         return {
           merchants,
@@ -285,7 +324,7 @@ export class FMTCResultsParser {
           hasNextPage,
           nextPageUrl,
         };
-      });
+      }, debugMode);
 
       this.log.info(`解析完成，找到 ${parsedData.merchants.length} 个商户`);
       return parsedData;

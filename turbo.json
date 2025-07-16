@@ -97,6 +97,12 @@
     "clean": {
       "cache": false
     },
+    "db:push": {
+      "cache": false,
+      "env": ["DATABASE_URL"],
+      "inputs": ["prisma/schema.prisma", "prisma/migrations/**"],
+      "outputs": []
+    },
     "@repo/types#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],

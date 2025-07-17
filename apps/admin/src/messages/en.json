@@ -2032,6 +2032,7 @@
       "actions": {
         "title": "Actions",
         "viewLogs": "View Logs",
+        "viewRealtimeLogs": "Real-time Logs",
         "cancel": "Cancel Task",
         "openMenu": "Open Menu",
         "cancelConfirmMessage": "Are you sure you want to cancel task \"{taskName}\"?"
@@ -2050,6 +2051,39 @@
         "SCHEDULED": "Scheduled",
         "API": "API",
         "WEBHOOK": "Webhook"
+      },
+      "realtimeLogsViewer": {
+        "title": "Real-time Logs",
+        "taskSite": "Site",
+        "executionId": "Execution ID",
+        "connectionStatus": {
+          "connecting": "Connecting",
+          "connected": "Connected",
+          "disconnected": "Disconnected",
+          "error": "Connection Error"
+        },
+        "filters": {
+          "allLevels": "All Levels"
+        },
+        "controls": {
+          "includeContext": "Include Context",
+          "autoScroll": "Auto Scroll",
+          "pause": "Pause",
+          "resume": "Resume",
+          "clear": "Clear",
+          "export": "Export",
+          "reconnect": "Reconnect"
+        },
+        "logEntry": {
+          "context": "Context"
+        },
+        "status": {
+          "connecting": "Connecting to log stream...",
+          "noLogs": "No logs available",
+          "totalLogs": "Total logs: {count}",
+          "filtered": "filtered by {level}",
+          "paused": "Stream paused"
+        }
       },
       "logsView": {
         "title": "Task Logs: {taskName} (#{executionId})",
@@ -2937,6 +2971,40 @@
         "networkError": "Network error, please try again later",
         "confirmStop": "Confirm stop task?",
         "confirmStopMessage": "Stopping the task will interrupt the current scraping process. Are you sure you want to continue?"
+      },
+      "loading": "Loading...",
+      "realtimeLogsViewer": {
+        "title": "Real-time Logs",
+        "taskSite": "Site",
+        "executionId": "Execution ID",
+        "connectionStatus": {
+          "connecting": "Connecting",
+          "connected": "Connected",
+          "disconnected": "Disconnected",
+          "error": "Connection Error"
+        },
+        "filters": {
+          "allLevels": "All Levels"
+        },
+        "controls": {
+          "includeContext": "Include Context",
+          "autoScroll": "Auto Scroll",
+          "pause": "Pause",
+          "resume": "Resume",
+          "clear": "Clear",
+          "export": "Export",
+          "reconnect": "Reconnect"
+        },
+        "logEntry": {
+          "context": "Context"
+        },
+        "status": {
+          "connecting": "Connecting to log stream...",
+          "noLogs": "No logs available",
+          "totalLogs": "Total logs: {count}",
+          "filtered": "filtered by {level}",
+          "paused": "Stream paused"
+        }
       }
     },
     "filters": {
@@ -3018,6 +3086,10 @@
       "shipsTo": "Ships To",
       "noBrandMatch": "No brand match",
       "noNetworks": "No network associations",
+      "primaryNetwork": "Primary Network",
+      "associatedNetworks": "Associated Networks",
+      "primaryNetworkId": "Primary Network ID",
+      "primaryNetworkName": "Primary Network Name",
       "affiliateUrl": "Affiliate URL",
       "previewDealsUrl": "Preview Deals URL",
       "affiliateLinksInfo": "Affiliate Links Info",

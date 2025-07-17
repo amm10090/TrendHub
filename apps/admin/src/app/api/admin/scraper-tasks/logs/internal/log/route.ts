@@ -135,10 +135,19 @@ export async function POST(request: NextRequest) {
 
     // 3. 将日志写入数据库 (根据执行类型选择不同的策略)
     if (isFMTCExecution) {
-      // FMTC执行记录无法使用scraperTaskLog表因为外键约束问题
-      // 暂时跳过数据库日志记录，只保留文件日志
-      // TODO: 考虑创建专门的FMTCScraperLog表或重新设计日志架构
-      console.log(`[FMTC日志已记录到文件] ${message}`);
+      // FMTC执行记录使用专门的FMTCScraperLog表
+      await db.fMTCScraperLog.create({
+        data: {
+          executionId,
+          level,
+          message,
+          context: context
+            ? (context as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
+          timestamp: timestamp ? new Date(timestamp) : new Date(),
+        },
+      });
+      console.log(`[FMTC日志已记录到数据库] ${message}`);
     } else {
       // 使用原有逻辑处理通用抓取任务
       await db.scraperTaskLog.create({

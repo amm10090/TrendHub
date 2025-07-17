@@ -27,6 +27,7 @@ import {
   Loader2,
   Hourglass,
   StopCircle,
+  Radio,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import React, { useMemo, useState, useEffect, useCallback } from "react";
@@ -68,6 +69,7 @@ import {
 } from "@/components/ui/table";
 
 import { ScraperTaskLogsView } from "./scraper-task-logs-view";
+import { RealtimeLogsViewer } from "./realtime-logs-viewer";
 
 // 爬虫支持的站点列表
 const ECommerceSite = {
@@ -153,6 +155,7 @@ export function ScraperTaskExecutionsTab() {
 
   // 状态管理
   const [isLogsSheetOpen, setIsLogsSheetOpen] = useState(false);
+  const [isRealtimeLogsOpen, setIsRealtimeLogsOpen] = useState(false);
   const [currentExecution, setCurrentExecution] =
     useState<ScraperTaskExecutionWithDefinition | null>(null);
 
@@ -234,6 +237,14 @@ export function ScraperTaskExecutionsTab() {
   const handleViewLogs = (execution: ScraperTaskExecutionWithDefinition) => {
     setCurrentExecution(execution);
     setIsLogsSheetOpen(true);
+  };
+
+  // 操作：查看实时日志
+  const handleViewRealtimeLogs = (
+    execution: ScraperTaskExecutionWithDefinition,
+  ) => {
+    setCurrentExecution(execution);
+    setIsRealtimeLogsOpen(true);
   };
 
   // 操作：取消任务（如果 API 已实现）
@@ -508,6 +519,12 @@ export function ScraperTaskExecutionsTab() {
                     <Eye className="mr-2 h-4 w-4" />
                     {t("actions.viewLogs")}
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleViewRealtimeLogs(execution)}
+                  >
+                    <Radio className="mr-2 h-4 w-4" />
+                    {t("actions.viewRealtimeLogs")}
+                  </DropdownMenuItem>
                   {isRunningOrQueued && (
                     <DropdownMenuItem
                       onClick={() =>
@@ -709,6 +726,31 @@ export function ScraperTaskExecutionsTab() {
                 executionId={currentExecution.id}
                 taskName={currentExecution.taskDefinition.name}
                 onClose={() => setIsLogsSheetOpen(false)}
+              />
+            ) : (
+              <div className="p-6 text-center text-muted-foreground">
+                {t("loading")}
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* 实时日志查看器 */}
+      <Sheet open={isRealtimeLogsOpen} onOpenChange={setIsRealtimeLogsOpen}>
+        <SheetContent className="sm:max-w-full w-full p-0 overflow-hidden">
+          <div className="h-full flex flex-col">
+            {currentExecution ? (
+              <RealtimeLogsViewer
+                executionId={currentExecution.id}
+                taskName={currentExecution.taskDefinition.name}
+                onClose={() => setIsRealtimeLogsOpen(false)}
+                onStatusChange={(status) => {
+                  console.log("Status changed:", status);
+                  // 可以在这里添加状态变化的处理逻辑
+                  // 比如更新执行列表数据
+                  revalidateExecutions();
+                }}
               />
             ) : (
               <div className="p-6 text-center text-muted-foreground">

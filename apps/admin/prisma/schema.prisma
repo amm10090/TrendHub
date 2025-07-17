@@ -1013,6 +1013,8 @@ model FMTCScraperExecution {
   updatedMerchantsCount Int         @default(0)
   /// 关联任务
   task            FMTCScraperTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  /// 该次执行的日志记录列表
+  logs            FMTCScraperLog[]
   /// 创建时间
   createdAt       DateTime          @default(now())
   /// 更新时间
@@ -1021,4 +1023,30 @@ model FMTCScraperExecution {
   @@index([taskId])
   @@index([status])
   @@index([startedAt])
+}
+
+/// FMTC 抓取执行日志
+model FMTCScraperLog {
+  /// 唯一标识符
+  id          String               @id @default(cuid())
+  /// 关联的执行记录ID
+  executionId String
+  /// 日志级别 (INFO, WARN, ERROR, DEBUG)
+  level       ScraperLogLevel
+  /// 日志消息
+  message     String
+  /// 日志时间戳
+  timestamp   DateTime             @default(now())
+  /// 上下文信息 (JSON格式)
+  context     Json?
+  /// 关联的执行记录
+  execution   FMTCScraperExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  /// 创建时间
+  createdAt   DateTime             @default(now())
+  /// 更新时间
+  updatedAt   DateTime             @updatedAt
+
+  @@index([executionId])
+  @@index([level])
+  @@index([timestamp])
 }

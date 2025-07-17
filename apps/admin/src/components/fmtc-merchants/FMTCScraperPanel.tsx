@@ -12,6 +12,7 @@ import {
   Eye,
   RefreshCw,
   Loader2,
+  Radio,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect, useCallback } from "react";
@@ -51,9 +52,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+
+import { FMTCRealtimeLogsViewer } from "./FMTCRealtimeLogsViewer";
 
 // 抓取任务接口
 interface FMTCScraperTask {
@@ -112,6 +121,7 @@ export function FMTCScraperPanel({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isRealtimeLogsOpen, setIsRealtimeLogsOpen] = useState(false);
   const [stopConfirmTask, setStopConfirmTask] = useState<string | null>(null);
 
   // 操作状态管理
@@ -448,6 +458,16 @@ export function FMTCScraperPanel({
     setIsEditModalOpen(true);
   };
 
+  // 操作：查看实时日志
+  const handleViewRealtimeLogs = (task: FMTCScraperTask) => {
+    // 找到最新的执行记录
+    const latestExecution = task.executions[0];
+    if (latestExecution) {
+      setSelectedTask(task);
+      setIsRealtimeLogsOpen(true);
+    }
+  };
+
   // 格式化日期
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("zh-CN");
@@ -572,6 +592,14 @@ export function FMTCScraperPanel({
                         onClick={() => openEditModal(task)}
                       >
                         <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewRealtimeLogs(task)}
+                        disabled={!task.executions[0]}
+                      >
+                        <Radio className="h-4 w-4" />
                       </Button>
                       {isRunning ? (
                         <AlertDialog
@@ -1256,6 +1284,35 @@ export function FMTCScraperPanel({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 实时日志查看器 */}
+      <Sheet open={isRealtimeLogsOpen} onOpenChange={setIsRealtimeLogsOpen}>
+        <SheetContent className="sm:max-w-full w-full p-0 overflow-hidden">
+          <SheetHeader className="sr-only">
+            <SheetTitle>
+              {t("fmtcMerchants.scraper.realtimeLogsViewer.title")}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="h-full flex flex-col">
+            {selectedTask && selectedTask.executions[0] ? (
+              <FMTCRealtimeLogsViewer
+                executionId={selectedTask.executions[0].id}
+                taskName={selectedTask.name}
+                onClose={() => setIsRealtimeLogsOpen(false)}
+                onStatusChange={(status) => {
+                  console.log("FMTC Status changed:", status);
+                  // 刷新任务列表数据
+                  fetchTasks();
+                }}
+              />
+            ) : (
+              <div className="p-6 text-center text-muted-foreground">
+                {t("fmtcMerchants.scraper.loading")}
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

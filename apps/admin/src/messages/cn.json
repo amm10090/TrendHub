@@ -1688,6 +1688,7 @@
       "actions": {
         "title": "操作",
         "viewLogs": "查看日志",
+        "viewRealtimeLogs": "实时日志",
         "cancel": "取消任务",
         "openMenu": "打开菜单",
         "cancelConfirmMessage": "确定要取消任务 \"{taskName}\" 吗？"
@@ -1706,6 +1707,39 @@
         "SCHEDULED": "定时触发",
         "API": "API触发",
         "WEBHOOK": "Webhook触发"
+      },
+      "realtimeLogsViewer": {
+        "title": "实时日志",
+        "taskSite": "站点",
+        "executionId": "执行ID",
+        "connectionStatus": {
+          "connecting": "连接中",
+          "connected": "已连接",
+          "disconnected": "已断开",
+          "error": "连接错误"
+        },
+        "filters": {
+          "allLevels": "所有级别"
+        },
+        "controls": {
+          "includeContext": "包含上下文",
+          "autoScroll": "自动滚动",
+          "pause": "暂停",
+          "resume": "恢复",
+          "clear": "清空",
+          "export": "导出",
+          "reconnect": "重新连接"
+        },
+        "logEntry": {
+          "context": "上下文"
+        },
+        "status": {
+          "connecting": "正在连接日志流...",
+          "noLogs": "暂无日志",
+          "totalLogs": "总计日志: {count}",
+          "filtered": "已按 {level} 过滤",
+          "paused": "流已暂停"
+        }
       },
       "logsView": {
         "title": "任务日志：{taskName} (#{executionId})",
@@ -2597,6 +2631,40 @@
         "networkError": "网络错误，请稍后重试",
         "confirmStop": "确认停止任务？",
         "confirmStopMessage": "停止任务将中断当前的抓取过程，确定要继续吗？"
+      },
+      "loading": "加载中...",
+      "realtimeLogsViewer": {
+        "title": "实时日志",
+        "taskSite": "站点",
+        "executionId": "执行ID",
+        "connectionStatus": {
+          "connecting": "连接中",
+          "connected": "已连接",
+          "disconnected": "已断开",
+          "error": "连接错误"
+        },
+        "filters": {
+          "allLevels": "所有级别"
+        },
+        "controls": {
+          "includeContext": "包含上下文",
+          "autoScroll": "自动滚动",
+          "pause": "暂停",
+          "resume": "恢复",
+          "clear": "清空",
+          "export": "导出",
+          "reconnect": "重新连接"
+        },
+        "logEntry": {
+          "context": "上下文"
+        },
+        "status": {
+          "connecting": "正在连接日志流...",
+          "noLogs": "暂无日志",
+          "totalLogs": "总计日志: {count}",
+          "filtered": "已按 {level} 过滤",
+          "paused": "流已暂停"
+        }
       }
     },
     "filters": {
@@ -2678,6 +2746,10 @@
       "shipsTo": "配送地区",
       "noBrandMatch": "暂无品牌匹配",
       "noNetworks": "暂无网络关联",
+      "primaryNetwork": "主要网络",
+      "associatedNetworks": "关联网络",
+      "primaryNetworkId": "主要网络 ID",
+      "primaryNetworkName": "主要网络名称",
       "affiliateUrl": "联盟链接",
       "previewDealsUrl": "预览优惠链接",
       "affiliateLinksInfo": "联盟链接信息",

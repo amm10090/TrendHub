@@ -878,34 +878,150 @@ curl -X POST http://localhost:3001/api/fmtc-merchants/scraper \
 
 ### 3. 监控任务执行
 
-#### 实时状态监控
+#### 实时日志监控
+
+FMTC爬虫现在支持基于Server-Sent Events (SSE)的实时日志监控系统，让你能够实时观察爬虫任务的执行过程。
+
+##### 前端实时日志查看器
 
 ```typescript
-// 前端WebSocket连接示例
-const ws = new WebSocket("ws://localhost:3001/api/ws");
+// 启动实时日志流
+const eventSource = new EventSource(
+  `/api/admin/scraper-tasks/logs/stream?executionId=${executionId}&level=INFO`,
+);
 
-ws.onmessage = (event) => {
+// 监听连接确认
+eventSource.addEventListener("connected", (event) => {
   const data = JSON.parse(event.data);
+  console.log("已连接到实时日志流:", data.taskName);
+});
 
-  if (data.type === "fmtc_execution_status") {
-    console.log("执行状态更新:", data.payload);
-  }
+// 监听新日志
+eventSource.addEventListener("logs", (event) => {
+  const logs = JSON.parse(event.data);
+  logs.forEach((log) => {
+    console.log(`[${log.level}] ${log.timestamp}: ${log.message}`);
+    if (log.context) {
+      console.log("上下文:", log.context);
+    }
+  });
+});
 
-  if (data.type === "fmtc_log_message") {
-    console.log("日志消息:", data.payload);
+// 监听状态变化
+eventSource.addEventListener("status", (event) => {
+  const data = JSON.parse(event.data);
+  console.log("任务状态更新:", data.status);
+
+  if (data.isFinished) {
+    console.log("任务已完成");
+    eventSource.close();
   }
-};
+});
+
+// 错误处理
+eventSource.addEventListener("error", (event) => {
+  const data = JSON.parse(event.data);
+  console.error("日志流错误:", data.message);
+});
+
+// 连接关闭
+eventSource.addEventListener("close", (event) => {
+  const data = JSON.parse(event.data);
+  console.log("连接已关闭:", data.reason);
+});
 ```
 
-#### 查看执行日志
+##### 在管理界面中使用
+
+1. **访问爬虫任务管理页面**
+
+   ```
+   http://localhost:3001/[locale]/scraper-management
+   ```
+
+2. **查看实时日志**
+
+   - 在任务执行列表中，找到正在运行的任务
+   - 点击操作菜单（三个点图标）
+   - 选择"实时日志"选项
+   - 实时日志查看器将在侧边栏中打开
+
+3. **实时日志功能特性**
+   - ✅ **实时连接状态**：显示连接状态和重连机制
+   - ✅ **日志级别过滤**：支持按ERROR、WARN、INFO、DEBUG筛选
+   - ✅ **自动滚动控制**：可开启/关闭自动滚动到最新日志
+   - ✅ **暂停/恢复功能**：暂停日志更新，恢复后继续接收
+   - ✅ **日志导出**：将当前日志导出为JSON文件
+   - ✅ **上下文信息**：展开查看详细的上下文数据
+   - ✅ **自动重连**：网络中断后自动重连，支持断点续传
+
+##### API接口详细说明
+
+```typescript
+// GET /api/admin/scraper-tasks/logs/stream
+// 支持的查询参数：
+interface StreamLogsParams {
+  executionId: string; // 必需：任务执行ID
+  level?: "ERROR" | "WARN" | "INFO" | "DEBUG"; // 可选：日志级别过滤
+  lastTimestamp?: string; // 可选：断点续传的时间戳
+  includeContext?: boolean; // 可选：是否包含上下文信息
+}
+
+// 响应事件类型：
+interface SSEEvents {
+  connected: {
+    executionId: string;
+    timestamp: string;
+    taskName: string;
+    taskSite: string;
+  };
+
+  logs: Array<{
+    id: string;
+    level: "ERROR" | "WARN" | "INFO" | "DEBUG";
+    message: string;
+    timestamp: string;
+    context?: Record<string, unknown>;
+  }>;
+
+  status: {
+    status: string;
+    completedAt?: string;
+    errorMessage?: string;
+    isFinished: boolean;
+  };
+
+  error: {
+    message: string;
+    timestamp: string;
+  };
+
+  close: {
+    reason: string;
+    timestamp: string;
+  };
+}
+```
+
+#### 传统日志查看方式
 
 ```bash
-# 查看特定执行的日志
-curl http://localhost:3001/api/fmtc-merchants/scraper/[taskId]/logs
+# 查看特定执行的历史日志（分页）
+curl "http://localhost:3001/api/admin/scraper-tasks/logs?executionId=[executionId]&page=1&limit=50"
 
-# 实时查看日志文件
+# 查看文件系统中的日志
 tail -f scraper_storage_runs/FMTC/[executionId]/debug.log
+
+# 使用jq格式化JSON日志
+curl -s "http://localhost:3001/api/admin/scraper-tasks/logs?executionId=[executionId]" | jq '.data'
 ```
+
+#### 日志级别说明
+
+- **ERROR**: 致命错误，如登录失败、网络连接错误
+- **WARN**: 警告信息，如解析失败、重试操作
+- **INFO**: 重要信息，如登录成功、页面导航、数据保存
+- **DEBUG**: 详细调试信息，如DOM操作、数据解析过程
 
 ### 4. 生产环境部署
 
@@ -1200,33 +1316,283 @@ async function scrapeWithFallback(url: string) {
 }
 ```
 
-### 4. 监控和告警
+### 4. 实时监控和告警
 
-#### 健康检查
+#### 实时监控最佳实践
+
+##### 监控仪表盘设置
 
 ```typescript
-async function healthCheck(): Promise<HealthStatus> {
+// 创建实时监控仪表盘
+class FMTCMonitoringDashboard {
+  private connections = new Map<string, EventSource>();
+  private metrics = {
+    activeTasks: 0,
+    totalLogs: 0,
+    errorRate: 0,
+    avgResponseTime: 0,
+  };
+
+  // 监控多个任务执行
+  async monitorMultipleTasks(executionIds: string[]) {
+    for (const executionId of executionIds) {
+      const eventSource = new EventSource(
+        `/api/admin/scraper-tasks/logs/stream?executionId=${executionId}`,
+      );
+
+      // 设置统一的事件处理器
+      this.setupEventHandlers(eventSource, executionId);
+      this.connections.set(executionId, eventSource);
+    }
+  }
+
+  private setupEventHandlers(eventSource: EventSource, executionId: string) {
+    eventSource.addEventListener("connected", (event) => {
+      this.metrics.activeTasks++;
+      this.updateDashboard();
+    });
+
+    eventSource.addEventListener("logs", (event) => {
+      const logs = JSON.parse(event.data);
+      this.processLogs(logs, executionId);
+      this.updateDashboard();
+    });
+
+    eventSource.addEventListener("status", (event) => {
+      const data = JSON.parse(event.data);
+      if (data.isFinished) {
+        this.metrics.activeTasks--;
+        eventSource.close();
+        this.connections.delete(executionId);
+      }
+    });
+
+    eventSource.addEventListener("error", (event) => {
+      this.handleConnectionError(executionId, event);
+    });
+  }
+
+  private processLogs(logs: any[], executionId: string) {
+    this.metrics.totalLogs += logs.length;
+
+    // 计算错误率
+    const errorLogs = logs.filter((log) => log.level === "ERROR");
+    if (errorLogs.length > 0) {
+      this.metrics.errorRate = (errorLogs.length / logs.length) * 100;
+
+      // 触发告警
+      this.triggerAlert({
+        type: "HIGH_ERROR_RATE",
+        executionId,
+        errorRate: this.metrics.errorRate,
+        errors: errorLogs,
+      });
+    }
+  }
+
+  private triggerAlert(alert: {
+    type: string;
+    executionId: string;
+    errorRate?: number;
+    errors?: any[];
+  }) {
+    // 发送告警通知
+    console.warn(`🚨 告警: ${alert.type}`, alert);
+
+    // 可以集成Slack、Email或其他通知服务
+    this.sendNotification(alert);
+  }
+}
+```
+
+##### 性能监控
+
+```typescript
+// 性能指标收集器
+class PerformanceMonitor {
+  private startTime = Date.now();
+  private checkpoints = new Map<string, number>();
+
+  // 记录检查点
+  checkpoint(name: string) {
+    this.checkpoints.set(name, Date.now() - this.startTime);
+  }
+
+  // 获取性能报告
+  getReport() {
+    const totalTime = Date.now() - this.startTime;
+    const report = {
+      totalExecutionTime: totalTime,
+      checkpoints: Object.fromEntries(this.checkpoints),
+      memoryUsage: process.memoryUsage(),
+      cpuUsage: process.cpuUsage(),
+    };
+
+    return report;
+  }
+
+  // 监控网络请求性能
+  monitorNetworkRequests() {
+    const originalFetch = global.fetch;
+    global.fetch = async (...args) => {
+      const start = Date.now();
+      const response = await originalFetch(...args);
+      const duration = Date.now() - start;
+
+      this.recordNetworkMetrics({
+        url: args[0]?.toString(),
+        duration,
+        status: response.status,
+        size: response.headers.get("content-length"),
+      });
+
+      return response;
+    };
+  }
+}
+```
+
+##### 智能告警规则
+
+```typescript
+// 告警规则引擎
+class AlertRuleEngine {
+  private rules = [
+    {
+      name: "HIGH_ERROR_RATE",
+      condition: (metrics: any) => metrics.errorRate > 10,
+      action: (data: any) => this.sendSlackAlert("错误率过高", data),
+      cooldown: 5 * 60 * 1000, // 5分钟冷却
+    },
+    {
+      name: "LONG_EXECUTION_TIME",
+      condition: (metrics: any) => metrics.executionTime > 30 * 60 * 1000,
+      action: (data: any) => this.sendEmailAlert("执行时间过长", data),
+      cooldown: 10 * 60 * 1000, // 10分钟冷却
+    },
+    {
+      name: "CAPTCHA_FAILURE",
+      condition: (logs: any[]) =>
+        logs.some(
+          (log) => log.message.includes("reCAPTCHA") && log.level === "ERROR",
+        ),
+      action: (data: any) => this.escalateToOperator(data),
+      cooldown: 2 * 60 * 1000, // 2分钟冷却
+    },
+  ];
+
+  private alertHistory = new Map<string, number>();
+
+  checkRules(metrics: any, logs: any[], executionId: string) {
+    for (const rule of this.rules) {
+      const lastAlertTime =
+        this.alertHistory.get(`${rule.name}_${executionId}`) || 0;
+      const now = Date.now();
+
+      // 检查冷却期
+      if (now - lastAlertTime < rule.cooldown) {
+        continue;
+      }
+
+      // 检查条件
+      if (rule.condition(metrics) || rule.condition(logs)) {
+        rule.action({ metrics, logs, executionId, rule: rule.name });
+        this.alertHistory.set(`${rule.name}_${executionId}`, now);
+      }
+    }
+  }
+
+  private async sendSlackAlert(title: string, data: any) {
+    // Slack Webhook集成
+    const webhook = process.env.SLACK_WEBHOOK_URL;
+    if (webhook) {
+      await fetch(webhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: `🚨 FMTC爬虫告警: ${title}`,
+          attachments: [
+            {
+              color: "danger",
+              fields: [
+                { title: "执行ID", value: data.executionId, short: true },
+                {
+                  title: "错误率",
+                  value: `${data.metrics?.errorRate}%`,
+                  short: true,
+                },
+                { title: "时间", value: new Date().toISOString(), short: true },
+              ],
+            },
+          ],
+        }),
+      });
+    }
+  }
+}
+```
+
+#### 健康检查和服务监控
+
+```typescript
+// 增强的健康检查
+async function comprehensiveHealthCheck(): Promise<HealthStatus> {
   const checks = {
     database: await checkDatabaseConnection(),
     fmtcSite: await checkFMTCAvailability(),
     twoCaptcha: await check2CaptchaService(),
     diskSpace: await checkDiskSpace(),
+    memory: await checkMemoryUsage(),
+    activeConnections: await checkSSEConnections(),
+    queueHealth: await checkTaskQueue(),
   };
 
-  const isHealthy = Object.values(checks).every(Boolean);
+  const criticalFailures = ["database", "fmtcSite"].filter(
+    (key) => !checks[key],
+  );
 
   return {
-    status: isHealthy ? "healthy" : "unhealthy",
+    status: criticalFailures.length === 0 ? "healthy" : "critical",
     checks,
+    criticalFailures,
     timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
   };
+}
+
+// SSE连接监控
+async function checkSSEConnections(): Promise<boolean> {
+  // 检查活跃的SSE连接数
+  const activeConnections = globalThis.sseConnections?.size || 0;
+  const maxConnections = 100; // 设置最大连接数
+
+  return activeConnections < maxConnections;
+}
+
+// 任务队列健康检查
+async function checkTaskQueue(): Promise<boolean> {
+  const queuedTasks = await db.fMTCScraperExecution.count({
+    where: { status: "QUEUED" },
+  });
+
+  const stuckTasks = await db.fMTCScraperExecution.count({
+    where: {
+      status: "RUNNING",
+      startedAt: {
+        lt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2小时前
+      },
+    },
+  });
+
+  return queuedTasks < 50 && stuckTasks === 0;
 }
 ```
 
-#### 指标收集
+#### 指标收集和分析
 
 ```typescript
-class MetricsCollector {
+// 增强的指标收集器
+class EnhancedMetricsCollector {
   private metrics = {
     tasksCreated: 0,
     tasksCompleted: 0,
@@ -1234,19 +1600,69 @@ class MetricsCollector {
     merchantsScraped: 0,
     averageExecutionTime: 0,
     reCAPTCHASuccessRate: 0,
+    sseConnections: 0,
+    logsPerSecond: 0,
+    errorPatterns: new Map<string, number>(),
   };
 
-  recordTaskCompletion(execution: FMTCScraperExecution) {
-    this.metrics.tasksCompleted++;
-    this.metrics.merchantsScraped += execution.merchantsCount || 0;
+  // 实时日志分析
+  analyzeLogs(logs: any[]) {
+    // 分析错误模式
+    logs
+      .filter((log) => log.level === "ERROR")
+      .forEach((log) => {
+        const pattern = this.extractErrorPattern(log.message);
+        const count = this.metrics.errorPatterns.get(pattern) || 0;
+        this.metrics.errorPatterns.set(pattern, count + 1);
+      });
 
-    const duration =
-      execution.completedAt!.getTime() - execution.startedAt!.getTime();
-    this.updateAverageExecutionTime(duration);
+    // 计算日志频率
+    this.metrics.logsPerSecond = logs.length / 60; // 假设1分钟窗口
   }
 
-  getMetrics() {
-    return { ...this.metrics };
+  private extractErrorPattern(message: string): string {
+    // 提取错误模式（移除具体的数值和ID）
+    return message
+      .replace(/\d+/g, "N")
+      .replace(/[a-f0-9-]{36}/g, "UUID")
+      .replace(/https?:\/\/[^\s]+/g, "URL");
+  }
+
+  // 生成趋势报告
+  generateTrendReport(timeWindow: number = 24 * 60 * 60 * 1000) {
+    return {
+      summary: this.metrics,
+      trends: {
+        successRate: this.calculateSuccessRate(),
+        performanceTrend: this.calculatePerformanceTrend(),
+        errorFrequency: Array.from(this.metrics.errorPatterns.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10),
+      },
+      recommendations: this.generateRecommendations(),
+    };
+  }
+
+  private generateRecommendations(): string[] {
+    const recommendations = [];
+
+    if (this.metrics.reCAPTCHASuccessRate < 90) {
+      recommendations.push("考虑检查2captcha服务状态或更换API密钥");
+    }
+
+    if (this.metrics.averageExecutionTime > 30 * 60 * 1000) {
+      recommendations.push("执行时间过长，建议优化抓取策略或增加并发数");
+    }
+
+    const topError = Array.from(this.metrics.errorPatterns.entries()).sort(
+      (a, b) => b[1] - a[1],
+    )[0];
+
+    if (topError && topError[1] > 10) {
+      recommendations.push(`频繁出现错误: ${topError[0]}，建议排查此问题`);
+    }
+
+    return recommendations;
   }
 }
 ```

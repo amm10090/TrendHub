@@ -704,49 +704,90 @@ export function FMTCMerchantDetailModal({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {merchant.networks && merchant.networks.length > 0 ? (
-                  <div className="space-y-3">
-                    {merchant.networks.map((network) => (
-                      <div
-                        key={network.id}
-                        className="flex items-center justify-between rounded-lg border p-3"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Network className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <div className="font-medium">
-                              {network.networkName}
-                            </div>
-                            {network.networkId && (
-                              <div className="text-sm text-muted-foreground font-mono">
-                                ID: {network.networkId}
+                {(() => {
+                  const allNetworks = [];
+
+                  // Add primary network if exists
+                  if (merchant.network || merchant.networkId) {
+                    allNetworks.push({
+                      id: "primary",
+                      networkName: merchant.network || "Unknown Network",
+                      networkId: merchant.networkId,
+                      status: merchant.status || "Active",
+                      isActive: merchant.isActive,
+                      isPrimary: true,
+                    });
+                  }
+
+                  // Add associated networks
+                  if (merchant.networks && merchant.networks.length > 0) {
+                    allNetworks.push(
+                      ...merchant.networks.map((network) => ({
+                        ...network,
+                        isPrimary: false,
+                      })),
+                    );
+                  }
+
+                  return allNetworks.length > 0 ? (
+                    <div className="space-y-3">
+                      {allNetworks.map((network, index) => (
+                        <div
+                          key={network.id || index}
+                          className={`flex items-center justify-between rounded-lg border p-3 ${
+                            network.isPrimary ? "bg-blue-50" : ""
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Network
+                              className={`h-5 w-5 ${
+                                network.isPrimary
+                                  ? "text-blue-600"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                            <div>
+                              <div className="font-medium">
+                                {network.networkName}
                               </div>
+                              {network.networkId && (
+                                <div className="text-sm text-muted-foreground font-mono">
+                                  ID: {network.networkId}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {network.isPrimary && (
+                              <Badge className="bg-blue-100 text-blue-800">
+                                Primary
+                              </Badge>
                             )}
+                            <Badge
+                              className={getNetworkStatusColor(network.status)}
+                            >
+                              {network.status}
+                            </Badge>
+                            <div
+                              className={`h-2 w-2 rounded-full ${
+                                network.isActive
+                                  ? "bg-green-500"
+                                  : "bg-gray-400"
+                              }`}
+                            />
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge
-                            className={getNetworkStatusColor(network.status)}
-                          >
-                            {network.status}
-                          </Badge>
-                          <div
-                            className={`h-2 w-2 rounded-full ${
-                              network.isActive ? "bg-green-500" : "bg-gray-400"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Network className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <div className="mt-4 text-sm text-muted-foreground">
-                      {t("fmtcMerchants.details.noNetworks")}
+                      ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="text-center py-8">
+                      <Network className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <div className="mt-4 text-sm text-muted-foreground">
+                        {t("fmtcMerchants.details.noNetworks")}
+                      </div>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>

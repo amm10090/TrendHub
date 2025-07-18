@@ -315,17 +315,6 @@ export async function PUT(request: NextRequest) {
         });
         break;
 
-      case "delete":
-        // 软删除 - 标记为不活跃
-        result = await db.fMTCMerchant.updateMany({
-          where: {
-            id: { in: ids },
-            isActive: true, // 只更新当前活跃的商户
-          },
-          data: { isActive: false },
-        });
-        break;
-
       default:
         return NextResponse.json(
           { success: false, error: `不支持的操作: ${action}` },
@@ -361,20 +350,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const ids = searchParams.get("ids")?.split(",") || [];
+    const body = await request.json();
+    const { ids } = body;
 
-    if (ids.length === 0) {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json(
-        { success: false, error: "商户ID不能为空" },
+        { success: false, error: "商户ID列表不能为空" },
         { status: 400 },
       );
     }
 
-    // 软删除 - 标记为不活跃
-    const result = await db.fMTCMerchant.updateMany({
+    // 真删除 - 从数据库中完全删除记录
+    const result = await db.fMTCMerchant.deleteMany({
       where: { id: { in: ids } },
-      data: { isActive: false },
     });
 
     return NextResponse.json({

@@ -255,9 +255,9 @@ export function FMTCMerchantsDataTable({
     try {
       setIsBulkOperating(true);
       const response = await fetch("/api/fmtc-merchants", {
-        method: "PUT",
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: selectedIds, action: "delete" }),
+        body: JSON.stringify({ ids: selectedIds }),
       });
 
       if (response.ok) {

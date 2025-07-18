@@ -165,10 +165,9 @@ export async function DELETE(
       );
     }
 
-    // 软删除 - 标记为不活跃
-    await db.fMTCMerchant.update({
+    // 真删除 - 从数据库中完全删除记录
+    await db.fMTCMerchant.delete({
       where: { id },
-      data: { isActive: false },
     });
 
     return NextResponse.json({

@@ -9,7 +9,6 @@ import { ReCAPTCHAMode, type ReCAPTCHAConfig } from "./recaptcha-service.js";
  * 默认的 FMTC 爬虫选项
  */
 export const DEFAULT_FMTC_OPTIONS: Partial<FMTCScraperOptions> = {
-  maxPages: 10,
   maxMerchants: 500, // 默认最多抓取500个商家
   includeDetails: true,
   downloadImages: false,
@@ -156,7 +155,6 @@ export interface FMTCConfig {
   // 基础配置
   username?: string;
   password?: string;
-  maxPages?: number;
   maxMerchants?: number;
   requestDelay?: number;
   enableImageDownload?: boolean;
@@ -207,7 +205,6 @@ export function getEnvironmentConfig() {
   return {
     username: process.env.FMTC_USERNAME,
     password: process.env.FMTC_PASSWORD,
-    maxPages: parseInt(process.env.FMTC_MAX_PAGES || "10"),
     maxMerchants: parseInt(process.env.FMTC_MAX_MERCHANTS || "500"),
     requestDelay: parseInt(process.env.FMTC_REQUEST_DELAY || "2000"),
     enableImageDownload: process.env.FMTC_ENABLE_IMAGE_DOWNLOAD === "true",
@@ -224,7 +221,6 @@ export function getConfigFromParams(config?: FMTCConfig) {
   const defaults = {
     username: undefined,
     password: undefined,
-    maxPages: 10,
     maxMerchants: 500,
     requestDelay: 2000,
     enableImageDownload: false,
@@ -240,7 +236,6 @@ export function getConfigFromParams(config?: FMTCConfig) {
   return {
     username: config.username,
     password: config.password,
-    maxPages: config.maxPages ?? defaults.maxPages,
     maxMerchants: config.maxMerchants ?? defaults.maxMerchants,
     requestDelay: config.requestDelay ?? defaults.requestDelay,
     enableImageDownload:
@@ -356,12 +351,6 @@ export function validateConfig(config: Record<string, unknown>): {
 
   if (!validateCredentials(username, password)) {
     errors.push("无效的用户名或密码");
-  }
-
-  const maxPages =
-    typeof config.maxPages === "number" ? config.maxPages : undefined;
-  if (maxPages && (maxPages < 1 || maxPages > 100)) {
-    errors.push("maxPages 必须在 1-100 之间");
   }
 
   const requestDelay =

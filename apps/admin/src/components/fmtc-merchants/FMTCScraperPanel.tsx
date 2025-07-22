@@ -43,6 +43,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import {
   Table,
@@ -52,12 +58,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,16 @@ interface FMTCScraperTask {
   executions: FMTCScraperExecution[];
   createdAt: string;
   updatedAt: string;
+  credentials?: {
+    username?: string;
+    password?: string;
+  };
+  config?: {
+    maxMerchants?: number;
+    maxMerchantsPerRun?: number;
+    includeDetails?: boolean;
+    downloadImages?: boolean;
+  };
 }
 
 // 执行记录接口
@@ -138,7 +148,6 @@ export function FMTCScraperPanel({
     description: "",
     isEnabled: true,
     cronExpression: "",
-    maxPages: 10,
     maxMerchants: 500,
     includeDetails: true,
     downloadImages: false,
@@ -192,7 +201,6 @@ export function FMTCScraperPanel({
               password: taskForm.password,
             },
             config: {
-              maxPages: taskForm.maxPages,
               maxMerchantsPerRun: taskForm.maxMerchants,
               includeDetails: taskForm.includeDetails,
               downloadImages: taskForm.downloadImages,
@@ -260,7 +268,6 @@ export function FMTCScraperPanel({
                   }
                 : undefined,
             config: {
-              maxPages: taskForm.maxPages,
               maxMerchantsPerRun: taskForm.maxMerchants,
               includeDetails: taskForm.includeDetails,
               downloadImages: taskForm.downloadImages,
@@ -426,7 +433,6 @@ export function FMTCScraperPanel({
       description: "",
       isEnabled: true,
       cronExpression: "",
-      maxPages: 10,
       maxMerchants: 500,
       includeDetails: true,
       downloadImages: false,
@@ -448,7 +454,6 @@ export function FMTCScraperPanel({
       description: task.description || "",
       isEnabled: task.isEnabled,
       cronExpression: task.cronExpression || "",
-      maxPages: config.maxPages || config.maxPagesPerRun || 10,
       maxMerchants: config.maxMerchants || config.maxMerchantsPerRun || 500,
       includeDetails: config.includeDetails !== false,
       downloadImages: config.downloadImages || false,
@@ -462,6 +467,7 @@ export function FMTCScraperPanel({
   const handleViewRealtimeLogs = (task: FMTCScraperTask) => {
     // 找到最新的执行记录
     const latestExecution = task.executions[0];
+
     if (latestExecution) {
       setSelectedTask(task);
       setIsRealtimeLogsOpen(true);
@@ -892,24 +898,6 @@ export function FMTCScraperPanel({
             <TabsContent value="config" className="space-y-4">
               <div className="grid gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="maxPages">
-                    {t("fmtcMerchants.scraper.maxPages")}
-                  </Label>
-                  <Input
-                    id="maxPages"
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={taskForm.maxPages}
-                    onChange={(e) =>
-                      setTaskForm({
-                        ...taskForm,
-                        maxPages: parseInt(e.target.value) || 10,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="maxMerchants">
                     {t("fmtcMerchants.scraper.maxMerchants")}
                   </Label>
@@ -926,6 +914,10 @@ export function FMTCScraperPanel({
                       })
                     }
                   />
+                  <p className="text-xs text-muted-foreground">
+                    页面大小将根据商户数量自动优化 (≤100个商户使用100页面大小,
+                    ≤500个使用500, &gt;500个使用1000)
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -1083,24 +1075,6 @@ export function FMTCScraperPanel({
             <TabsContent value="config" className="space-y-4">
               <div className="grid gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-maxPages">
-                    {t("fmtcMerchants.scraper.maxPages")}
-                  </Label>
-                  <Input
-                    id="edit-maxPages"
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={taskForm.maxPages}
-                    onChange={(e) =>
-                      setTaskForm({
-                        ...taskForm,
-                        maxPages: parseInt(e.target.value) || 10,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="edit-maxMerchants">
                     {t("fmtcMerchants.scraper.maxMerchants")}
                   </Label>
@@ -1117,6 +1091,10 @@ export function FMTCScraperPanel({
                       })
                     }
                   />
+                  <p className="text-xs text-muted-foreground">
+                    页面大小将根据商户数量自动优化 (≤100个商户使用100页面大小,
+                    ≤500个使用500, &gt;500个使用1000)
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch

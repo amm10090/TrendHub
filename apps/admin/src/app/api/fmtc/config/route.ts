@@ -11,7 +11,6 @@ const FMTCConfigSchema = z.object({
   // 基础配置
   defaultUsername: z.string().optional(),
   defaultPassword: z.string().optional(),
-  maxPages: z.number().min(1).max(100).optional(),
   maxMerchants: z.number().min(1).max(10000).optional(),
   requestDelay: z.number().min(500).max(10000).optional(),
   enableImageDownload: z.boolean().optional(),

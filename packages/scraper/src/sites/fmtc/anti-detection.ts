@@ -4,10 +4,9 @@
 
 import type { Page } from "playwright";
 import type { Log } from "crawlee";
-import type { FMTCAntiDetectionConfig } from "./types.js";
+import type { FMTCAntiDetectionConfig, FMTCUserData } from "./types.js";
 import { FMTC_ERROR_PATTERNS } from "./selectors.js";
 import { sendLogToBackend, LocalScraperLogLevel, delay } from "../../utils.js";
-import { FMTC_CONFIG } from "./config.js";
 
 /**
  * FMTC 反检测策略类
@@ -19,6 +18,7 @@ export class FMTCAntiDetection {
   private config: FMTCAntiDetectionConfig;
   private lastActionTime: number = 0;
   private actionCount: number = 0;
+  private userData?: FMTCUserData; // 添加userData引用以检查单商户模式
 
   constructor(
     page: Page,
@@ -44,10 +44,17 @@ export class FMTCAntiDetection {
   }
 
   /**
-   * 检查是否应该输出调试日志
+   * 检查是否应该输出调试日志 - 批量和单商户模式都减少噪声
    */
   private shouldLogDebug(): boolean {
-    return FMTC_CONFIG.DEBUG_MODE;
+    return false; // 完全禁用DEBUG日志以减少噪声
+  }
+
+  /**
+   * 设置用户数据上下文
+   */
+  setUserData(userData: FMTCUserData): void {
+    this.userData = userData;
   }
 
   /**

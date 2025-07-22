@@ -68,8 +68,8 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
-import { ScraperTaskLogsView } from "./scraper-task-logs-view";
 import { RealtimeLogsViewer } from "./realtime-logs-viewer";
+import { ScraperTaskLogsView } from "./scraper-task-logs-view";
 
 // 爬虫支持的站点列表
 const ECommerceSite = {

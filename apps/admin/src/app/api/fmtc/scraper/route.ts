@@ -232,7 +232,9 @@ export async function POST(request: NextRequest) {
       case "quick_scrape": {
         // 快速抓取（使用默认配置）
         const quickConfig = {
-          maxPages: parseInt(body.maxPages || "5"),
+          maxMerchantsPerRun: parseInt(
+            body.maxMerchantsPerRun || body.maxMerchants || "500",
+          ),
           includeDetails: body.includeDetails !== false,
           searchParams: body.searchParams || {},
         };

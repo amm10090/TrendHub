@@ -86,9 +86,9 @@ export const FMTC_SELECTORS: FMTCSelectors = {
       "table.fmtc-table tbody tr td:nth-child(2), .fmtc-table tbody tr td:nth-child(2)",
     /** 商户状态 - 从网络表格状态列提取 */
     status: "table.fmtc-table tbody tr td:nth-child(4) .badge",
-    /** FreshReach 支持 */
+    /** FreshReach 支持 - 多种选择器模式 */
     freshReachSupported:
-      'span.label:has-text("FreshReach"), .label:has-text("FreshReach")',
+      'span.label:has-text("FreshReach"), .label:has-text("FreshReach"), span.badge:has-text("FreshReach"), .badge:has-text("FreshReach"), span[class*="label"]:has-text("FreshReach")',
 
     // Logo 图片选择器 - 从商户信息和Tools部分提取
     logos: {

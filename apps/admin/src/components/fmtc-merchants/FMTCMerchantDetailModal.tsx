@@ -120,7 +120,6 @@ export function FMTCMerchantDetailModal({
         primaryCategory: merchant.primaryCategory || "",
         primaryCountry: merchant.primaryCountry || "",
         status: merchant.status || "",
-        freshReachSupported: merchant.freshReachSupported,
         isActive: merchant.isActive,
       });
     }
@@ -412,6 +411,28 @@ export function FMTCMerchantDetailModal({
 
                     <div className="space-y-1">
                       <Label className="text-sm font-medium">
+                        {t("fmtcMerchants.columns.sourceUrl")}
+                      </Label>
+                      {merchant.sourceUrl ? (
+                        <div className="flex items-center space-x-2">
+                          <Link className="h-4 w-4 text-muted-foreground" />
+                          <a
+                            href={merchant.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline text-sm break-all"
+                          >
+                            {merchant.sourceUrl}
+                          </a>
+                          <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">-</div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-sm font-medium">
                         {t("fmtcMerchants.columns.category")}
                       </Label>
                       {isEditing ? (
@@ -479,28 +500,6 @@ export function FMTCMerchantDetailModal({
                       ) : (
                         <div className="text-sm text-muted-foreground">-</div>
                       )}
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="freshReach"
-                        checked={
-                          isEditing
-                            ? editForm.freshReachSupported
-                            : merchant.freshReachSupported
-                        }
-                        onCheckedChange={(checked) =>
-                          isEditing &&
-                          setEditForm({
-                            ...editForm,
-                            freshReachSupported: checked,
-                          })
-                        }
-                        disabled={!isEditing}
-                      />
-                      <Label htmlFor="freshReach" className="text-sm">
-                        {t("fmtcMerchants.details.freshReachSupported")}
-                      </Label>
                     </div>
 
                     <div className="flex items-center space-x-2">

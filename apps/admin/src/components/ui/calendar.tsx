@@ -66,6 +66,7 @@ function Calendar({
               <ChevronLeft className={cn("size-4", className)} {...props} />
             );
           }
+
           return (
             <ChevronRight className={cn("size-4", className)} {...props} />
           );

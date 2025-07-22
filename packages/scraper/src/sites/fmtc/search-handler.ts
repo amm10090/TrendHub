@@ -176,11 +176,44 @@ export class FMTCSearchHandler {
    */
   async isOnProgramDirectoryPage(): Promise<boolean> {
     const currentUrl = this.page.url();
-    const hasSearchForm = await this.page.$(
-      '#programSearchForm, form[action*="program_directory"]',
-    );
 
-    return currentUrl.includes("program_directory") && !!hasSearchForm;
+    // 首先检查URL
+    if (!currentUrl.includes("program_directory")) {
+      this.log.debug(`URL检查失败: ${currentUrl}`);
+      return false;
+    }
+
+    // 等待页面加载完成并检查搜索表单
+    try {
+      // 等待搜索表单加载
+      await this.page.waitForSelector(
+        '#programSearchForm, form[action*="program_directory"], form[name="programSearchForm"]',
+        { timeout: 10000 },
+      );
+
+      const hasSearchForm = await this.page.$(
+        '#programSearchForm, form[action*="program_directory"], form[name="programSearchForm"]',
+      );
+
+      this.log.debug(
+        `页面检测结果: URL=${currentUrl}, hasSearchForm=${!!hasSearchForm}`,
+      );
+      return !!hasSearchForm;
+    } catch (error) {
+      this.log.warning(`等待搜索表单超时: ${(error as Error).message}`);
+
+      // 降级检查：仅基于URL和页面标题
+      const pageTitle = await this.page.title();
+      const isDirectoryPage =
+        currentUrl.includes("program_directory") &&
+        (pageTitle.includes("Directory") ||
+          pageTitle.includes("Program Directory"));
+
+      this.log.debug(
+        `降级检查结果: URL=${currentUrl}, title=${pageTitle}, isDirectoryPage=${isDirectoryPage}`,
+      );
+      return isDirectoryPage;
+    }
   }
 
   /**

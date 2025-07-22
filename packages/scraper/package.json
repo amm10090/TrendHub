@@ -11,7 +11,8 @@
   "exports": {
     ".": "./dist/main.js",
     "./utils": "./dist/utils.js",
-    "./sites/*": "./dist/sites/*",
+    "./sites/*": "./dist/sites/*.js",
+    "./src/sites/fmtc": "./dist/sites/fmtc/index.js",
     "./dist/*": "./dist/*"
   },
   "dependencies": {

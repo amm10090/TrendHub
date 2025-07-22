@@ -2691,9 +2691,11 @@
       "category": "分类",
       "brandMatch": "品牌匹配",
       "confidence": "置信度",
+      "freshReach": "FreshReach 支持",
       "lastUpdate": "最后更新",
       "status": "状态",
       "homepage": "官方网站",
+      "sourceUrl": "来源链接",
       "merchant": "商户",
       "suggestedBrand": "建议品牌"
     },
@@ -2704,7 +2706,24 @@
       "confirmMatch": "确认匹配",
       "rejectMatch": "拒绝匹配",
       "matchBrand": "匹配品牌",
-      "visitSite": "访问网站"
+      "visitSite": "访问网站",
+      "brandMatchConfirmed": "品牌匹配已确认",
+      "brandMatchRejected": "品牌匹配已拒绝",
+      "operationFailed": "操作失败"
+    },
+    "scraping": {
+      "started": "开始抓取商户详情",
+      "pleaseWait": "正在抓取商户数据，请稍候...",
+      "success": "商户详情抓取成功",
+      "processingTime": "处理耗时 {time} 秒",
+      "dataUpdated": "商户数据已更新",
+      "configError": "FMTC配置错误",
+      "goToSettings": "前往设置",
+      "missingFmtcId": "缺少FMTC ID",
+      "missingFmtcIdDesc": "无法抓取此商户的详情，FMTC ID缺失",
+      "failed": "商户详情抓取失败",
+      "networkError": "网络错误，请稍后重试",
+      "inProgress": "抓取中..."
     },
     "status": {
       "unmatched": "未匹配",
@@ -2712,6 +2731,10 @@
       "needsConfirmation": "需要确认",
       "active": "活跃",
       "inactive": "已禁用"
+    },
+    "freshReach": {
+      "supported": "支持",
+      "notSupported": "不支持"
     },
     "noResults": "未找到商户",
     "brandMatching": {

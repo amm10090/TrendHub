@@ -12,10 +12,10 @@ import type {
   FMTCMerchantNetworkData,
   FMTCImageDownloadResult,
   FMTCNetworkStatus,
+  FMTCUserData,
 } from "./types.js";
 import { FMTC_SELECTORS, FMTC_REGEX_PATTERNS } from "./selectors.js";
 import { sendLogToBackend, LocalScraperLogLevel, delay } from "../../utils.js";
-import { FMTC_CONFIG } from "./config.js";
 
 /**
  * FMTC 商户详情处理器类
@@ -38,11 +38,20 @@ export class FMTCMerchantDetailHandler {
     this.downloadDir = downloadDir;
   }
 
+  private userData?: FMTCUserData; // 添加userData引用以检查单商户模式
+
   /**
-   * 检查是否应该输出调试日志
+   * 检查是否应该输出调试日志 - 批量和单商户模式都减少噪声
    */
   private shouldLogDebug(): boolean {
-    return FMTC_CONFIG.DEBUG_MODE;
+    return false; // 完全禁用DEBUG日志以减少噪声
+  }
+
+  /**
+   * 设置用户数据上下文
+   */
+  setUserData(userData: FMTCUserData): void {
+    this.userData = userData;
   }
 
   /**
@@ -484,29 +493,71 @@ export class FMTCMerchantDetailHandler {
           });
         }
 
-        // 检查FreshReach支持 - 查找包含FreshReach文本的span
-        const spans = document.querySelectorAll("span.label");
-        for (const span of spans) {
+        // 检查FreshReach支持状态 - 使用多种方法检测
+        data.freshReachSupported = false; // 默认为不支持
+
+        // 方法1: 查找包含FreshReach文本的span标签
+        const freshReachSpans = document.querySelectorAll(
+          "span.label, span[class*='label'], .label, .badge",
+        );
+        for (const span of freshReachSpans) {
           const text = span.textContent || "";
-          if (text.includes("FreshReach")) {
-            // 检查是否有success或supported class/text
-            const hasSuccess =
+          if (text.toLowerCase().includes("freshreach")) {
+            // 检查是否有success或supported相关的class或文本
+            const hasSuccessClass =
               span.classList.contains("label-success") ||
-              (span.classList.contains("label-xlg") &&
-                span.classList.contains("label-success"));
-            const hasSupported = text.toLowerCase().includes("supported");
-            data.freshReachSupported = hasSuccess || hasSupported;
-            break;
+              span.classList.contains("badge-success") ||
+              span.classList.contains("text-success") ||
+              span.classList.contains("success");
+
+            const hasGreenColor =
+              (span as HTMLElement).style.color?.includes("green") ||
+              getComputedStyle(span).color?.includes("green") ||
+              getComputedStyle(span).backgroundColor?.includes("green");
+
+            const hasSupportedText = text.toLowerCase().includes("supported");
+            const hasEnabledText = text.toLowerCase().includes("enabled");
+            const hasAvailableText = text.toLowerCase().includes("available");
+
+            // 如果有成功样式或支持相关的文本，则认为支持
+            if (
+              hasSuccessClass ||
+              hasGreenColor ||
+              hasSupportedText ||
+              hasEnabledText ||
+              hasAvailableText
+            ) {
+              data.freshReachSupported = true;
+              break;
+            }
           }
         }
 
-        // 如果没有找到FreshReach span，检查是否有FreshReach链接
+        // 方法2: 查找FreshReach链接 - 如果有链接则认为支持
         if (
-          data.freshReachSupported === undefined &&
+          !data.freshReachSupported &&
           data.freshReachUrls &&
           data.freshReachUrls.length > 0
         ) {
           data.freshReachSupported = true;
+        }
+
+        // 方法3: 在页面内容中搜索FreshReach支持的明确指示
+        if (!data.freshReachSupported) {
+          const bodyText = document.body.textContent?.toLowerCase() || "";
+          const freshReachPatterns = [
+            /freshreach.*support/,
+            /freshreach.*enable/,
+            /freshreach.*available/,
+            /freshreach.*active/,
+          ];
+
+          for (const pattern of freshReachPatterns) {
+            if (pattern.test(bodyText)) {
+              data.freshReachSupported = true;
+              break;
+            }
+          }
         }
 
         // 从URL中提取FMTC ID

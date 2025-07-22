@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -34,9 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 interface LogEntry {
   id: string;
@@ -95,7 +95,9 @@ export function FMTCRealtimeLogsViewer({
   // 格式化时间戳
   const formatDateTime = (dateStr: string) => {
     const date = parseISO(dateStr);
+
     if (!isValid(date)) return "Invalid Date";
+
     return format(date, "HH:mm:ss.SSS");
   };
 
@@ -157,6 +159,7 @@ export function FMTCRealtimeLogsViewer({
       if (filterLevel === "all") {
         return allLogs;
       }
+
       return allLogs.filter((log) => log.level === filterLevel);
     },
     [filterLevel],
@@ -168,6 +171,7 @@ export function FMTCRealtimeLogsViewer({
       const scrollContainer = scrollAreaRef.current.querySelector(
         "[data-radix-scroll-area-viewport]",
       );
+
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
       }
@@ -198,6 +202,7 @@ export function FMTCRealtimeLogsViewer({
     // 连接成功
     eventSource.addEventListener("connected", (event) => {
       const data = JSON.parse(event.data) as ConnectionInfo;
+
       setConnectionInfo(data);
       setConnectionStatus("CONNECTED");
       retryCount.current = 0;
@@ -209,6 +214,7 @@ export function FMTCRealtimeLogsViewer({
       if (isPaused) return;
 
       const newLogs = JSON.parse(event.data) as LogEntry[];
+
       setLogs((prev) => [...prev, ...newLogs]);
 
       // 更新最后事件ID
@@ -220,6 +226,7 @@ export function FMTCRealtimeLogsViewer({
     // 状态更新
     eventSource.addEventListener("status", (event) => {
       const data = JSON.parse(event.data);
+
       console.log("FMTC Status update:", data);
       onStatusChange?.(data.status);
 
@@ -232,6 +239,7 @@ export function FMTCRealtimeLogsViewer({
     // 错误处理
     eventSource.addEventListener("error", (event) => {
       const data = JSON.parse(event.data);
+
       setError(data.message);
       console.error("FMTC SSE error:", data);
     });
@@ -239,6 +247,7 @@ export function FMTCRealtimeLogsViewer({
     // 连接关闭
     eventSource.addEventListener("close", (event) => {
       const data = JSON.parse(event.data);
+
       console.log("FMTC Connection closed:", data.reason);
       setConnectionStatus("DISCONNECTED");
     });
@@ -298,6 +307,7 @@ export function FMTCRealtimeLogsViewer({
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+
     a.href = url;
     a.download = `fmtc-scraper-logs-${executionId}-${Date.now()}.json`;
     document.body.appendChild(a);

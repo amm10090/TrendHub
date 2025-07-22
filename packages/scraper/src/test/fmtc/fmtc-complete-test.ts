@@ -276,7 +276,7 @@ function validateAllConfigs(): { valid: boolean; errors: string[] } {
   if (allErrors.length === 0) {
     console.log("✅ 所有配置验证通过");
     console.log(`  - reCAPTCHA模式: ${recaptchaConfig.mode}`);
-    console.log(`  - 最大页数: ${envConfig.maxPages}`);
+    console.log(`  - 最大商户数: ${envConfig.maxMerchants}`);
     console.log(`  - 搜索分类: ${searchConfig.category || "未设置"}`);
   } else {
     console.error("❌ 配置验证失败:");

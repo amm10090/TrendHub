@@ -1,6 +1,7 @@
+import { ScraperLogLevel } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { ScraperLogLevel } from "@prisma/client";
+
 import { db } from "@/lib/db";
 
 const StreamLogsQuerySchema = z.object({
@@ -68,6 +69,7 @@ export async function GET(request: NextRequest) {
         const sendEvent = (event: string, data: unknown) => {
           if (!isActive) return;
           const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+
           controller.enqueue(encoder.encode(message));
         };
 
@@ -185,6 +187,7 @@ export async function GET(request: NextRequest) {
     return new Response(stream, { headers });
   } catch (error) {
     console.error("Stream logs error:", error);
+
     return new Response(JSON.stringify({ error: "创建日志流失败" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

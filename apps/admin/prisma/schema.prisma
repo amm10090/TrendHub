@@ -749,8 +749,6 @@ model FMTCScraperConfig {
   defaultUsername       String?
   /// 默认密码 (加密存储)
   defaultPassword       String?
-  /// 默认最大页数
-  maxPages              Int                     @default(10)
   /// 默认最大商户数
   maxMerchants          Int                     @default(500)
   /// 默认请求延迟(毫秒)

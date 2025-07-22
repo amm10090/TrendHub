@@ -65,12 +65,16 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
       userData.executionId,
       scraperOptions.storageDir,
     );
+    // 设置用户数据上下文，用于单商户模式日志优化
+    detailHandler.setUserData(userData);
     const antiDetection = new FMTCAntiDetection(
       page,
       log,
       antiDetectionConfig,
       userData.executionId,
     );
+    // 设置用户数据上下文，用于单商户模式日志优化
+    antiDetection.setUserData(userData);
 
     try {
       await logMessage(
@@ -324,21 +328,45 @@ async function handleLogin(
           "现有会话有效，跳过登录步骤",
         );
 
-        // 会话有效，直接导航到Directory页面
-        const navigationResult = await navigationHandler.navigateToDirectory();
-        if (navigationResult.success) {
+        // 单商户模式：直接跳转到商户详情页面，批量模式：导航到Directory页面
+        if (userData.singleMerchantMode && userData.targetMerchantUrl) {
+          await logMessage(
+            log,
+            userData.executionId,
+            LocalScraperLogLevel.INFO,
+            "单商户模式：会话有效，直接跳转到商户详情页面",
+          );
+
           await context.addRequests([
             {
-              url:
-                navigationResult.currentUrl ||
-                "https://account.fmtc.co/cp/program_directory",
-              label: "SEARCH",
+              url: userData.targetMerchantUrl,
+              label: "MERCHANT_DETAIL",
               userData: {
                 ...userData,
-                label: "SEARCH",
+                label: "MERCHANT_DETAIL",
+                merchantUrl: userData.targetMerchantUrl,
+                merchantName: userData.targetMerchantName,
               },
             },
           ]);
+        } else {
+          // 批量模式：导航到Directory页面
+          const navigationResult =
+            await navigationHandler.navigateToDirectory();
+          if (navigationResult.success) {
+            await context.addRequests([
+              {
+                url:
+                  navigationResult.currentUrl ||
+                  "https://account.fmtc.co/cp/program_directory",
+                label: "SEARCH",
+                userData: {
+                  ...userData,
+                  label: "SEARCH",
+                },
+              },
+            ]);
+          }
         }
         return;
       } else {
@@ -419,26 +447,49 @@ async function handleLogin(
     const navigationResult = await navigationHandler.navigateToDirectory();
 
     if (navigationResult.success) {
-      await logMessage(
-        log,
-        userData.executionId,
-        LocalScraperLogLevel.INFO,
-        "成功导航到Directory页面，开始搜索",
-      );
+      // 单商户模式：直接跳转到商户详情页面，批量模式：开始搜索
+      if (userData.singleMerchantMode && userData.targetMerchantUrl) {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          "单商户模式：登录成功，直接跳转到商户详情页面",
+        );
 
-      // 导航成功后，执行搜索
-      await context.addRequests([
-        {
-          url:
-            navigationResult.currentUrl ||
-            "https://account.fmtc.co/cp/program_directory",
-          label: "SEARCH",
-          userData: {
-            ...userData,
-            label: "SEARCH",
+        await context.addRequests([
+          {
+            url: userData.targetMerchantUrl,
+            label: "MERCHANT_DETAIL",
+            userData: {
+              ...userData,
+              label: "MERCHANT_DETAIL",
+              merchantUrl: userData.targetMerchantUrl,
+              merchantName: userData.targetMerchantName,
+            },
           },
-        },
-      ]);
+        ]);
+      } else {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          "成功导航到Directory页面，开始搜索",
+        );
+
+        // 导航成功后，执行搜索
+        await context.addRequests([
+          {
+            url:
+              navigationResult.currentUrl ||
+              "https://account.fmtc.co/cp/program_directory",
+            label: "SEARCH",
+            userData: {
+              ...userData,
+              label: "SEARCH",
+            },
+          },
+        ]);
+      }
     } else {
       throw new Error(`导航到Directory页面失败: ${navigationResult.error}`);
     }
@@ -513,16 +564,18 @@ async function handleSearch(
 
   // 获取搜索参数
   const searchParams = searchHandler.getSearchParamsFromConfig();
+  const targetMerchants = userData.options?.maxMerchants || 500;
 
   await logMessage(
     log,
     userData.executionId,
     LocalScraperLogLevel.INFO,
     "开始执行搜索",
-    { searchParams },
+    { searchParams, targetMerchants },
   );
 
-  // 执行搜索
+  // 优化页面大小设置
+  // 先执行搜索
   const searchResult = await searchHandler.performSearch(searchParams);
 
   if (searchResult.success) {
@@ -534,7 +587,39 @@ async function handleSearch(
       { resultsCount: searchResult.resultsCount },
     );
 
-    // 解析搜索结果
+    // 搜索成功后，立即优化页面大小
+    await logMessage(
+      log,
+      userData.executionId,
+      LocalScraperLogLevel.INFO,
+      "正在优化每页显示数量设置...",
+      { targetMerchants },
+    );
+
+    const pageSizeResult =
+      await resultsParser.optimizePageSize(targetMerchants);
+    if (pageSizeResult.success) {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.INFO,
+        `✅ 页面大小优化完成：${pageSizeResult.selectedPageSize} 商户/页`,
+        {
+          selectedPageSize: pageSizeResult.selectedPageSize,
+          originalPageSize: pageSizeResult.originalPageSize,
+        },
+      );
+    } else {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.WARN,
+        `⚠️ 页面大小优化失败：${pageSizeResult.error}`,
+        { error: pageSizeResult.error },
+      );
+    }
+
+    // 然后解析搜索结果
     const parsedResults = await resultsParser.parseSearchResults();
 
     if (parsedResults.merchants.length > 0) {
@@ -547,14 +632,19 @@ async function handleSearch(
 
       // 处理解析出的商户数据
       const merchantsToProcess = parsedResults.merchants;
+      let processedCount = 0;
+      let merchantsWithCountry = 0;
+      let merchantsWithNetwork = 0;
+      const processingStartTime = Date.now();
+
       for (let index = 0; index < merchantsToProcess.length; index++) {
         const merchant = merchantsToProcess[index];
 
         // 检查是否已达到最大商家数量限制
-        const maxMerchants = userData.options?.maxMerchants;
+        const maxMerchants = userData.options?.maxMerchants || 500;
         const currentMerchantCount = allScrapedMerchants.length;
 
-        if (maxMerchants && currentMerchantCount >= maxMerchants) {
+        if (currentMerchantCount >= maxMerchants) {
           await logMessage(
             log,
             userData.executionId,
@@ -586,20 +676,10 @@ async function handleSearch(
             },
           };
 
-          // 调试日志：记录网络字段
-          await logMessage(
-            log,
-            userData.executionId,
-            LocalScraperLogLevel.DEBUG,
-            `搜索结果商户数据转换`,
-            {
-              name: merchant.name,
-              country: merchant.country,
-              network: merchant.network,
-              countryLength: merchant.country?.length || 0,
-              networkLength: merchant.network?.length || 0,
-            },
-          );
+          // 收集统计信息
+          processedCount++;
+          if (merchant.country) merchantsWithCountry++;
+          if (merchant.network) merchantsWithNetwork++;
 
           // 如果有详情URL且启用详情抓取，将详情页加入队列
           if (merchant.detailUrl && userData.options?.includeDetails) {
@@ -636,11 +716,39 @@ async function handleSearch(
         }
       }
 
+      // 输出汇总统计日志
+      const processingTime = Date.now() - processingStartTime;
+      if (processedCount > 0) {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          `✅ 商户数据转换完成：共处理 ${processedCount} 个商户`,
+          {
+            processedCount,
+            merchantsWithCountry,
+            merchantsWithNetwork,
+            countryRate: `${Math.round((merchantsWithCountry / processedCount) * 100)}%`,
+            networkRate: `${Math.round((merchantsWithNetwork / processedCount) * 100)}%`,
+            processingTimeMs: processingTime,
+            avgProcessingTimeMs: Math.round(processingTime / processedCount),
+          },
+        );
+      } else {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          `✅ 商户数据转换完成：未处理任何商户`,
+          { processingTimeMs: processingTime },
+        );
+      }
+
       // 检查是否已达到最大商家数量限制
-      const maxMerchants = userData.options?.maxMerchants;
+      const maxMerchants = userData.options?.maxMerchants || 500;
       const currentMerchantCount = allScrapedMerchants.length;
 
-      if (maxMerchants && currentMerchantCount >= maxMerchants) {
+      if (currentMerchantCount >= maxMerchants) {
         await logMessage(
           log,
           userData.executionId,
@@ -651,63 +759,138 @@ async function handleSearch(
         return;
       }
 
-      // 处理分页
-      if (parsedResults.hasNextPage) {
-        // 检查分页限制
-        const maxPages = userData.options?.maxPages;
-        const currentPage = userData.pageNumber || 1;
+      // 处理分页 - 重构后的逻辑
+      if (parsedResults.hasNextPage && currentMerchantCount < maxMerchants) {
+        // 获取当前分页信息
+        const paginationInfo = await resultsParser.getPaginationInfo();
+        const currentPageSize = paginationInfo.pageSize;
+        const remainingMerchants = maxMerchants - currentMerchantCount;
 
-        if (maxPages && currentPage >= maxPages) {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          `📊 分页状态检查：当前第 ${paginationInfo.currentPage}/${paginationInfo.totalPages} 页`,
+          {
+            currentPage: paginationInfo.currentPage,
+            totalPages: paginationInfo.totalPages,
+            currentPageSize,
+            currentMerchantCount,
+            maxMerchants,
+            remainingMerchants,
+            hasNextPage: parsedResults.hasNextPage,
+          },
+        );
+
+        // 估算是否还需要更多页面
+        const estimatedPagesNeeded = Math.ceil(
+          remainingMerchants / currentPageSize,
+        );
+        const shouldContinue =
+          estimatedPagesNeeded > 0 && paginationInfo.hasNextPage;
+
+        if (shouldContinue) {
           await logMessage(
             log,
             userData.executionId,
             LocalScraperLogLevel.INFO,
-            `已达到最大页数限制 (${maxPages})，停止抓取`,
-            { currentPage, maxPages },
-          );
-          return;
-        }
-
-        const success = await resultsParser.navigateToNextPage();
-
-        if (success) {
-          await logMessage(
-            log,
-            userData.executionId,
-            LocalScraperLogLevel.INFO,
-            `成功导航到下一页 (${currentPage + 1})，继续解析`,
-            { currentMerchantCount, maxMerchants },
+            `🔄 需要继续分页：还需约 ${estimatedPagesNeeded} 页来达到目标 ${maxMerchants} 个商户`,
+            { estimatedPagesNeeded, remainingMerchants },
           );
 
-          // 添加下一页的搜索任务
-          await context.addRequests([
-            {
-              url: context.request.url, // 保持当前URL
-              label: "SEARCH",
-              userData: {
-                ...userData,
-                pageNumber: currentPage + 1,
+          const success = await resultsParser.navigateToNextPage();
+
+          if (success) {
+            const newPageInfo = await resultsParser.getPaginationInfo();
+            await logMessage(
+              log,
+              userData.executionId,
+              LocalScraperLogLevel.INFO,
+              `✅ 成功导航到第 ${newPageInfo.currentPage} 页，继续抓取`,
+              {
+                newCurrentPage: newPageInfo.currentPage,
+                currentMerchantCount,
+                targetRemaining: remainingMerchants,
               },
-            },
-          ]);
+            );
+
+            // 添加下一页的搜索任务
+            await context.addRequests([
+              {
+                url: context.request.url, // 保持当前URL
+                label: "SEARCH",
+                userData: {
+                  ...userData,
+                  pageNumber: newPageInfo.currentPage,
+                },
+              },
+            ]);
+          } else {
+            await logMessage(
+              log,
+              userData.executionId,
+              LocalScraperLogLevel.WARN,
+              "❌ 无法导航到下一页，搜索结束",
+              { reason: "navigation_failed" },
+            );
+          }
         } else {
           await logMessage(
             log,
             userData.executionId,
             LocalScraperLogLevel.INFO,
-            "无法导航到下一页，搜索结束",
+            `🎯 分页结束：${shouldContinue ? "无更多页面" : "已达到商户数量目标"}`,
+            {
+              reason: shouldContinue ? "no_more_pages" : "target_reached",
+              finalMerchantCount: currentMerchantCount,
+              targetMerchants: maxMerchants,
+            },
           );
         }
+      } else {
+        const reason = !parsedResults.hasNextPage
+          ? "无更多页面"
+          : "已达到商户数量限制";
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          `🏁 搜索完成：${reason}`,
+          {
+            hasNextPage: parsedResults.hasNextPage,
+            finalMerchantCount: currentMerchantCount,
+            maxMerchants,
+            reason: !parsedResults.hasNextPage
+              ? "no_more_pages"
+              : "merchant_limit_reached",
+          },
+        );
       }
     } else {
       await logMessage(
         log,
         userData.executionId,
         LocalScraperLogLevel.WARN,
-        "搜索结果解析失败，未找到商户数据",
+        "⚠️ 搜索结果解析失败，未找到商户数据",
+        {
+          searchResultsFound: parsedResults.merchants.length,
+          searchSuccessful: searchResult.success,
+          currentUrl: context.request.url,
+        },
       );
     }
   } else {
+    await logMessage(
+      log,
+      userData.executionId,
+      LocalScraperLogLevel.ERROR,
+      `❌ 搜索操作失败: ${searchResult.error}`,
+      {
+        error: searchResult.error,
+        searchParams,
+        currentUrl: context.request.url,
+      },
+    );
     throw new Error(`搜索失败: ${searchResult.error}`);
   }
 }
@@ -819,9 +1002,12 @@ async function handleMerchantList(
       }
     }
 
-    // 检查是否需要抓取下一页
-    const maxPages = userData.options?.maxPages || 10;
-    if (listResult.pagination.hasNextPage && pageNumber < maxPages) {
+    // 根据商户数量动态计算是否需要更多页面
+    const maxMerchants = userData.options?.maxMerchants || 500;
+    const currentMerchantCount = allScrapedMerchants.length;
+    const shouldContinuePagination = currentMerchantCount < maxMerchants;
+
+    if (listResult.pagination.hasNextPage && shouldContinuePagination) {
       await context.addRequests([
         {
           url:
@@ -859,22 +1045,31 @@ async function handleMerchantDetail(
   const currentMerchantCount = allScrapedMerchants.length;
   const maxMerchants = userData.options?.maxMerchants || 500;
 
-  // 记录进度日志
-  await logMessage(
-    log,
-    userData.executionId,
-    LocalScraperLogLevel.INFO,
-    `处理商户详情 [${currentDetailIndex + 1}/${totalDetailsToProcess}]: ${userData.merchantName}`,
-    {
-      currentDetailIndex: currentDetailIndex + 1,
-      totalDetailsToProcess,
-      currentMerchantCount,
-      maxMerchants,
-      progressPercentage: Math.round(
-        ((currentDetailIndex + 1) / totalDetailsToProcess) * 100,
-      ),
-    },
-  );
+  // 记录进度日志 - 单商户模式下简化日志
+  if (userData.singleMerchantMode) {
+    await logMessage(
+      log,
+      userData.executionId,
+      LocalScraperLogLevel.INFO,
+      `处理商户详情: ${userData.merchantName}`,
+    );
+  } else {
+    await logMessage(
+      log,
+      userData.executionId,
+      LocalScraperLogLevel.INFO,
+      `处理商户详情 [${currentDetailIndex + 1}/${totalDetailsToProcess}]: ${userData.merchantName}`,
+      {
+        currentDetailIndex: currentDetailIndex + 1,
+        totalDetailsToProcess,
+        currentMerchantCount,
+        maxMerchants,
+        progressPercentage: Math.round(
+          ((currentDetailIndex + 1) / totalDetailsToProcess) * 100,
+        ),
+      },
+    );
+  }
 
   // 抓取商户详情
   const detailResult = await detailHandler.scrapeMerchantDetails(
@@ -916,7 +1111,8 @@ async function handleMerchantDetail(
         : null;
 
     // 如果仍然没有找到匹配的数据，记录调试信息
-    if (!existingData) {
+    // 注意：在单商户模式下，这是正常情况，因为我们直接跳转到详情页面，不经过列表页
+    if (!existingData && !userData.singleMerchantMode) {
       await logMessage(
         log,
         userData.executionId,
@@ -927,6 +1123,18 @@ async function handleMerchantDetail(
           merchantUrl: userData.merchantUrl,
           totalScrapedMerchants: allScrapedMerchants.length,
           availableNames: allScrapedMerchants.slice(0, 5).map((m) => m.name),
+        },
+      );
+    } else if (!existingData && userData.singleMerchantMode) {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.DEBUG,
+        `单商户模式：直接使用详情页数据，无需列表页数据`,
+        {
+          merchantName: userData.merchantName,
+          merchantUrl: userData.merchantUrl,
+          networksFromDetail: detailResult.merchantDetail.networks?.length || 0,
         },
       );
     }
@@ -945,7 +1153,7 @@ async function handleMerchantDetail(
         (detailResult.merchantDetail.networks &&
         detailResult.merchantDetail.networks.length > 0
           ? detailResult.merchantDetail.networks[0].networkName
-          : undefined), // 优先使用列表页的network字段，若无则尝试从详情页的networks中获取第一个
+          : undefined), // 统一使用undefined，符合类型定义
       sourceUrl: userData.merchantUrl,
       rawData: {
         source: "merchant_detail",
@@ -985,21 +1193,35 @@ async function handleMerchantDetail(
       allScrapedMerchants.push(completeData);
     }
 
-    await logMessage(
-      log,
-      userData.executionId,
-      LocalScraperLogLevel.INFO,
-      `商户详情抓取完成 [${currentDetailIndex + 1}/${totalDetailsToProcess}]: ${userData.merchantName}`,
-      {
-        fmtcId: detailResult.merchantDetail.fmtcId,
-        networksCount: detailResult.merchantDetail.networks?.length || 0,
-        currentDetailIndex: currentDetailIndex + 1,
-        totalDetailsToProcess,
-        progressPercentage: Math.round(
-          ((currentDetailIndex + 1) / totalDetailsToProcess) * 100,
-        ),
-      },
-    );
+    // 单商户模式下简化完成日志
+    if (userData.singleMerchantMode) {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.INFO,
+        `商户详情抓取完成: ${userData.merchantName}`,
+        {
+          fmtcId: detailResult.merchantDetail.fmtcId,
+          networksCount: detailResult.merchantDetail.networks?.length || 0,
+        },
+      );
+    } else {
+      await logMessage(
+        log,
+        userData.executionId,
+        LocalScraperLogLevel.INFO,
+        `商户详情抓取完成 [${currentDetailIndex + 1}/${totalDetailsToProcess}]: ${userData.merchantName}`,
+        {
+          fmtcId: detailResult.merchantDetail.fmtcId,
+          networksCount: detailResult.merchantDetail.networks?.length || 0,
+          currentDetailIndex: currentDetailIndex + 1,
+          totalDetailsToProcess,
+          progressPercentage: Math.round(
+            ((currentDetailIndex + 1) / totalDetailsToProcess) * 100,
+          ),
+        },
+      );
+    }
 
     if (progressCallback?.onMerchantProcessed) {
       progressCallback.onMerchantProcessed(completeData);

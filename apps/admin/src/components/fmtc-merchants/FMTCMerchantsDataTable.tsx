@@ -20,7 +20,7 @@ import {
   Globe,
   Calendar,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -126,6 +126,7 @@ export function FMTCMerchantsDataTable({
   onStatsUpdate,
 }: FMTCMerchantsDataTableProps) {
   const t = useTranslations();
+  const locale = useLocale();
 
   // 状态管理
   const [merchants, setMerchants] = useState<FMTCMerchant[]>([]);
@@ -141,6 +142,9 @@ export function FMTCMerchantsDataTable({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isBulkOperating, setIsBulkOperating] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [scrapingMerchants, setScrapingMerchants] = useState<Set<string>>(
+    new Set(),
+  );
 
   const pageSize = 20;
 
@@ -294,24 +298,131 @@ export function FMTCMerchantsDataTable({
   const handleMerchantAction = useCallback(
     async (merchantId: string, action: string, data?: unknown) => {
       try {
-        const response = await fetch(`/api/fmtc-merchants/${merchantId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, data }),
-        });
+        // 如果是刷新数据操作，显示特别的loading状态和反馈
+        if (action === "refresh_data") {
+          // 添加到正在抓取的商户列表
+          setScrapingMerchants((prev) => new Set(prev).add(merchantId));
 
-        if (response.ok) {
-          const result = await response.json();
+          // 显示开始抓取的toast
+          toast.info(t("fmtcMerchants.scraping.started"), {
+            description: t("fmtcMerchants.scraping.pleaseWait"),
+          });
 
-          if (result.success) {
-            fetchMerchants();
+          const response = await fetch(`/api/fmtc-merchants/${merchantId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, data }),
+          });
+
+          // 从正在抓取的列表中移除
+          setScrapingMerchants((prev) => {
+            const newSet = new Set(prev);
+
+            newSet.delete(merchantId);
+
+            return newSet;
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+
+            if (result.success) {
+              // 抓取成功
+              toast.success(t("fmtcMerchants.scraping.success"), {
+                description: result.data?.scrapingInfo?.processingTime
+                  ? t("fmtcMerchants.scraping.processingTime", {
+                      time: Math.round(
+                        result.data.scrapingInfo.processingTime / 1000,
+                      ),
+                    })
+                  : t("fmtcMerchants.scraping.dataUpdated"),
+              });
+
+              // 刷新商户列表
+              fetchMerchants();
+            } else {
+              // 抓取失败
+              if (
+                result.error?.includes("配置未找到") ||
+                result.error?.includes("登录凭据未配置")
+              ) {
+                toast.error(t("fmtcMerchants.scraping.configError"), {
+                  description: result.error,
+                  action: {
+                    label: t("fmtcMerchants.scraping.goToSettings"),
+                    onClick: () => {
+                      // 可以导航到设置页面
+                      window.open("/admin/settings/discounts", "_blank");
+                    },
+                  },
+                });
+              } else if (result.error?.includes("FMTC ID")) {
+                toast.error(t("fmtcMerchants.scraping.missingFmtcId"), {
+                  description: t("fmtcMerchants.scraping.missingFmtcIdDesc"),
+                });
+              } else {
+                toast.error(t("fmtcMerchants.scraping.failed"), {
+                  description: result.error,
+                });
+              }
+            }
+          } else {
+            // HTTP错误
+            const errorData = await response.json().catch(() => ({}));
+
+            toast.error(t("fmtcMerchants.scraping.failed"), {
+              description:
+                errorData.error || t("fmtcMerchants.scraping.networkError"),
+            });
+          }
+        } else {
+          // 其他操作的原有逻辑
+          const response = await fetch(`/api/fmtc-merchants/${merchantId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, data }),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+
+            if (result.success) {
+              fetchMerchants();
+
+              // 为其他操作添加成功提示
+              if (action === "confirm_brand_match") {
+                toast.success(t("fmtcMerchants.actions.brandMatchConfirmed"));
+              } else if (action === "reject_brand_match") {
+                toast.success(t("fmtcMerchants.actions.brandMatchRejected"));
+              }
+            } else {
+              toast.error(
+                result.error || t("fmtcMerchants.actions.operationFailed"),
+              );
+            }
+          } else {
+            toast.error(t("fmtcMerchants.actions.operationFailed"));
           }
         }
       } catch (error) {
+        // 确保从正在抓取的列表中移除
+        if (action === "refresh_data") {
+          setScrapingMerchants((prev) => {
+            const newSet = new Set(prev);
+
+            newSet.delete(merchantId);
+
+            return newSet;
+          });
+        }
+
         logger.error("商户操作失败:", error);
+        toast.error(t("fmtcMerchants.actions.operationFailed"), {
+          description: (error as Error).message,
+        });
       }
     },
-    [fetchMerchants],
+    [fetchMerchants, t],
   );
 
   // 查看商户详情
@@ -321,15 +432,18 @@ export function FMTCMerchantsDataTable({
   }, []);
 
   // 格式化日期
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString("zh-CN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }, []);
+  const formatDate = useCallback(
+    (dateString: string) => {
+      return new Date(dateString).toLocaleDateString(locale, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+    [locale],
+  );
 
   // 获取品牌匹配状态
   const getBrandMatchStatus = useCallback(
@@ -481,6 +595,32 @@ export function FMTCMerchantsDataTable({
         },
       },
       {
+        accessorKey: "freshReachSupported",
+        header: t("fmtcMerchants.columns.freshReach"),
+        cell: ({ row }) => {
+          const isSupported = row.getValue("freshReachSupported") as boolean;
+
+          return (
+            <div className="flex items-center space-x-2">
+              <div
+                className={`h-2 w-2 rounded-full ${
+                  isSupported ? "bg-green-500" : "bg-red-500"
+                }`}
+              />
+              <span
+                className={`text-sm ${
+                  isSupported ? "text-green-700" : "text-red-700"
+                }`}
+              >
+                {isSupported
+                  ? t("fmtcMerchants.freshReach.supported")
+                  : t("fmtcMerchants.freshReach.notSupported")}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
         accessorKey: "lastScrapedAt",
         header: t("fmtcMerchants.columns.lastUpdate"),
         cell: ({ row }) => {
@@ -564,11 +704,21 @@ export function FMTCMerchantsDataTable({
                   onClick={() =>
                     handleMerchantAction(merchant.id, "refresh_data")
                   }
+                  disabled={scrapingMerchants.has(merchant.id)}
                 >
-                  {React.createElement(RefreshCw, {
-                    className: "mr-2 h-4 w-4",
-                  })}
-                  {t("fmtcMerchants.actions.refreshData")}
+                  {scrapingMerchants.has(merchant.id) ? (
+                    <div className="flex items-center">
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      {t("fmtcMerchants.scraping.inProgress")}
+                    </div>
+                  ) : (
+                    <>
+                      {React.createElement(RefreshCw, {
+                        className: "mr-2 h-4 w-4",
+                      })}
+                      {t("fmtcMerchants.actions.refreshData")}
+                    </>
+                  )}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
@@ -602,6 +752,7 @@ export function FMTCMerchantsDataTable({
       handleMerchantAction,
       getBrandMatchStatus,
       formatDate,
+      scrapingMerchants,
     ],
   );
 

@@ -3031,9 +3031,11 @@
       "category": "Category",
       "brandMatch": "Brand Match",
       "confidence": "Confidence",
+      "freshReach": "FreshReach Support",
       "lastUpdate": "Last Update",
       "status": "Status",
       "homepage": "Homepage",
+      "sourceUrl": "Source URL",
       "merchant": "Merchant",
       "suggestedBrand": "Suggested Brand"
     },
@@ -3044,7 +3046,24 @@
       "confirmMatch": "Confirm Match",
       "rejectMatch": "Reject Match",
       "matchBrand": "Match Brand",
-      "visitSite": "Visit Site"
+      "visitSite": "Visit Site",
+      "brandMatchConfirmed": "Brand match confirmed",
+      "brandMatchRejected": "Brand match rejected",
+      "operationFailed": "Operation failed"
+    },
+    "scraping": {
+      "started": "Started scraping merchant details",
+      "pleaseWait": "Scraping merchant data, please wait...",
+      "success": "Merchant details scraped successfully",
+      "processingTime": "Processed in {time} seconds",
+      "dataUpdated": "Merchant data updated",
+      "configError": "FMTC configuration error",
+      "goToSettings": "Go to Settings",
+      "missingFmtcId": "Missing FMTC ID",
+      "missingFmtcIdDesc": "Cannot scrape details for this merchant, FMTC ID is missing",
+      "failed": "Failed to scrape merchant details",
+      "networkError": "Network error, please try again later",
+      "inProgress": "Scraping..."
     },
     "status": {
       "unmatched": "Unmatched",
@@ -3052,6 +3071,10 @@
       "needsConfirmation": "Needs Confirmation",
       "active": "Active",
       "inactive": "Inactive"
+    },
+    "freshReach": {
+      "supported": "Supported",
+      "notSupported": "Not Supported"
     },
     "noResults": "No merchants found",
     "brandMatching": {

@@ -53,7 +53,6 @@ export async function scrapeFMTCWithConfig(
       `${siteName} 爬虫启动（使用配置参数）`,
       {
         options: {
-          maxPages: options.maxPages,
           maxMerchants: options.maxMerchants,
           includeDetails: options.includeDetails,
           downloadImages: options.downloadImages,
@@ -69,7 +68,9 @@ export async function scrapeFMTCWithConfig(
   }
 
   const allScrapedMerchants: FMTCMerchantData[] = [];
-  const maxRequests = (options.maxPages || 10) * 10; // 估算请求数
+  // 正确估算所需请求数：搜索请求 + 商户详情请求 + 分页请求 + 缓冲
+  const targetMerchants = options.maxMerchants || 500;
+  const maxRequests = targetMerchants + 50; // 每个商户1个详情请求 + 50个缓冲请求用于搜索、分页等
 
   // 设置存储目录
   const baseStorageDir = path.resolve(process.cwd(), "scraper_storage_runs");
@@ -81,7 +82,7 @@ export async function scrapeFMTCWithConfig(
         `default_run_${new Date().getTime()}`,
       );
 
-  crawleeLog.info(`${siteName}: 存储目录设置为: ${runSpecificStorageDir}`);
+  // 存储目录信息只在调试模式下显示
 
   // 创建必需的目录
   ensureDirectoryExists(
@@ -108,15 +109,21 @@ export async function scrapeFMTCWithConfig(
     storageClientOptions: { storageDir: runSpecificStorageDir },
   });
 
-  // 进度回调
+  // 进度回调 - 优化后减少噪声
   const progressCallback: FMTCProgressCallback = {
     onPageProgress: (progress) => {
-      crawleeLog.info(
-        `${siteName}: 页面进度 ${progress.currentPage}/${progress.totalPages}, 商户 ${progress.merchantsProcessed}/${progress.merchantsTotal}`,
-      );
+      // 只在关键节点记录进度，减少噪声
+      if (
+        progress.currentPage % 5 === 0 ||
+        progress.currentPage === progress.totalPages
+      ) {
+        crawleeLog.warning(
+          `${siteName}: 进度 - 页面 ${progress.currentPage}/${progress.totalPages}, 商户 ${progress.merchantsProcessed}/${progress.merchantsTotal}`,
+        );
+      }
     },
-    onMerchantProcessed: (merchant) => {
-      crawleeLog.debug(`${siteName}: 处理商户 "${merchant.name}"`);
+    onMerchantProcessed: () => {
+      // 不再记录每个商户的处理日志，减少噪声
     },
     onError: (error, context) => {
       crawleeLog.error(`${siteName}: 错误 - ${context}: ${error.message}`);
@@ -132,8 +139,8 @@ export async function scrapeFMTCWithConfig(
   );
 
   // 反检测配置（使用配置参数或默认值）
-  // 设置Crawlee日志级别为INFO，避免DEBUG日志
-  crawleeLog.setLevel(LogLevel.INFO);
+  // 设置Crawlee日志级别为WARNING，减少噪声日志
+  crawleeLog.setLevel(LogLevel.WARNING);
 
   const antiDetectionConfig: FMTCAntiDetectionConfig = {
     enableRandomDelay: config?.searchEnableRandomDelay ?? true,
@@ -203,6 +210,10 @@ export async function scrapeFMTCWithConfig(
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,
       maxRequestRetries: 3,
+      // 批量抓取模式下减少日志噪声
+      statisticsOptions: {
+        logIntervalSecs: 30, // 降低统计输出频率
+      },
       preNavigationHooks: [
         async (crawlingContext) => {
           const { page } = crawlingContext;
@@ -269,7 +280,7 @@ export async function scrapeFMTCWithConfig(
                 }
               }
 
-              crawleeLog.info(`${siteName}: 已通过优化的hooks加载会话状态`);
+              // 会话加载成功，静默处理
             } catch (error) {
               crawleeLog.warning(
                 `${siteName}: 加载会话状态失败: ${(error as Error).message}`,
@@ -284,16 +295,12 @@ export async function scrapeFMTCWithConfig(
   );
 
   if (savedSessionState) {
-    crawleeLog.info(`${siteName}: 找到保存的会话状态，将跳过登录直接开始抓取`);
+    // 有保存的会话，静默处理
   } else {
-    crawleeLog.info(`${siteName}: 未找到保存的会话，将执行登录流程`);
+    // 需要登录，静默处理
   }
 
-  crawleeLog.info(`${siteName}: 爬虫配置完成（配置版本），开始抓取...`, {
-    maxConcurrency: options.maxConcurrency || 1,
-    maxPages: options.maxPages,
-    maxMerchants: options.maxMerchants,
-  });
+  // 爬虫配置完成，静默开始抓取
 
   // 初始请求：始终从登录页面开始，确保会话状态正确
   const initialRequest = {
@@ -329,13 +336,13 @@ export async function scrapeFMTCWithConfig(
       );
     }
 
-    crawleeLog.info(
-      `${siteName} 爬虫完成，总共收集 ${allScrapedMerchants.length} 个商户`,
-    );
+    crawleeLog.warning(`${siteName} 完成: ${allScrapedMerchants.length} 商户`);
 
-    // 打印统计信息
+    // 简化统计信息输出
     const stats = generateStatistics(allScrapedMerchants);
-    crawleeLog.info(`${siteName} 统计信息:`, stats);
+    crawleeLog.warning(
+      `${siteName} 统计: ${stats.withNetworks} 有网络, ${stats.withHomepage} 有主页`,
+    );
 
     return allScrapedMerchants;
   } catch (error) {
@@ -389,7 +396,6 @@ export default async function scrapeFMTC(
       `${siteName} 爬虫启动`,
       {
         options: {
-          maxPages: options.maxPages,
           maxMerchants: options.maxMerchants,
           includeDetails: options.includeDetails,
           downloadImages: options.downloadImages,
@@ -404,7 +410,9 @@ export default async function scrapeFMTC(
   }
 
   const allScrapedMerchants: FMTCMerchantData[] = [];
-  const maxRequests = (options.maxPages || 10) * 10; // 估算请求数
+  // 正确估算所需请求数：搜索请求 + 商户详情请求 + 分页请求 + 缓冲
+  const targetMerchants = options.maxMerchants || 500;
+  const maxRequests = targetMerchants + 50; // 每个商户1个详情请求 + 50个缓冲请求用于搜索、分页等
 
   // 设置存储目录
   const baseStorageDir = path.resolve(process.cwd(), "scraper_storage_runs");
@@ -416,7 +424,7 @@ export default async function scrapeFMTC(
         `default_run_${new Date().getTime()}`,
       );
 
-  crawleeLog.info(`${siteName}: 存储目录设置为: ${runSpecificStorageDir}`);
+  // 存储目录信息只在调试模式下显示
 
   // 创建必需的目录
   ensureDirectoryExists(
@@ -443,15 +451,21 @@ export default async function scrapeFMTC(
     storageClientOptions: { storageDir: runSpecificStorageDir },
   });
 
-  // 进度回调
+  // 进度回调 - 优化后减少噪声
   const progressCallback: FMTCProgressCallback = {
     onPageProgress: (progress) => {
-      crawleeLog.info(
-        `${siteName}: 页面进度 ${progress.currentPage}/${progress.totalPages}, 商户 ${progress.merchantsProcessed}/${progress.merchantsTotal}`,
-      );
+      // 只在关键节点记录进度，减少噪声
+      if (
+        progress.currentPage % 5 === 0 ||
+        progress.currentPage === progress.totalPages
+      ) {
+        crawleeLog.warning(
+          `${siteName}: 进度 - 页面 ${progress.currentPage}/${progress.totalPages}, 商户 ${progress.merchantsProcessed}/${progress.merchantsTotal}`,
+        );
+      }
     },
-    onMerchantProcessed: (merchant) => {
-      crawleeLog.debug(`${siteName}: 处理商户 "${merchant.name}"`);
+    onMerchantProcessed: () => {
+      // 不再记录每个商户的处理日志，减少噪声
     },
     onError: (error, context) => {
       crawleeLog.error(`${siteName}: 错误 - ${context}: ${error.message}`);
@@ -537,6 +551,10 @@ export default async function scrapeFMTC(
       requestHandlerTimeoutSecs: 300,
       navigationTimeoutSecs: 120,
       maxRequestRetries: 3,
+      // 批量抓取模式下减少日志噪声
+      statisticsOptions: {
+        logIntervalSecs: 30, // 降低统计输出频率
+      },
       // 最小化preNavigationHooks，完全模拟测试文件
       preNavigationHooks: [
         async (crawlingContext) => {
@@ -605,7 +623,7 @@ export default async function scrapeFMTC(
                 }
               }
 
-              crawleeLog.info(`${siteName}: 已通过优化的hooks加载会话状态`);
+              // 会话加载成功，静默处理
             } catch (error) {
               crawleeLog.warning(
                 `${siteName}: 加载会话状态失败: ${(error as Error).message}`,
@@ -621,16 +639,12 @@ export default async function scrapeFMTC(
   );
 
   if (savedSessionState) {
-    crawleeLog.info(`${siteName}: 找到保存的会话状态，将跳过登录直接开始抓取`);
+    // 有保存的会话，静默处理
   } else {
-    crawleeLog.info(`${siteName}: 未找到保存的会话，将执行登录流程`);
+    // 需要登录，静默处理
   }
 
-  crawleeLog.info(`${siteName}: 爬虫配置完成（环境变量版本），开始抓取...`, {
-    maxConcurrency: options.maxConcurrency || 1,
-    maxPages: options.maxPages,
-    maxMerchants: options.maxMerchants,
-  });
+  // 爬虫配置完成，静默开始抓取
 
   // 初始请求：始终从登录页面开始，确保会话状态正确
   const initialRequest = {
@@ -665,13 +679,13 @@ export default async function scrapeFMTC(
       );
     }
 
-    crawleeLog.info(
-      `${siteName} 爬虫完成，总共收集 ${allScrapedMerchants.length} 个商户`,
-    );
+    crawleeLog.warning(`${siteName} 完成: ${allScrapedMerchants.length} 商户`);
 
-    // 打印统计信息
+    // 简化统计信息输出
     const stats = generateStatistics(allScrapedMerchants);
-    crawleeLog.info(`${siteName} 统计信息:`, stats);
+    crawleeLog.warning(
+      `${siteName} 统计: ${stats.withNetworks} 有网络, ${stats.withHomepage} 有主页`,
+    );
 
     return allScrapedMerchants;
   } catch (error) {
@@ -772,10 +786,6 @@ export function validateFMTCOptions(options: FMTCScraperOptions): void {
     throw new Error("FMTC 登录凭据必须包含用户名和密码");
   }
 
-  if (options.maxPages && (options.maxPages < 1 || options.maxPages > 100)) {
-    throw new Error("最大页数必须在 1-100 之间");
-  }
-
   if (
     options.maxMerchants &&
     (options.maxMerchants < 1 || options.maxMerchants > 10000)
@@ -804,7 +814,6 @@ export function createDefaultFMTCOptions(credentials: {
 }): FMTCScraperOptions {
   return {
     credentials,
-    maxPages: 10,
     maxMerchants: 500,
     includeDetails: true,
     downloadImages: false,
@@ -831,5 +840,11 @@ export {
   getRecaptchaConfigFromParams,
   getSearchConfigFromParams,
 } from "./config.js";
+export {
+  FMTCSingleMerchantScraper,
+  scrapeSingleFMTCMerchant,
+  type SingleMerchantScrapingOptions,
+  type SingleMerchantScrapingResult,
+} from "./single-merchant-scraper.js";
 
 // 导出新的配置支持的爬虫函数已在上面直接导出

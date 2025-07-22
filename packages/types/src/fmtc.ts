@@ -128,8 +128,6 @@ export interface SessionConfig {
 export interface FMTCScraperOptions {
   /** 登录凭据 */
   credentials: FMTCCredentials;
-  /** 最大抓取页数 */
-  maxPages?: number;
   /** 最大抓取商家数量 */
   maxMerchants?: number;
   /** 是否抓取详情页 */
@@ -178,8 +176,6 @@ export interface FMTCScraperOptions {
  * FMTC 抓取任务配置
  */
 export interface FMTCScraperConfig {
-  /** 最大页数限制 */
-  maxPagesPerRun: number;
   /** 最大商家数量限制 */
   maxMerchantsPerRun?: number;
   /** 是否启用详情抓取 */
@@ -205,7 +201,6 @@ export interface FMTCScraperConfig {
  * 任务配置接口
  */
 export interface TaskConfig {
-  maxPages?: number;
   maxMerchantsPerRun?: number;
   maxMerchants?: number;
   includeDetails?: boolean;
@@ -231,8 +226,6 @@ export interface FMTCScraperDbConfig {
   defaultUsername?: string | null;
   /** 默认密码 */
   defaultPassword?: string | null;
-  /** 默认最大页数 */
-  maxPages: number;
   /** 默认最大商户数 */
   maxMerchants: number;
   /** 默认请求延迟(毫秒) */

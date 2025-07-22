@@ -291,7 +291,6 @@ interface DiscountSettings {
     // 基础配置
     defaultUsername: string;
     defaultPassword: string;
-    maxPages: number;
     maxMerchants: number;
     requestDelay: number;
     enableImageDownload: boolean;
@@ -388,7 +387,6 @@ const defaultSettings: DiscountSettings = {
     // 基础配置
     defaultUsername: "",
     defaultPassword: "",
-    maxPages: 10,
     maxMerchants: 500,
     requestDelay: 2000,
     enableImageDownload: false,
@@ -939,26 +937,7 @@ export function DiscountSettingsModal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="fmtc-max-pages">
-                        {t("fmtc.basic.maxPages")}
-                      </Label>
-                      <Input
-                        id="fmtc-max-pages"
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={settings.fmtc.maxPages}
-                        onChange={(e) =>
-                          updateFMTCSettings(
-                            "maxPages",
-                            parseInt(e.target.value),
-                          )
-                        }
-                      />
-                    </div>
-
+                  <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="fmtc-max-merchants">
                         {t("fmtc.basic.maxMerchants")}
@@ -976,6 +955,10 @@ export function DiscountSettingsModal({
                           )
                         }
                       />
+                      <p className="text-xs text-muted-foreground">
+                        页面大小将根据商户数量自动优化 (≤100个使用100页面大小,
+                        ≤500个使用500, &gt;500个使用1000)
+                      </p>
                     </div>
                   </div>
 

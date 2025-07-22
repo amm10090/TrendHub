@@ -66,6 +66,12 @@ export interface FMTCUserData {
   merchantDetailIndex?: number;
   /** 待处理的详情总数 (用于进度跟踪) */
   totalDetailsToProcess?: number;
+  /** 单商户模式标志 */
+  singleMerchantMode?: boolean;
+  /** 目标商户URL (单商户模式) */
+  targetMerchantUrl?: string;
+  /** 目标商户名称 (单商户模式) */
+  targetMerchantName?: string;
 }
 
 /**

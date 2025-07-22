@@ -24,7 +24,6 @@ export interface ScrapingTaskConfig {
     password: string;
   };
   config: {
-    maxPages?: number;
     maxMerchantsPerRun?: number;
     includeDetails?: boolean;
     searchParams?: Record<string, string | number | boolean>;
@@ -32,8 +31,7 @@ export interface ScrapingTaskConfig {
 }
 
 export interface QuickScrapeConfig {
-  maxPages: number;
-  maxMerchantsPerRun?: number;
+  maxMerchantsPerRun: number;
   includeDetails: boolean;
   searchParams: Record<string, string | number | boolean>;
 }
@@ -82,7 +80,6 @@ export class FMTCScraperService {
       // 基础配置
       username: dbConfig.defaultUsername,
       password: dbConfig.defaultPassword,
-      maxPages: dbConfig.maxPages,
       maxMerchants: dbConfig.maxMerchants,
       requestDelay: dbConfig.requestDelay,
       enableImageDownload: dbConfig.enableImageDownload,
@@ -362,7 +359,6 @@ export class FMTCScraperService {
         config?.maxMerchantsPerRun || config?.maxMerchants;
       const scraperOptions: FMTCScraperOptions = {
         credentials,
-        maxPages: config?.maxPages || fmtcConfig?.maxPages || 5,
         maxMerchants: taskMaxMerchants || fmtcConfig?.maxMerchants || 500,
         includeDetails: config?.includeDetails !== false,
         downloadImages:
@@ -375,7 +371,6 @@ export class FMTCScraperService {
       };
 
       console.log(`开始执行爬虫任务 ${executionId}, 配置:`, {
-        maxPages: scraperOptions.maxPages,
         maxMerchants: scraperOptions.maxMerchants,
         includeDetails: scraperOptions.includeDetails,
         downloadImages: scraperOptions.downloadImages,

@@ -413,6 +413,20 @@
     "delete": "删除",
     "view": "查看",
     "select": "选择",
+    "pageSize": "页面大小",
+    "completed": "已完成",
+    "failed": "失败",
+    "processing": "处理中",
+    "pending": "待处理",
+    "estimatedRemaining": "预计剩余",
+    "seconds": "秒",
+    "workers": "工作线程",
+    "processingTask": "正在处理",
+    "waitingForTask": "等待任务",
+    "recentCompleted": "最近完成",
+    "totalTime": "总用时",
+    "average": "平均",
+    "perMerchant": "商户",
     "edit": "编辑",
     "active": "激活",
     "basic": "基本",
@@ -2579,6 +2593,19 @@
       "createTaskDescription": "创建一个新的 FMTC 商户抓取任务",
       "namePlaceholder": "输入任务名称",
       "descriptionPlaceholder": "输入任务描述（可选）",
+      "taskType": "任务类型",
+      "taskTypeSelectPlaceholder": "选择任务类型",
+      "taskTypes": {
+        "fullScraping": "完整抓取任务",
+        "dataRefresh": "刷新商户数据任务"
+      },
+      "taskTypeDescription": "完整抓取任务：进行全面的商户信息抓取。刷新商户数据任务：仅更新现有商户的数据。",
+      "tabs": {
+        "fullScraping": "完整抓取任务",
+        "dataRefresh": "刷新商户数据任务"
+      },
+      "noFullScrapingTasks": "暂无完整抓取任务",
+      "noDataRefreshTasks": "暂无数据刷新任务",
       "cronExpression": "定时表达式",
       "credentials": "登录凭据",
       "username": "用户名",
@@ -2596,6 +2623,7 @@
       "merchants": "商户",
       "status": {
         "idle": "空闲",
+        "queued": "队列中",
         "running": "运行中",
         "completed": "已完成",
         "failed": "失败",
@@ -2709,7 +2737,8 @@
       "visitSite": "访问网站",
       "brandMatchConfirmed": "品牌匹配已确认",
       "brandMatchRejected": "品牌匹配已拒绝",
-      "operationFailed": "操作失败"
+      "operationFailed": "操作失败",
+      "batchRefreshData": "批量刷新数据"
     },
     "scraping": {
       "started": "开始抓取商户详情",
@@ -2723,7 +2752,15 @@
       "missingFmtcIdDesc": "无法抓取此商户的详情，FMTC ID缺失",
       "failed": "商户详情抓取失败",
       "networkError": "网络错误，请稍后重试",
-      "inProgress": "抓取中..."
+      "inProgress": "抓取中...",
+      "batchStarted": "高性能批量抓取已开始，共 {count} 个商户",
+      "batchSuccess": "批量抓取完成：成功 {completed} 个，失败 {failed} 个",
+      "batchFailed": "批量抓取失败",
+      "progress": "抓取进度",
+      "optimized": "已优化",
+      "concurrent": "并发处理",
+      "speedImprovement": "并发处理速度提升5-8倍",
+      "performanceStats": "性能：总用时 {totalTime}秒，平均 {avgTime}秒/商户"
     },
     "status": {
       "unmatched": "未匹配",
@@ -2737,6 +2774,9 @@
       "notSupported": "不支持"
     },
     "noResults": "未找到商户",
+    "pagination": {
+      "itemsPerPage": "项/页"
+    },
     "brandMatching": {
       "title": "品牌匹配",
       "total": "总计",
@@ -2797,7 +2837,8 @@
       "bulkDeleteSuccess": "已成功删除 {count} 个商户",
       "bulkUpdateError": "批量操作失败",
       "bulkDeleteError": "批量删除失败",
-      "noSelection": "请先选择要操作的商户"
+      "noSelection": "请先选择要操作的商户",
+      "pageSize": "页面大小"
     },
     "tabs": {
       "merchants": "商户管理",

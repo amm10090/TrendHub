@@ -2,22 +2,26 @@
  * FMTC 爬虫主入口
  */
 
-import { Configuration, log as crawleeLog, LogLevel } from "crawlee";
+import {
+  Configuration,
+  log as crawleeLog,
+  LogLevel,
+  PlaywrightCrawler,
+} from "crawlee";
 import type { FMTCMerchantData } from "@repo/types";
 import * as path from "path";
 import type {
+  FMTCAntiDetectionConfig,
+  FMTCProgressCallback,
   FMTCScraperOptions,
   FMTCUserData,
-  FMTCProgressCallback,
-  FMTCAntiDetectionConfig,
 } from "./types.js";
 import { createFMTCRequestHandler } from "./request-handler.js";
-import { PlaywrightCrawler } from "crawlee";
 import { chromium } from "playwright";
 import {
-  sendLogToBackend,
-  LocalScraperLogLevel,
   ensureDirectoryExists,
+  LocalScraperLogLevel,
+  sendLogToBackend,
 } from "../../utils.js";
 import { createSessionManager, type SessionConfig } from "./session-manager.js";
 import { type FMTCConfig } from "./config.js";
@@ -846,5 +850,14 @@ export {
   type SingleMerchantScrapingOptions,
   type SingleMerchantScrapingResult,
 } from "./single-merchant-scraper.js";
+export {
+  FMTCBatchMerchantScraper,
+  executeBatchMerchantScraping,
+  type BatchScrapingOptions,
+  type BatchScrapingResult,
+  type BatchProgress,
+  type MerchantTask,
+  BatchTaskStatus,
+} from "./batch-merchant-scraper.js";
 
 // 导出新的配置支持的爬虫函数已在上面直接导出

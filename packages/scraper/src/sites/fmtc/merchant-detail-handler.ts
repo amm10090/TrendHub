@@ -122,17 +122,49 @@ export class FMTCMerchantDetailHandler {
    */
   private async navigateToDetailPage(merchantUrl: string): Promise<void> {
     try {
+      // URL验证和修复
+      let cleanUrl = merchantUrl;
+
+      // 修复已知的URL损坏问题
+      if (cleanUrl.includes("program_dtails")) {
+        cleanUrl = cleanUrl.replace("program_dtails", "program_directory");
+        await this.logMessage(
+          LocalScraperLogLevel.WARN,
+          "检测到URL损坏，已自动修复",
+          {
+            originalUrl: merchantUrl,
+            fixedUrl: cleanUrl,
+          },
+        );
+      }
+
+      // 确保URL格式正确
+      if (cleanUrl.includes("program_directory/m/")) {
+        cleanUrl = cleanUrl.replace(
+          "program_directory/m/",
+          "program_directory/details/m/",
+        );
+        await this.logMessage(
+          LocalScraperLogLevel.INFO,
+          "标准化商户详情URL格式",
+          {
+            originalUrl: merchantUrl,
+            standardizedUrl: cleanUrl,
+          },
+        );
+      }
+
       if (this.shouldLogDebug()) {
         await this.logMessage(
           LocalScraperLogLevel.DEBUG,
           "导航到商户详情页面",
           {
-            url: merchantUrl,
+            url: cleanUrl,
           },
         );
       }
 
-      await this.page.goto(merchantUrl, {
+      await this.page.goto(cleanUrl, {
         waitUntil: "networkidle",
         timeout: 30000,
       });
@@ -647,10 +679,11 @@ export class FMTCMerchantDetailHandler {
         | string[]
         | undefined;
 
-      // 获取主要网络ID（从网络关联中提取第一个网络的ID）
+      // 获取主要网络信息（从网络关联中提取第一个网络的名称和ID）
       const networks = await this.extractNetworks();
       if (networks.length > 0) {
-        detail.networkId = networks[0].networkId;
+        detail.network = networks[0].networkName; // 设置主要网络名称
+        detail.networkId = networks[0].networkId; // 设置主要网络ID
       }
 
       if (this.shouldLogDebug()) {
@@ -683,6 +716,15 @@ export class FMTCMerchantDetailHandler {
               : 0,
             freshReachUrlsCount: detail.freshReachUrls?.length || 0,
             freshReachSupported: detail.freshReachSupported,
+            // 网络相关调试信息
+            primaryNetwork: detail.network,
+            primaryNetworkId: detail.networkId,
+            networksCount: networks.length,
+            allNetworks: networks.map((n) => ({
+              name: n.networkName,
+              id: n.networkId,
+              status: n.status,
+            })),
           },
         );
       }

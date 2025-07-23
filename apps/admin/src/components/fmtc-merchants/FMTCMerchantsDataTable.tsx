@@ -5,7 +5,6 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  getPaginationRowModel,
   getSortedRowModel,
   SortingState,
 } from "@tanstack/react-table";
@@ -19,6 +18,8 @@ import {
   MoreHorizontal,
   Globe,
   Calendar,
+  Download,
+  Settings,
 } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
@@ -47,6 +48,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -146,7 +155,36 @@ export function FMTCMerchantsDataTable({
     new Set(),
   );
 
-  const pageSize = 20;
+  // 页面大小状态
+  const [pageSize, setPageSize] = useState(20);
+
+  // 批量抓取状态
+  const [isBatchScraping, setIsBatchScraping] = useState(false);
+  const [batchScrapingProgress, setBatchScrapingProgress] = useState({
+    current: 0,
+    total: 0,
+    completed: 0,
+    failed: 0,
+    running: 0,
+    pending: 0,
+    percentage: 0,
+    workers: [] as Array<{
+      id: string;
+      isWorking: boolean;
+      currentTask?: {
+        merchantName: string;
+        startTime: string;
+      };
+    }>,
+    recentCompletedTasks: [] as Array<{
+      merchantName: string;
+      duration: number;
+    }>,
+    estimatedTimeRemaining: undefined as number | undefined,
+  });
+
+  // SSE连接状态
+  const [sseConnection, setSseConnection] = useState<EventSource | null>(null);
 
   // 构建查询字符串
   const buildQueryString = useCallback(() => {
@@ -168,6 +206,7 @@ export function FMTCMerchantsDataTable({
     return params.toString();
   }, [
     currentPage,
+    pageSize,
     searchTerm,
     selectedCountry,
     selectedNetwork,
@@ -292,6 +331,193 @@ export function FMTCMerchantsDataTable({
     } finally {
       setIsBulkOperating(false);
     }
+  };
+
+  // 建立SSE连接监听实时进度
+  const establishSSEConnection = useCallback(
+    (executionId: string) => {
+      // 清理现有连接
+      if (sseConnection) {
+        sseConnection.close();
+      }
+
+      const eventSource = new EventSource(
+        `/api/fmtc-merchants/progress/${executionId}`,
+      );
+
+      eventSource.onopen = () => {
+        console.log("SSE连接已建立");
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          console.log("[SSE前端] 收到消息:", data);
+
+          if (data.type === "connected") {
+            console.log("SSE连接确认:", data.message);
+          } else if (data.type === "progress") {
+            // 更新实时进度
+            setBatchScrapingProgress((prev) => ({
+              ...prev,
+              completed: data.completed || 0,
+              failed: data.failed || 0,
+              running: data.running || 0,
+              pending: data.pending || 0,
+              percentage: data.percentage || 0,
+              workers: data.workers || [],
+              recentCompletedTasks: data.recentCompletedTasks || [],
+              estimatedTimeRemaining: data.estimatedTimeRemaining,
+            }));
+          } else if (data.type === "completed") {
+            // 抓取完成
+            setIsBatchScraping(false);
+            eventSource.close();
+            setSseConnection(null);
+            setCurrentExecutionId(null);
+
+            // 显示最终结果
+            const summary = data.summary;
+
+            if (summary) {
+              toast.success(
+                t("fmtcMerchants.scraping.batchSuccess", {
+                  completed: summary.successfulTasks,
+                  failed: summary.failedTasks,
+                  total: summary.totalTasks,
+                }),
+                {
+                  description: `${summary.speedImprovement} | ${t("fmtcMerchants.scraping.performanceStats", { totalTime: summary.totalTimeSeconds, avgTime: summary.averageTimePerTaskSeconds })}`,
+                  duration: 6000,
+                },
+              );
+            }
+
+            // 刷新数据
+            fetchMerchants();
+          }
+        } catch (error) {
+          console.error("解析SSE数据失败:", error);
+        }
+      };
+
+      eventSource.onerror = (error) => {
+        console.error("SSE连接错误:", error);
+        eventSource.close();
+        setSseConnection(null);
+      };
+
+      setSseConnection(eventSource);
+      setCurrentExecutionId(executionId);
+    },
+    [sseConnection, t, fetchMerchants],
+  );
+
+  // 批量刷新商户数据
+  const handleBatchRefreshData = async () => {
+    const selectedIds = Object.keys(rowSelection);
+
+    if (selectedIds.length === 0) {
+      toast.error(t("fmtcMerchants.bulkActions.noSelection"));
+
+      return;
+    }
+
+    setIsBatchScraping(true);
+    setBatchScrapingProgress({
+      current: 0,
+      total: selectedIds.length,
+      completed: 0,
+      failed: 0,
+      running: 0,
+      pending: selectedIds.length,
+      percentage: 0,
+      workers: [],
+      recentCompletedTasks: [],
+    });
+
+    toast.info(
+      t("fmtcMerchants.scraping.batchStarted", { count: selectedIds.length }),
+    );
+
+    try {
+      const response = await fetch("/api/fmtc-merchants", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: selectedIds,
+          action: "batch_refresh_data",
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        console.log("批量刷新API响应:", result);
+
+        if (result.success) {
+          setRowSelection({});
+
+          // 从响应中获取executionId，立即建立SSE连接监听实时进度
+          const executionId = result.data?.executionId || result.executionId;
+
+          console.log("尝试获取executionId:", {
+            fromData: result.data?.executionId,
+            fromRoot: result.executionId,
+            final: executionId,
+            fullData: result.data,
+          });
+
+          if (executionId) {
+            console.log("获取到executionId，立即建立SSE连接:", executionId);
+            establishSSEConnection(executionId);
+          } else {
+            console.log("未获取到executionId，使用传统方式显示结果");
+            // 如果没有executionId，使用传统方式显示结果
+            setIsBatchScraping(false);
+
+            const data = result.data;
+            const speedInfo = data.speedImprovement
+              ? `${data.speedImprovement}`
+              : "";
+            const timeInfo = data.totalTime
+              ? `${t("common.totalTime")} ${data.totalTime}${t("common.seconds")}`
+              : "";
+            const avgTimeInfo = data.averageTimePerTask
+              ? `${t("common.average")} ${data.averageTimePerTask}${t("common.seconds")}/${t("common.perMerchant")}`
+              : "";
+
+            toast.success(
+              t("fmtcMerchants.scraping.batchSuccess", {
+                completed: data.completed || 0,
+                failed: data.failed || 0,
+                total: selectedIds.length,
+              }),
+              {
+                description: [speedInfo, timeInfo, avgTimeInfo]
+                  .filter(Boolean)
+                  .join(" | "),
+                duration: 6000,
+              },
+            );
+
+            fetchMerchants();
+          }
+        } else {
+          setIsBatchScraping(false);
+          toast.error(result.error || t("fmtcMerchants.scraping.batchFailed"));
+        }
+      } else {
+        setIsBatchScraping(false);
+        toast.error(t("fmtcMerchants.scraping.batchFailed"));
+      }
+    } catch (error) {
+      logger.error("批量刷新失败:", error);
+      setIsBatchScraping(false);
+      toast.error(t("fmtcMerchants.scraping.batchFailed"));
+    }
+    // 注意：不在finally中重置状态，因为SSE连接会处理完成状态
   };
 
   // 单个商户操作
@@ -761,7 +987,6 @@ export function FMTCMerchantsDataTable({
     data: merchants,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
@@ -770,6 +995,8 @@ export function FMTCMerchantsDataTable({
       sorting,
       rowSelection,
     },
+    // 禁用内置分页，因为我们使用服务器端分页
+    manualPagination: true,
   });
 
   // 监听筛选条件变化
@@ -781,17 +1008,148 @@ export function FMTCMerchantsDataTable({
     selectedNetwork,
     brandMatchStatus,
     selectedActiveStatus,
+    pageSize, // 页面大小变化时也重置页码
   ]);
 
   // 获取数据
   useEffect(() => {
     fetchMerchants();
-  }, [fetchMerchants, refreshTrigger]);
+  }, [fetchMerchants, refreshTrigger, currentPage]);
+
+  // 组件卸载时清理SSE连接
+  useEffect(() => {
+    return () => {
+      if (sseConnection) {
+        sseConnection.close();
+        setSseConnection(null);
+      }
+    };
+  }, [sseConnection]);
 
   const selectedRowCount = Object.keys(rowSelection).length;
 
+  // 页面大小选项
+  const pageSizeOptions = [10, 20, 50, 100];
+
   return (
     <div className="space-y-4">
+      {/* 页面设置和批量抓取进度 */}
+      <div className="flex items-center justify-between gap-4">
+        {/* 页面大小选择器 */}
+        <div className="flex items-center space-x-2">
+          <Settings className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">{t("common.pageSize")}:</span>
+          <Select
+            value={pageSize.toString()}
+            onValueChange={(value) => setPageSize(parseInt(value))}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {pageSizeOptions.map((size) => (
+                <SelectItem key={size} value={size.toString()}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-muted-foreground">
+            {t("fmtcMerchants.pagination.itemsPerPage")}
+          </span>
+        </div>
+
+        {/* 批量抓取进度 */}
+        {isBatchScraping && (
+          <div className="flex flex-col space-y-2 bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+            {/* 主进度条 */}
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                {t("fmtcMerchants.scraping.progress")}
+              </span>
+              <div className="flex-1 max-w-xs">
+                <Progress
+                  value={batchScrapingProgress.percentage}
+                  className="h-2"
+                />
+              </div>
+              <span className="text-xs font-mono text-blue-600 dark:text-blue-400">
+                {batchScrapingProgress.completed + batchScrapingProgress.failed}
+                /{batchScrapingProgress.total}(
+                {batchScrapingProgress.percentage}%)
+              </span>
+            </div>
+
+            {/* 详细状态信息 */}
+            <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+              <span className="text-green-600">
+                ✓ {t("common.completed")}: {batchScrapingProgress.completed}
+              </span>
+              <span className="text-red-600">
+                ✗ {t("common.failed")}: {batchScrapingProgress.failed}
+              </span>
+              <span className="text-blue-600">
+                ⚡ {t("common.processing")}: {batchScrapingProgress.running}
+              </span>
+              <span className="text-gray-600">
+                ⏳ {t("common.pending")}: {batchScrapingProgress.pending}
+              </span>
+              {batchScrapingProgress.estimatedTimeRemaining && (
+                <span className="text-orange-600">
+                  ⏱ {t("common.estimatedRemaining")}:{" "}
+                  {Math.round(
+                    batchScrapingProgress.estimatedTimeRemaining / 1000,
+                  )}
+                  {t("common.seconds")}
+                </span>
+              )}
+            </div>
+
+            {/* 工作线程状态 */}
+            {batchScrapingProgress.workers.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-medium text-gray-600">
+                  {t("common.workers")}:
+                </span>
+                {batchScrapingProgress.workers.map((worker) => (
+                  <div
+                    key={worker.id}
+                    className={`px-2 py-1 rounded text-xs ${
+                      worker.isWorking
+                        ? "bg-green-100 text-green-700 border border-green-200"
+                        : "bg-gray-100 text-gray-500 border border-gray-200"
+                    }`}
+                    title={
+                      worker.currentTask
+                        ? `${t("common.processingTask")}: ${worker.currentTask.merchantName}`
+                        : t("common.waitingForTask")
+                    }
+                  >
+                    {worker.id.split("-")[1]} {worker.isWorking ? "🔄" : "⏸"}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 最近完成的任务 */}
+            {batchScrapingProgress.recentCompletedTasks.length > 0 && (
+              <div className="text-xs text-green-600">
+                <span className="font-medium">
+                  {t("common.recentCompleted")}:{" "}
+                </span>
+                {batchScrapingProgress.recentCompletedTasks
+                  .slice(0, 2)
+                  .map((task, index) => (
+                    <span key={index} className="mr-2">
+                      {task.merchantName} ({Math.round(task.duration / 1000)}s)
+                    </span>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* 批量操作栏 */}
       {selectedRowCount > 0 && (
         <div className="flex items-center justify-between rounded-md bg-muted p-3">
@@ -803,7 +1161,7 @@ export function FMTCMerchantsDataTable({
               variant="outline"
               size="sm"
               onClick={() => handleBatchAction("activate")}
-              disabled={isBulkOperating}
+              disabled={isBulkOperating || isBatchScraping}
             >
               {React.createElement(CheckCircle, { className: "mr-2 h-4 w-4" })}
               {t("common.activate")}
@@ -812,16 +1170,38 @@ export function FMTCMerchantsDataTable({
               variant="outline"
               size="sm"
               onClick={() => handleBatchAction("deactivate")}
-              disabled={isBulkOperating}
+              disabled={isBulkOperating || isBatchScraping}
             >
               {React.createElement(XCircle, { className: "mr-2 h-4 w-4" })}
               {t("common.deactivate")}
             </Button>
             <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBatchRefreshData}
+              disabled={isBulkOperating || isBatchScraping}
+              title="使用高效并发抓取器，性能提升5-8倍"
+            >
+              {isBatchScraping ? (
+                <div className="flex items-center">
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  {t("fmtcMerchants.scraping.inProgress")}
+                </div>
+              ) : (
+                <>
+                  {React.createElement(Download, { className: "mr-2 h-4 w-4" })}
+                  {t("fmtcMerchants.actions.batchRefreshData")}
+                  <span className="ml-1 text-xs text-green-600 font-medium">
+                    ⚡️
+                  </span>
+                </>
+              )}
+            </Button>
+            <Button
               variant="destructive"
               size="sm"
               onClick={() => handleBatchAction("delete")}
-              disabled={isBulkOperating}
+              disabled={isBulkOperating || isBatchScraping}
             >
               {isBulkOperating ? (
                 <div className="flex items-center">

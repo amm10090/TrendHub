@@ -733,6 +733,14 @@ enum ImportType {
   API
 }
 
+/// FMTC 任务类型枚举
+enum FMTCTaskType {
+  /// 完整抓取任务
+  FULL_SCRAPING
+  /// 数据刷新任务
+  DATA_REFRESH
+}
+
 // --- FMTC 配置管理模型 ---
 
 /// FMTC 爬虫全局配置
@@ -962,6 +970,8 @@ model FMTCScraperTask {
   name                  String                    @unique
   /// 任务描述
   description           String?
+  /// 任务类型：完整抓取 or 数据刷新
+  taskType              FMTCTaskType              @default(FULL_SCRAPING)
   /// FMTC 登录凭据 (加密存储)
   credentials           Json
   /// 抓取配置 (页数限制、过滤条件等)
@@ -983,6 +993,7 @@ model FMTCScraperTask {
   
   @@index([isEnabled])
   @@index([nextExecuteAt])
+  @@index([taskType])
 }
 
 /// FMTC 抓取执行记录
@@ -1047,4 +1058,31 @@ model FMTCScraperLog {
   @@index([executionId])
   @@index([level])
   @@index([timestamp])
+}
+
+/// FMTC 爬虫会话存储
+model FMTCSession {
+  /// 唯一标识符
+  id              String   @id @default(cuid())
+  /// 用户名/邮箱 (FMTC登录用户名)
+  username        String   @unique
+  /// 浏览器状态数据 (包含cookies和localStorage)
+  sessionState    Json
+  /// 会话创建时间
+  createdAt       DateTime @default(now())
+  /// 最后更新时间
+  updatedAt       DateTime @updatedAt
+  /// 最后活动时间
+  lastActivityAt  DateTime @default(now())
+  /// 会话过期时间
+  expiresAt       DateTime
+  /// 是否激活
+  isActive        Boolean  @default(true)
+  /// 元数据 (用户代理、登录方法等)
+  metadata        Json?
+  
+  @@index([username])
+  @@index([expiresAt])
+  @@index([isActive])
+  @@index([lastActivityAt])
 }

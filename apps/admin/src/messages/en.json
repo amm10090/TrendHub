@@ -647,6 +647,20 @@
     "delete": "Delete",
     "view": "View",
     "select": "Select",
+    "pageSize": "Page Size",
+    "completed": "Completed",
+    "failed": "Failed",
+    "processing": "Processing",
+    "pending": "Pending",
+    "estimatedRemaining": "Est. Remaining",
+    "seconds": "s",
+    "workers": "Workers",
+    "processingTask": "Processing",
+    "waitingForTask": "Waiting for task",
+    "recentCompleted": "Recent completed",
+    "totalTime": "Total time",
+    "average": "Avg",
+    "perMerchant": "merchant",
     "edit": "Edit",
     "active": "Active",
     "basic": "Basic",
@@ -2919,6 +2933,19 @@
       "createTaskDescription": "Create a new FMTC merchant scraping task",
       "namePlaceholder": "Enter task name",
       "descriptionPlaceholder": "Enter task description (optional)",
+      "taskType": "Task Type",
+      "taskTypeSelectPlaceholder": "Select task type",
+      "taskTypes": {
+        "fullScraping": "Full Scraping Task",
+        "dataRefresh": "Data Refresh Task"
+      },
+      "taskTypeDescription": "Full Scraping Task: Perform comprehensive merchant information scraping. Data Refresh Task: Only update existing merchant data.",
+      "tabs": {
+        "fullScraping": "Full Scraping Tasks",
+        "dataRefresh": "Data Refresh Tasks"
+      },
+      "noFullScrapingTasks": "No full scraping tasks",
+      "noDataRefreshTasks": "No data refresh tasks",
       "cronExpression": "Cron Expression",
       "credentials": "Login Credentials",
       "username": "Username",
@@ -3049,7 +3076,8 @@
       "visitSite": "Visit Site",
       "brandMatchConfirmed": "Brand match confirmed",
       "brandMatchRejected": "Brand match rejected",
-      "operationFailed": "Operation failed"
+      "operationFailed": "Operation failed",
+      "batchRefreshData": "Batch Refresh Data"
     },
     "scraping": {
       "started": "Started scraping merchant details",
@@ -3063,7 +3091,15 @@
       "missingFmtcIdDesc": "Cannot scrape details for this merchant, FMTC ID is missing",
       "failed": "Failed to scrape merchant details",
       "networkError": "Network error, please try again later",
-      "inProgress": "Scraping..."
+      "inProgress": "Scraping...",
+      "batchStarted": "High-performance batch scraping started for {count} merchants",
+      "batchSuccess": "Batch scraping completed: {completed} succeeded, {failed} failed",
+      "batchFailed": "Batch scraping failed",
+      "progress": "Scraping Progress",
+      "optimized": "Optimized",
+      "concurrent": "Concurrent Processing",
+      "speedImprovement": "5-8x faster with concurrent processing",
+      "performanceStats": "Performance: {totalTime}s total, {avgTime}s avg/merchant"
     },
     "status": {
       "unmatched": "Unmatched",
@@ -3077,6 +3113,9 @@
       "notSupported": "Not Supported"
     },
     "noResults": "No merchants found",
+    "pagination": {
+      "itemsPerPage": "items/page"
+    },
     "brandMatching": {
       "title": "Brand Matching",
       "total": "Total",
@@ -3137,7 +3176,8 @@
       "bulkDeleteSuccess": "Successfully deleted {count} merchants",
       "bulkUpdateError": "Bulk operation failed",
       "bulkDeleteError": "Bulk delete failed",
-      "noSelection": "Please select merchants to operate on first"
+      "noSelection": "Please select merchants to operate on first",
+      "pageSize": "Page Size"
     },
     "tabs": {
       "merchants": "Merchant Management",

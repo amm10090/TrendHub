@@ -44,6 +44,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -76,6 +83,7 @@ interface FMTCScraperTask {
   executions: FMTCScraperExecution[];
   createdAt: string;
   updatedAt: string;
+  taskType?: "full_scraping" | "data_refresh"; // 任务类型：完整抓取 or 数据刷新
   credentials?: {
     username?: string;
     password?: string;
@@ -133,6 +141,9 @@ export function FMTCScraperPanel({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isRealtimeLogsOpen, setIsRealtimeLogsOpen] = useState(false);
   const [stopConfirmTask, setStopConfirmTask] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"full_scraping" | "data_refresh">(
+    "full_scraping",
+  );
 
   // 操作状态管理
   const [taskActionLoading, setTaskActionLoading] = useState<{
@@ -147,6 +158,7 @@ export function FMTCScraperPanel({
     name: "",
     description: "",
     isEnabled: true,
+    taskType: "full_scraping" as "full_scraping" | "data_refresh",
     cronExpression: "",
     maxMerchants: 500,
     includeDetails: true,
@@ -195,6 +207,7 @@ export function FMTCScraperPanel({
             name: taskForm.name,
             description: taskForm.description,
             isEnabled: taskForm.isEnabled,
+            taskType: taskForm.taskType,
             cronExpression: taskForm.cronExpression || null,
             credentials: {
               username: taskForm.username,
@@ -253,6 +266,7 @@ export function FMTCScraperPanel({
             name: taskForm.name,
             description: taskForm.description,
             isEnabled: taskForm.isEnabled,
+            taskType: taskForm.taskType,
             cronExpression: taskForm.cronExpression || null,
             credentials: taskForm.password
               ? {
@@ -432,6 +446,7 @@ export function FMTCScraperPanel({
       name: "",
       description: "",
       isEnabled: true,
+      taskType: "full_scraping" as "full_scraping" | "data_refresh",
       cronExpression: "",
       maxMerchants: 500,
       includeDetails: true,
@@ -453,6 +468,7 @@ export function FMTCScraperPanel({
       name: task.name,
       description: task.description || "",
       isEnabled: task.isEnabled,
+      taskType: task.taskType || "full_scraping",
       cronExpression: task.cronExpression || "",
       maxMerchants: config.maxMerchants || config.maxMerchantsPerRun || 500,
       includeDetails: config.includeDetails !== false,
@@ -515,6 +531,14 @@ export function FMTCScraperPanel({
     fetchTasks();
   }, [fetchTasks, refreshTrigger]);
 
+  // 过滤任务
+  const filteredTasks = tasks.filter((task) => {
+    // 如果没有设置taskType，默认为完整抓取任务
+    const taskType = task.taskType || "full_scraping";
+
+    return taskType === activeTab;
+  });
+
   return (
     <div className="space-y-6">
       {/* 操作栏 */}
@@ -534,261 +558,547 @@ export function FMTCScraperPanel({
         </div>
       </div>
 
-      {/* 任务列表 */}
-      <div className="grid gap-4">
-        {isLoading ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">{t("common.loading")}</div>
-            </CardContent>
-          </Card>
-        ) : tasks.length === 0 ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center text-muted-foreground">
-                {t("fmtcMerchants.scraper.noTasks")}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          tasks.map((task) => {
-            const latestExecution = task.executions[0];
-            const isRunning = latestExecution?.status === "RUNNING";
+      {/* 任务列表 - 使用标签页区分任务类型 */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as "full_scraping" | "data_refresh")
+        }
+        className="space-y-4"
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="full_scraping">
+            {t("fmtcMerchants.scraper.tabs.fullScraping")}
+          </TabsTrigger>
+          <TabsTrigger value="data_refresh">
+            {t("fmtcMerchants.scraper.tabs.dataRefresh")}
+          </TabsTrigger>
+        </TabsList>
 
-            return (
-              <Card key={task.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="flex items-center space-x-2">
-                        <span>{task.name}</span>
-                        <div className="flex items-center space-x-1">
-                          <div
-                            className={`h-2 w-2 rounded-full ${
-                              task.isEnabled ? "bg-green-500" : "bg-gray-400"
-                            }`}
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            {task.isEnabled
-                              ? t("common.enabled")
-                              : t("common.disabled")}
-                          </span>
-                        </div>
-                      </CardTitle>
-                      {task.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {task.description}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedTask(task);
-                          setIsDetailModalOpen(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditModal(task)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewRealtimeLogs(task)}
-                        disabled={!task.executions[0]}
-                      >
-                        <Radio className="h-4 w-4" />
-                      </Button>
-                      {isRunning ? (
-                        <AlertDialog
-                          open={stopConfirmTask === task.id}
-                          onOpenChange={(open) => {
-                            if (!open) setStopConfirmTask(null);
-                          }}
-                        >
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleStopConfirm(task.id)}
-                              disabled={!!taskActionLoading[task.id]}
-                            >
-                              {taskActionLoading[task.id] === "stop" ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Square className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {t(
-                                  "fmtcMerchants.scraper.messages.confirmStop",
-                                )}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t(
-                                  "fmtcMerchants.scraper.messages.confirmStopMessage",
-                                )}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>
-                                {t("common.cancel")}
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={executeStopTask}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {t("fmtcMerchants.scraper.actions.stop")}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      ) : (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => handleTaskAction(task.id, "start")}
-                          disabled={
-                            !task.isEnabled || !!taskActionLoading[task.id]
-                          }
-                        >
-                          {taskActionLoading[task.id] === "start" ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Play className="h-4 w-4" />
-                          )}
-                        </Button>
-                      )}
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteTask(task.id)}
-                        disabled={isRunning || deletingTask === task.id}
-                      >
-                        {deletingTask === task.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        {t("fmtcMerchants.scraper.lastRun")}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {task.lastExecutedAt
-                          ? formatDate(task.lastExecutedAt)
-                          : t("common.never")}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        {t("fmtcMerchants.scraper.nextRun")}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {task.nextExecuteAt
-                          ? formatDate(task.nextExecuteAt)
-                          : task.cronExpression || t("common.manual")}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        {t("common.columns.status")}
-                      </p>
-                      {latestExecution ? (
-                        <Badge
-                          className={cn(
-                            getStatusColor(latestExecution.status),
-                            "transition-all duration-200",
-                            isRunning && "animate-pulse",
-                          )}
-                        >
-                          <div className="flex items-center space-x-1">
-                            {getStatusIcon(latestExecution.status)}
-                            <span>
-                              {t(
-                                `fmtcMerchants.scraper.status.${latestExecution.status.toLowerCase()}`,
-                                { fallback: latestExecution.status },
-                              )}
-                            </span>
-                            {taskActionLoading[task.id] && (
-                              <Loader2 className="h-3 w-3 animate-spin ml-1" />
-                            )}
-                          </div>
-                        </Badge>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          {t("common.noData")}
-                        </span>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        {t("fmtcMerchants.scraper.merchants")}
-                      </p>
-                      {latestExecution ? (
-                        <p className="text-sm text-muted-foreground">
-                          {latestExecution.merchantsCount} (
-                          {latestExecution.newMerchantsCount} {t("common.new")})
-                        </p>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">-</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 执行进度 */}
-                  {isRunning && (
-                    <div className="mt-4 space-y-2 animate-in slide-in-from-top-2 duration-300">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          {t("fmtcMerchants.scraper.progress")}
-                        </span>
-                        <div className="flex items-center space-x-2">
-                          <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
-                          <span className="text-sm text-muted-foreground">
-                            {t("fmtcMerchants.scraper.running")}
-                          </span>
-                        </div>
-                      </div>
-                      <Progress
-                        value={65}
-                        className="h-2 transition-all duration-300"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>
-                          {taskActionLoading[task.id]
-                            ? t(
-                                `fmtcMerchants.scraper.actions.${taskActionLoading[task.id]}`,
-                              )
-                            : t("fmtcMerchants.scraper.running")}
-                        </span>
-                        <span>65%</span>
-                      </div>
-                    </div>
-                  )}
+        <TabsContent value="full_scraping" className="space-y-4">
+          <div className="grid gap-4">
+            {isLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center">{t("common.loading")}</div>
                 </CardContent>
               </Card>
-            );
-          })
-        )}
-      </div>
+            ) : filteredTasks.length === 0 ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-muted-foreground">
+                    {t("fmtcMerchants.scraper.noFullScrapingTasks")}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredTasks.map((task) => {
+                const latestExecution = task.executions[0];
+                const isRunning = latestExecution?.status === "RUNNING";
+
+                return (
+                  <Card key={task.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <CardTitle className="flex items-center space-x-2">
+                            <span>{task.name}</span>
+                            <div className="flex items-center space-x-1">
+                              <div
+                                className={`h-2 w-2 rounded-full ${
+                                  task.isEnabled
+                                    ? "bg-green-500"
+                                    : "bg-gray-400"
+                                }`}
+                              />
+                              <span className="text-sm text-muted-foreground">
+                                {task.isEnabled
+                                  ? t("common.enabled")
+                                  : t("common.disabled")}
+                              </span>
+                            </div>
+                          </CardTitle>
+                          {task.description && (
+                            <p className="text-sm text-muted-foreground">
+                              {task.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedTask(task);
+                              setIsDetailModalOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditModal(task)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewRealtimeLogs(task)}
+                            disabled={!task.executions[0]}
+                          >
+                            <Radio className="h-4 w-4" />
+                          </Button>
+                          {isRunning ? (
+                            <AlertDialog
+                              open={stopConfirmTask === task.id}
+                              onOpenChange={(open) => {
+                                if (!open) setStopConfirmTask(null);
+                              }}
+                            >
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleStopConfirm(task.id)}
+                                  disabled={!!taskActionLoading[task.id]}
+                                >
+                                  {taskActionLoading[task.id] === "stop" ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Square className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    {t(
+                                      "fmtcMerchants.scraper.messages.confirmStop",
+                                    )}
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {t(
+                                      "fmtcMerchants.scraper.messages.confirmStopMessage",
+                                    )}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>
+                                    {t("common.cancel")}
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={executeStopTask}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {t("fmtcMerchants.scraper.actions.stop")}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleTaskAction(task.id, "start")}
+                              disabled={
+                                !task.isEnabled || !!taskActionLoading[task.id]
+                              }
+                            >
+                              {taskActionLoading[task.id] === "start" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Play className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteTask(task.id)}
+                            disabled={isRunning || deletingTask === task.id}
+                          >
+                            {deletingTask === task.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t("fmtcMerchants.scraper.lastRun")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {task.lastExecutedAt
+                              ? formatDate(task.lastExecutedAt)
+                              : t("common.never")}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t("fmtcMerchants.scraper.nextRun")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {task.nextExecuteAt
+                              ? formatDate(task.nextExecuteAt)
+                              : task.cronExpression || t("common.manual")}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t("common.columns.status")}
+                          </p>
+                          {latestExecution ? (
+                            <Badge
+                              className={cn(
+                                getStatusColor(latestExecution.status),
+                                "transition-all duration-200",
+                                isRunning && "animate-pulse",
+                              )}
+                            >
+                              <div className="flex items-center space-x-1">
+                                {getStatusIcon(latestExecution.status)}
+                                <span>
+                                  {t(
+                                    `fmtcMerchants.scraper.status.${latestExecution.status.toLowerCase()}`,
+                                    { fallback: latestExecution.status },
+                                  )}
+                                </span>
+                                {taskActionLoading[task.id] && (
+                                  <Loader2 className="h-3 w-3 animate-spin ml-1" />
+                                )}
+                              </div>
+                            </Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              {t("common.noData")}
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t("fmtcMerchants.scraper.merchants")}
+                          </p>
+                          {latestExecution ? (
+                            <p className="text-sm text-muted-foreground">
+                              {latestExecution.merchantsCount} (
+                              {latestExecution.newMerchantsCount}{" "}
+                              {t("common.new")})
+                            </p>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              -
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 执行进度 */}
+                      {isRunning && (
+                        <div className="mt-4 space-y-2 animate-in slide-in-from-top-2 duration-300">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              {t("fmtcMerchants.scraper.progress")}
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+                              <span className="text-sm text-muted-foreground">
+                                {t("fmtcMerchants.scraper.running")}
+                              </span>
+                            </div>
+                          </div>
+                          <Progress
+                            value={65}
+                            className="h-2 transition-all duration-300"
+                          />
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>
+                              {taskActionLoading[task.id]
+                                ? t(
+                                    `fmtcMerchants.scraper.actions.${taskActionLoading[task.id]}`,
+                                  )
+                                : t("fmtcMerchants.scraper.running")}
+                            </span>
+                            <span>65%</span>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="data_refresh" className="space-y-4">
+          <div className="grid gap-4">
+            {isLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center">{t("common.loading")}</div>
+                </CardContent>
+              </Card>
+            ) : filteredTasks.length === 0 ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-muted-foreground">
+                    {t("fmtcMerchants.scraper.noDataRefreshTasks")}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredTasks.map((task) => {
+                const latestExecution = task.executions[0];
+                const isRunning = latestExecution?.status === "RUNNING";
+
+                return (
+                  <Card key={task.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <CardTitle className="flex items-center space-x-2">
+                            <span>{task.name}</span>
+                            <div className="flex items-center space-x-1">
+                              <div
+                                className={`h-2 w-2 rounded-full ${
+                                  task.isEnabled
+                                    ? "bg-green-500"
+                                    : "bg-gray-400"
+                                }`}
+                              />
+                              <span className="text-sm text-muted-foreground">
+                                {task.isEnabled
+                                  ? t("common.enabled")
+                                  : t("common.disabled")}
+                              </span>
+                            </div>
+                          </CardTitle>
+                          {task.description && (
+                            <p className="text-sm text-muted-foreground">
+                              {task.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedTask(task);
+                              setIsDetailModalOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditModal(task)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewRealtimeLogs(task)}
+                            disabled={!task.executions[0]}
+                          >
+                            <Radio className="h-4 w-4" />
+                          </Button>
+                          {isRunning ? (
+                            <AlertDialog
+                              open={stopConfirmTask === task.id}
+                              onOpenChange={(open) => {
+                                if (!open) setStopConfirmTask(null);
+                              }}
+                            >
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleStopConfirm(task.id)}
+                                  disabled={!!taskActionLoading[task.id]}
+                                >
+                                  {taskActionLoading[task.id] === "stop" ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Square className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    {t(
+                                      "fmtcMerchants.scraper.messages.confirmStop",
+                                    )}
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {t(
+                                      "fmtcMerchants.scraper.messages.confirmStopMessage",
+                                    )}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>
+                                    {t("common.cancel")}
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={executeStopTask}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {t("fmtcMerchants.scraper.actions.stop")}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleTaskAction(task.id, "start")}
+                              disabled={
+                                !task.isEnabled || !!taskActionLoading[task.id]
+                              }
+                            >
+                              {taskActionLoading[task.id] === "start" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Play className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteTask(task.id)}
+                            disabled={isRunning || deletingTask === task.id}
+                          >
+                            {deletingTask === task.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t("fmtcMerchants.scraper.lastRun")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {task.lastExecutedAt
+                              ? formatDate(task.lastExecutedAt)
+                              : t("common.never")}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t("fmtcMerchants.scraper.nextRun")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {task.nextExecuteAt
+                              ? formatDate(task.nextExecuteAt)
+                              : task.cronExpression || t("common.manual")}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t("common.columns.status")}
+                          </p>
+                          {latestExecution ? (
+                            <Badge
+                              className={cn(
+                                getStatusColor(latestExecution.status),
+                                "transition-all duration-200",
+                                isRunning && "animate-pulse",
+                              )}
+                            >
+                              <div className="flex items-center space-x-1">
+                                {getStatusIcon(latestExecution.status)}
+                                <span>
+                                  {t(
+                                    `fmtcMerchants.scraper.status.${latestExecution.status.toLowerCase()}`,
+                                    { fallback: latestExecution.status },
+                                  )}
+                                </span>
+                                {taskActionLoading[task.id] && (
+                                  <Loader2 className="h-3 w-3 animate-spin ml-1" />
+                                )}
+                              </div>
+                            </Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              {t("common.noData")}
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t("fmtcMerchants.scraper.merchants")}
+                          </p>
+                          {latestExecution ? (
+                            <p className="text-sm text-muted-foreground">
+                              {latestExecution.merchantsCount} (
+                              {latestExecution.newMerchantsCount}{" "}
+                              {t("common.new")})
+                            </p>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              -
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 执行进度 */}
+                      {isRunning && (
+                        <div className="mt-4 space-y-2 animate-in slide-in-from-top-2 duration-300">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              {t("fmtcMerchants.scraper.progress")}
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+                              <span className="text-sm text-muted-foreground">
+                                {t("fmtcMerchants.scraper.running")}
+                              </span>
+                            </div>
+                          </div>
+                          <Progress
+                            value={65}
+                            className="h-2 transition-all duration-300"
+                          />
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>
+                              {taskActionLoading[task.id]
+                                ? t(
+                                    `fmtcMerchants.scraper.actions.${taskActionLoading[task.id]}`,
+                                  )
+                                : t("fmtcMerchants.scraper.running")}
+                            </span>
+                            <span>65%</span>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* 创建任务模态框 */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -834,6 +1144,36 @@ export function FMTCScraperPanel({
                       "fmtcMerchants.scraper.descriptionPlaceholder",
                     )}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="taskType">
+                    {t("fmtcMerchants.scraper.taskType")}
+                  </Label>
+                  <Select
+                    value={taskForm.taskType}
+                    onValueChange={(value: "full_scraping" | "data_refresh") =>
+                      setTaskForm({ ...taskForm, taskType: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={t(
+                          "fmtcMerchants.scraper.taskTypeSelectPlaceholder",
+                        )}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full_scraping">
+                        {t("fmtcMerchants.scraper.taskTypes.fullScraping")}
+                      </SelectItem>
+                      <SelectItem value="data_refresh">
+                        {t("fmtcMerchants.scraper.taskTypes.dataRefresh")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {t("fmtcMerchants.scraper.taskTypeDescription")}
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -1010,6 +1350,36 @@ export function FMTCScraperPanel({
                       setTaskForm({ ...taskForm, description: e.target.value })
                     }
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-taskType">
+                    {t("fmtcMerchants.scraper.taskType")}
+                  </Label>
+                  <Select
+                    value={taskForm.taskType}
+                    onValueChange={(value: "full_scraping" | "data_refresh") =>
+                      setTaskForm({ ...taskForm, taskType: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={t(
+                          "fmtcMerchants.scraper.taskTypeSelectPlaceholder",
+                        )}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full_scraping">
+                        {t("fmtcMerchants.scraper.taskTypes.fullScraping")}
+                      </SelectItem>
+                      <SelectItem value="data_refresh">
+                        {t("fmtcMerchants.scraper.taskTypes.dataRefresh")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {t("fmtcMerchants.scraper.taskTypeDescription")}
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch

@@ -61,8 +61,8 @@ export class FMTCSingleMerchantScraper {
     this.options = options;
     this.startTime = new Date();
 
-    // 单商户模式设置更高的日志级别，减少Crawlee内部日志噪声
-    crawleeLog.setLevel(LogLevel.WARNING);
+    // 单商户模式设置较高的日志级别，但保留INFO级别用于调试会话管理
+    crawleeLog.setLevel(LogLevel.INFO);
   }
 
   /**
@@ -94,11 +94,25 @@ export class FMTCSingleMerchantScraper {
       // 创建会话管理器
       const sessionConfig: Partial<SessionConfig> = {
         sessionFile: `fmtc-session-${this.options.credentials.username.replace(/[^a-zA-Z0-9]/g, "_")}.json`,
-        maxAge: this.options.config?.sessionTimeout ?? 4 * 60 * 60 * 1000,
+        maxAge:
+          this.options.config?.sessionMaxAge ??
+          this.options.config?.sessionTimeout ??
+          4 * 60 * 60 * 1000,
         autoSave: true,
+        useDatabase: this.options.config?.useDatabase ?? true,
+        fallbackToFile: this.options.config?.fallbackToFile ?? true,
       };
 
       const sessionManager = createSessionManager(crawleeLog, sessionConfig);
+
+      // 添加调试信息
+      await this.logMessage(LocalScraperLogLevel.INFO, "会话管理器配置", {
+        sessionFile: sessionConfig.sessionFile,
+        maxAge: sessionConfig.maxAge,
+        useDatabase: sessionConfig.useDatabase,
+        fallbackToFile: sessionConfig.fallbackToFile,
+        workingDirectory: process.cwd(),
+      });
 
       // 设置存储目录
       const baseStorageDir = path.resolve(
@@ -240,7 +254,7 @@ export class FMTCSingleMerchantScraper {
           maxRequestRetries: 3, // 与批量抓取保持一致
           // 单商户模式下减少日志噪声
           statisticsOptions: {
-            logIntervalSecs: 0, // 禁用定期统计输出
+            logIntervalSecs: 60, // 每60秒输出一次统计信息
           },
           preNavigationHooks: [
             async (crawlingContext) => {
@@ -251,9 +265,10 @@ export class FMTCSingleMerchantScraper {
               page.setDefaultNavigationTimeout(60000);
 
               // 检查是否有保存的会话状态
-              const savedSessionState = sessionManager.loadSessionState(
-                this.options.credentials.username,
-              );
+              const savedSessionState =
+                await sessionManager.loadSessionStateAsync(
+                  this.options.credentials.username,
+                );
 
               if (savedSessionState) {
                 try {
@@ -336,7 +351,7 @@ export class FMTCSingleMerchantScraper {
       );
 
       // 检查是否有保存的会话状态
-      const savedSessionState = sessionManager.loadSessionState(
+      const savedSessionState = await sessionManager.loadSessionStateAsync(
         this.options.credentials.username,
       );
 
@@ -354,6 +369,11 @@ export class FMTCSingleMerchantScraper {
 
       // 单商户模式：如果有有效会话，直接跳转到商户详情页面
       // 否则先登录，然后跳转到商户详情页面
+      await this.logMessage(LocalScraperLogLevel.INFO, "准备构造初始请求", {
+        hasSession: !!savedSessionState,
+        targetUrl: merchantUrl,
+      });
+
       const initialRequest = savedSessionState
         ? {
             url: merchantUrl,
@@ -392,7 +412,14 @@ export class FMTCSingleMerchantScraper {
           };
 
       // 执行抓取
+      await this.logMessage(LocalScraperLogLevel.INFO, "开始执行爬虫", {
+        requestLabel: initialRequest.label,
+        requestUrl: initialRequest.url,
+      });
+
       await crawler.run([initialRequest]);
+
+      await this.logMessage(LocalScraperLogLevel.INFO, "爬虫执行完成");
 
       const processingTime = Date.now() - this.startTime.getTime();
 

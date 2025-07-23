@@ -196,6 +196,11 @@ export interface FMTCConfig {
   sessionTimeout?: number;
   maxConsecutiveErrors?: number;
   errorCooldownPeriod?: number;
+
+  // 会话存储配置
+  useDatabase?: boolean;
+  fallbackToFile?: boolean;
+  sessionMaxAge?: number;
 }
 
 /**
@@ -227,6 +232,10 @@ export function getConfigFromParams(config?: FMTCConfig) {
     headlessMode: true,
     debugMode: false,
     maxConcurrency: 1,
+    // 会话存储默认配置
+    useDatabase: true,
+    fallbackToFile: true,
+    sessionMaxAge: 4 * 60 * 60 * 1000, // 4小时
   };
 
   if (!config) {
@@ -243,6 +252,10 @@ export function getConfigFromParams(config?: FMTCConfig) {
     headlessMode: config.headlessMode ?? defaults.headlessMode,
     debugMode: config.debugMode ?? defaults.debugMode,
     maxConcurrency: config.maxConcurrency ?? defaults.maxConcurrency,
+    // 会话存储配置
+    useDatabase: config.useDatabase ?? defaults.useDatabase,
+    fallbackToFile: config.fallbackToFile ?? defaults.fallbackToFile,
+    sessionMaxAge: config.sessionMaxAge ?? defaults.sessionMaxAge,
   };
 }
 

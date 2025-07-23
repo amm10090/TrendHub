@@ -36,6 +36,8 @@ export interface FMTCMerchantDetailData {
   shipsTo?: string[];
   /** FMTC 内部 ID */
   fmtcId?: string;
+  /** 主要网络名称 (如 AW) */
+  network?: string;
   /** 网络 ID (如 AW ID) */
   networkId?: string;
   /** 商户状态 */

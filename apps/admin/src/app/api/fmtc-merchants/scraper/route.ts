@@ -64,10 +64,17 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    // 转换taskType字段为前端期望的格式
+    const transformedTasks = tasks.map((task) => ({
+      ...task,
+      taskType:
+        task.taskType === "DATA_REFRESH" ? "data_refresh" : "full_scraping",
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
-        tasks,
+        tasks: transformedTasks,
         pagination: {
           page,
           limit,
@@ -133,6 +140,10 @@ export async function POST(request: NextRequest) {
           data: {
             name: taskData.name,
             description: taskData.description || null,
+            taskType:
+              taskData.taskType === "data_refresh"
+                ? "DATA_REFRESH"
+                : "FULL_SCRAPING",
             credentials: taskData.credentials,
             config: taskData.config || {},
             isEnabled: taskData.isEnabled !== false,
@@ -261,11 +272,19 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // 转换taskType字段格式
+    const updatesWithTaskType = { ...updates };
+
+    if (updates.taskType) {
+      updatesWithTaskType.taskType =
+        updates.taskType === "data_refresh" ? "DATA_REFRESH" : "FULL_SCRAPING";
+    }
+
     // 更新任务配置
     const updatedTask = await db.fMTCScraperTask.update({
       where: { id: taskId },
       data: {
-        ...updates,
+        ...updatesWithTaskType,
         updatedAt: new Date(),
       },
     });

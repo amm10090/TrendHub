@@ -11,7 +11,8 @@ export const FMTC_SELECTORS: FMTCSelectors = {
   // 登录页面选择器
   login: {
     /** 用户名输入框 */
-    usernameInput: '#username, input[name="username"]',
+    usernameInput:
+      '#username, #email, input[name="username"], input[name="email"]',
     /** 密码输入框 */
     passwordInput: '#password, input[name="password"]',
     /** 登录按钮 */

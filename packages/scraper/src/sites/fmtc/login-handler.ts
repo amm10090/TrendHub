@@ -2,20 +2,20 @@
  * FMTC 登录处理器
  */
 
-import type { Page, ElementHandle } from "playwright";
+import type { ElementHandle, Page } from "playwright";
 import type { Log } from "crawlee";
 import type { FMTCCredentials, FMTCLoginResult } from "./types.js";
 import {
+  FMTC_ERROR_PATTERNS,
+  FMTC_PAGE_FEATURES,
   FMTC_SELECTORS,
   FMTC_URL_PATTERNS,
-  FMTC_PAGE_FEATURES,
-  FMTC_ERROR_PATTERNS,
 } from "./selectors.js";
-import { sendLogToBackend, LocalScraperLogLevel, delay } from "../../utils.js";
+import { delay, LocalScraperLogLevel, sendLogToBackend } from "../../utils.js";
 import {
-  ReCAPTCHAService,
-  ReCAPTCHAMode,
   type ReCAPTCHAConfig,
+  ReCAPTCHAMode,
+  ReCAPTCHAService,
 } from "./recaptcha-service.js";
 
 /**

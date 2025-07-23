@@ -82,7 +82,13 @@ export class FMTCLoginHandler {
         };
       }
 
-      // 2. 导航到登录页面
+      // 2. 强制导航到登录页面（即使在仪表盘页面也要重新登录以确保状态正确）
+      const currentUrl = this.page.url();
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "开始导航到登录页面", {
+        currentUrl,
+        targetUrl: FMTC_URL_PATTERNS.LOGIN,
+      });
+
       await this.navigateToLoginPage();
 
       // 3. 等待登录页面加载
@@ -228,16 +234,68 @@ export class FMTCLoginHandler {
    */
   async isLoggedIn(): Promise<boolean> {
     try {
-      // 注入页面特征检测函数
+      const currentUrl = this.page.url();
+
+      // 如果在登录页面，肯定未登录
+      if (currentUrl.includes("login")) {
+        return false;
+      }
+
+      // 如果在仪表盘页面，需要进一步验证登录状态
+      if (currentUrl.includes("dash") || currentUrl.includes("cp/")) {
+        // 检查是否存在登录表单元素（如果存在，说明需要登录）
+        const hasLoginForm = await this.page.$(
+          FMTC_SELECTORS.login.usernameInput,
+        );
+        if (hasLoginForm) {
+          await this.logMessage(
+            LocalScraperLogLevel.DEBUG,
+            "检测到登录表单，需要登录",
+          );
+          return false;
+        }
+
+        // 检查是否有登录后的特征元素
+        const loggedInFeatures = await this.page.evaluate(() => {
+          // 检查多个可能的登录后特征
+          const userMenu = document.querySelector(
+            '.user-menu, .logout, [href*="logout"]',
+          );
+          const dashboardElements = document.querySelector(
+            '.dashboard, .cp-dashboard, [class*="dashboard"]',
+          );
+          const navigationMenu = document.querySelector(
+            '.nav, .navigation, [class*="nav"]',
+          );
+
+          return {
+            hasUserMenu: !!userMenu,
+            hasDashboard: !!dashboardElements,
+            hasNavigation: !!navigationMenu,
+            hasLoginForm: !!document.querySelector("#username, #password"),
+          };
+        });
+
+        await this.logMessage(LocalScraperLogLevel.DEBUG, "登录状态检查", {
+          currentUrl,
+          loggedInFeatures,
+        });
+
+        // 如果没有登录表单，且有登录后的特征，认为已登录
+        return (
+          !loggedInFeatures.hasLoginForm &&
+          (loggedInFeatures.hasUserMenu ||
+            loggedInFeatures.hasDashboard ||
+            loggedInFeatures.hasNavigation)
+        );
+      }
+
+      // 其他页面使用原有逻辑
       const isLoggedIn = await this.page.evaluate(
         FMTC_PAGE_FEATURES.isLoggedIn,
       );
 
-      // 也检查 URL 是否包含登录后的特征
-      const currentUrl = this.page.url();
-      const isLoginUrl = currentUrl.includes("login");
-
-      return isLoggedIn && !isLoginUrl;
+      return isLoggedIn;
     } catch (error) {
       this.log.warning(`检查登录状态时出错: ${(error as Error).message}`);
       return false;
@@ -303,24 +361,50 @@ export class FMTCLoginHandler {
     await this.logMessage(LocalScraperLogLevel.DEBUG, "等待登录页面加载");
 
     try {
+      // 验证当前页面URL
+      const currentUrl = this.page.url();
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "当前页面URL检查", {
+        currentUrl,
+        expectedUrl: FMTC_URL_PATTERNS.LOGIN,
+      });
+
+      // 如果不在登录页面，说明导航有问题
+      if (!currentUrl.includes("login")) {
+        throw new Error(`页面导航错误: 期望在登录页面，实际在 ${currentUrl}`);
+      }
+
       // 等待用户名输入框出现
       await this.page.waitForSelector(FMTC_SELECTORS.login.usernameInput, {
         timeout: 15000,
       });
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "用户名输入框已加载");
 
       // 等待密码输入框出现
       await this.page.waitForSelector(FMTC_SELECTORS.login.passwordInput, {
         timeout: 10000,
       });
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "密码输入框已加载");
 
       // 等待提交按钮出现
       await this.page.waitForSelector(FMTC_SELECTORS.login.submitButton, {
         timeout: 10000,
       });
+      await this.logMessage(LocalScraperLogLevel.DEBUG, "提交按钮已加载");
 
       await this.logMessage(LocalScraperLogLevel.DEBUG, "登录页面加载完成");
     } catch (error) {
-      throw new Error(`登录页面加载超时: ${(error as Error).message}`);
+      const currentUrl = this.page.url();
+      const pageTitle = await this.page.title();
+
+      await this.logMessage(LocalScraperLogLevel.ERROR, "登录页面加载失败", {
+        currentUrl,
+        pageTitle,
+        error: (error as Error).message,
+      });
+
+      throw new Error(
+        `登录页面加载超时: ${(error as Error).message}，当前URL: ${currentUrl}`,
+      );
     }
   }
 

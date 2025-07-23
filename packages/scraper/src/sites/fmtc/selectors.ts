@@ -166,9 +166,54 @@ export const FMTC_PAGE_FEATURES = {
     document.querySelector('#username, #password, form[action="/cp/login"]') !==
     null,
   /** 检测是否已登录 */
-  isLoggedIn: () =>
-    document.querySelector('.user-menu, .logout, [href*="logout"]') !== null &&
-    !document.querySelector("#username, #password"),
+  isLoggedIn: () => {
+    // 如果在登录页面，肯定未登录
+    if (window.location.href.includes("login")) {
+      return false;
+    }
+
+    // 检查是否存在登录表单（如果存在，说明未登录）
+    const hasLoginForm =
+      document.querySelector("#username, #password") !== null;
+    if (hasLoginForm) {
+      return false;
+    }
+
+    // 关键判断：如果在仪表盘页面且没有登录表单，说明已登录
+    if (
+      window.location.href.includes("/cp/dash") ||
+      window.location.href.includes("/cp/")
+    ) {
+      return true;
+    }
+
+    // 检查是否有登录后的特征元素（保留原有逻辑作为备用）
+    const hasUserMenu =
+      document.querySelector('.user-menu, .logout, [href*="logout"]') !== null;
+    const hasDashboard =
+      document.querySelector(
+        '.dashboard, .cp-dashboard, [class*="dashboard"]',
+      ) !== null;
+    const hasNavigation =
+      document.querySelector('.nav, .navigation, [class*="nav"]') !== null;
+
+    // 扩展更多可能的登录后特征
+    const hasLogoutLink =
+      document.querySelector('a[href*="logout"], button[onclick*="logout"]') !==
+      null;
+    const hasAccountInfo =
+      document.querySelector(
+        '[class*="account"], [class*="profile"], [class*="user"]',
+      ) !== null;
+
+    return (
+      hasUserMenu ||
+      hasDashboard ||
+      hasNavigation ||
+      hasLogoutLink ||
+      hasAccountInfo
+    );
+  },
   /** 检测是否为商户列表页面 */
   isMerchantListPage: () =>
     document.querySelector(FMTC_SELECTORS.merchantList.merchantRows) !== null,

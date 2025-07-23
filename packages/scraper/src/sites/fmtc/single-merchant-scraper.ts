@@ -31,6 +31,11 @@ export interface SingleMerchantScrapingOptions {
     password: string;
   };
   downloadImages?: boolean;
+  captureScreenshot?: boolean; // 是否截取FMTC页面截图
+  screenshotUploadCallback?: (
+    buffer: Buffer,
+    filename: string,
+  ) => Promise<string>; // 截图上传回调
   storageDir?: string;
   executionId?: string;
   config?: FMTCConfig;
@@ -218,6 +223,8 @@ export class FMTCSingleMerchantScraper {
             debugMode: this.options.config?.debugMode ?? false,
             sessionManager,
             fmtcConfig: this.options.config, // 传递完整的FMTC配置
+            captureScreenshot: this.options.captureScreenshot,
+            screenshotUploadCallback: this.options.screenshotUploadCallback,
           }),
           failedRequestHandler: async ({ request, log }) => {
             const errorMessage = `请求失败: ${request.url}`;

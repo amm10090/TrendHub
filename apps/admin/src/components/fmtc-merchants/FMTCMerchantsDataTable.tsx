@@ -375,7 +375,6 @@ export function FMTCMerchantsDataTable({
             setIsBatchScraping(false);
             eventSource.close();
             setSseConnection(null);
-            setCurrentExecutionId(null);
 
             // 显示最终结果
             const summary = data.summary;
@@ -409,7 +408,6 @@ export function FMTCMerchantsDataTable({
       };
 
       setSseConnection(eventSource);
-      setCurrentExecutionId(executionId);
     },
     [sseConnection, t, fetchMerchants],
   );

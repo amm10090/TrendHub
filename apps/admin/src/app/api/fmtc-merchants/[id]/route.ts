@@ -1,9 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { scrapeSingleFMTCMerchant } from "@repo/scraper/src/sites/fmtc";
 import { NextRequest, NextResponse } from "next/server";
+import { chromium } from "playwright";
 
 import { auth } from "@/../auth";
 import { db } from "@/lib/db";
+import { uploadImageToR2 } from "@/lib/imageService";
 
 /**
  * GET /api/fmtc-merchants/[id]
@@ -269,6 +271,7 @@ export async function POST(
             data: {
               name: `单商户抓取_${new Date().toISOString()}`,
               description: "临时任务用于生成executionId",
+              taskType: "DATA_REFRESH", // 设置为数据刷新任务类型
               credentials: {},
               config: {},
               isEnabled: false,
@@ -296,6 +299,13 @@ export async function POST(
               password: fmtcConfig.defaultPassword,
             },
             downloadImages: false, // 单独抓取不下载图片
+            captureScreenshot: true, // 启用FMTC页面截图
+            screenshotUploadCallback: async (
+              buffer: Buffer,
+              filename: string,
+            ) => {
+              return await uploadImageToR2(buffer, filename);
+            },
             executionId: executionId,
             config: {
               username: fmtcConfig.defaultUsername,
@@ -368,6 +378,9 @@ export async function POST(
               logo88x31: merchantData.logo88x31,
               screenshot280x210: merchantData.screenshot280x210,
               screenshot600x450: merchantData.screenshot600x450,
+              fmtcPageScreenshotUrl: merchantData.fmtcPageScreenshotUrl,
+              fmtcPageScreenshotUploadedAt:
+                merchantData.fmtcPageScreenshotUploadedAt,
               affiliateUrl: merchantData.affiliateUrl,
               previewDealsUrl: merchantData.previewDealsUrl,
               affiliateLinks: merchantData.affiliateLinks as Prisma.JsonValue,
@@ -525,6 +538,160 @@ export async function POST(
             networks: true,
           },
         });
+        break;
+
+      case "capture_screenshot":
+        try {
+          // 获取FMTC配置以获取登录凭据
+          const fmtcConfig = await db.fMTCScraperConfig.findFirst({
+            where: { name: "default" },
+          });
+
+          if (!fmtcConfig) {
+            return NextResponse.json(
+              {
+                success: false,
+                error: "FMTC配置未找到，请先在设置中配置FMTC登录凭据",
+              },
+              { status: 400 },
+            );
+          }
+
+          if (!fmtcConfig.defaultUsername || !fmtcConfig.defaultPassword) {
+            return NextResponse.json(
+              {
+                success: false,
+                error: "FMTC登录凭据未配置，请在设置中添加用户名和密码",
+              },
+              { status: 400 },
+            );
+          }
+
+          // 构建商户详情页面URL
+          const merchantUrl =
+            existingMerchant.sourceUrl ||
+            (existingMerchant.fmtcId
+              ? `https://account.fmtc.co/cp/program_directory/m/${existingMerchant.fmtcId}/`
+              : undefined);
+
+          if (!merchantUrl) {
+            return NextResponse.json(
+              {
+                success: false,
+                error: "无法获取商户详情URL，缺少sourceUrl和FMTC ID",
+              },
+              { status: 400 },
+            );
+          }
+
+          // 启动浏览器并截图
+          const browser = await chromium.launch({
+            headless: true,
+            args: [
+              "--no-sandbox",
+              "--disable-setuid-sandbox",
+              "--disable-dev-shm-usage",
+              "--disable-accelerated-2d-canvas",
+              "--no-first-run",
+              "--no-zygote",
+              "--disable-gpu",
+            ],
+          });
+
+          const context = await browser.newContext({
+            viewport: { width: 1920, height: 1080 },
+            userAgent:
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          });
+
+          const page = await context.newPage();
+
+          try {
+            // 首先登录FMTC
+            await page.goto("https://account.fmtc.co/cp/login", {
+              waitUntil: "domcontentloaded",
+              timeout: 30000,
+            });
+
+            // 填写登录表单
+            await page.fill('input[name="email"]', fmtcConfig.defaultUsername);
+            await page.fill(
+              'input[name="password"]',
+              fmtcConfig.defaultPassword,
+            );
+
+            // 点击登录按钮
+            await page.click('button[type="submit"]');
+
+            // 等待登录完成
+            await page.waitForURL("**/cp/dash**", { timeout: 30000 });
+
+            // 导航到商户详情页面
+            await page.goto(merchantUrl, {
+              waitUntil: "networkidle",
+              timeout: 30000,
+            });
+
+            // 等待页面加载完成
+            await page.waitForTimeout(3000);
+
+            // 截取全页面截图
+            const screenshotBuffer = await page.screenshot({
+              fullPage: true,
+              type: "png",
+            });
+
+            // 上传截图到R2
+            const filename = `fmtc-page-${existingMerchant.id}-${Date.now()}.png`;
+            const screenshotUrl = await uploadImageToR2(
+              screenshotBuffer,
+              filename,
+            );
+
+            // 更新数据库中的截图信息
+            result = await db.fMTCMerchant.update({
+              where: { id },
+              data: {
+                fmtcPageScreenshotUrl: screenshotUrl,
+                fmtcPageScreenshotUploadedAt: new Date(),
+                updatedAt: new Date(),
+              },
+              include: {
+                brand: {
+                  select: {
+                    id: true,
+                    name: true,
+                    logo: true,
+                    description: true,
+                  },
+                },
+                networks: {
+                  select: {
+                    id: true,
+                    networkName: true,
+                    networkId: true,
+                    status: true,
+                    isActive: true,
+                  },
+                },
+              },
+            });
+          } finally {
+            await page.close();
+            await context.close();
+            await browser.close();
+          }
+        } catch (error) {
+          console.error("FMTC页面截图失败:", error);
+
+          return NextResponse.json(
+            {
+              success: false,
+              error: `FMTC页面截图失败: ${(error as Error).message}`,
+            },
+            { status: 500 },
+          );
+        }
         break;
 
       default:

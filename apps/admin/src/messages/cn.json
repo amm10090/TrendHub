@@ -443,6 +443,7 @@
     "noData": "暂无数据",
     "new": "新增",
     "close": "关闭",
+    "openInNewTab": "在新标签页中打开",
     "selectBrand": "选择品牌",
     "selectCategory": "选择分类",
     "selectProduct": "选择产品",
@@ -2820,7 +2821,15 @@
       "affiliateLinksDetails": "联盟链接详情",
       "freshReachLinks": "FreshReach 链接",
       "previewDealsLink": "预览优惠链接",
-      "linkCount": "{count} 个链接"
+      "linkCount": "{count} 个链接",
+      "websiteScreenshots": "商家官网截图",
+      "screenshot280x210": "截图 280x210",
+      "screenshot600x450": "截图 600x450",
+      "fmtcPageScreenshot": "FMTC页面截图",
+      "fmtcPageScreenshotTitle": "FMTC详情页面截图",
+      "noFmtcPageScreenshot": "暂无FMTC页面截图",
+      "captureScreenshot": "抓取截图",
+      "refreshScreenshot": "刷新截图"
     },
     "bulkActions": {
       "title": "批量操作",

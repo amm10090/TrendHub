@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/../auth";
 import { db } from "@/lib/db";
+import { uploadImageToR2 } from "@/lib/imageService";
 
 /**
  * GET /api/fmtc-merchants
@@ -368,6 +369,7 @@ export async function PUT(request: NextRequest) {
           data: {
             name: `高效批量商户抓取_${new Date().toISOString()}`,
             description: "使用高效并发批量抓取器刷新商户数据",
+            taskType: "DATA_REFRESH", // 设置为数据刷新任务类型
             credentials: {},
             config: {},
             isEnabled: false,
@@ -450,6 +452,13 @@ export async function PUT(request: NextRequest) {
           },
           concurrency: Math.min(3, merchantTasks.length), // 最多3个并发，提升速度
           downloadImages: false,
+          captureScreenshot: true, // 启用FMTC页面截图
+          screenshotUploadCallback: async (
+            buffer: Buffer,
+            filename: string,
+          ) => {
+            return await uploadImageToR2(buffer, filename);
+          },
           executionId: tempExecution.id,
           config: {
             username: fmtcConfig.defaultUsername,
@@ -496,6 +505,9 @@ export async function PUT(request: NextRequest) {
                   logo88x31: merchantData.logo88x31,
                   screenshot280x210: merchantData.screenshot280x210,
                   screenshot600x450: merchantData.screenshot600x450,
+                  fmtcPageScreenshotUrl: merchantData.fmtcPageScreenshotUrl,
+                  fmtcPageScreenshotUploadedAt:
+                    merchantData.fmtcPageScreenshotUploadedAt,
                   affiliateUrl: merchantData.affiliateUrl,
                   previewDealsUrl: merchantData.previewDealsUrl,
                   affiliateLinks:

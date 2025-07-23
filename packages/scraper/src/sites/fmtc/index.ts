@@ -171,6 +171,8 @@ export async function scrapeFMTCWithConfig(
         debugMode: config?.debugMode ?? false,
         sessionManager,
         fmtcConfig: config, // 传递配置参数
+        captureScreenshot: options.captureScreenshot,
+        screenshotUploadCallback: options.screenshotUploadCallback,
       }),
       failedRequestHandler: async ({ request, log }) => {
         log.error(`${siteName}: 请求失败 ${request.url}`);
@@ -509,6 +511,8 @@ export default async function scrapeFMTC(
         maxRetries: 3,
         debugMode: process.env.NODE_ENV === "development",
         sessionManager,
+        captureScreenshot: options.captureScreenshot,
+        screenshotUploadCallback: options.screenshotUploadCallback,
       }),
       failedRequestHandler: async ({ request, log }) => {
         log.error(`${siteName}: 请求失败 ${request.url}`);

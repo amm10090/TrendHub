@@ -25,17 +25,31 @@ export class FMTCMerchantDetailHandler {
   private log: Log;
   private executionId?: string;
   private downloadDir?: string;
+  private captureScreenshot?: boolean;
+  private screenshotUploadCallback?: (
+    buffer: Buffer,
+    filename: string,
+  ) => Promise<string>;
 
   constructor(
     page: Page,
     log: Log,
     executionId?: string,
     downloadDir?: string,
+    options?: {
+      captureScreenshot?: boolean;
+      screenshotUploadCallback?: (
+        buffer: Buffer,
+        filename: string,
+      ) => Promise<string>;
+    },
   ) {
     this.page = page;
     this.log = log;
     this.executionId = executionId;
     this.downloadDir = downloadDir;
+    this.captureScreenshot = options?.captureScreenshot;
+    this.screenshotUploadCallback = options?.screenshotUploadCallback;
   }
 
   private userData?: FMTCUserData; // 添加userData引用以检查单商户模式
@@ -73,13 +87,33 @@ export class FMTCMerchantDetailHandler {
       // 2. 等待页面加载完成
       await this.waitForDetailPageLoad();
 
-      // 3. 提取商户详情数据
+      // 3. 截取FMTC页面截图 (如果启用)
+      let fmtcPageScreenshotUrl: string | undefined;
+      if (this.captureScreenshot && this.screenshotUploadCallback) {
+        try {
+          fmtcPageScreenshotUrl = await this.captureFMTCPageScreenshot(
+            merchantName || "unknown",
+          );
+        } catch (error) {
+          await this.logMessage(LocalScraperLogLevel.WARN, "FMTC页面截图失败", {
+            error: (error as Error).message,
+          });
+        }
+      }
+
+      // 4. 提取商户详情数据
       const merchantDetail = await this.extractMerchantDetails();
 
-      // 4. 提取网络关联信息
+      // 5. 添加FMTC页面截图URL (如果有)
+      if (fmtcPageScreenshotUrl) {
+        merchantDetail.fmtcPageScreenshotUrl = fmtcPageScreenshotUrl;
+        merchantDetail.fmtcPageScreenshotUploadedAt = new Date();
+      }
+
+      // 6. 提取网络关联信息
       merchantDetail.networks = await this.extractNetworks();
 
-      // 5. 如果启用了图片下载，下载商户图片
+      // 7. 如果启用了图片下载，下载商户图片
       if (this.downloadDir) {
         await this.downloadMerchantImages(
           merchantDetail,
@@ -1220,6 +1254,57 @@ export class FMTCMerchantDetailHandler {
     merchantName: string,
   ): Promise<string[]> {
     return this.downloadImages(merchant, merchantName);
+  }
+
+  /**
+   * 截取FMTC页面截图并上传到R2
+   */
+  private async captureFMTCPageScreenshot(
+    merchantName: string,
+  ): Promise<string> {
+    try {
+      await this.logMessage(LocalScraperLogLevel.INFO, "开始截取FMTC页面截图", {
+        merchantName,
+      });
+
+      // 等待页面完全加载
+      await delay(2000);
+
+      // 截取全页面截图
+      const screenshotBuffer = await this.page.screenshot({
+        fullPage: true,
+        type: "png",
+      });
+
+      if (!this.screenshotUploadCallback) {
+        throw new Error("截图上传回调未配置");
+      }
+
+      // 生成文件名
+      const timestamp = Date.now();
+      const sanitizedName = this.sanitizeFileName(merchantName);
+      const filename = `fmtc-page-${sanitizedName}-${timestamp}.png`;
+
+      // 上传到R2
+      const screenshotUrl = await this.screenshotUploadCallback(
+        screenshotBuffer,
+        filename,
+      );
+
+      await this.logMessage(LocalScraperLogLevel.INFO, "FMTC页面截图上传成功", {
+        merchantName,
+        filename,
+        screenshotUrl,
+      });
+
+      return screenshotUrl;
+    } catch (error) {
+      await this.logMessage(LocalScraperLogLevel.ERROR, "FMTC页面截图失败", {
+        merchantName,
+        error: (error as Error).message,
+      });
+      throw error;
+    }
   }
 
   /**

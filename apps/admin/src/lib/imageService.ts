@@ -34,7 +34,7 @@ export function getExtensionFromFilename(filename: string): string {
  *
  * @param fileBuffer Buffer object containing image data
  * @param originalFilename original filename for extracting file extension
- * @param contentType MIME type of the image
+ * @param contentType MIME type of the image (optional, defaults to image/png)
  * @returns public access URL of the uploaded image
  * @throws if R2_BUCKET_NAME or R2_PUBLIC_URL environment variables are not set
  * @throws if upload to R2 fails
@@ -42,7 +42,7 @@ export function getExtensionFromFilename(filename: string): string {
 export async function uploadImageToR2(
   fileBuffer: Buffer,
   originalFilename: string,
-  contentType: string,
+  contentType: string = "image/png",
 ): Promise<string> {
   if (!R2_BUCKET_NAME || !R2_PUBLIC_URL) {
     const error =

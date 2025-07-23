@@ -63,6 +63,8 @@ interface FMTCMerchantDetail {
   logo88x31?: string;
   screenshot280x210?: string;
   screenshot600x450?: string;
+  fmtcPageScreenshotUrl?: string;
+  fmtcPageScreenshotUploadedAt?: string;
   affiliateUrl?: string;
   affiliateLinks?: Record<string, string[]>;
   freshReachUrls?: string[];
@@ -110,6 +112,10 @@ export function FMTCMerchantDetailModal({
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<FMTCMerchantDetail>>({});
   const [activeTab, setActiveTab] = useState("basic");
+  const [imagePreview, setImagePreview] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
 
   // 初始化编辑表单
   useEffect(() => {
@@ -231,6 +237,45 @@ export function FMTCMerchantDetailModal({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 刷新FMTC页面截图
+  const handleRefreshScreenshot = async () => {
+    if (!merchant) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/fmtc-merchants/${merchant.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "capture_screenshot" }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        if (result.success) {
+          onUpdate();
+        }
+      }
+    } catch (error) {
+      console.error("刷新FMTC页面截图失败:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 抓取FMTC页面截图 (与刷新功能相同)
+  const handleCaptureScreenshot = handleRefreshScreenshot;
+
+  // 显示图片预览
+  const handleImagePreview = (src: string, alt: string) => {
+    setImagePreview({ src, alt });
+  };
+
+  // 关闭图片预览
+  const handleCloseImagePreview = () => {
+    setImagePreview(null);
   };
 
   // 格式化日期
@@ -926,7 +971,7 @@ export function FMTCMerchantDetailModal({
           </TabsContent>
 
           <TabsContent value="media" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">
@@ -987,30 +1032,49 @@ export function FMTCMerchantDetailModal({
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">
-                    {t("fmtcMerchants.details.screenshots")}
+                    {t("fmtcMerchants.details.websiteScreenshots")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
-                        Screenshot 280x210
+                        {t("fmtcMerchants.details.screenshot280x210")}
                       </Label>
                       {merchant.screenshot280x210 ? (
                         <div className="space-y-2">
                           <img
                             src={merchant.screenshot280x210}
-                            alt="Screenshot 280x210"
-                            className="w-full h-24 object-cover border rounded"
+                            alt={t("fmtcMerchants.details.screenshot280x210")}
+                            className="w-full h-24 object-cover border rounded cursor-pointer hover:opacity-90"
+                            onClick={() =>
+                              handleImagePreview(
+                                merchant.screenshot280x210!,
+                                t("fmtcMerchants.details.screenshot280x210"),
+                              )
+                            }
                           />
-                          <a
-                            href={merchant.screenshot280x210}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline text-sm"
-                          >
-                            {t("common.view")}
-                          </a>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() =>
+                                handleImagePreview(
+                                  merchant.screenshot280x210!,
+                                  t("fmtcMerchants.details.screenshot280x210"),
+                                )
+                              }
+                              className="text-blue-600 hover:underline text-sm"
+                            >
+                              {t("common.view")}
+                            </button>
+                            <a
+                              href={merchant.screenshot280x210}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-600 hover:underline text-sm"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
                         </div>
                       ) : (
                         <div className="text-sm text-muted-foreground">-</div>
@@ -1019,28 +1083,134 @@ export function FMTCMerchantDetailModal({
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
-                        Screenshot 600x450
+                        {t("fmtcMerchants.details.screenshot600x450")}
                       </Label>
                       {merchant.screenshot600x450 ? (
                         <div className="space-y-2">
                           <img
                             src={merchant.screenshot600x450}
-                            alt="Screenshot 600x450"
-                            className="w-full h-32 object-cover border rounded"
+                            alt={t("fmtcMerchants.details.screenshot600x450")}
+                            className="w-full h-32 object-cover border rounded cursor-pointer hover:opacity-90"
+                            onClick={() =>
+                              handleImagePreview(
+                                merchant.screenshot600x450!,
+                                t("fmtcMerchants.details.screenshot600x450"),
+                              )
+                            }
                           />
-                          <a
-                            href={merchant.screenshot600x450}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline text-sm"
-                          >
-                            {t("common.view")}
-                          </a>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() =>
+                                handleImagePreview(
+                                  merchant.screenshot600x450!,
+                                  t("fmtcMerchants.details.screenshot600x450"),
+                                )
+                              }
+                              className="text-blue-600 hover:underline text-sm"
+                            >
+                              {t("common.view")}
+                            </button>
+                            <a
+                              href={merchant.screenshot600x450}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-600 hover:underline text-sm"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
                         </div>
                       ) : (
                         <div className="text-sm text-muted-foreground">-</div>
                       )}
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    {t("fmtcMerchants.details.fmtcPageScreenshot")}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRefreshScreenshot}
+                      disabled={isLoading}
+                    >
+                      <RefreshCw
+                        className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                      />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {t("fmtcMerchants.details.fmtcPageScreenshotTitle")}
+                    </Label>
+                    {merchant.fmtcPageScreenshotUrl ? (
+                      <div className="space-y-2">
+                        <img
+                          src={merchant.fmtcPageScreenshotUrl}
+                          alt={t("fmtcMerchants.details.fmtcPageScreenshot")}
+                          className="w-full h-40 object-cover border rounded cursor-pointer hover:opacity-90"
+                          onClick={() =>
+                            handleImagePreview(
+                              merchant.fmtcPageScreenshotUrl!,
+                              t("fmtcMerchants.details.fmtcPageScreenshot"),
+                            )
+                          }
+                        />
+                        <div className="flex items-center justify-between">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() =>
+                                handleImagePreview(
+                                  merchant.fmtcPageScreenshotUrl!,
+                                  t("fmtcMerchants.details.fmtcPageScreenshot"),
+                                )
+                              }
+                              className="text-blue-600 hover:underline text-sm"
+                            >
+                              {t("common.view")}
+                            </button>
+                            <a
+                              href={merchant.fmtcPageScreenshotUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-600 hover:underline text-sm"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                          {merchant.fmtcPageScreenshotUploadedAt && (
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(
+                                merchant.fmtcPageScreenshotUploadedAt,
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                        <div className="text-sm text-muted-foreground mb-2">
+                          {t("fmtcMerchants.details.noFmtcPageScreenshot")}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCaptureScreenshot}
+                          disabled={isLoading}
+                        >
+                          <RefreshCw
+                            className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                          />
+                          {t("fmtcMerchants.details.captureScreenshot")}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1079,6 +1249,40 @@ export function FMTCMerchantDetailModal({
           </div>
         </DialogFooter>
       </DialogContent>
+
+      {/* 图片预览模态框 */}
+      {imagePreview && (
+        <Dialog open={!!imagePreview} onOpenChange={handleCloseImagePreview}>
+          <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+            <DialogHeader className="p-6 pb-2">
+              <DialogTitle>{imagePreview.alt}</DialogTitle>
+            </DialogHeader>
+            <div className="px-6 pb-6">
+              <div className="relative">
+                <img
+                  src={imagePreview.src}
+                  alt={imagePreview.alt}
+                  className="w-full h-auto max-h-[70vh] object-contain border rounded"
+                />
+                <div className="flex justify-between items-center mt-4">
+                  <a
+                    href={imagePreview.src}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-blue-600 hover:underline text-sm"
+                  >
+                    <ExternalLink className="mr-1 h-4 w-4" />
+                    {t("common.openInNewTab")}
+                  </a>
+                  <Button variant="outline" onClick={handleCloseImagePreview}>
+                    {t("common.close")}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }

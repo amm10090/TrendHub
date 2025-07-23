@@ -2931,4 +2931,545 @@ const productionMonitoring = {
 
 ---
 
+## 新增功能特性 (2024年2月更新)
+
+### 🆕 智能品牌匹配系统
+
+#### 自动品牌识别
+
+系统现在支持基于多维度特征的智能品牌匹配：
+
+```typescript
+interface BrandMatchingFeatures {
+  // 名称匹配
+  nameMatch: {
+    exactMatch: boolean;
+    fuzzyScore: number;
+    levenshteinDistance: number;
+  };
+
+  // 域名匹配
+  domainMatch: {
+    exactMatch: boolean;
+    domainSimilarity: number;
+    subdomainMatch: boolean;
+  };
+
+  // Logo视觉识别
+  logoMatch: {
+    visualSimilarity: number;
+    colorSchemeMatch: number;
+    structureMatch: number;
+  };
+
+  // 网络关联匹配
+  networkMatch: {
+    sharedNetworks: string[];
+    networkOverlap: number;
+  };
+}
+
+// 使用示例
+const matchingService = new BrandMatchingService();
+const suggestions = await matchingService.getMatchingSuggestions(merchantId);
+
+// 批量品牌匹配
+const batchMatching = await matchingService.batchMatch({
+  merchantIds: ["merchant_1", "merchant_2"],
+  minConfidence: 0.8,
+  autoApprove: true,
+});
+```
+
+#### 品牌匹配API集成
+
+```bash
+# 获取品牌匹配建议
+curl -X GET "/api/fmtc-merchants/brand-matching/suggestions?merchantId=merchant_123" \
+  -H "Authorization: Bearer <token>"
+
+# 执行批量品牌匹配
+curl -X POST "/api/fmtc-merchants/brand-matching/batch" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "matches": [
+      {"merchantId": "merchant_123", "brandId": "brand_amazon"},
+      {"merchantId": "merchant_456", "brandId": "brand_apple"}
+    ],
+    "options": {
+      "autoConfirm": false,
+      "minConfidence": 0.9
+    }
+  }'
+```
+
+### 🎯 高级数据验证系统
+
+#### 多层数据验证
+
+```typescript
+class AdvancedDataValidator {
+  // 语法验证层
+  async validateSyntax(merchant: FMTCMerchantData): Promise<ValidationResult> {
+    const rules = [
+      { field: "name", required: true, minLength: 2, maxLength: 200 },
+      { field: "homepage", pattern: /^https?:\/\/.+/ },
+      { field: "country", enum: VALID_COUNTRIES },
+      { field: "networks", type: "array", maxLength: 50 },
+    ];
+
+    return await this.applyValidationRules(merchant, rules);
+  }
+
+  // 语义验证层
+  async validateSemantics(
+    merchant: FMTCMerchantData,
+  ): Promise<ValidationResult> {
+    const checks = [
+      this.validateCountryHomepageConsistency(merchant),
+      this.validateNetworkAffiliateLinksConsistency(merchant),
+      this.validateLogoImageValidity(merchant),
+      this.validateDescriptionRelevance(merchant),
+    ];
+
+    const results = await Promise.all(checks);
+    return this.aggregateValidationResults(results);
+  }
+
+  // 业务逻辑验证层
+  async validateBusinessLogic(
+    merchant: FMTCMerchantData,
+  ): Promise<ValidationResult> {
+    return {
+      duplicateCheck: await this.checkForDuplicates(merchant),
+      brandConsistency: await this.validateBrandConsistency(merchant),
+      dataFreshness: await this.validateDataFreshness(merchant),
+      qualityScore: await this.calculateQualityScore(merchant),
+    };
+  }
+}
+
+// 使用多层验证
+const validator = new AdvancedDataValidator();
+const validationResults = await Promise.all([
+  validator.validateSyntax(merchantData),
+  validator.validateSemantics(merchantData),
+  validator.validateBusinessLogic(merchantData),
+]);
+
+const overallScore = calculateOverallValidationScore(validationResults);
+```
+
+### 📊 增强的监控和分析
+
+#### 实时业务指标仪表盘
+
+```typescript
+interface BusinessMetricsDashboard {
+  // 数据质量指标
+  dataQuality: {
+    completenessScore: number; // 数据完整性评分
+    accuracyScore: number; // 数据准确性评分
+    freshnessScore: number; // 数据新鲜度评分
+    consistencyScore: number; // 数据一致性评分
+  };
+
+  // 抓取性能指标
+  scrapingPerformance: {
+    averageThroughput: number; // 平均吞吐量(商户/秒)
+    successRate: number; // 成功率
+    errorRate: number; // 错误率
+    sessionEfficiency: number; // 会话复用效率
+  };
+
+  // 系统健康指标
+  systemHealth: {
+    memoryUsage: number; // 内存使用率
+    cpuUsage: number; // CPU使用率
+    diskUsage: number; // 磁盘使用率
+    activeSSEConnections: number; // 活跃SSE连接数
+  };
+
+  // 业务价值指标
+  businessValue: {
+    totalMerchants: number; // 商户总数
+    brandMatchedRate: number; // 品牌匹配率
+    dataUpdateFrequency: number; // 数据更新频率
+    apiUsageRate: number; // API使用率
+  };
+}
+
+// 实时指标收集器
+class RealtimeMetricsCollector {
+  private wsServer: WebSocketServer;
+  private metricsCache: BusinessMetricsDashboard;
+
+  constructor() {
+    this.initializeWebSocketServer();
+    this.startMetricsCollection();
+  }
+
+  private async collectBusinessMetrics(): Promise<BusinessMetricsDashboard> {
+    const [dataQuality, performance, health, business] = await Promise.all([
+      this.collectDataQualityMetrics(),
+      this.collectPerformanceMetrics(),
+      this.collectSystemHealthMetrics(),
+      this.collectBusinessValueMetrics(),
+    ]);
+
+    return {
+      dataQuality,
+      scrapingPerformance: performance,
+      systemHealth: health,
+      businessValue: business,
+      timestamp: new Date().toISOString(),
+      updateFrequency: 30000, // 30秒更新间隔
+    };
+  }
+
+  // 推送实时指标到前端
+  private broadcastMetrics(metrics: BusinessMetricsDashboard): void {
+    this.wsServer.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(
+          JSON.stringify({
+            type: "metrics_update",
+            data: metrics,
+          }),
+        );
+      }
+    });
+  }
+}
+```
+
+#### 预测性分析系统
+
+```typescript
+class PredictiveAnalytics {
+  // 预测抓取任务执行时间
+  async predictExecutionTime(
+    taskConfig: FMTCScraperOptions,
+  ): Promise<TimeEstimate> {
+    const historicalData = await this.getHistoricalExecutionData(taskConfig);
+    const factors = {
+      merchantCount: taskConfig.maxPages * 10, // 估算商户数量
+      concurrency: taskConfig.maxConcurrency || 1,
+      includeDetails: taskConfig.includeDetails,
+      networkLatency: await this.measureNetworkLatency(),
+      systemLoad: await this.getCurrentSystemLoad(),
+    };
+
+    const baseTimePerMerchant = this.calculateBaseTime(historicalData);
+    const adjustmentFactors = this.calculateAdjustmentFactors(factors);
+
+    return {
+      estimatedDuration:
+        baseTimePerMerchant * factors.merchantCount * adjustmentFactors,
+      confidence: this.calculateConfidence(historicalData.length),
+      factors: factors,
+      recommendation: this.generateRecommendation(factors),
+    };
+  }
+
+  // 预测错误模式
+  async predictErrorPatterns(executionId: string): Promise<ErrorPrediction> {
+    const recentErrors = await this.getRecentErrors(24); // 24小时内错误
+    const patterns = this.analyzeErrorPatterns(recentErrors);
+
+    return {
+      likelyErrors: patterns.mostFrequent,
+      riskLevel: this.calculateRiskLevel(patterns),
+      preventionStrategies: this.suggestPreventionStrategies(patterns),
+      recommendedConfig: this.optimizeConfigForErrorPrevention(patterns),
+    };
+  }
+
+  // 容量规划建议
+  async generateCapacityPlan(projectedGrowth: number): Promise<CapacityPlan> {
+    const currentUsage = await this.getCurrentResourceUsage();
+    const growthProjection = this.calculateGrowthProjection(projectedGrowth);
+
+    return {
+      currentCapacity: currentUsage,
+      projectedNeeds: growthProjection,
+      recommendations: {
+        scaling: this.generateScalingRecommendations(growthProjection),
+        optimization: this.generateOptimizationRecommendations(currentUsage),
+        timeline: this.generateImplementationTimeline(),
+      },
+      costEstimate: this.estimateInfrastructureCosts(growthProjection),
+    };
+  }
+}
+```
+
+### 🔧 智能配置管理
+
+#### 自适应配置系统
+
+```typescript
+class AdaptiveConfigManager {
+  private performanceHistory: PerformanceMetric[] = [];
+  private errorHistory: ErrorMetric[] = [];
+
+  // 基于历史性能自动优化配置
+  async optimizeConfiguration(
+    currentConfig: FMTCScraperOptions,
+    optimizationGoal: "speed" | "stability" | "balanced",
+  ): Promise<OptimizedConfig> {
+    const analysis = await this.analyzePerformanceHistory();
+    const recommendations = this.generateOptimizationRecommendations(
+      analysis,
+      optimizationGoal,
+    );
+
+    const optimizedConfig = {
+      ...currentConfig,
+      maxConcurrency: recommendations.optimalConcurrency,
+      requestDelay: recommendations.optimalDelay,
+      antiDetection: {
+        ...currentConfig.antiDetection,
+        minDelay: recommendations.minDelay,
+        maxDelay: recommendations.maxDelay,
+        enableMouseSimulation: recommendations.enableMouseSimulation,
+      },
+      retryStrategy: recommendations.retryStrategy,
+    };
+
+    return {
+      config: optimizedConfig,
+      expectedImprovement: recommendations.expectedImprovement,
+      confidence: recommendations.confidence,
+      reasoning: recommendations.reasoning,
+    };
+  }
+
+  // A/B测试配置
+  async runConfigurationABTest(
+    configA: FMTCScraperOptions,
+    configB: FMTCScraperOptions,
+    testDuration: number = 24 * 60 * 60 * 1000, // 24小时
+  ): Promise<ABTestResult> {
+    const testId = `ab_test_${Date.now()}`;
+    const results = {
+      configA: { runs: [], totalExecutions: 0, avgPerformance: 0 },
+      configB: { runs: [], totalExecutions: 0, avgPerformance: 0 },
+    };
+
+    // 并行运行两种配置
+    await Promise.all([
+      this.runConfigurationTest(configA, testDuration / 2, results.configA),
+      this.runConfigurationTest(configB, testDuration / 2, results.configB),
+    ]);
+
+    return {
+      testId,
+      winner: this.determineWinner(results),
+      improvementRate: this.calculateImprovement(results),
+      statisticalSignificance: this.calculateSignificance(results),
+      recommendation: this.generateTestRecommendation(results),
+    };
+  }
+}
+```
+
+#### 环境感知配置
+
+```typescript
+// 根据环境自动调整配置
+class EnvironmentAwareConfig {
+  async getOptimalConfig(): Promise<FMTCScraperOptions> {
+    const environment = await this.detectEnvironment();
+    const resources = await this.assessAvailableResources();
+    const constraints = await this.identifyConstraints();
+
+    return this.generateOptimalConfig(environment, resources, constraints);
+  }
+
+  private async detectEnvironment(): Promise<Environment> {
+    return {
+      type: process.env.NODE_ENV as "development" | "staging" | "production",
+      platform: process.platform,
+      containerized: await this.isRunningInContainer(),
+      cloudProvider: await this.detectCloudProvider(),
+      region: await this.detectRegion(),
+    };
+  }
+
+  private async assessAvailableResources(): Promise<ResourceAssessment> {
+    const memory = process.memoryUsage();
+    const cpus = require("os").cpus().length;
+    const loadAverage = require("os").loadavg();
+
+    return {
+      availableMemory: this.calculateAvailableMemory(memory),
+      cpuCores: cpus,
+      systemLoad: loadAverage[0],
+      networkBandwidth: await this.measureNetworkBandwidth(),
+      diskIO: await this.measureDiskIO(),
+    };
+  }
+
+  private generateOptimalConfig(
+    env: Environment,
+    resources: ResourceAssessment,
+    constraints: Constraints,
+  ): FMTCScraperOptions {
+    let config: FMTCScraperOptions = {
+      headless: env.type === "production",
+      maxConcurrency: this.calculateOptimalConcurrency(resources),
+      requestDelay: this.calculateOptimalDelay(env, constraints),
+      enableDetails:
+        env.type !== "development" || constraints.timeConstraints.isLenient,
+      downloadImages: resources.availableMemory > 2 * 1024 * 1024 * 1024, // 2GB
+    };
+
+    // 云环境优化
+    if (env.cloudProvider === "aws") {
+      config = this.applyAWSOptimizations(config);
+    } else if (env.cloudProvider === "gcp") {
+      config = this.applyGCPOptimizations(config);
+    }
+
+    // 容器环境优化
+    if (env.containerized) {
+      config = this.applyContainerOptimizations(config);
+    }
+
+    return config;
+  }
+}
+```
+
+### 📈 高级分析和报告
+
+#### 数据洞察引擎
+
+```typescript
+class DataInsightEngine {
+  // 商户数据趋势分析
+  async analyzeMerchantTrends(timeRange: TimeRange): Promise<TrendAnalysis> {
+    const data = await this.getMerchantDataForRange(timeRange);
+
+    return {
+      growthTrends: {
+        newMerchants: this.calculateGrowthRate(data, "new"),
+        activeMerchants: this.calculateGrowthRate(data, "active"),
+        brandMatching: this.calculateGrowthRate(data, "brandMatched"),
+      },
+
+      qualityTrends: {
+        dataCompleteness: this.analyzeCompletenessOverTime(data),
+        dataAccuracy: this.analyzeAccuracyOverTime(data),
+        duplicateRate: this.analyzeDuplicateRateOverTime(data),
+      },
+
+      geographicDistribution: this.analyzeGeographicDistribution(data),
+      networkAnalysis: this.analyzeNetworkDistribution(data),
+      categoryAnalysis: this.analyzeCategoryDistribution(data),
+
+      predictions: {
+        nextPeriodProjection: this.projectNextPeriod(data),
+        seasonalityFactors: this.identifySeasonality(data),
+        anomalyDetection: this.detectAnomalies(data),
+      },
+    };
+  }
+
+  // 性能优化建议引擎
+  async generateOptimizationInsights(): Promise<OptimizationInsights> {
+    const performanceData = await this.getPerformanceHistory();
+    const errorData = await this.getErrorHistory();
+    const resourceData = await this.getResourceUsageHistory();
+
+    return {
+      performanceBottlenecks: this.identifyBottlenecks(performanceData),
+      errorPatternAnalysis: this.analyzeErrorPatterns(errorData),
+      resourceOptimization: this.analyzeResourceUsage(resourceData),
+
+      recommendations: [
+        ...this.generatePerformanceRecommendations(performanceData),
+        ...this.generateErrorReductionRecommendations(errorData),
+        ...this.generateResourceOptimizationRecommendations(resourceData),
+      ],
+
+      implementationPlan: this.createImplementationPlan(),
+      expectedImpact: this.calculateExpectedImpact(),
+    };
+  }
+}
+```
+
+#### 可视化报告生成
+
+```typescript
+class ReportGenerator {
+  // 生成综合性能报告
+  async generatePerformanceReport(
+    period: "daily" | "weekly" | "monthly",
+  ): Promise<PerformanceReport> {
+    const data = await this.collectReportData(period);
+
+    return {
+      executiveSummary: this.generateExecutiveSummary(data),
+
+      sections: {
+        performanceMetrics: {
+          charts: [
+            this.createThroughputChart(data.throughput),
+            this.createErrorRateChart(data.errors),
+            this.createResponseTimeChart(data.responseTimes),
+          ],
+          insights: this.generatePerformanceInsights(data),
+        },
+
+        dataQuality: {
+          charts: [
+            this.createDataCompletenessChart(data.completeness),
+            this.createAccuracyTrendChart(data.accuracy),
+            this.createFreshnessChart(data.freshness),
+          ],
+          insights: this.generateQualityInsights(data),
+        },
+
+        systemHealth: {
+          charts: [
+            this.createResourceUsageChart(data.resources),
+            this.createErrorDistributionChart(data.errorDistribution),
+          ],
+          insights: this.generateHealthInsights(data),
+        },
+      },
+
+      recommendations: this.generateActionableRecommendations(data),
+      appendix: {
+        rawData: data,
+        methodology: this.getReportMethodology(),
+        glossary: this.getGlossary(),
+      },
+    };
+  }
+
+  // 导出报告为多种格式
+  async exportReport(
+    report: PerformanceReport,
+    format: "pdf" | "excel" | "html",
+  ): Promise<Buffer> {
+    switch (format) {
+      case "pdf":
+        return await this.generatePDFReport(report);
+      case "excel":
+        return await this.generateExcelReport(report);
+      case "html":
+        return await this.generateHTMLReport(report);
+      default:
+        throw new Error(`不支持的导出格式: ${format}`);
+    }
+  }
+}
+```
+
+---
+
 ## 附录

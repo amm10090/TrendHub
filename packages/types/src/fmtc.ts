@@ -55,6 +55,12 @@ export interface FMTCMerchantDetailData {
   /** 600x450 截图 URL */
   screenshot600x450?: string;
 
+  // FMTC页面截图信息
+  /** FMTC页面截图URL (R2存储) */
+  fmtcPageScreenshotUrl?: string;
+  /** FMTC页面截图上传时间 */
+  fmtcPageScreenshotUploadedAt?: Date;
+
   // 关联链接
   /** 联盟链接 (如 AW URL) */
   affiliateUrl?: string;
@@ -148,6 +154,13 @@ export interface FMTCScraperOptions {
   sessionConfig?: SessionConfig;
   /** 搜索参数 */
   searchParams?: Record<string, unknown>;
+  /** 是否启用FMTC页面截图 */
+  captureScreenshot?: boolean;
+  /** 截图上传回调函数 */
+  screenshotUploadCallback?: (
+    buffer: Buffer,
+    filename: string,
+  ) => Promise<string>;
   /** reCAPTCHA 配置 */
   recaptchaConfig?: {
     /** reCAPTCHA 处理模式 */

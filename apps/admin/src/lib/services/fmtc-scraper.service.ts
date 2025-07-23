@@ -13,6 +13,7 @@ import type {
 } from "@repo/types";
 
 import { db } from "@/lib/db";
+import { uploadImageToR2 } from "@/lib/imageService";
 
 import { FMTCMerchantService } from "./fmtc-merchant.service";
 
@@ -357,6 +358,22 @@ export class FMTCScraperService {
       // 修复：确保任务配置中的 maxMerchantsPerRun 被正确映射到 maxMerchants
       const taskMaxMerchants =
         config?.maxMerchantsPerRun || config?.maxMerchants;
+
+      // 创建截图上传回调函数
+      const screenshotUploadCallback = async (
+        buffer: Buffer,
+        filename: string,
+      ) => {
+        try {
+          const url = await uploadImageToR2(buffer, filename);
+          console.log(`截图上传成功: ${filename} -> ${url}`);
+          return url;
+        } catch (error) {
+          console.error(`截图上传失败: ${filename}`, error);
+          throw error;
+        }
+      };
+
       const scraperOptions: FMTCScraperOptions = {
         credentials,
         maxMerchants: taskMaxMerchants || fmtcConfig?.maxMerchants || 500,
@@ -368,6 +385,9 @@ export class FMTCScraperService {
         requestDelay: config?.requestDelay || fmtcConfig?.requestDelay || 2000,
         headless: fmtcConfig?.headlessMode !== false, // 使用数据库配置
         searchParams: config?.searchParams || {},
+        // 添加截图相关配置
+        captureScreenshot: true,
+        screenshotUploadCallback,
       };
 
       console.log(`开始执行爬虫任务 ${executionId}, 配置:`, {
@@ -375,6 +395,7 @@ export class FMTCScraperService {
         includeDetails: scraperOptions.includeDetails,
         downloadImages: scraperOptions.downloadImages,
         headless: scraperOptions.headless,
+        captureScreenshot: scraperOptions.captureScreenshot,
         credentials: scraperOptions.credentials?.username ? "已提供" : "未提供",
         configSource: dbConfig ? "数据库配置" : "默认配置",
         // 添加配置来源调试信息
@@ -450,6 +471,11 @@ export class FMTCScraperService {
         previewDealsUrl: merchant.previewDealsUrl,
         screenshot280x210: merchant.screenshot280x210,
         screenshot600x450: merchant.screenshot600x450,
+        // 添加FMTC页面截图字段
+        fmtcPageScreenshotUrl: merchant.fmtcPageScreenshotUrl,
+        fmtcPageScreenshotUploadedAt: merchant.fmtcPageScreenshotUploadedAt
+          ? new Date(merchant.fmtcPageScreenshotUploadedAt)
+          : undefined,
         primaryCountry: merchant.primaryCountry,
         shipsTo: merchant.shipsTo || [],
         networkId: merchant.networkId,

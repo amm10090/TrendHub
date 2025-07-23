@@ -341,4 +341,11 @@ export interface FMTCRequestHandlerOptions {
   sessionManager?: FMTCSessionManager;
   /** FMTC 配置参数 */
   fmtcConfig?: FMTCConfig;
+  /** 是否截取FMTC页面截图 */
+  captureScreenshot?: boolean;
+  /** 截图上传回调 */
+  screenshotUploadCallback?: (
+    buffer: Buffer,
+    filename: string,
+  ) => Promise<string>;
 }

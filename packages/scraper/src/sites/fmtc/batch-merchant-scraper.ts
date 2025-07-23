@@ -61,6 +61,11 @@ export interface BatchScrapingOptions {
   config?: FMTCConfig;
   concurrency?: number; // 并发数，默认2
   downloadImages?: boolean;
+  captureScreenshot?: boolean; // 是否截取FMTC页面截图
+  screenshotUploadCallback?: (
+    buffer: Buffer,
+    filename: string,
+  ) => Promise<string>; // 截图上传回调
   executionId?: string;
   progressCallback?: (progress: BatchProgress) => void;
   onTaskComplete?: (task: MerchantTask) => void;
@@ -650,6 +655,10 @@ export class FMTCBatchMerchantScraper {
       crawleeLog,
       this.options.executionId,
       this.options.downloadImages ? this.runSpecificStorageDir : undefined,
+      {
+        captureScreenshot: this.options.captureScreenshot,
+        screenshotUploadCallback: this.options.screenshotUploadCallback,
+      },
     );
 
     // 提取商户详情数据

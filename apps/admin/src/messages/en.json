@@ -677,6 +677,7 @@
     "noData": "No Data",
     "new": "New",
     "close": "Close",
+    "openInNewTab": "Open in New Tab",
     "selectBrand": "Select Brand",
     "selectCategory": "Select Category",
     "selectProduct": "Select Product(s)",
@@ -3159,7 +3160,15 @@
       "affiliateLinksDetails": "Affiliate Links Details",
       "freshReachLinks": "FreshReach Links",
       "previewDealsLink": "Preview Deals Link",
-      "linkCount": "{count} links"
+      "linkCount": "{count} links",
+      "websiteScreenshots": "Website Screenshots",
+      "screenshot280x210": "Screenshot 280x210",
+      "screenshot600x450": "Screenshot 600x450",
+      "fmtcPageScreenshot": "FMTC Page Screenshot",
+      "fmtcPageScreenshotTitle": "FMTC Detail Page Screenshot",
+      "noFmtcPageScreenshot": "No FMTC page screenshot",
+      "captureScreenshot": "Capture Screenshot",
+      "refreshScreenshot": "Refresh Screenshot"
     },
     "bulkActions": {
       "title": "Bulk Actions",

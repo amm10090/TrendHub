@@ -64,6 +64,10 @@ export function createFMTCRequestHandler(options: FMTCRequestHandlerOptions) {
       log,
       userData.executionId,
       scraperOptions.storageDir,
+      {
+        captureScreenshot: options.captureScreenshot,
+        screenshotUploadCallback: options.screenshotUploadCallback,
+      },
     );
     // 设置用户数据上下文，用于单商户模式日志优化
     detailHandler.setUserData(userData);
@@ -623,15 +627,32 @@ async function handleSearch(
     const parsedResults = await resultsParser.parseSearchResults();
 
     if (parsedResults.merchants.length > 0) {
+      // 处理解析出的商户数据
+      const merchantsToProcess = parsedResults.merchants;
+
+      // 计算实际需要处理的商户数量（考虑最大限制）
+      const maxMerchants = userData.options?.maxMerchants || 500;
+      const currentMerchantCount = allScrapedMerchants.length;
+      const remainingSlots = maxMerchants - currentMerchantCount;
+      const actualMerchantsToProcess = Math.min(
+        merchantsToProcess.length,
+        remainingSlots,
+      );
+
       await logMessage(
         log,
         userData.executionId,
         LocalScraperLogLevel.INFO,
-        `成功解析 ${parsedResults.merchants.length} 个商户`,
+        `成功解析 ${parsedResults.merchants.length} 个商户，将处理其中 ${actualMerchantsToProcess} 个`,
+        {
+          totalParsed: parsedResults.merchants.length,
+          willProcess: actualMerchantsToProcess,
+          remainingSlots: remainingSlots,
+          maxMerchants: maxMerchants,
+          currentMerchantCount: currentMerchantCount,
+        },
       );
 
-      // 处理解析出的商户数据
-      const merchantsToProcess = parsedResults.merchants;
       let processedCount = 0;
       let merchantsWithCountry = 0;
       let merchantsWithNetwork = 0;
@@ -641,16 +662,16 @@ async function handleSearch(
         const merchant = merchantsToProcess[index];
 
         // 检查是否已达到最大商家数量限制
-        const maxMerchants = userData.options?.maxMerchants || 500;
-        const currentMerchantCount = allScrapedMerchants.length;
+        const maxMerchantsLimit = userData.options?.maxMerchants || 500;
+        const currentCount = allScrapedMerchants.length;
 
-        if (currentMerchantCount >= maxMerchants) {
+        if (currentCount >= maxMerchantsLimit) {
           await logMessage(
             log,
             userData.executionId,
             LocalScraperLogLevel.INFO,
-            `已达到最大商家数量限制 (${maxMerchants})，停止处理`,
-            { currentCount: currentMerchantCount, maxMerchants },
+            `已达到最大商家数量限制 (${maxMerchantsLimit})，停止处理`,
+            { currentCount: currentCount, maxMerchants: maxMerchantsLimit },
           );
           break;
         }
@@ -683,20 +704,37 @@ async function handleSearch(
 
           // 如果有详情URL且启用详情抓取，将详情页加入队列
           if (merchant.detailUrl && userData.options?.includeDetails) {
-            await context.addRequests([
-              {
-                url: merchant.detailUrl,
-                label: "MERCHANT_DETAIL",
-                userData: {
-                  ...userData,
+            // 再次检查是否会超过最大商户数量限制（考虑当前索引）
+            const detailRequestCount = allScrapedMerchants.length + index + 1;
+            const maxMerchantsLimit = userData.options?.maxMerchants || 500;
+
+            if (detailRequestCount <= maxMerchantsLimit) {
+              await context.addRequests([
+                {
+                  url: merchant.detailUrl,
                   label: "MERCHANT_DETAIL",
-                  merchantUrl: merchant.detailUrl,
-                  merchantName: merchant.name,
-                  merchantDetailIndex: index,
-                  totalDetailsToProcess: merchantsToProcess.length,
+                  userData: {
+                    ...userData,
+                    label: "MERCHANT_DETAIL",
+                    merchantUrl: merchant.detailUrl,
+                    merchantName: merchant.name,
+                    merchantDetailIndex: index,
+                    totalDetailsToProcess: Math.min(
+                      actualMerchantsToProcess,
+                      maxMerchantsLimit - allScrapedMerchants.length,
+                    ),
+                  },
                 },
-              },
-            ]);
+              ]);
+            } else {
+              await logMessage(
+                log,
+                userData.executionId,
+                LocalScraperLogLevel.INFO,
+                `跳过商户详情请求以避免超过限制: ${merchant.name}`,
+                { detailRequestCount, maxMerchants: maxMerchantsLimit },
+              );
+            }
           } else {
             // 直接添加到结果中
             allScrapedMerchants.push(merchantData);
@@ -745,26 +783,26 @@ async function handleSearch(
       }
 
       // 检查是否已达到最大商家数量限制
-      const maxMerchants = userData.options?.maxMerchants || 500;
-      const currentMerchantCount = allScrapedMerchants.length;
+      const maxMerchantsLimit = userData.options?.maxMerchants || 500;
+      const currentCount = allScrapedMerchants.length;
 
-      if (currentMerchantCount >= maxMerchants) {
+      if (currentCount >= maxMerchantsLimit) {
         await logMessage(
           log,
           userData.executionId,
           LocalScraperLogLevel.INFO,
-          `已达到最大商家数量限制 (${maxMerchants})，停止抓取`,
-          { currentCount: currentMerchantCount, maxMerchants },
+          `已达到最大商家数量限制 (${maxMerchantsLimit})，停止抓取`,
+          { currentCount: currentCount, maxMerchants: maxMerchantsLimit },
         );
         return;
       }
 
       // 处理分页 - 重构后的逻辑
-      if (parsedResults.hasNextPage && currentMerchantCount < maxMerchants) {
+      if (parsedResults.hasNextPage && currentCount < maxMerchantsLimit) {
         // 获取当前分页信息
         const paginationInfo = await resultsParser.getPaginationInfo();
         const currentPageSize = paginationInfo.pageSize;
-        const remainingMerchants = maxMerchants - currentMerchantCount;
+        const remainingMerchants = maxMerchantsLimit - currentCount;
 
         await logMessage(
           log,
@@ -775,8 +813,8 @@ async function handleSearch(
             currentPage: paginationInfo.currentPage,
             totalPages: paginationInfo.totalPages,
             currentPageSize,
-            currentMerchantCount,
-            maxMerchants,
+            currentMerchantCount: currentCount,
+            maxMerchants: maxMerchantsLimit,
             remainingMerchants,
             hasNextPage: parsedResults.hasNextPage,
           },
@@ -794,7 +832,7 @@ async function handleSearch(
             log,
             userData.executionId,
             LocalScraperLogLevel.INFO,
-            `🔄 需要继续分页：还需约 ${estimatedPagesNeeded} 页来达到目标 ${maxMerchants} 个商户`,
+            `🔄 需要继续分页：还需约 ${estimatedPagesNeeded} 页来达到目标 ${maxMerchantsLimit} 个商户`,
             { estimatedPagesNeeded, remainingMerchants },
           );
 
@@ -809,7 +847,7 @@ async function handleSearch(
               `✅ 成功导航到第 ${newPageInfo.currentPage} 页，继续抓取`,
               {
                 newCurrentPage: newPageInfo.currentPage,
-                currentMerchantCount,
+                currentMerchantCount: currentCount,
                 targetRemaining: remainingMerchants,
               },
             );
@@ -842,8 +880,8 @@ async function handleSearch(
             `🎯 分页结束：${shouldContinue ? "无更多页面" : "已达到商户数量目标"}`,
             {
               reason: shouldContinue ? "no_more_pages" : "target_reached",
-              finalMerchantCount: currentMerchantCount,
-              targetMerchants: maxMerchants,
+              finalMerchantCount: currentCount,
+              targetMerchants: maxMerchantsLimit,
             },
           );
         }
@@ -858,8 +896,8 @@ async function handleSearch(
           `🏁 搜索完成：${reason}`,
           {
             hasNextPage: parsedResults.hasNextPage,
-            finalMerchantCount: currentMerchantCount,
-            maxMerchants,
+            finalMerchantCount: currentCount,
+            maxMerchants: maxMerchantsLimit,
             reason: !parsedResults.hasNextPage
               ? "no_more_pages"
               : "merchant_limit_reached",
@@ -913,11 +951,26 @@ async function handleMerchantList(
   const listResult = await listHandler.scrapeMerchantList(pageNumber);
 
   if (listResult.merchants.length > 0) {
+    const maxMerchantsLimit = userData.options?.maxMerchants || 500;
+    const currentMerchantCountInList = allScrapedMerchants.length;
+    const remainingSlots = maxMerchantsLimit - currentMerchantCountInList;
+    const actualMerchantsToProcess = Math.min(
+      listResult.merchants.length,
+      remainingSlots,
+    );
+
     await logMessage(
       log,
       userData.executionId,
       LocalScraperLogLevel.INFO,
-      `第 ${pageNumber} 页抓取到 ${listResult.merchants.length} 个商户`,
+      `第 ${pageNumber} 页抓取到 ${listResult.merchants.length} 个商户，将处理其中 ${actualMerchantsToProcess} 个`,
+      {
+        totalParsed: listResult.merchants.length,
+        willProcess: actualMerchantsToProcess,
+        remainingSlots: remainingSlots,
+        maxMerchants: maxMerchantsLimit,
+        currentMerchantCount: currentMerchantCountInList,
+      },
     );
 
     // 更新进度
@@ -932,8 +985,23 @@ async function handleMerchantList(
 
     // 处理每个商户
     const merchantsToProcess = listResult.merchants;
+
     for (let index = 0; index < merchantsToProcess.length; index++) {
       const merchant = merchantsToProcess[index];
+
+      // 检查是否已达到最大商家数量限制
+      const currentCount = allScrapedMerchants.length;
+      const maxMerchantsInLoop = userData.options?.maxMerchants || 500;
+      if (currentCount >= maxMerchantsInLoop) {
+        await logMessage(
+          log,
+          userData.executionId,
+          LocalScraperLogLevel.INFO,
+          `已达到最大商家数量限制 (${maxMerchantsInLoop})，停止处理`,
+          { currentCount, maxMerchants: maxMerchantsInLoop },
+        );
+        break;
+      }
 
       try {
         // 将基本信息添加到结果中
@@ -945,20 +1013,37 @@ async function handleMerchantList(
 
         // 如果有详情链接且启用详情抓取，将详情页加入队列
         if (merchant.detailUrl && userData.options?.includeDetails) {
-          await context.addRequests([
-            {
-              url: merchant.detailUrl,
-              label: "MERCHANT_DETAIL",
-              userData: {
-                ...userData,
+          // 再次检查是否会超过最大商户数量限制（考虑当前索引）
+          const detailRequestCount = allScrapedMerchants.length + index + 1;
+          const maxMerchantsInDetail = userData.options?.maxMerchants || 500;
+
+          if (detailRequestCount <= maxMerchantsInDetail) {
+            await context.addRequests([
+              {
+                url: merchant.detailUrl,
                 label: "MERCHANT_DETAIL",
-                merchantUrl: merchant.detailUrl,
-                merchantName: merchant.name,
-                merchantDetailIndex: index,
-                totalDetailsToProcess: merchantsToProcess.length,
+                userData: {
+                  ...userData,
+                  label: "MERCHANT_DETAIL",
+                  merchantUrl: merchant.detailUrl,
+                  merchantName: merchant.name,
+                  merchantDetailIndex: index,
+                  totalDetailsToProcess: Math.min(
+                    actualMerchantsToProcess,
+                    maxMerchantsInDetail - allScrapedMerchants.length,
+                  ),
+                },
               },
-            },
-          ]);
+            ]);
+          } else {
+            await logMessage(
+              log,
+              userData.executionId,
+              LocalScraperLogLevel.INFO,
+              `跳过商户详情请求以避免超过限制: ${merchant.name}`,
+              { detailRequestCount, maxMerchants: maxMerchantsInDetail },
+            );
+          }
         } else {
           // 直接添加到结果中（只有基本信息）
 
@@ -1003,9 +1088,10 @@ async function handleMerchantList(
     }
 
     // 根据商户数量动态计算是否需要更多页面
-    const maxMerchants = userData.options?.maxMerchants || 500;
-    const currentMerchantCount = allScrapedMerchants.length;
-    const shouldContinuePagination = currentMerchantCount < maxMerchants;
+    const maxMerchantsForPagination = userData.options?.maxMerchants || 500;
+    const currentMerchantCountForPagination = allScrapedMerchants.length;
+    const shouldContinuePagination =
+      currentMerchantCountForPagination < maxMerchantsForPagination;
 
     if (listResult.pagination.hasNextPage && shouldContinuePagination) {
       await context.addRequests([
@@ -1043,7 +1129,23 @@ async function handleMerchantDetail(
   const currentDetailIndex = userData.merchantDetailIndex || 0;
   const totalDetailsToProcess = userData.totalDetailsToProcess || 1;
   const currentMerchantCount = allScrapedMerchants.length;
-  const maxMerchants = userData.options?.maxMerchants || 500;
+  const maxMerchantsForDetail = userData.options?.maxMerchants || 500;
+
+  // 检查是否已达到最大商户数量限制，如果是则跳过处理
+  if (currentMerchantCount >= maxMerchantsForDetail) {
+    await logMessage(
+      log,
+      userData.executionId,
+      LocalScraperLogLevel.INFO,
+      `已达到最大商户数量限制 (${maxMerchantsForDetail})，跳过商户详情处理: ${userData.merchantName}`,
+      {
+        currentMerchantCount,
+        maxMerchants: maxMerchantsForDetail,
+        skippedMerchant: userData.merchantName,
+      },
+    );
+    return;
+  }
 
   // 记录进度日志 - 单商户模式下简化日志
   if (userData.singleMerchantMode) {
@@ -1063,7 +1165,7 @@ async function handleMerchantDetail(
         currentDetailIndex: currentDetailIndex + 1,
         totalDetailsToProcess,
         currentMerchantCount,
-        maxMerchants,
+        maxMerchants: maxMerchantsForDetail,
         progressPercentage: Math.round(
           ((currentDetailIndex + 1) / totalDetailsToProcess) * 100,
         ),

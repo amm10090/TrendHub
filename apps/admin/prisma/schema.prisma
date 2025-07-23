@@ -883,10 +883,16 @@ model FMTCMerchant {
   logo120x60            String?
   /// 88x31 Logo URL
   logo88x31             String?
-  /// 280x210 截图 URL
+  /// 280x210 截图 URL (商家官网截图)
   screenshot280x210     String?
-  /// 600x450 截图 URL
+  /// 600x450 截图 URL (商家官网截图)
   screenshot600x450     String?
+  
+  // FMTC页面截图信息
+  /// FMTC详情页面截图URL (R2存储)
+  fmtcPageScreenshotUrl       String?
+  /// FMTC页面截图上传时间
+  fmtcPageScreenshotUploadedAt DateTime?
   
   // 关联链接
   /// 联盟链接 (如 AW URL)

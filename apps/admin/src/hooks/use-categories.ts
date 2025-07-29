@@ -95,7 +95,7 @@ export function useCategories(options: UseCategoriesOptions = {}) {
       await Promise.all([mutateCategories(), mutateCategoryTree()]);
 
       return newCategory;
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : "创建分类失败";
 
@@ -126,7 +126,7 @@ export function useCategories(options: UseCategoriesOptions = {}) {
       await Promise.all([mutateCategories(), mutateCategoryTree()]);
 
       return updatedCategory;
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : "更新分类失败";
 
@@ -151,7 +151,7 @@ export function useCategories(options: UseCategoriesOptions = {}) {
       await Promise.all([mutateCategories(), mutateCategoryTree()]);
 
       return { success: true };
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : "删除分类失败";
 

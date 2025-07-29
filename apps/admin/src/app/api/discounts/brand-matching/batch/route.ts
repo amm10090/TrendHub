@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
           });
           errorCount++;
         }
-      } catch (error) {
+      } catch {
         results.push({
           merchantName,
           success: false,
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
       },
       message: `批量匹配完成: ${successCount}/${processedCount} 成功`,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

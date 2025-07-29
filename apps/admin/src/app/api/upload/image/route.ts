@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const imageUrl = await uploadImageToR2(fileBuffer, file.name, file.type);
 
     return NextResponse.json({ url: imageUrl }, { status: 200 });
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred.";
 

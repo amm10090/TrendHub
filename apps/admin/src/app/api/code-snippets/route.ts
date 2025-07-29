@@ -4,7 +4,6 @@ import { z } from "zod";
 
 // 声明全局变量
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
@@ -97,7 +96,7 @@ export async function POST(request: Request) {
       { success: true, data: newSnippet, message: "代码片段创建成功" },
       { status: 201 },
     );
-  } catch (error) {
+  } catch {
     // 详细记录错误
 
     // 提供更详细的错误信息以便调试

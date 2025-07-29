@@ -146,8 +146,7 @@ export async function GET(request: NextRequest) {
                 cleanup();
               }
             }
-          } catch (error) {
-            console.error("Error polling logs:", error);
+          } catch {
             sendEvent("error", {
               message: "获取日志时出错",
               timestamp: new Date().toISOString(),
@@ -185,9 +184,7 @@ export async function GET(request: NextRequest) {
     });
 
     return new Response(stream, { headers });
-  } catch (error) {
-    console.error("Stream logs error:", error);
-
+  } catch {
     return new Response(JSON.stringify({ error: "创建日志流失败" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

@@ -217,7 +217,6 @@ export const ProductSelectorModal: React.FC<ProductSelectorModalProps> = ({
   const fetchProducts = useCallback(
     async (page: number, search: string) => {
       setIsLoading(true);
-      // console.log(`Fetching products: page=${page}, search='${search}', limit=${ITEMS_PER_PAGE}`);
       try {
         const result = await fetchAdminProductsApi({
           page,
@@ -229,7 +228,6 @@ export const ProductSelectorModal: React.FC<ProductSelectorModalProps> = ({
         setTotalPages(result.totalPages);
         setCurrentPage(page);
       } catch {
-        // console.error("Failed to fetch products:", error);
         // toast.error(t('messages.fetchError'));
         setSearchedProducts([]);
         setTotalPages(1);

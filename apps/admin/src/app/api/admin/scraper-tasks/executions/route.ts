@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(totalExecutions / limit),
     });
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error
         ? error.message

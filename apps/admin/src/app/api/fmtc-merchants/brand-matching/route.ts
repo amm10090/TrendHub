@@ -222,9 +222,7 @@ export async function GET(request: NextRequest) {
           { status: 400 },
         );
     }
-  } catch (error) {
-    console.error("FMTC Brand Matching API Error:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -496,9 +494,7 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
     }
-  } catch (error) {
-    console.error("FMTC Brand Matching Action Error:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -558,9 +554,7 @@ export async function DELETE(request: NextRequest) {
       success: true,
       data: { message: "品牌匹配已删除" },
     });
-  } catch (error) {
-    console.error("FMTC Brand Matching Delete Error:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },

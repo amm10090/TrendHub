@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(newContentBlock, { status: 201 });
-  } catch (error) {
+  } catch {
     if (error instanceof PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
         const target = error.meta?.target as string[] | undefined;

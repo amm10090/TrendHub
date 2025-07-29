@@ -203,7 +203,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(newProduct, { status: 201 });
-  } catch (error) {
+  } catch {
     if (error instanceof z.ZodError) {
       const errorDetails = error.errors.map((e) => ({
         field: e.path.join("."),

@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       data: mapping,
       message: "品牌映射创建成功",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -268,7 +268,7 @@ export async function PUT(request: NextRequest) {
       data: mapping,
       message: "品牌映射更新成功",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -324,7 +324,7 @@ export async function DELETE(request: NextRequest) {
       success: true,
       message: "品牌映射删除成功",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

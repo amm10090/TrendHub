@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 
             suggestedBrands = suggestions;
           }
-        } catch (error) {
+        } catch {
           return NextResponse.json({
             success: false,
             error: "获取未匹配商家失败",
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: merchantsWithDetails,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

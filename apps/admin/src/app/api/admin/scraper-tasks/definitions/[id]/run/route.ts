@@ -48,7 +48,7 @@ export async function POST(
     // Respond with 202 Accepted, indicating the request has been accepted for processing.
     // The client should then poll the execution status or use WebSocket for updates.
     return NextResponse.json(newExecution, { status: 202 });
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error ? error.message : "手动触发爬虫任务时发生未知错误";
 

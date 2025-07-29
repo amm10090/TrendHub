@@ -68,8 +68,7 @@ import {
 import { FMTCMerchantDetailModal } from "./FMTCMerchantDetailModal";
 
 const logger = {
-  error: (message: string, context?: unknown) =>
-    console.error(`[FMTCMerchantsDataTable ERROR] ${message}`, context || ""),
+  error: () => {},
 };
 
 // 商户统计接口定义
@@ -121,6 +120,7 @@ interface FMTCMerchantsDataTableProps {
   selectedNetwork: string;
   brandMatchStatus: string;
   selectedActiveStatus: string;
+  selectedCategory: string;
   refreshTrigger: number;
   onStatsUpdate: (stats: FMTCMerchantStats) => void;
 }
@@ -131,6 +131,7 @@ export function FMTCMerchantsDataTable({
   selectedNetwork,
   brandMatchStatus,
   selectedActiveStatus,
+  selectedCategory,
   refreshTrigger,
   onStatsUpdate,
 }: FMTCMerchantsDataTableProps) {
@@ -202,6 +203,8 @@ export function FMTCMerchantsDataTable({
       params.append("brandMatched", brandMatchStatus);
     if (selectedActiveStatus && selectedActiveStatus !== "all")
       params.append("activeStatus", selectedActiveStatus);
+    if (selectedCategory && selectedCategory !== "all")
+      params.append("category", selectedCategory);
 
     return params.toString();
   }, [
@@ -212,6 +215,7 @@ export function FMTCMerchantsDataTable({
     selectedNetwork,
     brandMatchStatus,
     selectedActiveStatus,
+    selectedCategory,
   ]);
 
   // 获取商户数据
@@ -233,7 +237,7 @@ export function FMTCMerchantsDataTable({
           logger.error("获取商户数据失败:", result.error);
         }
       }
-    } catch (error) {
+    } catch {
       logger.error("获取商户数据出错:", error);
     } finally {
       setIsLoading(false);
@@ -283,7 +287,7 @@ export function FMTCMerchantsDataTable({
       } else {
         toast.error(t("fmtcMerchants.bulkActions.bulkUpdateError"));
       }
-    } catch (error) {
+    } catch {
       logger.error("批量操作失败:", error);
       toast.error(t("fmtcMerchants.bulkActions.bulkUpdateError"));
     } finally {
@@ -325,7 +329,7 @@ export function FMTCMerchantsDataTable({
       } else {
         toast.error(t("fmtcMerchants.bulkActions.bulkDeleteError"));
       }
-    } catch (error) {
+    } catch {
       logger.error("批量删除失败:", error);
       toast.error(t("fmtcMerchants.bulkActions.bulkDeleteError"));
     } finally {
@@ -345,18 +349,14 @@ export function FMTCMerchantsDataTable({
         `/api/fmtc-merchants/progress/${executionId}`,
       );
 
-      eventSource.onopen = () => {
-        console.log("SSE连接已建立");
-      };
+      eventSource.onopen = () => {};
 
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
 
-          console.log("[SSE前端] 收到消息:", data);
-
           if (data.type === "connected") {
-            console.log("SSE连接确认:", data.message);
+            // Connection established
           } else if (data.type === "progress") {
             // 更新实时进度
             setBatchScrapingProgress((prev) => ({
@@ -396,13 +396,12 @@ export function FMTCMerchantsDataTable({
             // 刷新数据
             fetchMerchants();
           }
-        } catch (error) {
-          console.error("解析SSE数据失败:", error);
+        } catch {
+          // Error parsing SSE data
         }
       };
 
-      eventSource.onerror = (error) => {
-        console.error("SSE连接错误:", error);
+      eventSource.onerror = () => {
         eventSource.close();
         setSseConnection(null);
       };
@@ -452,26 +451,15 @@ export function FMTCMerchantsDataTable({
       if (response.ok) {
         const result = await response.json();
 
-        console.log("批量刷新API响应:", result);
-
         if (result.success) {
           setRowSelection({});
 
           // 从响应中获取executionId，立即建立SSE连接监听实时进度
           const executionId = result.data?.executionId || result.executionId;
 
-          console.log("尝试获取executionId:", {
-            fromData: result.data?.executionId,
-            fromRoot: result.executionId,
-            final: executionId,
-            fullData: result.data,
-          });
-
           if (executionId) {
-            console.log("获取到executionId，立即建立SSE连接:", executionId);
             establishSSEConnection(executionId);
           } else {
-            console.log("未获取到executionId，使用传统方式显示结果");
             // 如果没有executionId，使用传统方式显示结果
             setIsBatchScraping(false);
 
@@ -510,7 +498,7 @@ export function FMTCMerchantsDataTable({
         setIsBatchScraping(false);
         toast.error(t("fmtcMerchants.scraping.batchFailed"));
       }
-    } catch (error) {
+    } catch {
       logger.error("批量刷新失败:", error);
       setIsBatchScraping(false);
       toast.error(t("fmtcMerchants.scraping.batchFailed"));
@@ -628,7 +616,7 @@ export function FMTCMerchantsDataTable({
             toast.error(t("fmtcMerchants.actions.operationFailed"));
           }
         }
-      } catch (error) {
+      } catch {
         // 确保从正在抓取的列表中移除
         if (action === "refresh_data") {
           setScrapingMerchants((prev) => {
@@ -745,7 +733,13 @@ export function FMTCMerchantsDataTable({
                       rel="noopener noreferrer"
                       className="hover:underline"
                     >
-                      {new URL(merchant.homepage).hostname}
+                      {(() => {
+                        try {
+                          return new URL(merchant.homepage).hostname;
+                        } catch {
+                          return merchant.homepage;
+                        }
+                      })()}
                     </a>
                   </div>
                 )}
@@ -1006,6 +1000,7 @@ export function FMTCMerchantsDataTable({
     selectedNetwork,
     brandMatchStatus,
     selectedActiveStatus,
+    selectedCategory,
     pageSize, // 页面大小变化时也重置页码
   ]);
 

@@ -47,7 +47,7 @@ export async function GET() {
         : null,
       message: apiKey ? "API Key 已配置" : "API Key 未配置",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         overallValid: !hasDoubleEncoding && decodedUrl === testUrl,
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

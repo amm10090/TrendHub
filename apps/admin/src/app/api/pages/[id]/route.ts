@@ -87,7 +87,7 @@ export async function PATCH(
     });
 
     return NextResponse.json(updatedPage);
-  } catch (error) {
+  } catch {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "验证失败", details: error.errors },

@@ -85,9 +85,7 @@ export async function GET() {
       success: true,
       data: config,
     });
-  } catch (error) {
-    console.error("获取FMTC配置失败:", error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -151,9 +149,7 @@ export async function PUT(request: NextRequest) {
       message: "FMTC配置更新成功",
       data: config,
     });
-  } catch (error) {
-    console.error("更新FMTC配置失败:", error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -187,9 +183,7 @@ export async function DELETE() {
       message: "FMTC配置已重置为默认值",
       data: config,
     });
-  } catch (error) {
-    console.error("重置FMTC配置失败:", error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,

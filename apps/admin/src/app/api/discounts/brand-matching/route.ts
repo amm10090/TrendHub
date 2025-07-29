@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       default:
         return getBrandMappings(searchParams);
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -151,7 +151,7 @@ export async function DELETE(request: NextRequest) {
       success: true,
       message: "品牌映射删除成功",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

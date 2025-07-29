@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         status: "healthy",
         message: "Database connection successful",
       };
-    } catch (error) {
+    } catch {
       checks.database = {
         status: "error",
         message: "Database connection failed",
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       if (schedulerHealth.status === "error") {
         health.status = "warning";
       }
-    } catch (error) {
+    } catch {
       checks.scheduler = {
         status: "error",
         message: "Scheduler health check failed",
@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
           brands: totalBrands,
           imports: totalImports,
         };
-      } catch (error) {
+      } catch {
         (checks.database as DatabaseCheck).statsError =
           error instanceof Error ? error.message : "Unknown error";
       }
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
             health.status = "warning";
           }
         }
-      } catch (error) {
+      } catch {
         checks.recentErrorsCheck = {
           status: "error",
           error: error instanceof Error ? error.message : "Unknown error",
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
       responseTime: `${responseTime}ms`,
       checks,
     });
-  } catch (error) {
+  } catch {
     const responseTime = Date.now() - startTime;
 
     return NextResponse.json(

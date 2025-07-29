@@ -89,7 +89,7 @@ export class DiscountExpirationService {
       }
 
       return results;
-    } catch (error) {
+    } catch {
       results.push({
         type: "check",
         success: false,
@@ -158,7 +158,7 @@ export class DiscountExpirationService {
         details,
         timestamp: now,
       };
-    } catch (error) {
+    } catch {
       return {
         type: "check",
         success: false,
@@ -222,7 +222,7 @@ export class DiscountExpirationService {
         details,
         timestamp: new Date(),
       };
-    } catch (error) {
+    } catch {
       return {
         type: "cleanup",
         success: false,
@@ -296,7 +296,7 @@ export class DiscountExpirationService {
         details,
         timestamp: now,
       };
-    } catch (error) {
+    } catch {
       return {
         type: "notify",
         success: false,

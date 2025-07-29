@@ -111,9 +111,7 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
-    console.error("获取 FMTC 商户列表失败:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -179,9 +177,7 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
     }
-  } catch (error) {
-    console.error("FMTC 商户操作失败:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: (error as Error).message },
       { status: 500 },
@@ -258,9 +254,7 @@ export async function PUT(request: NextRequest) {
       data: result,
       message: `批量操作完成，影响 ${result.count || ids.length} 个商户`,
     });
-  } catch (error) {
-    console.error("批量操作失败:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: (error as Error).message },
       { status: 500 },
@@ -305,9 +299,7 @@ export async function DELETE(request: NextRequest) {
       data: { count: result.count },
       message: `成功删除 ${result.count} 个商户`,
     });
-  } catch (error) {
-    console.error("删除商户失败:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },

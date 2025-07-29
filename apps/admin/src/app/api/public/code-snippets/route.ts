@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 // 使用单例模式确保每个实例只创建一次PrismaClient
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
@@ -59,8 +58,7 @@ export async function GET(request: Request) {
         }),
       })),
     });
-  } catch (error) {
-    console.error("获取公开代码片段失败:", error);
+  } catch {
     return NextResponse.json(
       {
         success: false,

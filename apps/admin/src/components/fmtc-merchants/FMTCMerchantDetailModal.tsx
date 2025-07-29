@@ -151,8 +151,8 @@ export function FMTCMerchantDetailModal({
           onUpdate();
         }
       }
-    } catch (error) {
-      console.error("更新商户失败:", error);
+    } catch {
+      // Error handling
     } finally {
       setIsLoading(false);
     }
@@ -177,8 +177,8 @@ export function FMTCMerchantDetailModal({
           onUpdate();
         }
       }
-    } catch (error) {
-      console.error("刷新数据失败:", error);
+    } catch {
+      // Error handling
     } finally {
       setIsLoading(false);
     }
@@ -206,8 +206,8 @@ export function FMTCMerchantDetailModal({
           onUpdate();
         }
       }
-    } catch (error) {
-      console.error("确认品牌匹配失败:", error);
+    } catch {
+      // Error handling
     } finally {
       setIsLoading(false);
     }
@@ -232,8 +232,8 @@ export function FMTCMerchantDetailModal({
           onUpdate();
         }
       }
-    } catch (error) {
-      console.error("拒绝品牌匹配失败:", error);
+    } catch {
+      // Error handling
     } finally {
       setIsLoading(false);
     }
@@ -258,8 +258,8 @@ export function FMTCMerchantDetailModal({
           onUpdate();
         }
       }
-    } catch (error) {
-      console.error("刷新FMTC页面截图失败:", error);
+    } catch {
+      // Error handling
     } finally {
       setIsLoading(false);
     }

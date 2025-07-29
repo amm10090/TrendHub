@@ -90,7 +90,6 @@ export function DashboardReports() {
     } catch {
       // Capture error for logging or specific handling
       toast.error(t("downloadFailed"));
-      // console.error("CSV Download/Parse Error:", _err); // Log the actual error
     }
   };
 
@@ -157,7 +156,7 @@ export function DashboardReports() {
         }
         page++;
         retries = 3;
-      } catch (error) {
+      } catch {
         retries--;
         if (retries <= 0) {
           throw error;
@@ -200,7 +199,7 @@ export function DashboardReports() {
       });
 
       downloadCSV(reportData, t("productReportName"));
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -229,7 +228,7 @@ export function DashboardReports() {
       });
 
       downloadCSV(reportData, t("brandReportName"));
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -261,7 +260,7 @@ export function DashboardReports() {
       });
 
       downloadCSV(reportData, t("categoryReportName"));
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error
           ? error.message

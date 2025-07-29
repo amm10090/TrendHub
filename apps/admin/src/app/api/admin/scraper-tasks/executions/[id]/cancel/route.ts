@@ -71,7 +71,7 @@ export async function POST(
       message: `成功取消任务 ${taskExecution.taskDefinition.name}`,
       data: updatedExecution,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "取消任务失败", details: (error as Error).message },
       { status: 500 },

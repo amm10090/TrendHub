@@ -34,7 +34,7 @@ export async function PUT(request: Request, context: Promise<RouteParams>) {
     const brand = await brandService.updateBrand(id, data);
 
     return NextResponse.json(brand);
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error ? error.message : "更新品牌失败";
 
@@ -51,7 +51,7 @@ export async function DELETE(_: Request, context: Promise<RouteParams>) {
     await brandService.deleteBrand(id);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error ? error.message : "删除品牌失败";
 

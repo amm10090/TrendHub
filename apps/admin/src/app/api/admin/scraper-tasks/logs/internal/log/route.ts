@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     // 如果 taskDefinition 不存在 (理论上不应该，因为 executionId 存在就应该有关联的 taskDefinition)
     if (!taskExecution.taskDefinition) {
-      // console.warn(`[Internal Log API] Task definition not found for executionId: ${executionId}, but proceeding with DB log.`);
+      // Task definition should always exist if execution exists
     }
 
     // 2. 如果启用了调试模式并且 taskDefinition 和 targetSite 存在，则写入本地文件
@@ -126,7 +126,6 @@ export async function POST(request: NextRequest) {
         fs.appendFileSync(logFilePath, fileLogMessage, { encoding: "utf8" });
       } catch {
         // 记录文件写入失败到控制台，但不中断数据库日志记录或返回错误给客户端
-        // console.error(
         //   `[Internal Log API FileLog FAIL] Failed to write log to file for execution ${executionId}: ${(_fileError as Error).message}`,
         //   _fileError,
         // );
@@ -147,7 +146,6 @@ export async function POST(request: NextRequest) {
           timestamp: timestamp ? new Date(timestamp) : new Date(),
         },
       });
-      console.log(`[FMTC日志已记录到数据库] ${message}`);
     } else {
       // 使用原有逻辑处理通用抓取任务
       await db.scraperTaskLog.create({
@@ -168,7 +166,6 @@ export async function POST(request: NextRequest) {
     // General catch block for the POST handler
     // 避免将详细错误返回给爬虫客户端的内部日志端点
     // 在服务器端记录完整的错误信息以供调试
-    // console.error("[Internal Log API ERROR] An unexpected error occurred:", _error);
 
     return NextResponse.json({ error: "记录内部日志失败" }, { status: 500 });
   }

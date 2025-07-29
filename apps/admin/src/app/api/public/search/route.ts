@@ -123,8 +123,7 @@ export async function GET(request: NextRequest) {
       query: searchTerm,
       totalResults: products.length + brands.length,
     });
-  } catch (error) {
-    console.error("Search suggestions failed:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch search suggestions" },
       { status: 500 },

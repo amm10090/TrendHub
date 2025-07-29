@@ -36,7 +36,7 @@ export async function GET(
     }
 
     return NextResponse.json(taskExecution);
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error
         ? error.message

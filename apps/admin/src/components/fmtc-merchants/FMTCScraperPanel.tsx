@@ -181,8 +181,8 @@ export function FMTCScraperPanel({
           onStatsUpdate(result.data.stats);
         }
       }
-    } catch (error) {
-      console.error("获取抓取任务失败:", error);
+    } catch {
+      // Error fetching tasks
     } finally {
       setIsLoading(false);
     }
@@ -237,8 +237,7 @@ export function FMTCScraperPanel({
 
         toast.error(errorMessage, { id: "create-task" });
       }
-    } catch (error) {
-      console.error("创建任务失败:", error);
+    } catch {
       toast.error(t("fmtcMerchants.scraper.messages.networkError"), {
         id: "create-task",
       });
@@ -306,8 +305,7 @@ export function FMTCScraperPanel({
 
         toast.error(errorMessage, { id: "update-task" });
       }
-    } catch (error) {
-      console.error("更新任务失败:", error);
+    } catch {
       toast.error(t("fmtcMerchants.scraper.messages.networkError"), {
         id: "update-task",
       });
@@ -381,8 +379,7 @@ export function FMTCScraperPanel({
 
         toast.error(errorMessage, { id: `task-${taskId}-${action}` });
       }
-    } catch (error) {
-      console.error("任务操作失败:", error);
+    } catch {
       toast.error(t("fmtcMerchants.scraper.messages.networkError"), {
         id: `task-${taskId}-${action}`,
       });
@@ -430,8 +427,7 @@ export function FMTCScraperPanel({
 
         toast.error(errorMessage, { id: `delete-task-${taskId}` });
       }
-    } catch (error) {
-      console.error("删除任务失败:", error);
+    } catch {
       toast.error(t("fmtcMerchants.scraper.messages.networkError"), {
         id: `delete-task-${taskId}`,
       });
@@ -1647,8 +1643,7 @@ export function FMTCScraperPanel({
                 executionId={selectedTask.executions[0].id}
                 taskName={selectedTask.name}
                 onClose={() => setIsRealtimeLogsOpen(false)}
-                onStatusChange={(status) => {
-                  console.log("FMTC Status changed:", status);
+                onStatusChange={() => {
                   // 刷新任务列表数据
                   fetchTasks();
                 }}

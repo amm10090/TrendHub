@@ -80,8 +80,6 @@ export async function GET(
 
     const { executionId } = await params;
 
-    console.log(`[SSE] 建立新的SSE连接，executionId: ${executionId}`);
-
     // 创建SSE流
     const stream = new ReadableStream({
       start(controller) {
@@ -95,7 +93,6 @@ export async function GET(
           message: "SSE连接已建立",
         };
 
-        console.log(`[SSE] 发送初始连接确认:`, initialData);
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify(initialData)}\n\n`),
         );
@@ -116,19 +113,16 @@ export async function GET(
 
         // 存储控制器以便后续推送数据
         activeConnections.set(executionId, controller);
-        console.log(
-          `[SSE] 控制器已存储，当前活跃连接数: ${activeConnections.size}`,
-        );
+        // [SSE] 控制器已存储，当前活跃连接数: ${activeConnections.size}
 
         // 清理函数
         const cleanup = () => {
-          console.log(`[SSE] 清理连接，executionId: ${executionId}`);
           activeConnections.delete(executionId);
           progressData.delete(executionId);
           try {
             controller.close();
-          } catch (error) {
-            console.error("[SSE] 关闭控制器失败:", error);
+          } catch {
+            // Controller already closed
           }
         };
 
@@ -153,9 +147,7 @@ export async function GET(
         "Access-Control-Allow-Headers": "Cache-Control",
       },
     });
-  } catch (error) {
-    console.error("SSE连接建立失败:", error);
-
+  } catch {
     return NextResponse.json({ error: "无法建立SSE连接" }, { status: 500 });
   }
 }
@@ -172,9 +164,7 @@ export async function POST(
     const { executionId } = await params;
     const progressUpdate = await request.json();
 
-    console.log(
-      `[SSE] 收到进度更新，executionId: ${executionId}, 活跃连接数: ${activeConnections.size}`,
-    );
+    // [SSE] 收到进度更新，executionId: ${executionId}, 活跃连接数: ${activeConnections.size}
 
     // 存储进度数据
     progressData.set(executionId, progressUpdate);
@@ -183,7 +173,6 @@ export async function POST(
     const controller = activeConnections.get(executionId);
 
     if (controller) {
-      console.log(`[SSE] 找到控制器，准备推送数据:`, progressUpdate);
       const encoder = new TextEncoder();
       const data = {
         type: "progress",
@@ -194,21 +183,17 @@ export async function POST(
 
       try {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
-        console.log(`[SSE] 数据推送成功`);
-      } catch (error) {
+      } catch {
         // 连接已断开，清理
         activeConnections.delete(executionId);
         progressData.delete(executionId);
-        console.error("SSE推送失败:", error);
       }
     } else {
-      console.log(`[SSE] 未找到executionId对应的控制器: ${executionId}`);
+      // No active connection for this executionId
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("推送进度更新失败:", error);
-
+  } catch {
     return NextResponse.json({ error: "推送进度更新失败" }, { status: 500 });
   }
 }
@@ -237,8 +222,8 @@ export async function pushProgressUpdate(
 
       controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
     }
-  } catch (error) {
-    console.error("内部推送进度更新失败:", error);
+  } catch {
+    // Error pushing progress update
   }
 }
 
@@ -267,14 +252,14 @@ export async function pushCompletionStatus(
       setTimeout(() => {
         try {
           controller.close();
-        } catch (error) {
-          console.error("关闭SSE连接失败:", error);
+        } catch {
+          // Controller already closed
         }
         activeConnections.delete(executionId);
         progressData.delete(executionId);
       }, 5000); // 5秒后清理
     }
-  } catch (error) {
-    console.error("推送完成状态失败:", error);
+  } catch {
+    // Error pushing progress update
   }
 }

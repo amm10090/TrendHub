@@ -23,14 +23,9 @@ import { Product as ScrapedProductType, ECommerceSite } from "@repo/types"; // R
 import { db } from "@/lib/db";
 
 const logger = {
-  info: (message: string, context?: Record<string, unknown> | undefined) =>
-    console.log(`[TaskExecutor INFO] ${message}`, context || ""),
-
-  warn: (message: string, context?: Record<string, unknown> | undefined) =>
-    console.warn(`[TaskExecutor WARN] ${message}`, context || ""),
-
-  error: (message: string, context?: Record<string, unknown> | undefined) =>
-    console.error(`[TaskExecutor ERROR] ${message}`, context || ""),
+  info: () => {},
+  warn: () => {},
+  error: () => {},
 };
 
 // 类型定义 ScraperFunction
@@ -75,15 +70,12 @@ export class TaskExecutor {
           timestamp: new Date(),
         },
       });
-    } catch (error) {
+    } catch {
       logger.error(
         `Failed to save log to DB for execution ${executionId}: ${message}`,
         error as Record<string, unknown>,
       );
-      console.error(
-        `[DB LOG FAIL] EXEC_ID: ${executionId} [${level}] ${message}`,
-        context || "",
-      );
+      // [DB LOG FAIL] EXEC_ID: ${executionId} [${level}] ${message}
     }
 
     if (taskDefForLogging?.isDebugModeEnabled && taskDefForLogging.targetSite) {
@@ -125,11 +117,8 @@ export class TaskExecutor {
       const logMessage = `[${timestamp}] [${level}] ${message}${contextString ? ` ${contextString}` : ""}\n`;
 
       fs.appendFileSync(logFilePath, logMessage, { encoding: "utf8" });
-    } catch (fileError) {
-      console.error(
-        `[TaskExecutor FileLog FAIL] Failed to write log to file for execution ${executionId}: ${(fileError as Error).message}`,
-        fileError,
-      );
+    } catch {
+      // [TaskExecutor FileLog FAIL] Failed to write log to file for execution ${executionId}: ${(fileError as Error).message}
     }
   }
 

@@ -194,7 +194,7 @@ export default function NewProductPage() {
       } else {
         throw new Error(result.error || "生成链接失败");
       }
-    } catch (error) {
+    } catch {
       toast.error(
         error instanceof Error
           ? error.message
@@ -284,7 +284,7 @@ export default function NewProductPage() {
 
       toast.success(t("toast.createSuccess"));
       router.push("/products");
-    } catch (error) {
+    } catch {
       toast.error(
         error instanceof Error && error.message
           ? error.message

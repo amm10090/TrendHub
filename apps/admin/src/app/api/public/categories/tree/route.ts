@@ -9,12 +9,9 @@ export async function GET() {
   try {
     const categoryTree = await categoryService.getPublicCategoryTree();
     return NextResponse.json(categoryTree);
-  } catch (error) {
+  } catch {
     // 考虑记录更详细的错误日志
-    console.error(
-      "[API_PUBLIC_CATEGORIES_TREE] Error fetching category tree:",
-      error,
-    );
+    // [API_PUBLIC_CATEGORIES_TREE] Error fetching category tree
     return NextResponse.json(
       {
         error: "获取分类导航数据失败",

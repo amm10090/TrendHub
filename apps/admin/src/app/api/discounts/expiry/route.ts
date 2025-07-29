@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       data: result,
       timestamp: now.toISOString(),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
         expiringSoon: expiringSoonDetails,
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

@@ -65,7 +65,7 @@ export default function EditPage() {
         t("messages.updateSuccessDescription", { title: data.title }),
       ); // 需要添加此翻译
       router.push("../.."); // 返回列表页
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error
           ? error.message

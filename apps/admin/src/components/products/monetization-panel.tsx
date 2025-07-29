@@ -161,7 +161,7 @@ export function MonetizationPanel({
       } else {
         throw new Error(result.error || t("messages.saveApiKeyFailed"));
       }
-    } catch (error) {
+    } catch {
       toast.error(
         error instanceof Error ? error.message : t("messages.saveApiKeyFailed"),
       );
@@ -222,7 +222,7 @@ export function MonetizationPanel({
       // 刷新统计和列表
       await fetchStats();
       onRefresh?.();
-    } catch (error) {
+    } catch {
       if (
         error instanceof Error &&
         error.message.includes("API Key not configured")
@@ -279,7 +279,7 @@ export function MonetizationPanel({
       // 刷新统计和列表
       await fetchStats();
       onRefresh?.();
-    } catch (error) {
+    } catch {
       if (
         error instanceof Error &&
         error.message.includes("API Key not configured")

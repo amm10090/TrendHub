@@ -34,7 +34,7 @@ export default function CreatePage() {
         t("messages.createSuccessDescription", { title: data.title }),
       );
       router.push("..");
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error
           ? error.message

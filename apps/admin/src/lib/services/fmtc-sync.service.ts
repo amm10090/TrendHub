@@ -81,8 +81,6 @@ export class FMTCSyncService {
 
       totalMerchants = merchants.length;
 
-      console.log(`开始同步 ${totalMerchants} 个 FMTC 商户...`);
-
       // 2. 批量执行品牌匹配
       const matchResults = await this.batchMatchBrands(merchants);
 
@@ -110,13 +108,6 @@ export class FMTCSyncService {
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
 
-      console.log(`同步完成，耗时 ${duration}ms`);
-      console.log(`- 新增匹配: ${newMatches}`);
-      console.log(`- 更新匹配: ${updatedMatches}`);
-      console.log(`- 失败匹配: ${failedMatches}`);
-      console.log(`- 删除映射: ${deletedMappings}`);
-      console.log(`- 更新折扣: ${updatedDiscounts}`);
-
       return {
         totalMerchants,
         newMatches,
@@ -137,11 +128,10 @@ export class FMTCSyncService {
           discountsUpdated: updatedDiscounts,
         },
       };
-    } catch (error) {
+    } catch {
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
 
-      console.error("同步过程中发生错误:", error);
       errors.push(
         `同步失败: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -247,7 +237,7 @@ export class FMTCSyncService {
               isConfirmed,
               isNew,
             };
-          } catch (error) {
+          } catch {
             return {
               merchantId: merchant.id,
               merchantName: merchant.name,
@@ -305,8 +295,8 @@ export class FMTCSyncService {
             fmtcMerchantId: result.merchantId,
           },
         });
-      } catch (error) {
-        console.error(`更新品牌映射失败 - 商户: ${result.merchantName}`, error);
+      } catch {
+        // Error creating brand mapping
       }
     }
   }
@@ -327,9 +317,7 @@ export class FMTCSyncService {
       });
 
       return result.count;
-    } catch (error) {
-      console.error("清理无效品牌映射失败:", error);
-
+    } catch {
       return 0;
     }
   }
@@ -369,15 +357,13 @@ export class FMTCSyncService {
           });
 
           updatedCount += result.count;
-        } catch (error) {
-          console.error(`更新折扣品牌关联失败 - 商户: ${merchant.name}`, error);
+        } catch {
+          // Error updating brand mapping
         }
       }
 
       return updatedCount;
-    } catch (error) {
-      console.error("更新折扣品牌关联失败:", error);
-
+    } catch {
       return 0;
     }
   }
@@ -451,8 +437,7 @@ export class FMTCSyncService {
       });
 
       return { resetCount: result.count };
-    } catch (error) {
-      console.error("重置品牌匹配失败:", error);
+    } catch {
       throw error;
     }
   }
@@ -461,8 +446,6 @@ export class FMTCSyncService {
    * 手动触发同步（用于测试或管理界面）
    */
   async triggerManualSync(): Promise<SyncResult> {
-    console.log("手动触发 FMTC 数据同步...");
-
     return await this.syncMerchantsWithBrands();
   }
 }

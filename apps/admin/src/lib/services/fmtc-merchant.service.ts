@@ -100,7 +100,7 @@ export class FMTCMerchantService {
         }
 
         result.successCount++;
-      } catch (error) {
+      } catch {
         result.errorCount++;
         result.errors.push({
           merchantName: merchantData.name,

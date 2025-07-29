@@ -139,7 +139,7 @@ export default function BrandsPage() {
         setTotalPages(data.totalPages || 1);
         setTotalItems(data.totalItems || 0);
         setError(null);
-      } catch (error) {
+      } catch {
         setError(error instanceof Error ? error.message : t("fetchError"));
         toast.error(t("fetchError"));
       } finally {
@@ -527,7 +527,7 @@ export default function BrandsPage() {
 
       // 关闭抽屉
       handleCloseDrawer();
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : t("operationError");
 

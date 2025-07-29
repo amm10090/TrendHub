@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const existingUrls = products.map((p) => p.url);
 
     return NextResponse.json({ existingUrls });
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error ? error.message : "检查URL是否存在时发生未知错误";
 

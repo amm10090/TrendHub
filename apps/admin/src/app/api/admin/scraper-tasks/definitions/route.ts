@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     // This will be handled by a separate service later.
 
     return NextResponse.json(newTaskDefinition, { status: 201 });
-  } catch (error) {
+  } catch {
     // Enhance error logging for production
     const errorMessage =
       error instanceof Error ? error.message : "创建爬虫任务定义时发生未知错误";
@@ -122,7 +122,6 @@ export async function GET(request: NextRequest) {
         whereClause.isEnabled = filterByStatus === "true";
       } else {
         // Removed error response for invalid status filter to allow fetching all
-        // console.warn(`Invalid status filter received: ${filterByStatus}. Ignoring.`);
       }
     }
 
@@ -162,7 +161,7 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(totalTaskDefinitions / limit),
     });
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error
         ? error.message

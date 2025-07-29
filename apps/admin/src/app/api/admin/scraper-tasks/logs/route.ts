@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(totalLogs / limit),
     });
-  } catch (error) {
+  } catch {
     const errorMessage =
       error instanceof Error ? error.message : "获取爬虫任务日志时发生未知错误";
 

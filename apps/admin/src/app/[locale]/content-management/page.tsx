@@ -103,7 +103,6 @@ export default function ContentManagementPage() {
         setPage(response.meta.page);
       } catch {
         // useContentBlocks hook 内部已用 toast 显示错误
-        // console.error("Fetch error in page:", err);
         // 可以在这里设置一个页面级别的错误状态，如果需要
       } finally {
         setIsLoadingTable(false);
@@ -232,7 +231,6 @@ export default function ContentManagementPage() {
       toast.success(t("messages.deleteSuccess", { name: blockToDelete.name }));
     } catch {
       // useContentBlocks hook 内部已用 toast 显示错误
-      // console.error("Delete error in page:", err);
     } finally {
       setIsDeleting(false);
     }

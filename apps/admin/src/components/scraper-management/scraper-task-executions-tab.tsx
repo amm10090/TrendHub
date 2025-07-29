@@ -745,8 +745,7 @@ export function ScraperTaskExecutionsTab() {
                 executionId={currentExecution.id}
                 taskName={currentExecution.taskDefinition.name}
                 onClose={() => setIsRealtimeLogsOpen(false)}
-                onStatusChange={(status) => {
-                  console.log("Status changed:", status);
+                onStatusChange={() => {
                   // 可以在这里添加状态变化的处理逻辑
                   // 比如更新执行列表数据
                   revalidateExecutions();

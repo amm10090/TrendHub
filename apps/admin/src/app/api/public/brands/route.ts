@@ -163,8 +163,7 @@ export async function GET(request: Request) {
     };
 
     return NextResponse.json(publicBrands);
-  } catch (error) {
-    console.error("获取公共品牌列表失败:", error);
+  } catch {
     return NextResponse.json({ error: "获取品牌列表失败" }, { status: 500 });
   }
 }

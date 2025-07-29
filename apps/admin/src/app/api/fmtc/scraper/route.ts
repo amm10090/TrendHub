@@ -10,8 +10,7 @@ import { db } from "@/lib/db";
 import { FMTCScraperService } from "@/lib/services/fmtc-scraper.service";
 
 const logger = {
-  error: (message: string, context?: unknown) =>
-    console.error(`[FMTCScraperAPI ERROR] ${message}`, context || ""),
+  error: () => {},
 };
 
 const fmtcScraperService = new FMTCScraperService();
@@ -122,7 +121,7 @@ export async function GET(request: NextRequest) {
           { status: 400 },
         );
     }
-  } catch (error) {
+  } catch {
     logger.error("获取抓取任务信息失败:", error);
 
     return NextResponse.json(
@@ -255,7 +254,7 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
     }
-  } catch (error) {
+  } catch {
     logger.error("抓取任务操作失败:", error);
 
     return NextResponse.json(
@@ -316,7 +315,7 @@ export async function PUT(request: NextRequest) {
       data: updatedTask,
       message: "任务配置更新成功",
     });
-  } catch (error) {
+  } catch {
     logger.error("更新抓取任务配置失败:", error);
 
     return NextResponse.json(
@@ -375,7 +374,7 @@ export async function DELETE(request: NextRequest) {
       success: true,
       message: "任务删除成功",
     });
-  } catch (error) {
+  } catch {
     logger.error("删除抓取任务失败:", error);
 
     return NextResponse.json(

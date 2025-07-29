@@ -104,8 +104,7 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
-  } catch (error) {
-    console.error("获取公共内容块时出错:", error);
+  } catch {
     return NextResponse.json({ error: "获取公共内容块失败" }, { status: 500 });
   }
 }

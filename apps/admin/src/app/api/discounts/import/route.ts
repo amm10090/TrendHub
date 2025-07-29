@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
         importedDiscounts.push(discount);
         successCount++;
-      } catch (error) {
+      } catch {
         errorCount++;
         const errorMessage =
           error instanceof Error ? error.message : "未知错误";
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       errors: errors.slice(0, 10), // 只返回前10个错误
       ...stats,
     });
-  } catch (error) {
+  } catch {
     // 更新导入记录为失败状态
     if (importRecord) {
       try {
@@ -213,7 +213,7 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

@@ -50,12 +50,9 @@ export async function GET(
     };
 
     return NextResponse.json(publicBrandData, { status: 200 });
-  } catch (error) {
+  } catch {
     // 记录服务器端错误，但不要将详细错误信息直接暴露给客户端
-    console.error(
-      `[API ERROR] Failed to fetch brand by slug:`, // slug 变量在catch块中不可用，移除
-      error,
-    );
+    // [API ERROR] Failed to fetch brand by slug
     return NextResponse.json(
       { error: "An internal server error occurred while fetching the brand." },
       { status: 500 },

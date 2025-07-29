@@ -83,7 +83,6 @@ export async function GET(
       },
     });
   } catch {
-    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -147,7 +146,6 @@ export async function PUT(
       data: updatedTask,
     });
   } catch {
-    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -208,7 +206,6 @@ export async function DELETE(
       data: { message: "任务已删除" },
     });
   } catch {
-    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -282,7 +279,7 @@ export async function POST(
               message: "任务已开始",
             },
           });
-        } catch (error) {
+        } catch {
           return NextResponse.json(
             { success: false, error: (error as Error).message },
             { status: 500 },
@@ -375,7 +372,6 @@ export async function POST(
         );
     }
   } catch {
-    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },

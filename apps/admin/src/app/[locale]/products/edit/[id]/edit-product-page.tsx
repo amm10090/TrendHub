@@ -159,7 +159,7 @@ export function EditProductPage({ id }: { id: string }) {
         );
 
         setProductError(null);
-      } catch (error) {
+      } catch {
         setProductError(
           error instanceof Error ? error.message : t("fetchError"),
         );
@@ -268,7 +268,7 @@ export function EditProductPage({ id }: { id: string }) {
       } else {
         throw new Error(result.error || "生成链接失败");
       }
-    } catch (error) {
+    } catch {
       toast.error(
         error instanceof Error
           ? error.message
@@ -343,7 +343,7 @@ export function EditProductPage({ id }: { id: string }) {
 
       toast.success(t("successUpdate"));
       router.push("/products");
-    } catch (error) {
+    } catch {
       setErrorMsg(
         error instanceof Error ? error.message : t("errorModal.defaultMessage"),
       );
@@ -792,8 +792,6 @@ export function EditProductPage({ id }: { id: string }) {
                           (node) => flattenCategoryTree(node),
                         );
 
-                        // console.log(`扁平化后共有 ${flattenedCategories.length} 个分类节点`);
-
                         // 验证分类的完整性
                         // let level1Count = 0;
                         // let level2Count = 0;
@@ -817,13 +815,10 @@ export function EditProductPage({ id }: { id: string }) {
                             );
 
                             if (!parentExists) {
-                              // console.warn(`警告: 分类 ${cat.name}(${cat.id}) 的父分类 ID ${cat.parentId} 不存在于扁平化数组中`);
                               // missingParentCount++;
                             }
                           }
                         });
-
-                        // console.log(`分类层级统计: 一级(${level1Count})个, 二级(${level2Count})个, 三级(${level3Count})个, 缺少父级(${missingParentCount})个`);
 
                         return flattenedCategories;
                       })()

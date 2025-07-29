@@ -158,18 +158,88 @@ export function DiscountImportForm({
     }
   };
 
-  // 文件上传处理
+  // Ultra Think 文件上传处理 - 根据CSV列进行解析
   const handleFileUpload = async (file: File) => {
     setIsPreviewLoading(true);
 
     try {
-      const content = await file.text();
+      const rawContent = await file.text();
 
-      setPastedContent(content);
+      // Ultra Think: 直接清理原始CSV内容，而不是重新格式化
+
+      // 先用FMTC Parser的CSV解析器处理原始内容
+      const csvRows = (
+        fmtcParserService as {
+          parseCSVWithQuotes: (content: string) => string[][];
+        }
+      ).parseCSVWithQuotes(rawContent);
+
+      // 智能检测表头
+      const hasHeaders = (
+        fmtcParserService as { detectCSVHeaders: (rows: string[][]) => boolean }
+      ).detectCSVHeaders(csvRows);
+
+      // 构建清理后的CSV
+      const cleanedRows = csvRows.map((row, index) => {
+        if (index === 0 && hasHeaders) {
+          // 保持表头不变
+          return row.join(",");
+        }
+
+        // 清理数据行，确保每个字段都是单行
+        const cleanedFields = row.map((field) => {
+          if (!field) return "";
+
+          // 移除外层引号
+          let cleaned = field;
+
+          if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+            cleaned = cleaned.slice(1, -1);
+          }
+
+          // 清理换行符和多余空格
+          cleaned = cleaned
+            .replace(/[\r\n]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+
+          // 如果包含逗号，重新加引号
+          if (cleaned.includes(",") || cleaned.includes('"')) {
+            cleaned = `"${cleaned.replace(/"/g, '""')}"`;
+          }
+
+          return cleaned;
+        });
+
+        return cleanedFields.join(",");
+      });
+
+      const cleanedContent = cleanedRows.join("\n");
+
+      // 然后再用清理后的内容进行正常解析
+      const { data: parsedData, stats } =
+        await fmtcParserService.parsePastedContent(cleanedContent);
+
+      // 设置清理后的内容到textarea
+      setPastedContent(cleanedContent);
       setImportMode("file");
 
-      // 自动解析文件内容
-      await handlePreview();
+      // 使用已解析的数据直接设置预览
+      const validated = fmtcParserService.validateDiscountData(parsedData);
+
+      setPreviewData(validated.validData);
+      setParseStats(stats);
+      setValidationErrors(validated.errors);
+
+      if (validated.errors.length > 0) {
+        toast.warning(
+          t("messages.parseWarning", { count: validated.errors.length }),
+        );
+      } else {
+        toast.success(
+          t("messages.parseSuccess", { count: validated.validData.length }),
+        );
+      }
     } catch {
       toast.error(t("messages.fileReadError"));
     } finally {

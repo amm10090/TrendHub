@@ -149,7 +149,7 @@ export class DiscountSchedulerService {
       } else {
         this.status.failedRuns++;
       }
-    } catch (error) {
+    } catch {
       log.error = error instanceof Error ? error.message : "Unknown error";
       log.endTime = new Date();
       log.duration = log.endTime.getTime() - startTime.getTime();
@@ -171,7 +171,7 @@ export class DiscountSchedulerService {
     for (let attempt = 1; attempt <= this.config.retryAttempts; attempt++) {
       try {
         return await discountExpirationService.processExpiredDiscounts();
-      } catch (error) {
+      } catch {
         lastError = error instanceof Error ? error : new Error("Unknown error");
 
         if (attempt < this.config.retryAttempts) {
@@ -216,7 +216,7 @@ export class DiscountSchedulerService {
       this.addLog(log);
 
       return results;
-    } catch (error) {
+    } catch {
       log.error = error instanceof Error ? error.message : "Unknown error";
       log.endTime = new Date();
       log.duration = log.endTime.getTime() - startTime.getTime();

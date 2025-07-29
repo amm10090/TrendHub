@@ -51,7 +51,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       success: true,
       data: discount,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -178,7 +178,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       data: updatedDiscount,
       message: "折扣更新成功",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -216,7 +216,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       success: true,
       message: "折扣删除成功",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -264,7 +264,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       { success: false, error: "不支持的操作类型" },
       { status: 400 },
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

@@ -496,9 +496,9 @@
     outline-offset: 2px;
   }
 
-  /* 全局平滑过渡 */
-  * {
-    transition-property: color, background-color, border-color, box-shadow, transform;
+  /* 全局平滑过渡 - 排除使用动画类的元素 */
+  *:not([data-state]):not([data-side]):not(.animate-in):not(.animate-out) {
+    transition-property: color, background-color, border-color, box-shadow;
     transition-duration: 0.3s;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }

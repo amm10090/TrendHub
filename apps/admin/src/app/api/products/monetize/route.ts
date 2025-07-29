@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
                 ? isDoubleEncodedUrl(product.adurl)
                 : false,
           };
-        } catch (error) {
+        } catch {
           return {
             success: false,
             productId: product.id,
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
         failed,
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         error: `批量货币化处理失败: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -255,7 +255,7 @@ export async function GET() {
         doubleEncodedUrls: doubleEncodedCount,
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         error: `获取统计信息失败: ${error instanceof Error ? error.message : "Unknown error"}`,

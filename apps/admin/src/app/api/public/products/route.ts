@@ -274,21 +274,19 @@ export async function GET(request: NextRequest) {
               totalItems: totalProducts,
             },
     });
-  } catch (error) {
+  } catch {
     // 特别处理字段比较错误 (如果使用 Prisma < 6.x)
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2010"
     ) {
       // Example error code, adjust if needed
-      console.error("字段比较错误 (可能需要 Prisma 6.x+ 或替代方案):", error);
       return NextResponse.json(
         { error: "筛选打折商品时发生错误 (字段比较)" },
         { status: 500 },
       );
     }
 
-    console.error("获取公共产品列表失败:", error);
     return NextResponse.json(
       { error: "获取产品列表时发生内部错误" },
       { status: 500 },

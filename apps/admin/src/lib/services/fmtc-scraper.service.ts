@@ -66,9 +66,7 @@ export class FMTCScraperService {
       }
 
       return config;
-    } catch (error) {
-      console.error("获取FMTC配置失败:", error);
-
+    } catch {
       return null;
     }
   }
@@ -191,7 +189,6 @@ export class FMTCScraperService {
       task,
       config || (task.config as TaskConfig),
     ).catch(async (error) => {
-      console.error("爬虫执行失败:", error);
       await db.fMTCScraperExecution.update({
         where: { id: execution.id },
         data: {
@@ -315,7 +312,7 @@ export class FMTCScraperService {
       const dbConfig = await this.getFMTCConfig();
 
       if (!dbConfig) {
-        console.warn("警告：无法获取数据库配置，将使用任务配置或默认值");
+        // No database config found, will use defaults
       }
 
       const fmtcConfig = dbConfig ? this.convertToFMTCConfig(dbConfig) : null;
@@ -339,7 +336,6 @@ export class FMTCScraperService {
         const errorMsg =
           "FMTC 爬虫需要有效的登录凭据。请在任务配置或数据库配置中设置用户名和密码。";
 
-        console.error("配置错误:", errorMsg);
         throw new Error(errorMsg);
       }
 
@@ -349,9 +345,7 @@ export class FMTCScraperService {
         (!fmtcConfig?.twoCaptchaApiKey ||
           fmtcConfig.twoCaptchaApiKey.trim() === "")
       ) {
-        console.warn(
-          "警告：reCAPTCHA设置为自动模式，但缺少有效的2captcha API密钥，将回退到手动模式",
-        );
+        // 警告：reCAPTCHA设置为自动模式，但缺少有效的2captcha API密钥，将回退到手动模式
       }
 
       // 准备爬虫选项 - 优先使用任务配置，然后是数据库配置
@@ -366,10 +360,9 @@ export class FMTCScraperService {
       ) => {
         try {
           const url = await uploadImageToR2(buffer, filename);
-          console.log(`截图上传成功: ${filename} -> ${url}`);
+
           return url;
-        } catch (error) {
-          console.error(`截图上传失败: ${filename}`, error);
+        } catch {
           throw error;
         }
       };
@@ -390,22 +383,21 @@ export class FMTCScraperService {
         screenshotUploadCallback,
       };
 
-      console.log(`开始执行爬虫任务 ${executionId}, 配置:`, {
-        maxMerchants: scraperOptions.maxMerchants,
-        includeDetails: scraperOptions.includeDetails,
-        downloadImages: scraperOptions.downloadImages,
-        headless: scraperOptions.headless,
-        captureScreenshot: scraperOptions.captureScreenshot,
-        credentials: scraperOptions.credentials?.username ? "已提供" : "未提供",
-        configSource: dbConfig ? "数据库配置" : "默认配置",
-        // 添加配置来源调试信息
-        configDebug: {
-          taskMaxMerchantsPerRun: config?.maxMerchantsPerRun,
-          taskMaxMerchants: config?.maxMerchants,
-          fmtcMaxMerchants: fmtcConfig?.maxMerchants,
-          finalMaxMerchants: taskMaxMerchants,
-        },
-      });
+      // 调试信息
+      // maxMerchants: scraperOptions.maxMerchants,
+      // includeDetails: scraperOptions.includeDetails,
+      // downloadImages: scraperOptions.downloadImages,
+      // headless: scraperOptions.headless,
+      // captureScreenshot: scraperOptions.captureScreenshot,
+      // credentials: scraperOptions.credentials?.username ? "已提供" : "未提供",
+      // configSource: dbConfig ? "数据库配置" : "默认配置",
+      // 添加配置来源调试信息
+      // configDebug: {
+      //   taskMaxMerchantsPerRun: config?.maxMerchantsPerRun,
+      //   taskMaxMerchants: config?.maxMerchants,
+      //   fmtcMaxMerchants: fmtcConfig?.maxMerchants,
+      //   finalMaxMerchants: taskMaxMerchants,
+      // }
 
       // 使用新的带配置参数的爬虫函数
       const merchants = await scrapeFMTCWithConfig(
@@ -414,9 +406,7 @@ export class FMTCScraperService {
         executionId,
       );
 
-      console.log(
-        `爬虫任务 ${executionId} 完成，获取到 ${merchants.length} 个商户`,
-      );
+      // 爬虫任务 ${executionId} 完成，获取到 ${merchants.length} 个商户
 
       // 更新执行结果
       await db.fMTCScraperExecution.update({
@@ -439,18 +429,14 @@ export class FMTCScraperService {
       });
 
       // 将商户数据保存到数据库
-      console.log(`开始保存 ${merchants.length} 个商户到数据库...`);
 
       // 调试：打印前5个商户的网络字段
-      console.log(
-        "调试商户网络字段：",
-        merchants.slice(0, 5).map((m) => ({
-          name: m.name,
-          country: m.country,
-          network: m.network,
-          networkId: m.networkId,
-        })),
-      );
+      // merchants.slice(0, 5).map((m) => ({
+      //   name: m.name,
+      //   country: m.country,
+      //   network: m.network,
+      //   networkId: m.networkId,
+      // }))
 
       const merchantService = new FMTCMerchantService();
 
@@ -491,15 +477,12 @@ export class FMTCScraperService {
       // 导入商户数据
       const importResult = await merchantService.importMerchants(merchantsData);
 
-      console.log(
-        `商户数据导入完成: 成功 ${importResult.successCount} 个, 失败 ${importResult.errorCount} 个`,
-      );
+      // 商户数据导入完成: 成功 ${importResult.successCount} 个, 失败 ${importResult.errorCount} 个
 
       if (importResult.errorCount > 0) {
-        console.error(`导入错误详情:`, importResult.errors);
+        // Some import errors occurred
       }
-    } catch (error) {
-      console.error(`爬虫任务 ${executionId} 执行失败:`, error);
+    } catch {
       throw error;
     }
   }

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --port 3001",
+    "dev": "next dev --port 3005",
     "build": "prisma generate && next build",
     "start": "next start -p 3001",
     "start:production": "NODE_OPTIONS='--no-deprecation' next start -p 3001",

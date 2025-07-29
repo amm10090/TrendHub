@@ -199,7 +199,7 @@ class BrandService {
           updatedAt: true,
         },
       });
-    } catch (error) {
+    } catch {
       throw new Error(
         `查找品牌失败: ${error instanceof Error ? error.message : "未知错误"}`,
       );
@@ -255,7 +255,7 @@ class BrandService {
           updatedAt: true,
         },
       });
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : "创建品牌失败";
 
@@ -306,7 +306,7 @@ class BrandService {
         where: { id },
         data,
       });
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : "更新品牌失败";
 
@@ -337,7 +337,7 @@ class BrandService {
       return this.prisma.brand.delete({
         where: { id },
       });
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : "删除品牌失败";
 
@@ -373,7 +373,7 @@ class BrandService {
       });
 
       return result.count;
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : "批量删除品牌失败";
 

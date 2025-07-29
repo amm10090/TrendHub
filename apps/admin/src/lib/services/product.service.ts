@@ -311,7 +311,7 @@ class ProductService {
       });
 
       return this.convertPrismaToProduct(product);
-    } catch (error) {
+    } catch {
       const errorMessage =
         error instanceof Error ? error.message : "创建商品失败";
 

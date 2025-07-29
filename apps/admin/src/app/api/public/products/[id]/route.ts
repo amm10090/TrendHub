@@ -60,8 +60,7 @@ export async function GET(
     };
 
     return NextResponse.json(productSerializable);
-  } catch (error) {
-    console.error(`获取公共产品 ${id} 失败:`, error);
+  } catch {
     return NextResponse.json(
       { error: "获取产品详情时发生内部错误" },
       { status: 500 },

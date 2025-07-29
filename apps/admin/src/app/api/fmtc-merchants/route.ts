@@ -13,7 +13,7 @@ import { uploadImageToR2 } from "@/lib/imageService";
 /**
  * GET /api/fmtc-merchants
  * 获取 FMTC 商户列表
- * 查询参数: page, limit, search, country, network, status, brandMatched
+ * 查询参数: page, limit, search, country, network, status, brandMatched, getFilterOptions
  */
 export async function GET(request: NextRequest) {
   try {
@@ -24,6 +24,49 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const getFilterOptions = searchParams.get("getFilterOptions") === "true";
+
+    // 如果请求筛选选项，返回动态筛选选项
+    if (getFilterOptions) {
+      const [countries, networks, categories] = await Promise.all([
+        // 获取所有不为空的国家
+        db.fMTCMerchant.groupBy({
+          by: ["country"],
+          where: {
+            country: { not: null, not: "" },
+          },
+          orderBy: { country: "asc" },
+        }),
+        // 获取所有不为空的网络
+        db.fMTCMerchant.groupBy({
+          by: ["network"],
+          where: {
+            network: { not: null, not: "" },
+          },
+          orderBy: { network: "asc" },
+        }),
+        // 获取所有不为空的类别
+        db.fMTCMerchant.groupBy({
+          by: ["primaryCategory"],
+          where: {
+            primaryCategory: { not: null, not: "" },
+          },
+          orderBy: { primaryCategory: "asc" },
+        }),
+      ]);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          countries: countries.map((item) => item.country).filter(Boolean),
+          networks: networks.map((item) => item.network).filter(Boolean),
+          categories: categories
+            .map((item) => item.primaryCategory)
+            .filter(Boolean),
+        },
+      });
+    }
+
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const search = searchParams.get("search") || "";
@@ -32,6 +75,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "";
     const brandMatched = searchParams.get("brandMatched") || "";
     const activeStatus = searchParams.get("activeStatus") || ""; // 新增：商户活跃状态筛选
+    const category = searchParams.get("category") || ""; // 新增：类别筛选
 
     const offset = (page - 1) * limit;
 
@@ -73,6 +117,17 @@ export async function GET(request: NextRequest) {
       andConditions.push({ isActive: false });
     }
     // 如果不指定activeStatus或为"all"，则显示所有商户
+
+    // 添加类别筛选
+    if (category === "uncategorized") {
+      // 未设置分类的商户
+      andConditions.push({
+        OR: [{ primaryCategory: null }, { primaryCategory: "" }],
+      });
+    } else if (category && category !== "all") {
+      // 特定类别
+      andConditions.push({ primaryCategory: category });
+    }
 
     const where: Prisma.FMTCMerchantWhereInput = {
       ...(andConditions.length > 0 && { AND: andConditions }),
@@ -146,7 +201,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch {
-    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -214,7 +268,7 @@ export async function POST(request: NextRequest) {
 
             createdMerchants.push(created);
           }
-        } catch (error) {
+        } catch {
           errors.push({
             merchantName: merchantData.name,
             error: error instanceof Error ? error.message : "创建失败",
@@ -238,7 +292,6 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   } catch {
-    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -572,7 +625,7 @@ export async function PUT(request: NextRequest) {
                     : undefined,
               },
             });
-          } catch (error) {
+          } catch {
             // 批量抓取失败，更新execution状态
             await db.fMTCScraperExecution.update({
               where: { id: tempExecution.id },
@@ -605,7 +658,6 @@ export async function PUT(request: NextRequest) {
       },
     });
   } catch {
-    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -647,7 +699,6 @@ export async function DELETE(request: NextRequest) {
       },
     });
   } catch {
-    // 记录错误但不使用console.log
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },

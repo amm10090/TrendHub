@@ -58,7 +58,7 @@ export async function PUT(
     const product = await productService.updateProduct(id, data);
 
     return NextResponse.json(product);
-  } catch (error) {
+  } catch {
     if ((error as Error).message === "Product not found") {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -241,7 +241,7 @@ export async function PATCH(
     };
 
     return NextResponse.json(updatedProductSerializable);
-  } catch (error) {
+  } catch {
     if (error instanceof z.ZodError) {
       const errorDetails = error.errors.map((e) => ({
         field: e.path.join("."),

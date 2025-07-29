@@ -48,6 +48,13 @@ interface FMTCScraperStats {
   failedToday: number;
 }
 
+// 筛选选项接口
+interface FilterOptions {
+  countries: string[];
+  networks: string[];
+  categories: string[];
+}
+
 export function FMTCManagementPanel() {
   const t = useTranslations();
 
@@ -77,6 +84,35 @@ export function FMTCManagementPanel() {
   const [selectedNetwork, setSelectedNetwork] = useState("all");
   const [brandMatchStatus, setBrandMatchStatus] = useState("all");
   const [selectedActiveStatus, setSelectedActiveStatus] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // 筛选选项状态
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    countries: [],
+    networks: [],
+    categories: [],
+  });
+  const [isLoadingFilterOptions, setIsLoadingFilterOptions] = useState(false);
+
+  // 获取筛选选项
+  const fetchFilterOptions = async () => {
+    try {
+      setIsLoadingFilterOptions(true);
+      const response = await fetch("/api/fmtc-merchants?getFilterOptions=true");
+
+      if (response.ok) {
+        const result = await response.json();
+
+        if (result.success) {
+          setFilterOptions(result.data);
+        }
+      }
+    } catch {
+      // Error fetching filter options
+    } finally {
+      setIsLoadingFilterOptions(false);
+    }
+  };
 
   // 获取统计数据
   const fetchStats = async () => {
@@ -90,8 +126,8 @@ export function FMTCManagementPanel() {
           setStats(result.data.stats);
         }
       }
-    } catch (error) {
-      console.error("获取商户统计失败:", error);
+    } catch {
+      // Error fetching stats
     }
   };
 
@@ -107,8 +143,8 @@ export function FMTCManagementPanel() {
           setScraperStats(result.data.stats);
         }
       }
-    } catch (error) {
-      console.error("获取抓取任务统计失败:", error);
+    } catch {
+      // Error fetching scraper stats
     }
   };
 
@@ -117,6 +153,7 @@ export function FMTCManagementPanel() {
     setRefreshTrigger((prev) => prev + 1);
     fetchStats();
     fetchScraperStats();
+    fetchFilterOptions();
   };
 
   // 清除筛选条件
@@ -125,11 +162,14 @@ export function FMTCManagementPanel() {
     setSelectedCountry("all");
     setSelectedNetwork("all");
     setBrandMatchStatus("all");
+    setSelectedActiveStatus("all");
+    setSelectedCategory("all");
   };
 
   useEffect(() => {
     fetchStats();
     fetchScraperStats();
+    fetchFilterOptions();
   }, []);
 
   return (
@@ -151,6 +191,7 @@ export function FMTCManagementPanel() {
             selectedNetwork={selectedNetwork}
             brandMatchStatus={brandMatchStatus}
             selectedActiveStatus={selectedActiveStatus}
+            selectedCategory={selectedCategory}
             totalCount={stats.totalMerchants}
           />
           <Button variant="outline" onClick={handleRefresh}>
@@ -321,7 +362,7 @@ export function FMTCManagementPanel() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">
                 {t("fmtcMerchants.filters.search")}
@@ -344,18 +385,24 @@ export function FMTCManagementPanel() {
               <Select
                 value={selectedCountry}
                 onValueChange={setSelectedCountry}
+                disabled={isLoadingFilterOptions}
               >
                 <SelectTrigger>
                   <SelectValue
-                    placeholder={t("fmtcMerchants.filters.selectCountry")}
+                    placeholder={
+                      isLoadingFilterOptions
+                        ? t("common.loading")
+                        : t("fmtcMerchants.filters.selectCountry")
+                    }
                   />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("common.all")}</SelectItem>
-                  <SelectItem value="US">United States</SelectItem>
-                  <SelectItem value="UK">United Kingdom</SelectItem>
-                  <SelectItem value="CA">Canada</SelectItem>
-                  <SelectItem value="AU">Australia</SelectItem>
+                  {filterOptions.countries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -367,22 +414,56 @@ export function FMTCManagementPanel() {
               <Select
                 value={selectedNetwork}
                 onValueChange={setSelectedNetwork}
+                disabled={isLoadingFilterOptions}
               >
                 <SelectTrigger>
                   <SelectValue
-                    placeholder={t("fmtcMerchants.filters.selectNetwork")}
+                    placeholder={
+                      isLoadingFilterOptions
+                        ? t("common.loading")
+                        : t("fmtcMerchants.filters.selectNetwork")
+                    }
                   />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("common.all")}</SelectItem>
-                  <SelectItem value="Affiliate Window">
-                    Affiliate Window
+                  {filterOptions.networks.map((network) => (
+                    <SelectItem key={network} value={network}>
+                      {network}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("fmtcMerchants.filters.category")}
+              </label>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+                disabled={isLoadingFilterOptions}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      isLoadingFilterOptions
+                        ? t("common.loading")
+                        : t("fmtcMerchants.filters.selectCategory")
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all")}</SelectItem>
+                  <SelectItem value="uncategorized">
+                    {t("fmtcMerchants.filters.uncategorized")}
                   </SelectItem>
-                  <SelectItem value="Commission Junction">
-                    Commission Junction
-                  </SelectItem>
-                  <SelectItem value="ShareASale">ShareASale</SelectItem>
-                  <SelectItem value="Impact">Impact</SelectItem>
+                  {filterOptions.categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -471,6 +552,7 @@ export function FMTCManagementPanel() {
             selectedNetwork={selectedNetwork}
             brandMatchStatus={brandMatchStatus}
             selectedActiveStatus={selectedActiveStatus}
+            selectedCategory={selectedCategory}
             refreshTrigger={refreshTrigger}
             onStatsUpdate={setStats}
           />

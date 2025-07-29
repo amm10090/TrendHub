@@ -147,7 +147,7 @@ async function startScheduler() {
       message: "调度器启动成功",
       data: discountSchedulerService.getStatus(),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -169,7 +169,7 @@ async function stopScheduler() {
       message: "调度器停止成功",
       data: discountSchedulerService.getStatus(),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -191,7 +191,7 @@ async function restartScheduler() {
       message: "调度器重启成功",
       data: discountSchedulerService.getStatus(),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -220,7 +220,7 @@ async function triggerManualRun() {
         },
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -249,7 +249,7 @@ async function updateSchedulerConfig(config: Record<string, unknown>) {
       message: "调度器配置更新成功",
       data: discountSchedulerService.getStatus(),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -270,7 +270,7 @@ async function clearSchedulerLogs() {
       success: true,
       message: "调度器日志清理成功",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -299,7 +299,7 @@ async function forceExpirationCheck() {
         },
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

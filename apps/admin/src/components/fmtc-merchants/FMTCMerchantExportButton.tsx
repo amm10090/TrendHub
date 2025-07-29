@@ -21,6 +21,7 @@ interface FMTCMerchantExportButtonProps {
   selectedNetwork: string;
   brandMatchStatus: string;
   selectedActiveStatus: string;
+  selectedCategory: string;
   totalCount?: number;
   disabled?: boolean;
 }
@@ -31,6 +32,7 @@ export function FMTCMerchantExportButton({
   selectedNetwork,
   brandMatchStatus,
   selectedActiveStatus,
+  selectedCategory,
   totalCount = 0,
   disabled = false,
 }: FMTCMerchantExportButtonProps) {
@@ -53,6 +55,8 @@ export function FMTCMerchantExportButton({
       params.append("brandMatched", brandMatchStatus);
     if (selectedActiveStatus && selectedActiveStatus !== "all")
       params.append("activeStatus", selectedActiveStatus);
+    if (selectedCategory && selectedCategory !== "all")
+      params.append("category", selectedCategory);
 
     return `/api/fmtc-merchants/export?${params.toString()}`;
   };
@@ -109,8 +113,7 @@ export function FMTCMerchantExportButton({
       window.URL.revokeObjectURL(downloadUrl);
 
       toast.success(t("fmtcMerchants.export.downloadStarted"));
-    } catch (error) {
-      console.error("导出失败:", error);
+    } catch {
       toast.error(t("fmtcMerchants.export.exportError"));
     } finally {
       setIsExporting(false);

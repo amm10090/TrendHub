@@ -343,9 +343,7 @@ export async function GET(request: NextRequest) {
           { status: 400 },
         );
     }
-  } catch (error) {
-    console.error("导出失败:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },

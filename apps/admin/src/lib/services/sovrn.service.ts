@@ -106,7 +106,7 @@ export async function monetizeUrl(
       success: true,
       monetizedUrl: apiUrl,
     };
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

@@ -297,7 +297,7 @@ export async function POST(
   // 确保存储目录在任何爬虫运行前都存在
   try {
     ensureStorageDirectories();
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         error: `爬虫存储目录初始化失败: ${(error as Error).message}`,

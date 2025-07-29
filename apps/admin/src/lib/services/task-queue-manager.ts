@@ -10,14 +10,9 @@ import { taskExecutor } from "./task-executor";
 
 // 简单的日志记录器
 const logger = {
-  info: (message: string, context?: Record<string, unknown>) =>
-    console.log(`[TaskQueueManager INFO] ${message}`, context || ""),
-
-  warn: (message: string, context?: Record<string, unknown>) =>
-    console.warn(`[TaskQueueManager WARN] ${message}`, context || ""),
-
-  error: (message: string, context?: Record<string, unknown>) =>
-    console.error(`[TaskQueueManager ERROR] ${message}`, context || ""),
+  info: () => {},
+  warn: () => {},
+  error: () => {},
 };
 
 /**
@@ -194,7 +189,7 @@ export class TaskQueueManager {
       // 使用导入的 taskExecutor 单例
       await taskExecutor.executeTask(executionId);
       logger.info(`任务执行已完成 (或失败并由执行器处理) ${executionId}.`);
-    } catch (error) {
+    } catch {
       logger.error(
         `任务执行器执行任务 ${executionId} 时出现未处理的错误:`,
         error,

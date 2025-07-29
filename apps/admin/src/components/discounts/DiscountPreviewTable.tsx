@@ -125,8 +125,8 @@ export function DiscountPreviewTable({
                 </TableCell>
                 <TableCell>
                   <div className="max-w-[190px]">
-                    <div className="font-medium text-sm leading-tight">
-                      {discount.title}
+                    <div className="font-medium text-sm leading-tight whitespace-nowrap">
+                      {discount.title?.replace(/[\r\n]+/g, " ").trim()}
                     </div>
                     {discount.minAmount && (
                       <div className="text-xs text-muted-foreground mt-1">

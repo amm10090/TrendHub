@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(newPage, { status: 201 });
-  } catch (error) {
+  } catch {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "验证失败", details: error.errors },

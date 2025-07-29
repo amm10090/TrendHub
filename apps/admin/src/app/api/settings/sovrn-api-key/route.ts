@@ -21,7 +21,7 @@ export async function GET() {
         ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`
         : null,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "API Key保存成功",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

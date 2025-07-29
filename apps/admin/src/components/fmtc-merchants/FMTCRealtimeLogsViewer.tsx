@@ -206,7 +206,6 @@ export function FMTCRealtimeLogsViewer({
       setConnectionInfo(data);
       setConnectionStatus("CONNECTED");
       retryCount.current = 0;
-      console.log("Connected to FMTC realtime logs:", data);
     });
 
     // 接收新日志
@@ -227,7 +226,6 @@ export function FMTCRealtimeLogsViewer({
     eventSource.addEventListener("status", (event) => {
       const data = JSON.parse(event.data);
 
-      console.log("FMTC Status update:", data);
       onStatusChange?.(data.status);
 
       if (data.isFinished) {
@@ -241,20 +239,15 @@ export function FMTCRealtimeLogsViewer({
       const data = JSON.parse(event.data);
 
       setError(data.message);
-      console.error("FMTC SSE error:", data);
     });
 
     // 连接关闭
-    eventSource.addEventListener("close", (event) => {
-      const data = JSON.parse(event.data);
-
-      console.log("FMTC Connection closed:", data.reason);
+    eventSource.addEventListener("close", () => {
       setConnectionStatus("DISCONNECTED");
     });
 
     // 处理连接错误
-    eventSource.onerror = (error) => {
-      console.error("FMTC EventSource error:", error);
+    eventSource.onerror = () => {
       setConnectionStatus("ERROR");
 
       // 自动重连

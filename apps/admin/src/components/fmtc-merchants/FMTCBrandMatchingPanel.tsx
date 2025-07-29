@@ -147,8 +147,8 @@ export function FMTCBrandMatchingPanel({
           setStats(result.data);
         }
       }
-    } catch (error) {
-      console.error("获取匹配统计失败:", error);
+    } catch {
+      // Error handling
     }
   }, []);
 
@@ -166,8 +166,8 @@ export function FMTCBrandMatchingPanel({
           setUnmatchedMerchants(result.data.merchants);
         }
       }
-    } catch (error) {
-      console.error("获取未匹配商户失败:", error);
+    } catch {
+      // Error handling
     }
   }, []);
 
@@ -185,8 +185,8 @@ export function FMTCBrandMatchingPanel({
           setPendingMatches(result.data.merchants);
         }
       }
-    } catch (error) {
-      console.error("获取待确认匹配失败:", error);
+    } catch {
+      // Error handling
     }
   }, []);
 
@@ -205,8 +205,8 @@ export function FMTCBrandMatchingPanel({
           setBrandSuggestions(result.data.suggestions);
         }
       }
-    } catch (error) {
-      console.error("获取品牌建议失败:", error);
+    } catch {
+      // Error handling
     } finally {
       setIsLoadingSuggestions(false);
     }
@@ -233,8 +233,8 @@ export function FMTCBrandMatchingPanel({
           setIsSuggestionsModalOpen(false);
         }
       }
-    } catch (error) {
-      console.error("确认匹配失败:", error);
+    } catch {
+      // Error handling
     }
   };
 
@@ -253,8 +253,8 @@ export function FMTCBrandMatchingPanel({
       if (response.ok) {
         refreshData();
       }
-    } catch (error) {
-      console.error("拒绝匹配失败:", error);
+    } catch {
+      // Error handling
     }
   };
 
@@ -278,8 +278,8 @@ export function FMTCBrandMatchingPanel({
           refreshData();
         }
       }
-    } catch (error) {
-      console.error("自动匹配失败:", error);
+    } catch {
+      // Error handling
     }
   };
 
@@ -310,8 +310,8 @@ export function FMTCBrandMatchingPanel({
           refreshData();
         }
       }
-    } catch (error) {
-      console.error("批量匹配失败:", error);
+    } catch {
+      // Error handling
     } finally {
       setIsBatchMatching(false);
       setBatchProgress(0);

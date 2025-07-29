@@ -190,7 +190,7 @@ export const SettingsService = {
           latency,
         },
       };
-    } catch (error) {
+    } catch {
       const endTime = performance.now();
       const latency = Math.round(endTime - startTime);
 

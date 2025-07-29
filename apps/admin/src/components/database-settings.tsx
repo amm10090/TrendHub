@@ -111,7 +111,7 @@ export function DatabaseSettings({
           shouldShowTimeoutProgress: true,
         });
       }
-    } catch (error) {
+    } catch {
       addToast({
         title: t("database.testConnectionError"),
         description:

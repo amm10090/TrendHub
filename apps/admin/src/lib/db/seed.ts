@@ -197,7 +197,6 @@ async function main() {
       Promise.all(productPromises),
     ]);
 
-    // console.log(
     //   `Successfully initialized ${settingResults.length} settings and ${productResults.length} products.`,
     // );
   } catch {

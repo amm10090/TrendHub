@@ -208,7 +208,6 @@ export function RealtimeLogsViewer({
       setConnectionInfo(data);
       setConnectionStatus("CONNECTED");
       retryCount.current = 0;
-      console.log("Connected to realtime logs:", data);
     });
 
     // 接收新日志
@@ -229,7 +228,6 @@ export function RealtimeLogsViewer({
     eventSource.addEventListener("status", (event) => {
       const data = JSON.parse(event.data);
 
-      console.log("Status update:", data);
       onStatusChange?.(data.status);
 
       if (data.isFinished) {
@@ -243,20 +241,15 @@ export function RealtimeLogsViewer({
       const data = JSON.parse(event.data);
 
       setError(data.message);
-      console.error("SSE error:", data);
     });
 
     // 连接关闭
-    eventSource.addEventListener("close", (event) => {
-      const data = JSON.parse(event.data);
-
-      console.log("Connection closed:", data.reason);
+    eventSource.addEventListener("close", () => {
       setConnectionStatus("DISCONNECTED");
     });
 
     // 处理连接错误
-    eventSource.onerror = (error) => {
-      console.error("EventSource error:", error);
+    eventSource.onerror = () => {
       setConnectionStatus("ERROR");
 
       // 自动重连

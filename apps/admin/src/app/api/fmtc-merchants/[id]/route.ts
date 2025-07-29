@@ -58,9 +58,7 @@ export async function GET(
       success: true,
       data: merchant,
     });
-  } catch (error) {
-    console.error("FMTC Merchant Detail Error:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -129,9 +127,7 @@ export async function PUT(
       success: true,
       data: updatedMerchant,
     });
-  } catch (error) {
-    console.error("FMTC Merchant Update Error:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -177,9 +173,7 @@ export async function DELETE(
       success: true,
       data: { message: "商户已删除" },
     });
-  } catch (error) {
-    console.error("FMTC Merchant Delete Error:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },
@@ -448,9 +442,7 @@ export async function POST(
               merchantUrl: scrapingResult.merchantUrl,
             },
           };
-        } catch (error) {
-          console.error("商户数据刷新失败:", error);
-
+        } catch {
           // 至少更新lastScrapedAt字段，表示尝试过抓取
           result = await db.fMTCMerchant.update({
             where: { id },
@@ -681,9 +673,7 @@ export async function POST(
             await context.close();
             await browser.close();
           }
-        } catch (error) {
-          console.error("FMTC页面截图失败:", error);
-
+        } catch {
           return NextResponse.json(
             {
               success: false,
@@ -705,9 +695,7 @@ export async function POST(
       success: true,
       data: result,
     });
-  } catch (error) {
-    console.error("FMTC Merchant Action Error:", error);
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 },

@@ -192,7 +192,7 @@ export async function PATCH(
     }
 
     return NextResponse.json(updatedContentBlock);
-  } catch (error) {
+  } catch {
     if (error instanceof PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
         const target = error.meta?.target as string[] | undefined;

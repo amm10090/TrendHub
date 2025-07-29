@@ -531,7 +531,7 @@ export function CategoryTable() {
         showInNavbar: false,
       });
       await mutateCategories();
-    } catch (error) {
+    } catch {
       toast.error(
         editingCategory ? tCat("updateErrorTitle") : tCat("createErrorTitle"),
         {

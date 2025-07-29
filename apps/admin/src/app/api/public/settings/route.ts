@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 // 扩展全局类型以包含PrismaClient单例
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
@@ -44,8 +43,7 @@ export async function GET() {
 
     // 3. 返回公共设置
     return NextResponse.json({ success: true, data: publicSettings });
-  } catch (error) {
-    console.error("获取公共网站设置失败:", error);
+  } catch {
     // 在生产环境中可能希望记录更详细的错误，但对客户端隐藏细节
     return NextResponse.json(
       {

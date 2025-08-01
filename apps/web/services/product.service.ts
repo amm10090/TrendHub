@@ -100,7 +100,9 @@ export async function getProducts(params: ProductQueryParams = {}): Promise<Prod
     let url: string;
 
     if (typeof window === 'undefined') {
-      url = `http://localhost:3001/api/public/products?${searchParams.toString()}`;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+
+      url = `${apiUrl}/api/public/products?${searchParams.toString()}`;
     } else {
       url = `/api/public/products?${searchParams.toString()}`;
     }
@@ -156,7 +158,9 @@ export async function getProductsByIds(
     let url: string;
 
     if (typeof window === 'undefined') {
-      url = `http://localhost:3001/api/public/products?${searchParams.toString()}`;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+
+      url = `${apiUrl}/api/public/products?${searchParams.toString()}`;
     } else {
       url = `/api/public/products?${searchParams.toString()}`;
     }
@@ -205,9 +209,11 @@ export async function getProductDetail(id: string): Promise<ProductDetail | null
 
     if (typeof window === 'undefined') {
       // 服务端渲染环境，需要完整URL
-      url = `http://localhost:3001/api/public/products/${id}`;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+
+      url = `${apiUrl}/api/public/products/${id}`;
     } else {
-      // 客户端环境，可以使用相对路径
+      // 客户端环境，可以使用相对路径（通过Next.js rewrites代理）
       url = `/api/public/products/${id}`;
     }
 

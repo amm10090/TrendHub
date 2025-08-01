@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  BarChart3,
-  Settings,
-  RefreshCw,
-  Target,
-  ExternalLink,
-  Search,
-  Filter,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { Settings, RefreshCw, Search, Filter } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 
@@ -203,112 +193,6 @@ export function FMTCManagementPanel() {
             {t("common.clearFilters")}
           </Button>
         </div>
-      </div>
-
-      {/* 统计卡片 */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("fmtcMerchants.stats.totalMerchants")}
-            </CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMerchants}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("fmtcMerchants.stats.brandMatched")}
-            </CardTitle>
-            <Target className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.brandMatched}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalMerchants > 0
-                ? `${((stats.brandMatched / stats.totalMerchants) * 100).toFixed(1)}%`
-                : "0%"}{" "}
-              {t("fmtcMerchants.stats.matchRate")}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("fmtcMerchants.stats.unmatched")}
-            </CardTitle>
-            <ExternalLink className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {stats.unmatched}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("fmtcMerchants.stats.activeMerchants")}
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.activeMerchants}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalMerchants > 0
-                ? `${((stats.activeMerchants / stats.totalMerchants) * 100).toFixed(1)}%`
-                : "0%"}{" "}
-              {t("fmtcMerchants.status.active")}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("fmtcMerchants.stats.inactiveMerchants")}
-            </CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {stats.inactiveMerchants}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalMerchants > 0
-                ? `${((stats.inactiveMerchants / stats.totalMerchants) * 100).toFixed(1)}%`
-                : "0%"}{" "}
-              {t("fmtcMerchants.status.inactive")}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("fmtcMerchants.stats.lastUpdate")}
-            </CardTitle>
-            <RefreshCw className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.recentlyUpdated}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t("fmtcMerchants.stats.last24Hours")}
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* 抓取任务状态 */}

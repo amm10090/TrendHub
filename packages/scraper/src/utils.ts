@@ -14,10 +14,28 @@ export enum LocalScraperLogLevel {
   DEBUG = "DEBUG",
 }
 
-// 从环境变量读取日志 API 端点，提供一个开发环境下的默认值
-const LOG_API_ENDPOINT =
-  process.env.LOG_API_ENDPOINT ||
-  "http://localhost:3001/api/admin/scraper-tasks/logs/internal/log";
+// 从环境变量读取日志 API 端点，遵循项目的环境变量模式
+// 构建API端点，考虑环境变量可能已经包含/api前缀
+const buildLogApiEndpoint = () => {
+  if (process.env.LOG_API_ENDPOINT) {
+    return process.env.LOG_API_ENDPOINT;
+  }
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.INTERNAL_API_URL ||
+    "http://localhost:3005";
+  const apiPath = "/admin/scraper-tasks/logs/internal/log";
+
+  // 如果baseUrl已经包含/api，直接拼接；否则添加/api前缀
+  if (baseUrl.endsWith("/api")) {
+    return `${baseUrl}${apiPath}`;
+  } else {
+    return `${baseUrl}/api${apiPath}`;
+  }
+};
+
+const LOG_API_ENDPOINT = buildLogApiEndpoint();
 
 /**
  * 向后端发送日志条目。
@@ -122,10 +140,18 @@ export async function sendLogToBackend(
     }
   } catch (error) {
     // 网络错误或其他 fetch 调用本身的错误
-    console.error(
-      `[SCRAPER LOG SEND FAIL] Network or fetch error for execution ${executionId}: ${message}`,
-      { error, context },
-    );
+    // 为避免干扰爬虫核心功能，只在调试模式下显示错误
+    if (process.env.DEBUG_SCRAPER_LOGS === "true") {
+      console.error(
+        `[SCRAPER LOG SEND FAIL] Network or fetch error for execution ${executionId}: ${message}`,
+        { error, context },
+      );
+    } else {
+      // 生产模式下静默处理，仅记录关键信息
+      console.warn(
+        `[SCRAPER LOG] Failed to send log to backend (${executionId})`,
+      );
+    }
   }
 }
 
@@ -205,12 +231,77 @@ export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// 日志级别枚举
+export enum ScraperLogLevel {
+  SILENT = 0, // 静默模式 - 无输出
+  MINIMAL = 1, // 最小模式 - 只有关键进度信息
+  NORMAL = 2, // 正常模式 - 一般信息
+  VERBOSE = 3, // 详细模式 - 所有调试信息
+}
+
+// 从环境变量获取日志级别
+function getLogLevel(): ScraperLogLevel {
+  const level =
+    process.env.SCRAPER_LOG_LEVEL || process.env.NODE_ENV === "production"
+      ? "MINIMAL"
+      : "NORMAL";
+  switch (level.toUpperCase()) {
+    case "SILENT":
+      return ScraperLogLevel.SILENT;
+    case "MINIMAL":
+      return ScraperLogLevel.MINIMAL;
+    case "NORMAL":
+      return ScraperLogLevel.NORMAL;
+    case "VERBOSE":
+      return ScraperLogLevel.VERBOSE;
+    default:
+      return ScraperLogLevel.NORMAL;
+  }
+}
+
+const currentLogLevel = getLogLevel();
+
+/**
+ * 条件日志输出 - 根据日志级别控制输出
+ * @param level 日志级别
+ * @param message 日志消息
+ */
+export function conditionalLog(level: ScraperLogLevel, message: string): void {
+  if (currentLogLevel >= level) {
+    console.log(message);
+  }
+}
+
+/**
+ * 简洁日志 - 只在MINIMAL级别及以上输出关键信息
+ * @param message 日志消息
+ */
+export function minimalLog(message: string): void {
+  conditionalLog(ScraperLogLevel.MINIMAL, message);
+}
+
+/**
+ * 普通日志 - NORMAL级别及以上输出
+ * @param message 日志消息
+ */
+export function normalLog(message: string): void {
+  conditionalLog(ScraperLogLevel.NORMAL, message);
+}
+
+/**
+ * 详细日志 - 只在VERBOSE级别输出调试信息
+ * @param message 日志消息
+ */
+export function verboseLog(message: string): void {
+  conditionalLog(ScraperLogLevel.VERBOSE, message);
+}
+
 /**
  * 记录信息日志
  * @param message 日志消息
  */
 export function logInfo(message: string): void {
-  console.log(`[INFO] ${message}`);
+  normalLog(`[INFO] ${message}`);
 }
 
 /**
@@ -218,7 +309,7 @@ export function logInfo(message: string): void {
  * @param message 错误消息
  */
 export function logError(message: string): void {
-  console.error(`[ERROR] ${message}`);
+  console.error(`[ERROR] ${message}`); // 错误始终输出
 }
 
 /**

@@ -120,14 +120,16 @@ function getUltimateStealthBrowserArgs(): string[] {
     "--disable-dev-shm-usage",
     "--disable-blink-features=AutomationControlled",
     "--disable-infobars",
+    "--disable-automation",
+    "--exclude-switches=enable-automation",
+    "--disable-default-apps",
+    "--disable-component-extensions-with-background-pages",
     "--window-size=2560,1547",
     "--start-maximized",
     "--force-device-scale-factor=1",
     "--disable-web-security",
-    "--disable-features=IsolateOrigins,site-per-process,BlockInsecurePrivateNetworkRequests",
-    "--disable-default-apps",
+    "--disable-features=VizDisplayCompositor,IsolateOrigins,site-per-process,BlockInsecurePrivateNetworkRequests",
     "--disable-extensions",
-    "--disable-component-extensions-with-background-pages",
     "--disable-background-timer-throttling",
     "--disable-backgrounding-occluded-windows",
     "--disable-renderer-backgrounding",
@@ -148,6 +150,19 @@ function getUltimateStealthBrowserArgs(): string[] {
     "--accept-lang=en-US,en;q=0.9",
     "--log-level=3",
     "--silent",
+    "--disable-prompt-on-repost",
+    "--disable-hang-monitor",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-background-networking",
+    "--enable-features=NetworkService",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-features=TranslateUI",
+    "--disable-ipc-flooding-protection",
+    "--disable-renderer-backgrounding",
+    "--enable-features=NetworkService",
+    "--force-fieldtrials=SiteIsolationExtensions/Control",
+    "--disable-blink-features=AutomationControlled",
   ];
 }
 
@@ -297,7 +312,12 @@ export function createStealthCrawler(
     launchOptions: {
       headless,
       args: getUltimateStealthBrowserArgs(),
-      ignoreDefaultArgs: ["--enable-automation"],
+      ignoreDefaultArgs: [
+        "--enable-automation",
+        "--enable-blink-features=AutomationControlled",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-default-apps",
+      ],
       ...restLaunchOptions,
     },
     ...options.launchContext,
@@ -352,7 +372,7 @@ export function createStealthCrawler(
           Connection: "keep-alive",
         });
 
-        log.debug(`Set User-Agent: ${randomUserAgent}`);
+        // Removed debug log for User-Agent to reduce verbose output
       } catch (error) {
         log.warning(
           `Error setting browser context options: ${(error as Error).message}`,

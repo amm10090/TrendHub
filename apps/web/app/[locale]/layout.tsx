@@ -39,8 +39,8 @@ interface RawSnippetData {
 
 // -------------- 获取公共设置函数 --------------
 async function getPublicSettings(): Promise<Record<string, string>> {
-  // 使用固定的内部URL来避免环境变量序列化问题
-  const baseUrl = 'http://localhost:3001';
+  // 使用环境变量配置的内部URL
+  const baseUrl = process.env.INTERNAL_API_URL || 'http://localhost:3005';
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒超时
 
@@ -75,8 +75,8 @@ async function getPublicSettings(): Promise<Record<string, string>> {
 // Moved existing getActiveCodeSnippets function here, minor adjustments if needed
 // (Assuming the existing function is mostly correct, just ensure baseUrl usage)
 async function getActiveCodeSnippets(path: string): Promise<CodeSnippet[]> {
-  // 使用固定的内部URL来避免环境变量序列化问题
-  const baseUrl = 'http://localhost:3001';
+  // 使用环境变量配置的内部URL
+  const baseUrl = process.env.INTERNAL_API_URL || 'http://localhost:3005';
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒超时
 

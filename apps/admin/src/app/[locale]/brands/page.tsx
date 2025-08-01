@@ -135,10 +135,14 @@ export default function BrandsPage() {
         }
         const data = await response.json();
 
-        setBrands(data.items || []);
-        setTotalPages(data.totalPages || 1);
-        setTotalItems(data.totalItems || 0);
-        setError(null);
+        if (data.success) {
+          setBrands(data.data || []);
+          setTotalPages(data.pagination?.totalPages || 1);
+          setTotalItems(data.pagination?.total || 0);
+          setError(null);
+        } else {
+          throw new Error(data.error || t("fetchError"));
+        }
       } catch {
         setError(error instanceof Error ? error.message : t("fetchError"));
         toast.error(t("fetchError"));
@@ -236,7 +240,9 @@ export default function BrandsPage() {
       if (updatedResponse.ok) {
         const data = await updatedResponse.json();
 
-        setBrands(data.items || []);
+        if (data.success) {
+          setBrands(data.data || []);
+        }
       }
 
       // 清除选择

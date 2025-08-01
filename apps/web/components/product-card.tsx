@@ -65,15 +65,17 @@ export function ProductCard({ product, locale }: ProductCardProps) {
       tabIndex={0}
     >
       {/* 产品图片 */}
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-bg-tertiary-light dark:bg-bg-tertiary-dark">
+      <div className="relative aspect-square w-full overflow-hidden bg-white dark:bg-gray-100">
         {product.images && product.images.length > 0 ? (
-          <Image
-            src={product.images[0]}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
+          <div className="relative h-full w-full p-4">
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              className="object-contain"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <span className="text-text-secondary-light dark:text-text-secondary-dark">

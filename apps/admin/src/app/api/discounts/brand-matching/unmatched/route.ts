@@ -7,8 +7,10 @@ import { brandMatchingService } from "@/lib/services/brand-matching.service";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = parseInt(searchParams.get("page") || "1");
     const search = searchParams.get("search");
+    const skip = (page - 1) * limit;
 
     // 获取所有没有品牌映射的商家名称
     let whereCondition: Record<string, unknown> = {
@@ -25,7 +27,16 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // 获取未匹配的商家及其折扣数量
+    // 获取总的未匹配商家数量（不受limit限制）
+    const totalUnmatchedCount = await db.discount.groupBy({
+      by: ["merchantName"],
+      where: whereCondition,
+      _count: {
+        merchantName: true,
+      },
+    });
+
+    // 获取未匹配的商家及其折扣数量（受limit和skip限制）
     const unmatchedMerchants = await db.discount.groupBy({
       by: ["merchantName"],
       where: whereCondition,
@@ -37,6 +48,7 @@ export async function GET(request: NextRequest) {
           merchantName: "desc",
         },
       },
+      skip: skip,
       take: limit,
     });
 
@@ -112,6 +124,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: merchantsWithDetails,
+      pagination: {
+        total: totalUnmatchedCount.length,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(totalUnmatchedCount.length / limit),
+        returned: merchantsWithDetails.length,
+      },
+      // 向后兼容
+      total: totalUnmatchedCount.length,
+      limit: limit,
+      returned: merchantsWithDetails.length,
     });
   } catch {
     return NextResponse.json(

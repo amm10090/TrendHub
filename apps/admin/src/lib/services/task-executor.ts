@@ -269,6 +269,21 @@ export class TaskExecutor {
 
     for (const productData of products) {
       try {
+        // Normalize data: map 'link' to 'url' if needed
+        interface ProductWithLink extends ScrapedProductType {
+          link?: string;
+        }
+        const productWithLink = productData as ProductWithLink;
+
+        if (!productData.url && productWithLink.link) {
+          productData.url = productWithLink.link;
+        }
+
+        // Ensure source is set to the correct value
+        if (!productData.source) {
+          productData.source = sourceSite;
+        }
+
         if (!productData.url || !productData.source) {
           const errorMsg = `Skipped product due to missing URL or source. URL: ${productData.url || "N/A"}`;
 
@@ -285,6 +300,13 @@ export class TaskExecutor {
           errorCount++;
           continue;
         }
+
+        // Check if product already exists
+        const existingProduct = await db.product.findUnique({
+          where: {
+            url_source: { url: productData.url, source: productData.source },
+          },
+        });
 
         const brandId = await this.getOrCreateBrandId(productData.brand);
 
@@ -319,65 +341,101 @@ export class TaskExecutor {
         const currentPriceAmount = productData.currentPrice?.amount;
         const originalPriceAmount = productData.originalPrice?.amount;
 
-        const productPayload: Prisma.ProductCreateInput = {
-          name: productData.name || "N/A",
-          url: productData.url,
-          source: productData.source,
-          sku: productData.sku || null,
-          description: productData.description || null,
-          price:
-            currentPriceAmount !== undefined
-              ? new Prisma.Decimal(currentPriceAmount)
-              : new Prisma.Decimal(0),
-          currency: productData.currentPrice?.currency || "USD",
-          originalPrice:
-            originalPriceAmount !== undefined
-              ? new Prisma.Decimal(originalPriceAmount)
-              : null,
-          originalPriceCurrency: productData.originalPrice?.currency || null,
-          images: productData.images || [],
-          videos: productData.videos || [],
-          colors: productData.color
-            ? [productData.color.trim()].filter((c) => c)
-            : [],
-          designerColorName: productData.designerColorName || null,
-          sizes: productData.sizes || [],
-          material: productData.material || null,
-          materialDetails: productData.materialDetails || [],
-          breadcrumbs: productData.breadcrumbs || [],
-          tags: productData.tags || [],
-          scrapedAt: productData.scrapedAt
-            ? new Date(productData.scrapedAt)
-            : new Date(),
-          metadata: (productData.metadata &&
-          Object.keys(productData.metadata).length > 0
-            ? productData.metadata
-            : Prisma.JsonNull) as Prisma.InputJsonValue,
-          status: "Available",
-          inventory: defaultInventory,
-          isDeleted: false,
-          isNew:
-            productData.tags?.some((tag) =>
-              tag.toLowerCase().includes("new"),
-            ) || false,
-          discount:
-            productData.discount !== undefined && productData.discount !== null
-              ? new Prisma.Decimal(productData.discount)
-              : null,
-          brand: { connect: { id: brandId } },
-          category: { connect: { id: categoryId } },
-          gender: productData.gender,
-        };
+        // Smart update logic: supplement missing info and detect price changes
+        if (existingProduct) {
+          const smartUpdateData = await this.buildSmartUpdatePayload(
+            existingProduct,
+            productData,
+            brandId,
+            categoryId,
+            defaultInventory,
+            executionId,
+            taskDefForLogging,
+          );
 
-        if (productPayload.sku === "") productPayload.sku = null;
+          await db.product.update({
+            where: { id: existingProduct.id },
+            data: smartUpdateData,
+          });
 
-        await db.product.upsert({
-          where: {
-            url_source: { url: productData.url, source: productData.source },
-          },
-          create: productPayload,
-          update: productPayload,
-        });
+          await this.log(
+            executionId,
+            ScraperLogLevel.INFO,
+            `Smart update applied for product: ${productData.name}`,
+            {
+              productUrl: productData.url,
+              hasUpdates: Object.keys(smartUpdateData).length > 1, // > 1 because scrapedAt is always updated
+            },
+            taskDefForLogging,
+          );
+        } else {
+          // Create new product
+          const productPayload: Prisma.ProductCreateInput = {
+            name: productData.name || "N/A",
+            url: productData.url,
+            source: productData.source,
+            sku: productData.sku || null,
+            description: productData.description || null,
+            price:
+              currentPriceAmount !== undefined
+                ? new Prisma.Decimal(currentPriceAmount)
+                : new Prisma.Decimal(0),
+            currency: productData.currentPrice?.currency || "USD",
+            originalPrice:
+              originalPriceAmount !== undefined
+                ? new Prisma.Decimal(originalPriceAmount)
+                : null,
+            originalPriceCurrency: productData.originalPrice?.currency || null,
+            images: productData.images || [],
+            videos: productData.videos || [],
+            colors: productData.color
+              ? [productData.color.trim()].filter((c) => c)
+              : [],
+            designerColorName: productData.designerColorName || null,
+            sizes: productData.sizes || [],
+            material: productData.material || null,
+            materialDetails: productData.materialDetails || [],
+            breadcrumbs: productData.breadcrumbs || [],
+            tags: productData.tags || [],
+            scrapedAt: productData.scrapedAt
+              ? new Date(productData.scrapedAt)
+              : new Date(),
+            metadata: (productData.metadata &&
+            Object.keys(productData.metadata).length > 0
+              ? productData.metadata
+              : Prisma.JsonNull) as Prisma.InputJsonValue,
+            status: "Available",
+            inventory: defaultInventory,
+            isDeleted: false,
+            isNew:
+              productData.tags?.some((tag) =>
+                tag.toLowerCase().includes("new"),
+              ) || false,
+            discount:
+              productData.discount !== undefined &&
+              productData.discount !== null
+                ? new Prisma.Decimal(productData.discount)
+                : null,
+            brand: { connect: { id: brandId } },
+            category: { connect: { id: categoryId } },
+            gender: productData.gender,
+          };
+
+          if (productPayload.sku === "") productPayload.sku = null;
+
+          await db.product.create({ data: productPayload });
+
+          await this.log(
+            executionId,
+            ScraperLogLevel.INFO,
+            `New product created: ${productData.name}`,
+            {
+              productUrl: productData.url,
+            },
+            taskDefForLogging,
+          );
+        }
+
         savedCount++;
       } catch (err: unknown) {
         errorCount++;
@@ -399,6 +457,216 @@ export class TaskExecutor {
     }
 
     return { savedCount, errorCount, errors };
+  }
+
+  private async buildSmartUpdatePayload(
+    existingProduct: Prisma.ProductGetPayload<NonNullable<unknown>>,
+    newProductData: ScrapedProductType,
+    brandId: string,
+    categoryId: string,
+    defaultInventory: number,
+    executionId: string,
+    taskDefForLogging: {
+      isDebugModeEnabled?: boolean | null;
+      targetSite?: string | null;
+    },
+  ): Promise<Prisma.ProductUpdateInput> {
+    const updateData: Prisma.ProductUpdateInput = {
+      scrapedAt: new Date(), // Always update scrape timestamp
+    };
+
+    const currentPriceAmount = newProductData.currentPrice?.amount;
+    const originalPriceAmount = newProductData.originalPrice?.amount;
+
+    // Helper function to check if a value should be updated (not empty/null/undefined)
+    const hasValue = (value: unknown): boolean => {
+      if (value === null || value === undefined) return false;
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === "string") return value.trim().length > 0;
+
+      return true;
+    };
+
+    // Helper function to check if existing value is empty/missing
+    const isEmpty = (value: unknown): boolean => {
+      if (value === null || value === undefined) return true;
+      if (Array.isArray(value)) return value.length === 0;
+      if (typeof value === "string") return value.trim().length === 0;
+
+      return false;
+    };
+
+    // Supplement missing basic information
+    if (isEmpty(existingProduct.name) && hasValue(newProductData.name)) {
+      updateData.name = newProductData.name;
+    }
+
+    if (isEmpty(existingProduct.sku) && hasValue(newProductData.sku)) {
+      updateData.sku = newProductData.sku;
+    }
+
+    if (
+      isEmpty(existingProduct.description) &&
+      hasValue(newProductData.description)
+    ) {
+      updateData.description = newProductData.description;
+    }
+
+    if (
+      isEmpty(existingProduct.material) &&
+      hasValue(newProductData.material)
+    ) {
+      updateData.material = newProductData.material;
+    }
+
+    if (
+      isEmpty(existingProduct.designerColorName) &&
+      hasValue(newProductData.designerColorName)
+    ) {
+      updateData.designerColorName = newProductData.designerColorName;
+    }
+
+    if (hasValue(newProductData.gender)) {
+      updateData.gender = newProductData.gender;
+    }
+
+    // Supplement missing arrays (images, videos, colors, sizes, etc.)
+    if (isEmpty(existingProduct.images) && hasValue(newProductData.images)) {
+      updateData.images = newProductData.images;
+    }
+
+    if (isEmpty(existingProduct.videos) && hasValue(newProductData.videos)) {
+      updateData.videos = newProductData.videos;
+    }
+
+    if (isEmpty(existingProduct.colors) && hasValue(newProductData.color)) {
+      updateData.colors = [newProductData.color.trim()].filter((c) => c);
+    }
+
+    if (isEmpty(existingProduct.sizes) && hasValue(newProductData.sizes)) {
+      updateData.sizes = newProductData.sizes;
+    }
+
+    if (
+      isEmpty(existingProduct.materialDetails) &&
+      hasValue(newProductData.materialDetails)
+    ) {
+      updateData.materialDetails = newProductData.materialDetails;
+    }
+
+    if (
+      isEmpty(existingProduct.breadcrumbs) &&
+      hasValue(newProductData.breadcrumbs)
+    ) {
+      updateData.breadcrumbs = newProductData.breadcrumbs;
+    }
+
+    if (isEmpty(existingProduct.tags) && hasValue(newProductData.tags)) {
+      updateData.tags = newProductData.tags;
+    }
+
+    // Smart price update: always update if new price is available and different
+    if (currentPriceAmount !== undefined) {
+      const newPrice = new Prisma.Decimal(currentPriceAmount);
+      const existingPrice = existingProduct.price
+        ? new Prisma.Decimal(existingProduct.price.toString())
+        : null;
+
+      if (!existingPrice || !newPrice.equals(existingPrice)) {
+        updateData.price = newPrice;
+        updateData.currency = newProductData.currentPrice?.currency || "USD";
+
+        // Log price change
+        if (existingPrice) {
+          await this.log(
+            executionId,
+            ScraperLogLevel.INFO,
+            `Price updated for product: ${newProductData.name}`,
+            {
+              productUrl: newProductData.url,
+              oldPrice: existingPrice.toString(),
+              newPrice: newPrice.toString(),
+              currency: newProductData.currentPrice?.currency || "USD",
+            },
+            taskDefForLogging,
+          );
+        }
+      }
+    }
+
+    // Update original price if available and different
+    if (originalPriceAmount !== undefined) {
+      const newOriginalPrice = new Prisma.Decimal(originalPriceAmount);
+      const existingOriginalPrice = existingProduct.originalPrice
+        ? new Prisma.Decimal(existingProduct.originalPrice.toString())
+        : null;
+
+      if (
+        !existingOriginalPrice ||
+        !newOriginalPrice.equals(existingOriginalPrice)
+      ) {
+        updateData.originalPrice = newOriginalPrice;
+        updateData.originalPriceCurrency =
+          newProductData.originalPrice?.currency || null;
+      }
+    }
+
+    // Update discount if available
+    if (
+      newProductData.discount !== undefined &&
+      newProductData.discount !== null
+    ) {
+      const newDiscount = new Prisma.Decimal(newProductData.discount);
+      const existingDiscount = existingProduct.discount
+        ? new Prisma.Decimal(existingProduct.discount.toString())
+        : null;
+
+      if (!existingDiscount || !newDiscount.equals(existingDiscount)) {
+        updateData.discount = newDiscount;
+      }
+    }
+
+    // Update metadata if new data is available and existing is empty
+    if (
+      newProductData.metadata &&
+      Object.keys(newProductData.metadata).length > 0
+    ) {
+      const existingMetadata = existingProduct.metadata;
+
+      if (
+        !existingMetadata ||
+        (typeof existingMetadata === "object" &&
+          Object.keys(existingMetadata).length === 0)
+      ) {
+        updateData.metadata = newProductData.metadata as Prisma.InputJsonValue;
+      }
+    }
+
+    // Update isNew status based on tags
+    if (hasValue(newProductData.tags)) {
+      const isNew = newProductData.tags.some((tag) =>
+        tag.toLowerCase().includes("new"),
+      );
+
+      if (isNew !== existingProduct.isNew) {
+        updateData.isNew = isNew;
+      }
+    }
+
+    // Always ensure product is marked as available and not deleted during scraping
+    updateData.status = "Available";
+    updateData.isDeleted = false;
+
+    // Update brand and category connections if they've changed
+    if (brandId !== existingProduct.brandId) {
+      updateData.brand = { connect: { id: brandId } };
+    }
+
+    if (categoryId !== existingProduct.categoryId) {
+      updateData.category = { connect: { id: categoryId } };
+    }
+
+    return updateData;
   }
 
   public async executeTask(executionId: string): Promise<void> {
@@ -482,6 +750,13 @@ export class TaskExecutor {
         );
       }
 
+      // 获取爬取前的商品数量
+      const productCountBefore = await db.product.count({
+        where: {
+          source: taskDefinition.targetSite as ECommerceSite,
+        },
+      });
+
       await this.log(
         executionId,
         ScraperLogLevel.INFO,
@@ -493,6 +768,7 @@ export class TaskExecutor {
             maxLoadClicks: scraperOptions.maxLoadClicks,
             maxProducts: scraperOptions.maxProducts,
           },
+          productCountBefore,
         },
         logInfoForTask,
       );
@@ -508,7 +784,30 @@ export class TaskExecutor {
         executionId,
         ScraperLogLevel.INFO,
         `Scraper finished. Found ${productsToSave.length} products potentially.`,
-        undefined,
+        {
+          dataType: typeof scrapedData,
+          isArray: Array.isArray(scrapedData),
+          dataLength: productsToSave.length,
+          firstProductSample: productsToSave[0]
+            ? {
+                name: productsToSave[0].name,
+                brand: productsToSave[0].brand,
+                url: productsToSave[0].url,
+                source: productsToSave[0].source,
+              }
+            : null,
+        },
+        logInfoForTask,
+      );
+
+      await this.log(
+        executionId,
+        ScraperLogLevel.INFO,
+        `Starting to save ${productsToSave.length} products to database.`,
+        {
+          targetSite: taskDefinition.targetSite,
+          defaultInventory: taskDefinition.defaultInventory,
+        },
         logInfoForTask,
       );
 
@@ -520,6 +819,25 @@ export class TaskExecutor {
         logInfoForTask,
       );
 
+      await this.log(
+        executionId,
+        ScraperLogLevel.INFO,
+        `Database save completed. ${saveResults.savedCount} saved, ${saveResults.errorCount} failed.`,
+        {
+          savedCount: saveResults.savedCount,
+          errorCount: saveResults.errorCount,
+          errors: saveResults.errors.slice(0, 3), // 显示前3个错误
+        },
+        logInfoForTask,
+      );
+
+      // 获取爬取后的商品数量
+      const productCountAfter = await db.product.count({
+        where: {
+          source: taskDefinition.targetSite as ECommerceSite,
+        },
+      });
+
       const metrics = {
         productsFoundByScraper: productsToSave.length,
         productsSuccessfullySaved: saveResults.savedCount,
@@ -528,6 +846,9 @@ export class TaskExecutor {
           saveResults.errors.length > 0
             ? saveResults.errors.slice(0, 5)
             : undefined,
+        productCountBefore,
+        productCountAfter,
+        netNewProducts: productCountAfter - productCountBefore,
       };
 
       await db.scraperTaskExecution.update({
@@ -538,6 +859,21 @@ export class TaskExecutor {
           metrics: metrics as unknown as Prisma.InputJsonValue,
         },
       });
+
+      // 添加数据库商品数量统计日志
+      await this.log(
+        executionId,
+        ScraperLogLevel.INFO,
+        `📊 数据库商品统计 - 爬取前: ${productCountBefore}个, 爬取后: ${productCountAfter}个, 净增: ${productCountAfter - productCountBefore}个`,
+        {
+          productCountBefore,
+          productCountAfter,
+          netNewProducts: productCountAfter - productCountBefore,
+          source: taskDefinition.targetSite,
+        },
+        logInfoForTask,
+      );
+
       await this.log(
         executionId,
         ScraperLogLevel.INFO,

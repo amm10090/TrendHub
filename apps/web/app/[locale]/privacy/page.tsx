@@ -29,8 +29,8 @@ export default function PrivacyPage() {
       }
 
       return [];
-    } catch (error) {
-      console.warn(`Failed to get items for section ${section}:`, error);
+    } catch {
+      // console.warn(`Failed to get items for section ${section}:`, error);
 
       return [];
     }

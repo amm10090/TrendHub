@@ -935,6 +935,7 @@
     "title": "产品管理",
     "subtitle": "管理您的产品库存和目录",
     "addProduct": "添加商品",
+    "addProductPrompt": "添加新商品开始使用",
     "category": "分类",
     "categoryManagement": "分类管理",
     "edit": "编辑",

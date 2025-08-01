@@ -32,7 +32,16 @@ const fetchBrands = async (): Promise<Brand[]> => {
 
   const data = await response.json();
 
-  return data.items || data;
+  // API returns { success: true, data: Brand[], pagination: {...} }
+  // Access the brands array from data.data
+  if (data && data.data && Array.isArray(data.data)) {
+    return data.data;
+  }
+
+  // Fallback for unexpected data structure
+  console.warn("Unexpected brands data structure:", data);
+
+  return [];
 };
 
 export function useBrands() {

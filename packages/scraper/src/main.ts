@@ -11,6 +11,7 @@ export interface ScraperOptions {
   storageDir?: string; // 添加：存储目录参数
   headless?: boolean; // 添加：控制是否使用无头浏览器模式，默认为true
   maxConcurrency?: number; // 新增：控制最大并发数
+  enableDetailExtraction?: boolean; // 🚀 新增：是否启用详情页抓取（默认true，可设为false提升性能）
 }
 
 // 新增：统一的爬虫函数类型
@@ -49,7 +50,7 @@ export const fmtcScraper = fmtcScraperDefault;
 // Note: 'log' is typically imported from 'crawlee'. If you have a global 'log' or want to avoid conflicts, ensure clarity.
 // For this test, we'll use crawleeLog directly or rename it as above.
 
-crawleeLog.setLevel(crawleeLog.LEVELS.DEBUG); // Set log level to DEBUG
+crawleeLog.setLevel(crawleeLog.LEVELS.INFO); // Set log level to INFO to reduce verbose debug output
 
 // PlaywrightCrawler crawls the web using a headless
 // browser controlled by the Playwright library.

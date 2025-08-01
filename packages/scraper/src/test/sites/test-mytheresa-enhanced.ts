@@ -1,5 +1,4 @@
 import { chromium } from "playwright-extra";
-import type { Browser, Page } from "playwright";
 import stealth from "puppeteer-extra-plugin-stealth";
 import * as fs from "fs";
 import * as path from "path";
@@ -7,7 +6,6 @@ import { fileURLToPath } from "url";
 
 // 获取 __dirname 的 ESM 等价物
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // 使用 stealth 插件
 chromium.use(stealth());
@@ -16,7 +14,10 @@ async function testMytheresaWithEnhancedStealth() {
   console.log("🚀 启动增强版反检测测试...");
 
   // 读取 stealth.min.js 文件
-  const stealthPath = path.join(__dirname, "../../stealth.min.js");
+  const stealthPath = path.join(
+    path.dirname(__filename),
+    "../../stealth.min.js",
+  );
   let stealthScript: string | null = null;
 
   try {
@@ -30,7 +31,7 @@ async function testMytheresaWithEnhancedStealth() {
     console.error("❌ 加载 stealth.min.js 失败:", error);
   }
 
-  const browser: Browser = await chromium.launch({
+  const browser = await chromium.launch({
     headless: false, // 设置为 false 以便可以看到浏览器
     args: [
       "--no-sandbox",
@@ -64,7 +65,7 @@ async function testMytheresaWithEnhancedStealth() {
       timezoneId: "America/New_York",
     });
 
-    const page: Page = await context.newPage();
+    const page = await context.newPage();
 
     // 在页面加载前注入 stealth.min.js
     if (stealthScript) {
@@ -166,7 +167,7 @@ async function testMytheresaWithEnhancedStealth() {
         await page.waitForTimeout(1000);
       }
     } catch {
-      console.log("ℹ️ 没有发现 Cookie 弹窗");
+      // Ignore error
     }
 
     // 模拟人类行为

@@ -1054,7 +1054,8 @@
         "title": "Product Organization",
         "currentFullPathLabel": "Current Full Category Path",
         "genderLabel": "Gender",
-        "genderPlaceholder": "Select Gender"
+        "genderPlaceholder": "Select Gender",
+        "noSubcategoriesAvailable": "No subcategories available"
       },
       "priceAndInventory": {
         "barcode": "Barcode",

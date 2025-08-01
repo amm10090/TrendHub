@@ -1285,7 +1285,7 @@ TrendHub 通过 API 代理层与后端服务集成：
 前端应用 → API代理 → 后端服务
     ↓         ↓         ↓
   next.js   rewrite   admin app
-   3000      3000      3001
+   3006      3006    3005(dev)/3001(prod)
 ```
 
 ### API代理配置
@@ -1299,7 +1299,7 @@ const nextConfig = {
     return [
       {
         source: '/api/public/:path*',
-        destination: 'http://localhost:3001/api/public/:path*',
+        destination: `${process.env.INTERNAL_API_URL || 'http://localhost:3005'}/api/public/:path*`,
       },
     ];
   },
@@ -1325,10 +1325,11 @@ export async function getBrands(params: BrandQueryParams = {}): Promise<BrandLis
     // 环境检测：SSR vs CSR
     let url: string;
     if (typeof window === 'undefined') {
-      // 服务端渲染：使用完整URL
-      url = `http://localhost:3001/api/public/brands?${searchParams.toString()}`;
+      // 服务端渲染：使用环境变量配置的完整URL
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+      url = `${apiUrl}/api/public/brands?${searchParams.toString()}`;
     } else {
-      // 客户端渲染：使用相对路径
+      // 客户端渲染：使用相对路径（通过Next.js rewrites代理）
       url = `/api/public/brands?${searchParams.toString()}`;
     }
 
@@ -1890,9 +1891,16 @@ export function reportWebVitals(metric: any) {
 #### 1. 环境变量
 
 ```bash
-# .env.local
+# .env.local (开发环境)
+NEXT_PUBLIC_API_URL=http://localhost:3005
+INTERNAL_API_URL=http://localhost:3005
 NEXT_PUBLIC_SITE_URL=https://trendhub.example.com
-NEXT_PUBLIC_ADMIN_API_URL=http://localhost:3001
+NEXT_PUBLIC_ANALYTICS_ID=GA_TRACKING_ID
+
+# .env.production (生产环境)
+NEXT_PUBLIC_API_URL=http://localhost:3001
+INTERNAL_API_URL=http://localhost:3001
+NEXT_PUBLIC_SITE_URL=https://trendhub.example.com
 NEXT_PUBLIC_ANALYTICS_ID=GA_TRACKING_ID
 ```
 

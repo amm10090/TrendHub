@@ -1,5 +1,4 @@
 import { chromium } from "playwright-extra";
-import type { Browser, Page } from "playwright";
 import stealth from "puppeteer-extra-plugin-stealth";
 
 chromium.use(stealth());
@@ -7,7 +6,7 @@ chromium.use(stealth());
 async function debugViewportSettings() {
   console.log("🔍 调试Viewport设置...");
 
-  const browser: Browser = await chromium.launch({
+  const browser = await chromium.launch({
     headless: false,
     args: [
       "--no-sandbox",
@@ -35,7 +34,7 @@ async function debugViewportSettings() {
       screen: { width: viewportConfig.width, height: viewportConfig.height },
     });
 
-    const page: Page = await context.newPage();
+    const page = await context.newPage();
 
     // 覆盖窗口和屏幕属性
     await page.addInitScript(() => {

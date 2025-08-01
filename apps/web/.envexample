@@ -1,5 +1,12 @@
+# SMTP Configuration
 SMTP_HOST=smtp.example.com
 SMTP_PORT=465
 SMTP_USER=your-email@example.com
 SMTP_PASS=your-password
 SMTP_FROM=noreply@example.com
+
+# API Configuration
+# Backend API URL for server-side rendering (SSR)
+NEXT_PUBLIC_API_URL=http://localhost:3005
+# Internal API URL for Next.js rewrites (server-to-server)
+INTERNAL_API_URL=http://localhost:3005

@@ -175,3 +175,4 @@ packages/scraper/test-results
 .cursorignore
 .claude/
 CLAUDE.md
+packages/scraper/simulated-clicks-profile

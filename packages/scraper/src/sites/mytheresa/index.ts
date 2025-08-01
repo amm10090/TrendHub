@@ -1,16 +1,15 @@
 // packages/scraper/src/sites/mytheresa/index.ts
-import { Configuration, log as crawleeLog } from "crawlee";
 import type { Product } from "@repo/types";
-import * as path from "path";
 import type { ScraperOptions } from "../../main.js";
 import {
   sendLogToBackend,
   LocalScraperLogLevel,
-  ensureDirectoryExists,
+  minimalLog,
+  normalLog,
+  verboseLog,
 } from "../../utils.js";
-import { createStealthCrawler, USER_AGENTS } from "../../crawler-setup.js";
-import { requestHandler } from "./request-handler.js";
-import type { MytheresaUserData } from "./types.js";
+// 导入简化抓取器
+import scrapeMytheresaSimple from "./simple-scraper.js";
 
 // Helper function to infer gender from URL, specific to Mytheresa's URL structure
 export function inferGenderFromMytheresaUrl(
@@ -35,199 +34,53 @@ export default async function scrapeMytheresa(
     await sendLogToBackend(
       executionId,
       LocalScraperLogLevel.INFO,
-      `${siteName} scraper starting with warm-up phase.`,
+      `${siteName} 简化抓取器启动 - 基于测试脚本成功模式`,
       {
         startUrls: Array.isArray(startUrls) ? startUrls : [startUrls],
         options,
-        userAgentPool: USER_AGENTS.length,
+        mode: "simplified_single_session",
       },
     );
   }
 
-  const allScrapedProducts: Product[] = [];
-  const maxRequests = options.maxRequests || 90;
+  normalLog(`🚀 启动 ${siteName} 简化抓取器（基于测试脚本成功模式）`);
 
-  const startUrlsArray = Array.isArray(startUrls) ? startUrls : [startUrls];
-  const totalMaxProducts = options.maxProducts || 1000;
-  const maxProductsPerUrl = Math.ceil(totalMaxProducts / startUrlsArray.length);
+  // 直接使用简化抓取器
+  const products = await scrapeMytheresaSimple(startUrls, options, executionId);
 
-  const urlProductCounts = new Map<
-    string,
-    { processedDetailPages: number; enqueuedDetailPages: number }
-  >();
-
-  startUrlsArray.forEach((url) => {
-    urlProductCounts.set(url, {
-      processedDetailPages: 0,
-      enqueuedDetailPages: 0,
-    });
-  });
-
-  let processedDetailPages = 0;
-  let enqueuedDetailPages = 0;
-
-  const baseStorageDir = path.resolve(process.cwd(), "scraper_storage_runs");
-  const runSpecificStorageDir = executionId
-    ? path.join(baseStorageDir, siteName, executionId)
-    : path.join(
-        baseStorageDir,
-        siteName,
-        `default_run_${new Date().getTime()}`,
-      );
-
-  crawleeLog.info(
-    `Mytheresa: Storage directory for this run set to: ${runSpecificStorageDir}`,
-  );
-
-  ensureDirectoryExists(
-    path.join(runSpecificStorageDir, "request_queues", "default"),
-    crawleeLog,
-  );
-  ensureDirectoryExists(
-    path.join(runSpecificStorageDir, "datasets", "default"),
-    crawleeLog,
-  );
-  ensureDirectoryExists(
-    path.join(runSpecificStorageDir, "key_value_stores", "default"),
-    crawleeLog,
-  );
-  process.env.CRAWLEE_STORAGE_DIR = runSpecificStorageDir;
-
-  const config = new Configuration({
-    storageClientOptions: { storageDir: runSpecificStorageDir },
-  });
-
-  const crawler = createStealthCrawler(
-    {
-      requestHandler: requestHandler({
-        allScrapedProducts,
-        urlProductCounts,
-        maxProductsPerUrl,
-        totalMaxProducts,
-        updateProcessedCounters: (isDetail) => {
-          if (isDetail) processedDetailPages++;
-        },
-        updateEnqueuedCounters: (count) => {
-          enqueuedDetailPages = count;
-        },
-      }),
-      failedRequestHandler: async ({ request, log: localLog }) => {
-        localLog.error(`Mytheresa: Request ${request.url} failed!`);
-        const currentExecutionId = (request.userData as MytheresaUserData)
-          ?.executionId;
-        if (currentExecutionId) {
-          await sendLogToBackend(
-            currentExecutionId,
-            LocalScraperLogLevel.ERROR,
-            `Request failed: ${request.url}`,
-            { error: request.errorMessages?.join("; ") },
-          );
-        }
+  verboseLog(
+    `🔍 抓取器返回数据: ${JSON.stringify(
+      {
+        productsCount: products.length,
+        firstProductSample: products[0]
+          ? {
+              name: products[0].name,
+              brand: products[0].brand,
+              url: products[0].url,
+              source: products[0].source,
+            }
+          : null,
       },
-      launchContext: {
-        launchOptions: {
-          headless: false, // 始终显示浏览器界面
-        },
-      },
-      maxRequestsPerCrawl: maxRequests,
-      maxConcurrency: options.maxConcurrency || 1,
-      minConcurrency: 1,
-      autoscaledPoolOptions: {
-        desiredConcurrency: 1,
-        maxConcurrency: 1,
-      },
-    },
-    config,
+      null,
+      2,
+    )}`,
   );
-
-  crawleeLog.info(
-    "Mytheresa: Enhanced anti-detection crawler setup complete. Starting crawl...",
-  );
-
-  const womenUrls = startUrlsArray.filter(
-    (url) => inferGenderFromMytheresaUrl(url) === "women",
-  );
-  const menUrls = startUrlsArray.filter(
-    (url) => inferGenderFromMytheresaUrl(url) === "men",
-  );
-  const otherUrls = startUrlsArray.filter(
-    (url) => !inferGenderFromMytheresaUrl(url),
-  );
-
-  const initialRequests: {
-    url: string;
-    label: "HOMEPAGE";
-    userData: MytheresaUserData;
-  }[] = [];
-
-  if (womenUrls.length > 0) {
-    initialRequests.push({
-      url: "https://www.mytheresa.com/us/en/women",
-      label: "HOMEPAGE",
-      userData: {
-        executionId,
-        label: "HOMEPAGE",
-        urlsToScrape: womenUrls,
-      },
-    });
-  }
-
-  if (menUrls.length > 0) {
-    initialRequests.push({
-      url: "https://www.mytheresa.com/us/en/men",
-      label: "HOMEPAGE",
-      userData: {
-        executionId,
-        label: "HOMEPAGE",
-        urlsToScrape: menUrls,
-      },
-    });
-  }
-
-  if (otherUrls.length > 0) {
-    initialRequests.push({
-      url: "https://www.mytheresa.com/",
-      label: "HOMEPAGE",
-      userData: {
-        executionId,
-        label: "HOMEPAGE",
-        urlsToScrape: otherUrls,
-      },
-    });
-  }
-
-  await crawler.run(initialRequests);
 
   if (executionId) {
     await sendLogToBackend(
       executionId,
       LocalScraperLogLevel.INFO,
-      `Mytheresa scraper finished. Total products collected: ${allScrapedProducts.length}.`,
+      `${siteName} 简化抓取器完成. 总计获取商品: ${products.length}`,
       {
-        processedDetailPages,
-        enqueuedDetailPages,
-        urlBreakdown: Array.from(urlProductCounts.entries()).map(
-          ([url, counts]) => ({
-            url,
-            processedDetailPages: counts.processedDetailPages,
-            enqueuedDetailPages: counts.enqueuedDetailPages,
-            maxAllowedPerUrl: maxProductsPerUrl,
-          }),
-        ),
-        totalMaxProducts,
-        maxProductsPerUrl,
+        totalProducts: products.length,
+        mode: "simplified_single_session",
       },
     );
   }
-  crawleeLog.info(
-    `Mytheresa scraper finished. Total products collected: ${allScrapedProducts.length}. Per-URL breakdown:`,
+
+  minimalLog(
+    `🎉 ${siteName} 简化抓取器完成! 总计获取 ${products.length} 个商品`,
   );
 
-  Array.from(urlProductCounts.entries()).forEach(([url, counts]) => {
-    crawleeLog.info(
-      `  ${url}: 处理了 ${counts.processedDetailPages}/${maxProductsPerUrl} 个商品 (入队: ${counts.enqueuedDetailPages})`,
-    );
-  });
-
-  return allScrapedProducts;
+  return products;
 }

@@ -8,6 +8,8 @@ import {
   RefreshCw,
   AlertTriangle,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect, useCallback } from "react";
@@ -76,22 +78,59 @@ export function BrandMatchingPanel() {
   const t = useTranslations("discounts.brandMatching");
   const [mappings, setMappings] = useState<BrandMapping[]>([]);
   const [unmatched, setUnmatched] = useState<UnmatchedMerchant[]>([]);
+  const [unmatchedTotal, setUnmatchedTotal] = useState(0);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+
+  // 分页相关状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
   const [editingMapping, setEditingMapping] = useState<BrandMapping | null>(
     null,
   );
   const [newBrandId, setNewBrandId] = useState("");
   const [processing, setProcessing] = useState(false);
 
+  // 防抖搜索
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms 防抖延迟
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+
+      // 构建未匹配商家API参数
+      const unmatchedParams = new URLSearchParams({
+        limit: pageSize.toString(),
+        page: currentPage.toString(),
+      });
+
+      // 添加搜索参数
+      if (debouncedSearchTerm.trim()) {
+        unmatchedParams.set("search", debouncedSearchTerm.trim());
+      }
+
+      // 构建映射API参数
+      const mappingsParams = new URLSearchParams({
+        limit: "1000", // 映射数据通常较少，可以一次加载更多
+      });
+
+      if (debouncedSearchTerm.trim()) {
+        mappingsParams.set("search", debouncedSearchTerm.trim());
+      }
+
       const [mappingsRes, unmatchedRes, brandsRes] = await Promise.all([
-        fetch("/api/discounts/brand-matching/mappings"),
-        fetch("/api/discounts/brand-matching/unmatched"),
+        fetch(`/api/discounts/brand-matching/mappings?${mappingsParams}`),
+        fetch(`/api/discounts/brand-matching/unmatched?${unmatchedParams}`),
         fetch("/api/brands?limit=1000"),
       ]);
 
@@ -105,6 +144,8 @@ export function BrandMatchingPanel() {
 
       if (unmatchedResult.success) {
         setUnmatched(unmatchedResult.data || []);
+        setUnmatchedTotal(unmatchedResult.total || 0);
+        setTotalPages(Math.ceil((unmatchedResult.total || 0) / pageSize));
       }
 
       if (brandsResult.success) {
@@ -115,7 +156,26 @@ export function BrandMatchingPanel() {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, currentPage, pageSize, debouncedSearchTerm]);
+
+  // 分页处理函数
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // 重置到第一页
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  // 当防抖搜索词变化时重置分页
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm]);
 
   const handleCreateMapping = async (merchantName: string, brandId: string) => {
     try {
@@ -216,6 +276,8 @@ export function BrandMatchingPanel() {
         toast.success(
           t("messages.batchSuccess", { count: result.data.processed }),
         );
+        // 重置到第一页并刷新数据
+        setCurrentPage(1);
         await fetchData();
       } else {
         toast.error(result.error || t("errors.batchFailed"));
@@ -241,11 +303,8 @@ export function BrandMatchingPanel() {
     return matchesSearch && matchesStatus;
   });
 
-  const filteredUnmatched = unmatched.filter(
-    (merchant) =>
-      !searchTerm ||
-      merchant.merchantName.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // 搜索现在在后端处理，不需要前端过滤
+  const filteredUnmatched = unmatched;
 
   useEffect(() => {
     fetchData();
@@ -285,7 +344,7 @@ export function BrandMatchingPanel() {
                 size="sm"
                 variant="outline"
                 onClick={handleBatchMatch}
-                disabled={processing || unmatched.length === 0}
+                disabled={processing || unmatchedTotal === 0}
               >
                 <RefreshCw
                   className={`w-4 h-4 mr-1 ${processing ? "animate-spin" : ""}`}
@@ -310,7 +369,7 @@ export function BrandMatchingPanel() {
                   id="search"
                   placeholder={t("search.placeholder")}
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -336,206 +395,240 @@ export function BrandMatchingPanel() {
               </Select>
             </div>
           </div>
-
-          {/* Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <div className="text-lg font-bold">{mappings.length}</div>
-              <div className="text-muted-foreground">{t("stats.mapped")}</div>
-            </div>
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-lg font-bold text-green-600">
-                {mappings.filter((m) => m.isConfirmed).length}
-              </div>
-              <div className="text-muted-foreground">
-                {t("stats.confirmed")}
-              </div>
-            </div>
-            <div className="text-center p-3 bg-yellow-50 rounded-lg">
-              <div className="text-lg font-bold text-yellow-600">
-                {mappings.filter((m) => !m.isConfirmed).length}
-              </div>
-              <div className="text-muted-foreground">
-                {t("stats.unconfirmed")}
-              </div>
-            </div>
-            <div className="text-center p-3 bg-red-50 rounded-lg">
-              <div className="text-lg font-bold text-red-600">
-                {unmatched.length}
-              </div>
-              <div className="text-muted-foreground">
-                {t("stats.unmatched")}
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
       {/* Unmatched Merchants */}
-      {filteredUnmatched.length > 0 && (
+      {unmatchedTotal > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              {t("unmatched.title", { count: filteredUnmatched.length })}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                {t("unmatched.title", { count: unmatchedTotal })}
+              </CardTitle>
+
+              {/* 分页控制器 */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>每页显示</span>
+                  <Select
+                    value={pageSize.toString()}
+                    onValueChange={(value) =>
+                      handlePageSizeChange(Number(value))
+                    }
+                  >
+                    <SelectTrigger className="w-16 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span>项</span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  <div className="flex items-center gap-1 text-sm">
+                    <span>{currentPage}</span>
+                    <span>/</span>
+                    <span>{totalPages}</span>
+                  </div>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {filteredUnmatched.map((merchant) => (
-                <div
-                  key={merchant.merchantName}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium">{merchant.merchantName}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {t("unmatched.discountCount", {
-                        count: merchant.discountCount,
-                      })}
-                    </div>
-                    {merchant.sampleTitles.length > 0 && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {t("unmatched.example")}:{" "}
-                        {merchant.sampleTitles.slice(0, 2).join(", ")}
+            {filteredUnmatched.length > 0 ? (
+              <div className="space-y-3">
+                {filteredUnmatched.map((merchant) => (
+                  <div
+                    key={merchant.merchantName}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium">{merchant.merchantName}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t("unmatched.discountCount", {
+                          count: merchant.discountCount,
+                        })}
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {merchant.suggestedBrands.length > 0 && (
-                      <div className="text-xs text-muted-foreground">
-                        {t("unmatched.suggested")}:{" "}
-                        {merchant.suggestedBrands[0].brand.name}(
-                        {(merchant.suggestedBrands[0].confidence * 100).toFixed(
-                          0,
-                        )}
-                        %)
-                      </div>
-                    )}
-
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex items-center"
-                        >
-                          <Link2 className="w-4 h-4 mr-1" />
-                          {t("actions.link")}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>
-                            {t("dialogs.linkBrand.title")}
-                          </DialogTitle>
-                          <DialogDescription>
-                            {t("dialogs.linkBrand.description", {
-                              merchantName: merchant.merchantName,
-                            })}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label>{t("dialogs.linkBrand.selectBrand")}</Label>
-                            <Select
-                              value={newBrandId}
-                              onValueChange={setNewBrandId}
-                            >
-                              <SelectTrigger>
-                                <SelectValue
-                                  placeholder={t(
-                                    "dialogs.linkBrand.selectPlaceholder",
-                                  )}
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {brands.map((brand) => (
-                                  <SelectItem key={brand.id} value={brand.id}>
-                                    {brand.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {merchant.suggestedBrands.length > 0 && (
-                            <div>
-                              <Label>{t("dialogs.linkBrand.suggested")}</Label>
-                              <div className="space-y-2 mt-2">
-                                {merchant.suggestedBrands
-                                  .slice(0, 3)
-                                  .map((suggestion) => (
-                                    <div
-                                      key={suggestion.brand.id}
-                                      className="flex items-center justify-between p-2 bg-muted/50 rounded cursor-pointer hover:bg-muted"
-                                      onClick={() =>
-                                        setNewBrandId(suggestion.brand.id)
-                                      }
-                                      onKeyDown={(e) => {
-                                        if (
-                                          e.key === "Enter" ||
-                                          e.key === " "
-                                        ) {
-                                          setNewBrandId(suggestion.brand.id);
-                                        }
-                                      }}
-                                      role="button"
-                                      tabIndex={0}
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <Avatar className="w-6 h-6">
-                                          <AvatarImage
-                                            src={suggestion.brand.logo}
-                                          />
-                                          <AvatarFallback className="text-xs">
-                                            {suggestion.brand.name
-                                              .substring(0, 2)
-                                              .toUpperCase()}
-                                          </AvatarFallback>
-                                        </Avatar>
-                                        <span className="text-sm">
-                                          {suggestion.brand.name}
-                                        </span>
-                                      </div>
-                                      <Badge
-                                        variant="outline"
-                                        className="text-xs"
-                                      >
-                                        {(suggestion.confidence * 100).toFixed(
-                                          0,
-                                        )}
-                                        %
-                                      </Badge>
-                                    </div>
-                                  ))}
-                              </div>
-                            </div>
-                          )}
+                      {merchant.sampleTitles.length > 0 && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {t("unmatched.example")}:{" "}
+                          {merchant.sampleTitles.slice(0, 2).join(", ")}
                         </div>
-                        <DialogFooter>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {merchant.suggestedBrands.length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          {t("unmatched.suggested")}:{" "}
+                          {merchant.suggestedBrands[0].brand.name}(
+                          {(
+                            merchant.suggestedBrands[0].confidence * 100
+                          ).toFixed(0)}
+                          %)
+                        </div>
+                      )}
+
+                      <Dialog>
+                        <DialogTrigger asChild>
                           <Button
-                            onClick={() => {
-                              if (newBrandId) {
-                                handleCreateMapping(
-                                  merchant.merchantName,
-                                  newBrandId,
-                                );
-                                setNewBrandId("");
-                              }
-                            }}
-                            disabled={!newBrandId || processing}
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center"
                           >
-                            {t("actions.create")}
+                            <Link2 className="w-4 h-4 mr-1" />
+                            {t("actions.link")}
                           </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              {t("dialogs.linkBrand.title")}
+                            </DialogTitle>
+                            <DialogDescription>
+                              {t("dialogs.linkBrand.description", {
+                                merchantName: merchant.merchantName,
+                              })}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <Label>
+                                {t("dialogs.linkBrand.selectBrand")}
+                              </Label>
+                              <Select
+                                value={newBrandId}
+                                onValueChange={setNewBrandId}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={t(
+                                      "dialogs.linkBrand.selectPlaceholder",
+                                    )}
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {brands.map((brand) => (
+                                    <SelectItem key={brand.id} value={brand.id}>
+                                      {brand.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {merchant.suggestedBrands.length > 0 && (
+                              <div>
+                                <Label>
+                                  {t("dialogs.linkBrand.suggested")}
+                                </Label>
+                                <div className="space-y-2 mt-2">
+                                  {merchant.suggestedBrands
+                                    .slice(0, 3)
+                                    .map((suggestion) => (
+                                      <div
+                                        key={suggestion.brand.id}
+                                        className="flex items-center justify-between p-2 bg-muted/50 rounded cursor-pointer hover:bg-muted"
+                                        onClick={() =>
+                                          setNewBrandId(suggestion.brand.id)
+                                        }
+                                        onKeyDown={(e) => {
+                                          if (
+                                            e.key === "Enter" ||
+                                            e.key === " "
+                                          ) {
+                                            setNewBrandId(suggestion.brand.id);
+                                          }
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <Avatar className="w-6 h-6">
+                                            <AvatarImage
+                                              src={suggestion.brand.logo}
+                                            />
+                                            <AvatarFallback className="text-xs">
+                                              {suggestion.brand.name
+                                                .substring(0, 2)
+                                                .toUpperCase()}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                          <span className="text-sm">
+                                            {suggestion.brand.name}
+                                          </span>
+                                        </div>
+                                        <Badge
+                                          variant="outline"
+                                          className="text-xs"
+                                        >
+                                          {(
+                                            suggestion.confidence * 100
+                                          ).toFixed(0)}
+                                          %
+                                        </Badge>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <DialogFooter>
+                            <Button
+                              onClick={() => {
+                                if (newBrandId) {
+                                  handleCreateMapping(
+                                    merchant.merchantName,
+                                    newBrandId,
+                                  );
+                                  setNewBrandId("");
+                                }
+                              }}
+                              disabled={!newBrandId || processing}
+                            >
+                              {t("actions.create")}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertTriangle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>当前页没有数据</p>
+                <p className="text-sm">总共有 {unmatchedTotal} 个未匹配商家</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

@@ -25,10 +25,19 @@ export async function GET(request: Request) {
       sortOrder,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      success: true,
+      data: result.items,
+      pagination: {
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        totalPages: result.totalPages,
+      },
+    });
   } catch {
     return NextResponse.json(
-      { error: "Failed to fetch brands" },
+      { success: false, error: "Failed to fetch brands" },
       { status: 500 },
     );
   }

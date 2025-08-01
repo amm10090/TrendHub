@@ -1,11 +1,10 @@
 import { chromium } from "playwright-extra";
-import type { Browser, Page } from "playwright";
 import stealth from "puppeteer-extra-plugin-stealth";
 
 chromium.use(stealth());
 
 async function testMytheresaPageStructure() {
-  const browser: Browser = await chromium.launch({
+  const browser = await chromium.launch({
     headless: false, // 设置为 false 以便可以看到浏览器
     executablePath:
       process.env.CHROME_EXECUTABLE_PATH ||
@@ -13,7 +12,7 @@ async function testMytheresaPageStructure() {
   });
 
   try {
-    const page: Page = await browser.newPage();
+    const page = await browser.newPage();
 
     // 设置 User-Agent 来模拟真实浏览器
     await page.setExtraHTTPHeaders({

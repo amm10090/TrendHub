@@ -62,9 +62,11 @@ export async function getBrands(params: BrandQueryParams = {}): Promise<BrandLis
 
     if (typeof window === 'undefined') {
       // 服务端渲染环境，需要完整URL
-      url = `http://localhost:3001/api/public/brands?${searchParams.toString()}`;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+
+      url = `${apiUrl}/api/public/brands?${searchParams.toString()}`;
     } else {
-      // 客户端环境，可以使用相对路径
+      // 客户端环境，可以使用相对路径（通过Next.js rewrites代理）
       url = `/api/public/brands?${searchParams.toString()}`;
     }
 
@@ -106,10 +108,11 @@ export async function getBrandBySlug(slug: string): Promise<Brand | null> {
 
     if (typeof window === 'undefined') {
       // 服务端渲染环境，需要完整URL
-      // 使用Next.js rewrites配置的目标URL
-      url = `http://localhost:3001/api/public/brands/slug/${encodedSlug}`;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+
+      url = `${apiUrl}/api/public/brands/slug/${encodedSlug}`;
     } else {
-      // 客户端环境，可以使用相对路径
+      // 客户端环境，可以使用相对路径（通过Next.js rewrites代理）
       url = `/api/public/brands/slug/${encodedSlug}`;
     }
 

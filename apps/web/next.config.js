@@ -63,10 +63,14 @@ const nextConfig = {
     ];
   },
   async rewrites() {
+    const apiUrl =
+      (typeof globalThis !== 'undefined' && globalThis.process
+        ? globalThis.process.env.INTERNAL_API_URL
+        : undefined) || 'http://localhost:3005';
     return [
       {
         source: '/api/public/:path*',
-        destination: 'http://localhost:3001/api/public/:path*',
+        destination: `${apiUrl}/api/public/:path*`,
       },
     ];
   },

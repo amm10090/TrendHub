@@ -1,0 +1,25 @@
+{
+  "apps": [
+    {
+      "name": "trend-hub-admin",
+      "cwd": ".",
+      "script": "../../scripts/start-with-display.sh",
+      "args": "npm run start:production",
+      "instances": "1",
+      "exec_mode": "fork",
+      "watch": false,
+      "autorestart": true,
+      "max_memory_restart": "512M",
+      "min_uptime": "10s",
+      "max_restarts": 5,
+      "restart_delay": 5000,
+      "env_production": {
+        "NODE_ENV": "production",
+        "NODE_OPTIONS": "--no-deprecation"
+      },
+      "error_file": "./logs/pm2-error.log",
+      "out_file": "./logs/pm2-out.log",
+      "log_file": "./logs/pm2-combined.log"
+    }
+  ]
+}

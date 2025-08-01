@@ -1,0 +1,48 @@
+{
+  "apps": [
+    {
+      "name": "trend-hub-admin",
+      "cwd": "./apps/admin",
+      "script": "./scripts/start-with-display.sh",
+      "args": "npm run start:production",
+      "instances": "1",
+      "exec_mode": "fork",
+      "watch": false,
+      "autorestart": true,
+      "max_memory_restart": "512M",
+      "min_uptime": "10s",
+      "max_restarts": 5,
+      "restart_delay": 5000,
+      "env_production": {
+        "NODE_ENV": "production",
+        "NODE_OPTIONS": "--no-deprecation",
+        "AUTH_TRUST_HOST": "true"
+      },
+      "error_file": "./logs/admin-error.log",
+      "out_file": "./logs/admin-out.log",
+      "log_file": "./logs/admin-combined.log"
+    },
+    {
+      "name": "trend-hub-web",
+      "cwd": "./apps/web",
+      "script": "npm",
+      "args": "run start:production",
+      "instances": "1",
+      "exec_mode": "fork",
+      "watch": false,
+      "autorestart": true,
+      "max_memory_restart": "512M",
+      "min_uptime": "10s",
+      "max_restarts": 5,
+      "restart_delay": 5000,
+      "env_production": {
+        "NODE_ENV": "production",
+        "NODE_OPTIONS": "--no-deprecation",
+        "AUTH_TRUST_HOST": "true"
+      },
+      "error_file": "./logs/web-error.log",
+      "out_file": "./logs/web-out.log",
+      "log_file": "./logs/web-combined.log"
+    }
+  ]
+}

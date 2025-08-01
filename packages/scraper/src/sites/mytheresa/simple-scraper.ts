@@ -50,7 +50,7 @@ export default async function scrapeMytheresaSimple(
   const enableDetailExtraction = options.enableDetailExtraction ?? true;
   const maxDetailPages = enableDetailExtraction ? maxProducts : 0;
 
-  let browser: unknown = null;
+  let browser: any = null;
 
   try {
     // 使用与测试脚本完全相同的浏览器配置
@@ -59,7 +59,7 @@ export default async function scrapeMytheresaSimple(
       args: ["--no-sandbox", "--disable-blink-features=AutomationControlled"],
     });
 
-    const context = await browser.newContext({
+    const context = await (browser as any).newContext({
       viewport: { width: 1920, height: 1080 },
       userAgent:
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -108,9 +108,9 @@ export default async function scrapeMytheresaSimple(
 
       automationVars.forEach((varName) => {
         try {
-          delete (window as Record<string, unknown>)[varName];
-          delete (document as Record<string, unknown>)[varName];
-        } catch {
+          delete (window as unknown as Record<string, unknown>)[varName];
+          delete (document as unknown as Record<string, unknown>)[varName];
+        } catch (error) {
           // Ignore deletion errors
         }
       });
@@ -304,7 +304,7 @@ export default async function scrapeMytheresaSimple(
         }
 
         // 将结果添加到总结果中
-        allScrapedProducts.push(...finalProducts);
+        allScrapedProducts.push(...(finalProducts as any as Product[]));
 
         minimalLog(
           `🎉 URL处理完成: ${targetUrl}, 获取商品数量: ${finalProducts.length}`,
@@ -348,16 +348,16 @@ export default async function scrapeMytheresaSimple(
           summary: {
             totalProductsFound: allScrapedProducts.length,
             productsWithDetailData: allScrapedProducts.filter(
-              (p) => (p as Record<string, unknown>).hasDetailData,
+              (p) => (p as any).hasDetailData,
             ).length,
             productsWithoutDetailData: allScrapedProducts.filter(
-              (p) => !(p as Record<string, unknown>).hasDetailData,
+              (p) => !(p as any).hasDetailData,
             ).length,
           },
         },
       );
     }
-  } catch {
+  } catch (error) {
     console.error("❌ 简化抓取器失败:", error);
 
     if (executionId) {
@@ -389,7 +389,7 @@ function getHomepageUrl(targetUrl: string): string {
     } else {
       return "https://www.mytheresa.com/us/en/women"; // 默认女装
     }
-  } catch {
+  } catch (error) {
     return "https://www.mytheresa.com/us/en/women"; // 默认女装
   }
 }
@@ -398,7 +398,7 @@ function getHomepageUrl(targetUrl: string): string {
  * 模拟导航到目标页面 - 与测试脚本完全一致的导航逻辑
  */
 async function simulateNavigationToTarget(
-  page: unknown,
+  page: any,
   targetUrl: string,
 ): Promise<boolean> {
   try {
@@ -552,7 +552,7 @@ async function simulateNavigationToTarget(
     }
 
     return false;
-  } catch {
+  } catch (error) {
     normalLog(`💥 模拟导航失败: ${(error as Error).message}`);
     return false;
   }
@@ -561,9 +561,7 @@ async function simulateNavigationToTarget(
 /**
  * 模拟真实用户浏览行为 - 与测试脚本完全一致
  */
-async function simulateRealUserBehavior(
-  page: Record<string, unknown>,
-): Promise<void> {
+async function simulateRealUserBehavior(page: any): Promise<void> {
   // 阅读时间
   const readingTime = 3000 + Math.random() * 4000;
   await new Promise((resolve) => setTimeout(resolve, readingTime));
@@ -593,7 +591,7 @@ async function simulateRealUserBehavior(
  * 智能产品抓取器 - 支持数据库去重和动态深度遍历
  */
 async function extractProducts(
-  page: Record<string, unknown>,
+  page: any,
   maxProducts: number,
   executionId?: string,
 ): Promise<Record<string, unknown>[]> {
@@ -754,12 +752,14 @@ async function extractProducts(
       if (currentPageProducts.length > 0) {
         const pageNumbers = [
           ...new Set(
-            currentPageProducts.map((p) => p.metadata?.pageIndicator || 1),
+            currentPageProducts.map(
+              (p) => (p as any).metadata?.pageIndicator || 1,
+            ),
           ),
         ];
         pageNumbers.forEach((pageNum) => {
           const pageProducts = currentPageProducts.filter(
-            (p) => p.metadata?.pageIndicator === pageNum,
+            (p) => (p as any).metadata?.pageIndicator === pageNum,
           );
           recordPageProducts(pageNum, pageProducts);
         });
@@ -833,7 +833,7 @@ async function extractProducts(
     }
 
     return products.slice(0, maxProducts); // 确保不超过目标数量
-  } catch {
+  } catch (error) {
     normalLog("💥 智能抓取失败:");
 
     if (executionId) {
@@ -915,7 +915,7 @@ async function batchCheckProductsExistence(
     }
 
     return new Set();
-  } catch {
+  } catch (error) {
     verboseLog(`⚠️ 批量数据库存在性检查失败: ${(error as Error).message}`);
     return new Set(); // 出错时假设都不存在，让智能更新机制处理
   }
@@ -947,7 +947,7 @@ async function checkPageAlreadyProcessed(pageNumber: number): Promise<boolean> {
  * @param forceStartIndex - 强制从指定索引开始（用于处理新加载的商品）
  */
 async function extractCurrentPageProducts(
-  page: Record<string, unknown>,
+  page: any,
   maxItems: number = 20,
   forceStartIndex?: number,
 ): Promise<Record<string, unknown>[]> {
@@ -963,7 +963,7 @@ async function extractCurrentPageProducts(
     normalLog(`📍 当前页面URL: ${currentUrl}`);
     normalLog(`📍 页面标题: ${pageTitle}`);
 
-    let productItems: Record<string, unknown>[] = [];
+    let productItems: any[] = [];
 
     // 使用已有的产品项选择器
     for (const selector of SELECTORS.PLP_PRODUCT_ITEM_SELECTORS) {
@@ -1006,7 +1006,7 @@ async function extractCurrentPageProducts(
           normalLog(
             `🔍 调试选择器 ${debugSelector}: 找到 ${debugItems.length} 个元素`,
           );
-        } catch {
+        } catch (error) {
           continue;
         }
       }
@@ -1031,7 +1031,7 @@ async function extractCurrentPageProducts(
           const fullUrl = new URL(link, page.url()).toString();
           allProductsBasicInfo.push({ index: i, url: fullUrl });
         }
-      } catch {
+      } catch (error) {
         verboseLog(`⚠️ 无法获取商品${i + 1}的URL，跳过`);
         continue;
       }
@@ -1095,7 +1095,7 @@ async function extractCurrentPageProducts(
         ) {
           products.push(productData);
           normalLog(
-            `✅ 商品 ${i + 1} 提取成功: ${productData.brand} - ${productData.name} (第${productData.metadata?.pageIndicator}页)`,
+            `✅ 商品 ${i + 1} 提取成功: ${productData.brand} - ${productData.name} (第${(productData as any).metadata?.pageIndicator}页)`,
           );
         } else {
           normalLog(`⚠️ 商品 ${i + 1} 数据不完整，跳过`);
@@ -1117,7 +1117,7 @@ async function extractCurrentPageProducts(
       `🎉 智能商品提取完成，成功提取 ${products.length} 个商品 (处理范围: ${startIndex + 1}-${Math.min(startIndex + products.length, productItems.length)})`,
     );
     return products;
-  } catch {
+  } catch (error) {
     const err = error as Error;
     normalLog(`💥 智能提取当前页面商品失败: ${err.message}`);
     return [];
@@ -1135,7 +1135,10 @@ function getLastProcessedRange(): {
   if (!(global as Record<string, unknown>).lastProcessedRange) {
     return null;
   }
-  return (global as Record<string, unknown>).lastProcessedRange;
+  return (global as any).lastProcessedRange as {
+    startIndex: number;
+    endIndex: number;
+  } | null;
 }
 
 /**
@@ -1180,14 +1183,14 @@ function recordPageProducts(
   };
   currentCount.total = Math.max(currentCount.total, products.length);
   currentCount.processed += products.filter(
-    (p) => p.metadata?.pageIndicator === pageNumber,
+    (p) => (p as any).metadata?.pageIndicator === pageNumber,
   ).length;
 
   pageProductCounts.set(pageNumber, currentCount);
 
   // 如果该页面的商品已经处理了90%以上，标记为已处理
   if (currentCount.processed >= currentCount.total * 0.9) {
-    (global as Record<string, unknown>).processedPages.add(pageNumber);
+    ((global as any).processedPages as Set<number>).add(pageNumber);
     normalLog(
       `✅ 第 ${pageNumber} 页已完成处理 (${currentCount.processed}/${currentCount.total})`,
     );
@@ -1381,9 +1384,7 @@ function findOptimalProductRange(
 /**
  * 加载更多商品 - 与测试脚本一致
  */
-async function loadMoreProducts(
-  page: Record<string, unknown>,
-): Promise<boolean> {
+async function loadMoreProducts(page: any): Promise<boolean> {
   try {
     verboseLog("\n🔄 寻找并点击'Show more'按钮...");
 
@@ -1416,7 +1417,7 @@ async function loadMoreProducts(
           verboseLog(`📍 找到Show more按钮: ${selector}`);
           break;
         }
-      } catch {
+      } catch (error) {
         continue;
       }
     }
@@ -1451,7 +1452,7 @@ async function loadMoreProducts(
 
     normalLog("✅ 成功加载更多商品");
     return true;
-  } catch {
+  } catch (error) {
     normalLog("💥 加载更多商品失败:");
     return false;
   }
@@ -1461,7 +1462,7 @@ async function loadMoreProducts(
  * 提取商品详情信息 - 与测试脚本完全一致
  */
 async function extractProductDetails(
-  page: Record<string, unknown>,
+  page: any,
   products: Record<string, unknown>[],
   maxDetailsCount = 20,
 ): Promise<Record<string, unknown>[]> {
@@ -1541,12 +1542,12 @@ async function extractProductDetails(
         const waitTime = 500 + Math.random() * 1000;
         verboseLog(`⏰ 快速等待 ${Math.round(waitTime / 1000)} 秒...`);
         await page.waitForTimeout(waitTime);
-      } catch {
+      } catch (error) {
         normalLog(`💥 处理商品 ${i + 1} 时发生错误`);
         // 尝试返回列表页
         try {
           await navigateBackToList(page);
-        } catch {
+        } catch (error) {
           verboseLog("尝试返回列表页失败，刷新页面");
           await page.reload({ waitUntil: "domcontentloaded" });
           await page.waitForTimeout(3000);
@@ -1559,7 +1560,7 @@ async function extractProductDetails(
       `\n🎉 商品详情抓取完成，成功获取 ${detailedProducts.length} 个商品的详细信息`,
     );
     return detailedProducts;
-  } catch {
+  } catch (error) {
     normalLog("💥 商品详情抓取主流程失败:");
     return products; // 返回原始数据
   }
@@ -1571,8 +1572,8 @@ async function extractProductDetails(
  * 模拟点击商品链接进入详情页
  */
 async function simulateProductClick(
-  page: Record<string, unknown>,
-  productElement: Record<string, unknown>,
+  page: any,
+  productElement: any,
 ): Promise<boolean> {
   try {
     verboseLog("🖱️  准备点击商品进入详情页...");
@@ -1619,7 +1620,7 @@ async function simulateProductClick(
     verboseLog("✅ 成功进入商品详情页");
 
     return true;
-  } catch {
+  } catch (error) {
     normalLog("💥 点击商品失败:");
     return false;
   }
@@ -1628,9 +1629,7 @@ async function simulateProductClick(
 /**
  * 返回商品列表页
  */
-async function navigateBackToList(
-  page: Record<string, unknown>,
-): Promise<boolean> {
+async function navigateBackToList(page: any): Promise<boolean> {
   try {
     verboseLog("🔙 返回商品列表页...");
 
@@ -1643,7 +1642,7 @@ async function navigateBackToList(
     verboseLog("✅ 成功返回商品列表页");
 
     return true;
-  } catch {
+  } catch (error) {
     normalLog("💥 返回列表页失败:");
     return false;
   }
@@ -1652,9 +1651,7 @@ async function navigateBackToList(
 /**
  * 优化的详情页浏览行为
  */
-async function simulateDetailPageBrowsing(
-  page: Record<string, unknown>,
-): Promise<void> {
+async function simulateDetailPageBrowsing(page: any): Promise<void> {
   try {
     verboseLog("👀 快速浏览详情页...");
 
@@ -1681,7 +1678,7 @@ async function simulateDetailPageBrowsing(
       Math.random() * viewport.height,
       { steps: 1 },
     );
-  } catch {
+  } catch (error) {
     verboseLog("⚠️ 详情页浏览模拟失败:");
   }
 }
@@ -1689,9 +1686,7 @@ async function simulateDetailPageBrowsing(
 /**
  * 提取商品详情页数据
  */
-async function extractPdpData(
-  page: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+async function extractPdpData(page: any): Promise<Record<string, unknown>> {
   try {
     verboseLog("📦 开始提取商品详情页数据...");
 
@@ -1719,7 +1714,7 @@ async function extractPdpData(
           verboseLog(`✅ 找到关键元素: ${selector}`);
           foundKeyElement = true;
           break;
-        } catch {
+        } catch (error) {
           verboseLog(`⏰ 等待元素超时: ${selector}`);
         }
       }
@@ -1730,7 +1725,7 @@ async function extractPdpData(
 
       // 减少页面稳定等待时间
       await page.waitForTimeout(1500);
-    } catch {
+    } catch (error) {
       verboseLog("⚠️ 页面加载等待超时，尝试继续:");
     }
 
@@ -1759,7 +1754,7 @@ async function extractPdpData(
           verboseLog(`✅ 品牌提取成功 (${selector}): ${productDetails.brand}`);
           break;
         }
-      } catch {
+      } catch (error) {
         continue;
       }
     }
@@ -1797,7 +1792,7 @@ async function extractPdpData(
           );
           break;
         }
-      } catch {
+      } catch (error) {
         continue;
       }
     }
@@ -1859,11 +1854,11 @@ async function extractPdpData(
                 break;
               }
             }
-          } catch {
+          } catch (error) {
             continue;
           }
         }
-      } catch {
+      } catch (error) {
         continue;
       }
     }
@@ -1889,7 +1884,7 @@ async function extractPdpData(
             if (desc && desc.trim().length > 10) {
               return desc.trim().substring(0, 150);
             }
-          } catch {
+          } catch (error) {
             continue;
           }
         }
@@ -1910,7 +1905,7 @@ async function extractPdpData(
               .first()
               .getAttribute("src", { timeout: 500 });
             if (img) return img.trim();
-          } catch {
+          } catch (error) {
             continue;
           }
         }
@@ -1940,7 +1935,7 @@ async function extractPdpData(
           productDetails.sku = skuMatch[1].toLowerCase();
         }
       }
-    } catch {
+    } catch (error) {
       verboseLog("⚠️ SKU提取失败");
     }
 
@@ -1952,9 +1947,9 @@ async function extractPdpData(
     );
 
     return productDetails;
-  } catch {
+  } catch (error) {
     normalLog("💥 详情页数据提取失败:");
-    return null;
+    return {};
   }
 }
 
@@ -1965,10 +1960,10 @@ async function extractPdpData(
  * @param itemIndex - 商品在页面中的索引（用于查找页面指示器）
  */
 async function extractSingleProduct(
-  item: Record<string, unknown>,
-  page: Record<string, unknown>,
+  item: any,
+  page: any,
   itemIndex?: number,
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown> | null> {
   try {
     // 🚀 并行化所有DOM查询以提升性能
     const [
@@ -2113,7 +2108,7 @@ async function extractSingleProduct(
 
         pageNumber = maxPageNumber;
         verboseLog(`📄 商品 ${itemIndex + 1} 属于第 ${pageNumber} 页`);
-      } catch {
+      } catch (error) {
         verboseLog(
           `⚠️ 无法确定商品页面，使用默认值: ${(error as Error).message}`,
         );
@@ -2143,7 +2138,7 @@ async function extractSingleProduct(
         itemIndex: itemIndex,
       },
     };
-  } catch {
+  } catch (error) {
     throw error;
   }
 }

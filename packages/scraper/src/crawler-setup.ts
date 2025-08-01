@@ -308,7 +308,7 @@ export function createStealthCrawler(
     options.launchContext?.launchOptions || {};
 
   const launchContext: PlaywrightLaunchContext = {
-    launcher: chromium,
+    launcher: chromium as any,
     launchOptions: {
       headless,
       args: getUltimateStealthBrowserArgs(),

@@ -161,8 +161,8 @@ export class EnhancedAntiDetection {
 
       automationVars.forEach((varName) => {
         try {
-          delete (window as Record<string, unknown>)[varName];
-          delete (document as Record<string, unknown>)[varName];
+          delete (window as unknown as Record<string, unknown>)[varName];
+          delete (document as unknown as Record<string, unknown>)[varName];
         } catch {
           // Ignore error
         }
@@ -249,7 +249,7 @@ export class EnhancedAntiDetection {
       // ========== Complete Navigator Property Spoofing ==========
 
       // Create real Chrome object
-      if (!(window as Record<string, unknown>).chrome) {
+      if (!(window as unknown as Record<string, unknown>).chrome) {
         Object.defineProperty(window, "chrome", {
           writable: true,
           enumerable: true,

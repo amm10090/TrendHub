@@ -21,6 +21,21 @@ export default [
     ],
   },
   {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_|^error$",
+        },
+      ],
+      "no-useless-catch": "off",
+    },
+  },
+  {
     files: ["*.{js,mjs,cjs}"],
     languageOptions: {
       ecmaVersion: 2022,

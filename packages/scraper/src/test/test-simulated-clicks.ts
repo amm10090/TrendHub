@@ -80,8 +80,8 @@ async function testSimulatedClicks() {
 
       automationVars.forEach((varName) => {
         try {
-          delete (window as Record<string, unknown>)[varName];
-          delete (document as Record<string, unknown>)[varName];
+          delete (window as unknown as any)[varName];
+          delete (document as unknown as any)[varName];
         } catch {
           // Ignore deletion errors
         }
@@ -168,7 +168,7 @@ async function testSimulatedClicks() {
       // ========== 完善Navigator属性伪造 ==========
 
       // 创建真实的 Chrome 对象
-      if (!(window as Record<string, unknown>).chrome) {
+      if (!(window as any).chrome) {
         Object.defineProperty(window, "chrome", {
           writable: true,
           enumerable: true,
@@ -313,7 +313,7 @@ async function testSimulatedClicks() {
       };
 
       // 模拟鼠标轨迹缓存
-      (window as Record<string, unknown>).__mouseTrajectoryCache = [];
+      (window as any).__mouseTrajectoryCache = [];
       const originalAddEventListener = EventTarget.prototype.addEventListener;
       EventTarget.prototype.addEventListener = function (
         type,
@@ -322,18 +322,15 @@ async function testSimulatedClicks() {
       ) {
         if (type === "mousemove" && Math.random() < 0.1) {
           // 10%的概率记录鼠标移动
-          (window as Record<string, unknown>).__mouseTrajectoryCache.push({
+          (window as any).__mouseTrajectoryCache.push({
             timestamp: Date.now(),
             x: Math.floor(Math.random() * 1920),
             y: Math.floor(Math.random() * 1080),
           });
 
           // 限制缓存大小
-          if (
-            (window as Record<string, unknown>).__mouseTrajectoryCache.length >
-            50
-          ) {
-            (window as Record<string, unknown>).__mouseTrajectoryCache.shift();
+          if ((window as any).__mouseTrajectoryCache.length > 50) {
+            (window as any).__mouseTrajectoryCache.shift();
           }
         }
         return originalAddEventListener.call(this, type, listener, options);
@@ -472,58 +469,58 @@ async function testSimulatedClicks() {
 
       // 增强Canvas 2D渲染上下文混淆
       const originalGetContext = HTMLCanvasElement.prototype.getContext;
-      (HTMLCanvasElement.prototype as Record<string, unknown>).getContext =
-        function (contextType: string, contextAttributes: unknown) {
-          const context = originalGetContext.call(
-            this,
-            contextType,
-            contextAttributes,
-          );
+      (HTMLCanvasElement.prototype as any).getContext = function (
+        contextType: string,
+        contextAttributes: unknown,
+      ) {
+        const context = originalGetContext.call(
+          this,
+          contextType,
+          contextAttributes,
+        );
 
-          if (contextType === "2d" && context) {
-            // 重写fillText和strokeText方法添加微小偏移
-            const originalFillText = (context as Record<string, unknown>)
-              .fillText;
-            const originalStrokeText = (context as Record<string, unknown>)
-              .strokeText;
+        if (contextType === "2d" && context) {
+          // 重写fillText和strokeText方法添加微小偏移
+          const originalFillText = (context as any).fillText;
+          const originalStrokeText = (context as any).strokeText;
 
-            (context as Record<string, unknown>).fillText = function (
-              text: unknown,
-              x: unknown,
-              y: unknown,
-              maxWidth: unknown,
-            ) {
-              const offsetX = x + (Math.random() - 0.5) * 0.001;
-              const offsetY = y + (Math.random() - 0.5) * 0.001;
-              return originalFillText.call(
-                this,
-                text,
-                offsetX,
-                offsetY,
-                maxWidth,
-              );
-            };
+          (context as any).fillText = function (
+            text: unknown,
+            x: unknown,
+            y: unknown,
+            maxWidth: unknown,
+          ) {
+            const offsetX = (x as number) + (Math.random() - 0.5) * 0.001;
+            const offsetY = (y as number) + (Math.random() - 0.5) * 0.001;
+            return originalFillText.call(
+              this,
+              text,
+              offsetX,
+              offsetY,
+              maxWidth,
+            );
+          };
 
-            (context as Record<string, unknown>).strokeText = function (
-              text: unknown,
-              x: unknown,
-              y: unknown,
-              maxWidth: unknown,
-            ) {
-              const offsetX = x + (Math.random() - 0.5) * 0.001;
-              const offsetY = y + (Math.random() - 0.5) * 0.001;
-              return originalStrokeText.call(
-                this,
-                text,
-                offsetX,
-                offsetY,
-                maxWidth,
-              );
-            };
-          }
+          (context as any).strokeText = function (
+            text: unknown,
+            x: unknown,
+            y: unknown,
+            maxWidth: unknown,
+          ) {
+            const offsetX = (x as number) + (Math.random() - 0.5) * 0.001;
+            const offsetY = (y as number) + (Math.random() - 0.5) * 0.001;
+            return originalStrokeText.call(
+              this,
+              text,
+              offsetX,
+              offsetY,
+              maxWidth,
+            );
+          };
+        }
 
-          return context;
-        };
+        return context;
+      };
 
       // ========== 媒体设备混淆 ==========
 
@@ -531,45 +528,43 @@ async function testSimulatedClicks() {
       if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
         const originalEnumerateDevices =
           navigator.mediaDevices.enumerateDevices;
-        (navigator.mediaDevices as Record<string, unknown>).enumerateDevices =
-          function () {
-            return originalEnumerateDevices
-              .call(this)
-              .then((devices: MediaDeviceInfo[]) => {
-                // 添加一些常见的虚假设备
-                const fakeDevices = [
-                  {
-                    deviceId: "default",
-                    groupId: "5f4e2c3b8a1d7f9e6c4a8b2d1e3f5a7c",
-                    kind: "audioinput" as MediaDeviceKind,
-                    label: "Built-in Microphone",
-                    toJSON: function () {
-                      return this;
-                    },
+        (navigator.mediaDevices as any).enumerateDevices = function () {
+          return originalEnumerateDevices
+            .call(this)
+            .then((devices: MediaDeviceInfo[]) => {
+              // 添加一些常见的虚假设备
+              const fakeDevices = [
+                {
+                  deviceId: "default",
+                  groupId: "5f4e2c3b8a1d7f9e6c4a8b2d1e3f5a7c",
+                  kind: "audioinput" as MediaDeviceKind,
+                  label: "Built-in Microphone",
+                  toJSON: function () {
+                    return this;
                   },
-                  {
-                    deviceId: "communications",
-                    groupId: "5f4e2c3b8a1d7f9e6c4a8b2d1e3f5a7c",
-                    kind: "audiooutput" as MediaDeviceKind,
-                    label: "Built-in Output",
-                    toJSON: function () {
-                      return this;
-                    },
+                },
+                {
+                  deviceId: "communications",
+                  groupId: "5f4e2c3b8a1d7f9e6c4a8b2d1e3f5a7c",
+                  kind: "audiooutput" as MediaDeviceKind,
+                  label: "Built-in Output",
+                  toJSON: function () {
+                    return this;
                   },
-                ];
+                },
+              ];
 
-                return [...devices, ...fakeDevices];
-              });
-          };
+              return [...devices, ...fakeDevices];
+            });
+        };
       }
 
       // ========== 电池API混淆 ==========
 
       // 如果存在电池API，进行混淆
-      if ((navigator as Record<string, unknown>).getBattery) {
-        const originalGetBattery = (navigator as Record<string, unknown>)
-          .getBattery;
-        (navigator as Record<string, unknown>).getBattery = function () {
+      if ((navigator as any).getBattery) {
+        const originalGetBattery = (navigator as any).getBattery;
+        (navigator as any).getBattery = function () {
           return (originalGetBattery as () => Promise<BatteryManager>)
             .call(this)
             .then((battery: BatteryManager) => {
@@ -868,7 +863,7 @@ async function testSimulatedClicks() {
     await new Promise((resolve) => setTimeout(resolve, 30000));
 
     await browser.close();
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("\n❌ 模拟点击测试失败:");
     console.error(error);
   }
@@ -906,7 +901,7 @@ async function simulateRealUserBehavior(page: Page): Promise<void> {
 /**
  * 模拟产品页面浏览行为
  */
-async function simulateProductBrowsing(page: unknown): Promise<void> {
+async function simulateProductBrowsing(page: Page): Promise<void> {
   // 更长的浏览时间
   const browsingTime = 5000 + Math.random() * 5000;
   await new Promise((resolve) => setTimeout(resolve, browsingTime));
@@ -928,13 +923,13 @@ async function simulateProductBrowsing(page: unknown): Promise<void> {
 /**
  * 提取产品信息 - 支持多页抓取
  */
-async function extractProducts(page: unknown): Promise<unknown[]> {
+async function extractProducts(page: Page): Promise<Record<string, unknown>[]> {
   try {
     console.log("🔍 开始多页商品抓取...");
     console.log("🎯 目标: 抓取180个商品");
 
     const TARGET_PRODUCTS = 180;
-    const products: unknown[] = [];
+    const products: Record<string, unknown>[] = [];
     let currentPage = 1;
 
     while (products.length < TARGET_PRODUCTS) {
@@ -989,7 +984,7 @@ async function extractProducts(page: unknown): Promise<unknown[]> {
 
     console.log(`🎉 多页抓取完成，共获取 ${products.length} 个商品`);
     return products.slice(0, TARGET_PRODUCTS); // 确保不超过目标数量
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("💥 多页抓取失败:", error);
     return [];
   }
@@ -998,7 +993,9 @@ async function extractProducts(page: unknown): Promise<unknown[]> {
 /**
  * 提取当前页面的商品
  */
-async function extractCurrentPageProducts(page: unknown): Promise<unknown[]> {
+async function extractCurrentPageProducts(
+  page: Page,
+): Promise<Record<string, unknown>[]> {
   try {
     let productItems: unknown[] = [];
 
@@ -1022,7 +1019,7 @@ async function extractCurrentPageProducts(page: unknown): Promise<unknown[]> {
       return [];
     }
 
-    const products: unknown[] = [];
+    const products: Record<string, unknown>[] = [];
 
     for (let i = 0; i < productItems.length; i++) {
       const item = productItems[i];
@@ -1043,7 +1040,7 @@ async function extractCurrentPageProducts(page: unknown): Promise<unknown[]> {
     }
 
     return products;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("💥 提取当前页面商品失败:", error);
     return [];
   }
@@ -1052,7 +1049,7 @@ async function extractCurrentPageProducts(page: unknown): Promise<unknown[]> {
 /**
  * 加载更多商品
  */
-async function loadMoreProducts(page: unknown): Promise<boolean> {
+async function loadMoreProducts(page: Page): Promise<boolean> {
   try {
     console.log("\n🔄 寻找并点击'Show more'按钮...");
 
@@ -1134,14 +1131,14 @@ async function loadMoreProducts(page: unknown): Promise<boolean> {
 
     console.log("✅ 成功加载更多商品");
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("💥 加载更多商品失败:", error);
     return false;
   }
 }
 
 /*
-async function debugPdpStructure(page: unknown): Promise<void> {
+async function debugPdpStructure(page: Page): Promise<void> {
   try {
     console.log("🔍 开始分析详情页DOM结构...");
     
@@ -1239,7 +1236,7 @@ async function debugPdpStructure(page: unknown): Promise<void> {
       }
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("💥 DOM结构分析失败:", error);
   }
 }
@@ -1248,7 +1245,9 @@ async function debugPdpStructure(page: unknown): Promise<void> {
 /**
  * 提取商品详情页数据
  */
-async function extractPdpData(page: unknown): Promise<unknown> {
+async function extractPdpData(
+  page: Page,
+): Promise<Record<string, unknown> | null> {
   try {
     console.log("📦 开始提取商品详情页数据...");
 
@@ -1496,7 +1495,7 @@ async function extractPdpData(page: unknown): Promise<unknown> {
     );
 
     return productDetails;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("💥 详情页数据提取失败:", error);
     return null;
   }
@@ -1506,8 +1505,8 @@ async function extractPdpData(page: unknown): Promise<unknown> {
  * 模拟点击商品链接进入详情页
  */
 async function simulateProductClick(
-  page: unknown,
-  productElement: unknown,
+  page: Page,
+  productElement: any,
 ): Promise<boolean> {
   try {
     console.log("🖱️  准备点击商品进入详情页...");
@@ -1554,7 +1553,7 @@ async function simulateProductClick(
     console.log("✅ 成功进入商品详情页");
 
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("💥 点击商品失败:", error);
     return false;
   }
@@ -1563,7 +1562,7 @@ async function simulateProductClick(
 /**
  * 返回商品列表页
  */
-async function navigateBackToList(page: unknown): Promise<boolean> {
+async function navigateBackToList(page: Page): Promise<boolean> {
   try {
     console.log("🔙 返回商品列表页...");
 
@@ -1576,7 +1575,7 @@ async function navigateBackToList(page: unknown): Promise<boolean> {
     console.log("✅ 成功返回商品列表页");
 
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("💥 返回列表页失败:", error);
     return false;
   }
@@ -1586,14 +1585,14 @@ async function navigateBackToList(page: unknown): Promise<boolean> {
  * 提取商品详情信息（主函数）
  */
 async function extractProductDetails(
-  page: unknown,
-  products: unknown[],
+  page: Page,
+  products: Record<string, unknown>[],
   maxDetailsCount = 20,
-): Promise<unknown[]> {
+): Promise<Record<string, unknown>[]> {
   try {
     console.log(`\n🔍 开始抓取商品详情信息 (目标: ${maxDetailsCount}个)`);
 
-    const detailedProducts: unknown[] = [];
+    const detailedProducts: Record<string, unknown>[] = [];
     const targetProducts = products.slice(0, maxDetailsCount);
 
     for (let i = 0; i < targetProducts.length; i++) {
@@ -1631,8 +1630,8 @@ async function extractProductDetails(
         if (detailData) {
           // 合并列表页和详情页数据
           const combinedProduct = {
-            ...product,
-            ...detailData,
+            ...(product as any),
+            ...(detailData as any),
             listPageData: product,
             hasDetailData: true,
           };
@@ -1643,7 +1642,7 @@ async function extractProductDetails(
           console.log(`⚠️ 商品详情提取失败 ${i + 1}/${targetProducts.length}`);
           // 仍然保存基础数据
           detailedProducts.push({
-            ...product,
+            ...(product as any),
             hasDetailData: false,
           });
         }
@@ -1660,7 +1659,7 @@ async function extractProductDetails(
         const waitTime = 1000 + Math.random() * 2000;
         console.log(`⏰ 快速等待 ${Math.round(waitTime / 1000)} 秒...`);
         await page.waitForTimeout(waitTime);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`💥 处理商品 ${i + 1} 时发生错误:`, error);
         // 尝试返回列表页
         try {
@@ -1678,7 +1677,7 @@ async function extractProductDetails(
       `\n🎉 商品详情抓取完成，成功获取 ${detailedProducts.length} 个商品的详细信息`,
     );
     return detailedProducts;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("💥 商品详情抓取主流程失败:", error);
     return products; // 返回原始数据
   }
@@ -1687,7 +1686,7 @@ async function extractProductDetails(
 /**
  * 优化的详情页浏览行为 - 减少不必要的等待时间
  */
-async function simulateDetailPageBrowsing(page: unknown): Promise<void> {
+async function simulateDetailPageBrowsing(page: Page): Promise<void> {
   try {
     console.log("👀 快速浏览详情页...");
 
@@ -1714,7 +1713,7 @@ async function simulateDetailPageBrowsing(page: unknown): Promise<void> {
       Math.random() * viewport.height,
       { steps: 1 }, // 减少步数
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.log("⚠️ 详情页浏览模拟失败:", error);
   }
 }
@@ -1723,9 +1722,9 @@ async function simulateDetailPageBrowsing(page: unknown): Promise<void> {
  * 提取单个产品的信息
  */
 async function extractSingleProduct(
-  item: unknown,
-  page: unknown,
-): Promise<unknown> {
+  item: any,
+  page: Page,
+): Promise<Record<string, unknown> | null> {
   try {
     // 提取链接
     const link = await item
@@ -1798,7 +1797,7 @@ async function extractSingleProduct(
       tags,
       source: "Mytheresa",
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("提取单个产品失败:", error);
     return null;
   }

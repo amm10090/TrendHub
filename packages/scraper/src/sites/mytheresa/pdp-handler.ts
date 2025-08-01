@@ -191,11 +191,27 @@ async function extractOptimizedPdpData(
               );
               if (priceMatches && priceMatches.length > 0) {
                 if (priceMatches.length === 1) {
-                  productDetails.currentPrice = priceMatches[0].trim();
+                  const priceText = priceMatches[0].trim();
+                  const amount = parseFloat(priceText.replace(/[^0-9.]/g, ""));
+                  productDetails.currentPrice = { amount, currency: "USD" };
                 } else {
                   // 多个价格，第一个通常是当前价格，第二个是原价
-                  productDetails.currentPrice = priceMatches[0].trim();
-                  productDetails.originalPrice = priceMatches[1].trim();
+                  const currentText = priceMatches[0].trim();
+                  const originalText = priceMatches[1].trim();
+                  const currentAmount = parseFloat(
+                    currentText.replace(/[^0-9.]/g, ""),
+                  );
+                  const originalAmount = parseFloat(
+                    originalText.replace(/[^0-9.]/g, ""),
+                  );
+                  productDetails.currentPrice = {
+                    amount: currentAmount,
+                    currency: "USD",
+                  };
+                  productDetails.originalPrice = {
+                    amount: originalAmount,
+                    currency: "USD",
+                  };
                 }
                 console.log(`✅ 快速提取价格: ${productDetails.currentPrice}`);
                 // priceExtracted = true;
@@ -267,7 +283,8 @@ async function extractOptimizedPdpData(
     }
 
     if (mainImage.status === "fulfilled" && mainImage.value) {
-      productDetails.detailImages = [mainImage.value];
+      productDetails.images = productDetails.images || [];
+      productDetails.images.push(mainImage.value);
       console.log(`✅ 主图片提取成功`);
     }
 
@@ -431,7 +448,7 @@ async function extractOptimizedPdpData(
 
       if (allImages.length > 0) {
         productDetails.images = allImages;
-        productDetails.detailImages = allImages; // 向后兼容
+        // detailImages removed - using images field only
         console.log(`✅ 提取到 ${allImages.length} 张图片`);
       }
     } catch {
@@ -508,24 +525,30 @@ async function extractOptimizedPdpData(
       }
 
       if (sizeFitDetails.length > 0) {
-        productDetails.sizeFitInfo = sizeFitDetails;
+        // Store sizeFitInfo in metadata
+        productDetails.metadata = productDetails.metadata || {};
+        (productDetails.metadata as Record<string, unknown>).sizeFitInfo =
+          sizeFitDetails;
         console.log(`✅ 尺寸合身信息: ${sizeFitDetails.length} 条`);
       }
     } catch {
       console.log("⚠️ 尺寸合身信息提取失败");
     }
 
-    productDetails.detailPageUrl = page.url();
-    productDetails.scrapedAt = new Date().toISOString();
+    // Store detailPageUrl in metadata
+    productDetails.metadata = productDetails.metadata || {};
+    (productDetails.metadata as Record<string, unknown>).detailPageUrl =
+      page.url();
+    productDetails.scrapedAt = new Date();
 
     console.log(
       `✅ 详情页数据提取完成: ${productDetails.brand} - ${productDetails.name}`,
     );
 
-    return productDetails;
+    return productDetails as Partial<Product>;
   } catch (error) {
     console.error("💥 详情页数据提取失败:", error);
-    return null;
+    return {} as Partial<Product>;
   }
 }
 
@@ -572,7 +595,7 @@ export async function handlePdp(
         product.sku = skuMatch[1].toLowerCase();
       }
     }
-  } catch {
+  } catch (e) {
     localCrawlerLog.warning(
       `Mytheresa: Could not parse SKU from URL ${request.url}: ${(e as Error).message}`,
     );
@@ -641,22 +664,23 @@ export async function handlePdp(
         return { amount, currency };
       };
 
-      product.currentPrice = parsePrice(optimizedData.currentPrice);
+      if (typeof optimizedData.currentPrice === "string") {
+        product.currentPrice = parsePrice(optimizedData.currentPrice);
+      } else if (typeof optimizedData.currentPrice === "object") {
+        product.currentPrice = optimizedData.currentPrice as Price;
+      }
       if (optimizedData.originalPrice) {
-        product.originalPrice = parsePrice(optimizedData.originalPrice);
+        if (typeof optimizedData.originalPrice === "string") {
+          product.originalPrice = parsePrice(optimizedData.originalPrice);
+        } else if (typeof optimizedData.originalPrice === "object") {
+          product.originalPrice = optimizedData.originalPrice as Price;
+        }
       }
     }
 
     // 处理图片 - 优先使用详情页的完整图片集合
     if (optimizedData.images && optimizedData.images.length > 0) {
       product.images = optimizedData.images;
-    } else if (
-      optimizedData.detailImages &&
-      optimizedData.detailImages.length > 0
-    ) {
-      product.images = [
-        ...new Set([...(product.images || []), ...optimizedData.detailImages]),
-      ];
     }
   }
 

@@ -130,7 +130,7 @@ async function extractSingleProduct(
     }
   }
 
-  return {
+  const productData: Record<string, unknown> = {
     brand: brand?.trim() || "",
     name: name?.trim() || "",
     title: name?.trim() || "", // 兼容字段
@@ -140,6 +140,7 @@ async function extractSingleProduct(
     tags,
     source: "Mytheresa",
   };
+  return productData;
 }
 
 /**
@@ -323,12 +324,13 @@ async function extractMultiPageProducts(
         if (products.length >= maxProducts) break;
 
         // 检查是否已存在（通过链接判断）
-        const exists = products.some((p) => p.link === product.link);
+        const productLink = (product as any).link;
+        const exists = products.some((p) => (p as any).link === productLink);
         if (!exists) {
           products.push(product);
           newProductsCount++;
           log.info(
-            `✅ 商品 ${products.length}: ${product.brand} - ${product.name || product.title}`,
+            `✅ 商品 ${products.length}: ${product.brand} - ${product.name || (product as any).title}`,
           );
         }
       }

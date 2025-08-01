@@ -3,7 +3,7 @@
     {
       "name": "trend-hub-admin",
       "cwd": ".",
-      "script": "./scripts/pm2-xvfb-wrapper.sh",
+      "script": "./scripts/pm2-admin-start.sh",
       "args": "",
       "instances": "1",
       "exec_mode": "fork",
@@ -16,7 +16,8 @@
       "env_production": {
         "NODE_ENV": "production",
         "NODE_OPTIONS": "--no-deprecation",
-        "AUTH_TRUST_HOST": "true"
+        "AUTH_TRUST_HOST": "true",
+        "DISPLAY": ":99"
       },
       "error_file": "./logs/admin-error.log",
       "out_file": "./logs/admin-out.log",
@@ -38,7 +39,8 @@
       "env_production": {
         "NODE_ENV": "production",
         "NODE_OPTIONS": "--no-deprecation",
-        "AUTH_TRUST_HOST": "true"
+        "AUTH_TRUST_HOST": "true",
+        "DISPLAY": ":99"
       },
       "error_file": "./logs/web-error.log",
       "out_file": "./logs/web-out.log",

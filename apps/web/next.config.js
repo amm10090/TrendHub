@@ -66,7 +66,7 @@ const nextConfig = {
     const apiUrl =
       (typeof globalThis !== 'undefined' && globalThis.process
         ? globalThis.process.env.INTERNAL_API_URL
-        : undefined) || 'http://localhost:3005';
+        : undefined) || 'http://localhost:3001';
     return [
       {
         source: '/api/public/:path*',

@@ -2,9 +2,9 @@
   "apps": [
     {
       "name": "trend-hub-admin",
-      "cwd": "./apps/admin",
-      "script": "./scripts/start-with-display.sh",
-      "args": "npm run start:production",
+      "cwd": ".",
+      "script": "./scripts/pm2-xvfb-wrapper.sh",
+      "args": "",
       "instances": "1",
       "exec_mode": "fork",
       "watch": false,

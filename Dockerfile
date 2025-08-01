@@ -58,6 +58,9 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g pnpm@10.11.1
 WORKDIR /app
 COPY --from=admin-deploy-intermediate /prod/admin /app
+# Copy the start script
+COPY scripts/start-with-display.sh /app/scripts/start-with-display.sh
+RUN chmod +x /app/scripts/start-with-display.sh
 
 # 在运行时重新生成Prisma客户端
 RUN npx prisma generate || true
@@ -102,7 +105,7 @@ RUN mkdir -p /root/.cache/ms-playwright/chromium-1169/chrome-linux/ && \
     ln -sf /usr/bin/chromium-browser /root/.cache/ms-playwright/chromium-1169/chrome-linux/chrome
 
 EXPOSE 3001
-CMD ["dbus-run-session", "--", "pnpm", "start"]
+CMD ["/app/scripts/start-with-display.sh", "dbus-run-session", "--", "pnpm", "start"]
 
 FROM base AS web-deploy-intermediate
 WORKDIR /app

@@ -8,6 +8,8 @@
     "build": "prisma generate && next build",
     "start": "next start -p 3001",
     "start:production": "NODE_OPTIONS='--no-deprecation' next start -p 3001",
+    "start:xvfb": "../../scripts/start-with-display.sh pnpm start",
+    "start:production:xvfb": "../../scripts/start-with-display.sh pnpm start:production",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "clean": "rm -rf .next node_modules",

@@ -53,6 +53,16 @@ export default async function scrapeMytheresaSimple(
   let browser: any = null;
 
   try {
+    // 检测是否在服务器环境运行
+    const isServerEnvironment =
+      !process.env.DISPLAY && process.platform === "linux";
+
+    // 如果在服务器环境且没有 DISPLAY，提示需要使用 xvfb
+    if (isServerEnvironment) {
+      console.log("⚠️  检测到服务器环境，需要虚拟显示器支持");
+      console.log("   请使用 xvfb-run 启动应用，或设置 DISPLAY 环境变量");
+    }
+
     // 使用与测试脚本完全相同的浏览器配置
     browser = await chromium.launch({
       headless: false, // 关闭无头模式 - 显示浏览器界面

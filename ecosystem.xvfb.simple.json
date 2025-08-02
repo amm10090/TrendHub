@@ -1,0 +1,30 @@
+{
+  "apps": [
+    {
+      "name": "trend-hub-admin",
+      "cwd": "./apps/admin",
+      "script": "pnpm",
+      "args": "run start:production",
+      "instances": "1",
+      "exec_mode": "fork",
+      "watch": false,
+      "autorestart": true,
+      "max_memory_restart": "512M",
+      "env": {
+        "NODE_ENV": "production",
+        "NODE_OPTIONS": "--no-deprecation",
+        "AUTH_TRUST_HOST": "true",
+        "DISPLAY": ":99"
+      },
+      "env_production": {
+        "NODE_ENV": "production",
+        "NODE_OPTIONS": "--no-deprecation",
+        "AUTH_TRUST_HOST": "true",
+        "DISPLAY": ":99"
+      },
+      "error_file": "./logs/admin-error.log",
+      "out_file": "./logs/admin-out.log",
+      "log_file": "./logs/admin-combined.log"
+    }
+  ]
+}

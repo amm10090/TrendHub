@@ -17,6 +17,9 @@ else
     echo "✅ 显示环境已配置: DISPLAY=$DISPLAY"
 fi
 
+# 确保 DISPLAY 环境变量被导出
+echo "📝 当前 DISPLAY 设置: $DISPLAY"
+
 # 执行标准的生产启动流程
 echo "📦 步骤 1/3: 数据库推送..."
 turbo run db:push --filter=@trend-hub/admin
@@ -25,7 +28,8 @@ echo "🔨 步骤 2/3: 构建应用..."
 turbo run build
 
 echo "✨ 步骤 3/3: 启动 PM2 进程..."
-pm2 start ecosystem.config.json --env production
+# 使用 --update-env 确保环境变量被更新
+DISPLAY=$DISPLAY pm2 start ecosystem.config.json --env production --update-env
 
 echo "✅ 启动完成！"
 echo ""

@@ -15,7 +15,9 @@ if [ -z "$DISPLAY" ]; then
         # Start with virtual display
         # -a: auto-select display number
         # -s: server arguments
-        exec xvfb-run -a -s "-screen 0 1920x1080x24 -nolisten tcp -dpi 96" "$@"
+        # -e: error file
+        export DISPLAY=:99
+        exec xvfb-run -a -e /tmp/xvfb-error.log -s "-screen 0 1920x1080x24 -nolisten tcp -dpi 96 -ac +extension GLX" "$@"
     else
         echo "WARNING: xvfb-run not found, starting without display"
         echo "This may cause issues with headed browser mode"

@@ -3,7 +3,7 @@
     {
       "name": "trend-hub-admin",
       "cwd": ".",
-      "script": "./scripts/pm2-admin-start.sh",
+      "script": "./scripts/admin-xvfb-start.sh",
       "args": "",
       "instances": "1",
       "exec_mode": "fork",

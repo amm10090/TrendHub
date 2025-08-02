@@ -38,7 +38,10 @@ type ScraperFunction = (
 export class TaskExecutor {
   private static instance: TaskExecutor;
 
-  private constructor() {}
+  private constructor() {
+    // 确保在服务器环境中设置了虚拟显示器
+    this.ensureDisplayEnvironment();
+  }
 
   public static getInstance(): TaskExecutor {
     if (!TaskExecutor.instance) {
@@ -46,6 +49,20 @@ export class TaskExecutor {
     }
 
     return TaskExecutor.instance;
+  }
+
+  private ensureDisplayEnvironment(): void {
+    // 检查是否在服务器环境中运行（没有 DISPLAY）
+    const isServerEnvironment =
+      !process.env.DISPLAY && process.platform === "linux";
+
+    if (isServerEnvironment) {
+      // 设置默认的 DISPLAY 环境变量
+      process.env.DISPLAY = ":99";
+      logger.info(
+        "Server environment detected, set DISPLAY=:99 for virtual display",
+      );
+    }
   }
 
   private async log(
@@ -731,6 +748,7 @@ export class TaskExecutor {
         storageDir:
           process.env.CRAWLEE_STORAGE_DIR ||
           path.resolve(process.cwd(), "storage"),
+        // 不强制设置 headless，让爬虫根据需要自行决定
       };
 
       const siteKey = taskDefinition.targetSite as ECommerceSite;
@@ -769,6 +787,7 @@ export class TaskExecutor {
             maxProducts: scraperOptions.maxProducts,
           },
           productCountBefore,
+          displayEnv: process.env.DISPLAY || "not set",
         },
         logInfoForTask,
       );

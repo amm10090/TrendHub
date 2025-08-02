@@ -57,16 +57,37 @@ export default async function scrapeMytheresaSimple(
     const isServerEnvironment =
       !process.env.DISPLAY && process.platform === "linux";
 
-    // 如果在服务器环境且没有 DISPLAY，提示需要使用 xvfb
-    if (isServerEnvironment) {
-      console.log("⚠️  检测到服务器环境，需要虚拟显示器支持");
-      console.log("   请使用 xvfb-run 启动应用，或设置 DISPLAY 环境变量");
+    // 在服务器环境中检查虚拟显示器
+    if (isServerEnvironment && !useHeadless) {
+      console.log("⚠️  检测到服务器环境，使用非无头模式需要虚拟显示器支持");
+      console.log("   请确保已经运行 ensure-xvfb.sh 或设置 DISPLAY=:99");
+      console.log("   如需强制使用无头模式，请设置 FORCE_HEADLESS=true");
+    }
+
+    if (!useHeadless) {
+      normalLog(`🖥️  使用有头模式运行（headless: false）以避开反爬虫检测`);
+    } else {
+      normalLog(`🤖 使用无头模式运行（headless: true）`);
     }
 
     // 使用与测试脚本完全相同的浏览器配置
+    // 根据环境决定是否使用无头模式
+    const isServerEnvironment =
+      !process.env.DISPLAY && process.platform === "linux";
+    const useHeadless = process.env.FORCE_HEADLESS === "true";
+
     browser = await chromium.launch({
-      headless: true, // 使用无头模式
-      args: ["--no-sandbox", "--disable-blink-features=AutomationControlled"],
+      headless: useHeadless, // 默认使用非无头模式以避开反爬虫检测
+      args: [
+        "--no-sandbox",
+        "--disable-blink-features=AutomationControlled",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage", // 解决 Docker 中的内存问题
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu", // 在服务器环境中禁用 GPU
+        "--window-size=1920,1080", // 设置窗口大小
+        "--start-maximized",
+      ],
     });
 
     const context = await (browser as any).newContext({

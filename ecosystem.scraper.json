@@ -1,0 +1,25 @@
+{
+  "apps": [
+    {
+      "name": "mytheresa-scraper",
+      "cwd": "./packages/scraper",
+      "script": "../../scripts/run-mytheresa-scraper.sh",
+      "args": "",
+      "instances": "1",
+      "exec_mode": "fork",
+      "interpreter": "/bin/bash",
+      "watch": false,
+      "autorestart": false,
+      "cron_restart": "0 */6 * * *",
+      "max_memory_restart": "1G",
+      "env": {
+        "NODE_ENV": "production",
+        "DISPLAY": ":99",
+        "FORCE_HEADLESS": "false"
+      },
+      "error_file": "./logs/mytheresa-scraper-error.log",
+      "out_file": "./logs/mytheresa-scraper-out.log",
+      "log_file": "./logs/mytheresa-scraper-combined.log"
+    }
+  ]
+}

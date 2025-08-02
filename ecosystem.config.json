@@ -13,10 +13,17 @@
       "min_uptime": "10s",
       "max_restarts": 5,
       "restart_delay": 5000,
+      "env": {
+        "NODE_ENV": "production",
+        "NODE_OPTIONS": "--no-deprecation",
+        "AUTH_TRUST_HOST": "true",
+        "DISPLAY": ":99"
+      },
       "env_production": {
         "NODE_ENV": "production",
         "NODE_OPTIONS": "--no-deprecation",
-        "AUTH_TRUST_HOST": "true"
+        "AUTH_TRUST_HOST": "true",
+        "DISPLAY": ":99"
       },
       "error_file": "./logs/admin-error.log",
       "out_file": "./logs/admin-out.log",
@@ -35,6 +42,11 @@
       "min_uptime": "10s",
       "max_restarts": 5,
       "restart_delay": 5000,
+      "env": {
+        "NODE_ENV": "production",
+        "NODE_OPTIONS": "--no-deprecation",
+        "AUTH_TRUST_HOST": "true"
+      },
       "env_production": {
         "NODE_ENV": "production",
         "NODE_OPTIONS": "--no-deprecation",

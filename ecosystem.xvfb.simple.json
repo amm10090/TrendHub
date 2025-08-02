@@ -3,8 +3,8 @@
     {
       "name": "trend-hub-admin",
       "cwd": "./apps/admin",
-      "script": "pnpm",
-      "args": "run start:production",
+      "script": "./start-production-with-display.sh",
+      "args": "",
       "instances": "1",
       "exec_mode": "fork",
       "watch": false,

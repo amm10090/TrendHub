@@ -65,7 +65,7 @@ export default async function scrapeMytheresaSimple(
 
     // 使用与测试脚本完全相同的浏览器配置
     browser = await chromium.launch({
-      headless: false, // 关闭无头模式 - 显示浏览器界面
+      headless: true, // 使用无头模式
       args: ["--no-sandbox", "--disable-blink-features=AutomationControlled"],
     });
 
